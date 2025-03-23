@@ -12,7 +12,8 @@ namespace Assert.Domain.Repositories
         Task<bool> HasStepInProcess(long listingRentId);
         Task<TlListingRent> SetAccomodationType(long propertyId, int? subtypeId);
         Task SetCapacity(long listingRentId, int? beds, int? bedrooms, bool? allDoorsLocked, int? maxGuests);
-        void SetAsConfirmed(long listingRentId);
+        Task SetCapacity(long listingRentId, int? beds, int? bedrooms, int? bathrooms, int? maxGuests);
+        Task SetAsConfirmed(long listingRentId);
         Task SetSecurityConfirmationData(long listingRentId, bool? presenceOfWeapons, bool? noiseDesibelesMonitor, bool? externalCameras);
         Task SetApprovalPolicy(long listingRentId, int? approvalPolicyTypeId);
         Task SetDescription(long listingRentId, string description);

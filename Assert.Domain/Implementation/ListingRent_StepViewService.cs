@@ -57,37 +57,37 @@ namespace Assert.Domain.Implementation
                 //case "LV005":
                 //    ReturnModel bathroomsResult = await SetBathrooms(listing, request_, useTechnicalMessages, clientData);
                 //    return bathroomsResult;
+                //case "LV006":
+                //    ReturnModel stayPrecenseResult = await SetStayPrecense(listing, request_, useTechnicalMessages, clientData);
+                //    return stayPrecenseResult;
                 case "LV006":
-                    ReturnModel stayPrecenseResult = await SetStayPrecense(listing, request_, useTechnicalMessages, clientData);
-                    return stayPrecenseResult;
-                case "LV007":
-                    ReturnModel amenitiesResult = await SetAmenitiesAndSecurityItems(listing, request_, useTechnicalMessages, clientData);
+                    ReturnModel amenitiesResult = await SetAmenities(listing, request_, useTechnicalMessages, clientData);
                     return amenitiesResult;
-                case "LV008":
+                case "LV007":
                     ReturnModel photosResult = await SetPhotos(listing, request_, useTechnicalMessages, clientData);
                     return photosResult;
-                case "LV009":
-                    ReturnModel titleResult = await SetTitle(listing, request_, useTechnicalMessages, clientData);
+                case "LV008":
+                    ReturnModel titleResult = await SetAttibutes(listing, request_, useTechnicalMessages, clientData);
                     return titleResult;
-                case "LV010":
-                    ReturnModel featuredAspectResult = await SetFeaturedAspect(listing, request_, useTechnicalMessages, clientData);
-                    return featuredAspectResult;
-                case "LV011":
-                    ReturnModel descriptionResult = await SetDescription(listing, request_, useTechnicalMessages, clientData);
-                    return descriptionResult;
-                case "LV012":
-                    ReturnModel approvalPolicyResult = await SetApprovalPolicy(listing, request_, useTechnicalMessages, clientData);
-                    return approvalPolicyResult;
-                case "LV013":
-                    ReturnModel pricingResult = await SetPricing(listing, request_, useTechnicalMessages, clientData);
+                //case "LV010":
+                //    ReturnModel featuredAspectResult = await SetFeaturedAspect(listing, request_, useTechnicalMessages, clientData);
+                //    return featuredAspectResult;
+                //case "LV011":
+                //    ReturnModel descriptionResult = await SetDescription(listing, request_, useTechnicalMessages, clientData);
+                //    return descriptionResult;
+                //case "LV012":
+                //    ReturnModel approvalPolicyResult = await SetApprovalPolicy(listing, request_, useTechnicalMessages, clientData);
+                //    return approvalPolicyResult;
+                case "LV009":
+                    ReturnModel pricingResult = await SetPricingAndDiscount(listing, request_, useTechnicalMessages, clientData);
                     return pricingResult;
-                case "LV014":
-                    ReturnModel discountResult = await SetDiscount(listing, request_, useTechnicalMessages, clientData);
-                    return discountResult;
-                case "LV015":
-                    ReturnModel securityConfirmationResult = await SetSecurityConfirmation(listing, request_, useTechnicalMessages, clientData);
-                    return securityConfirmationResult;
-                case "LV016":
+                //case "LV014":
+                //    ReturnModel discountResult = await SetDiscount(listing, request_, useTechnicalMessages, clientData);
+                //    return discountResult;
+                //case "LV015":
+                //    ReturnModel securityConfirmationResult = await SetSecurityConfirmation(listing, request_, useTechnicalMessages, clientData);
+                //    return securityConfirmationResult;
+                case "LV010":
                     ReturnModel reviewConfirmationResult = await SetReviewConfirmation(listing, request_, useTechnicalMessages, clientData);
                     return reviewConfirmationResult;
                 default:
@@ -99,6 +99,16 @@ namespace Assert.Domain.Implementation
                     };
             }
             return null;
+        }
+
+        private async Task<ReturnModel> SetPricingAndDiscount(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        {
+            throw new NotImplementedException();
+        }
+
+        private async Task<ReturnModel> SetAttibutes(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        {
+            throw new NotImplementedException();
         }
 
         private async Task<ReturnModel> SetReviewConfirmation(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
@@ -204,7 +214,7 @@ namespace Assert.Domain.Implementation
 
         private async Task<ReturnModel> SetApprovalPolicy(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
         {
-            if(request_.ApprovalPolicyTypeId > 0)
+            if (request_.ApprovalPolicyTypeId > 0)
             {
                 await _listingRentRepository.SetApprovalPolicy(listing.ListingRentId, request_.ApprovalPolicyTypeId);
                 return new ReturnModel
@@ -235,7 +245,7 @@ namespace Assert.Domain.Implementation
                     ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar una descripción para la propiedad.", useTechnicalMessages)
                 };
             }
-            if(request_.Description.Length > 500)
+            if (request_.Description.Length > 500)
             {
                 return new ReturnModel
                 {
@@ -296,6 +306,10 @@ namespace Assert.Domain.Implementation
             throw new NotImplementedException();
         }
 
+        private async Task<ReturnModel> SetAmenities(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        {
+            throw new NotImplementedException();
+        }
         private async Task<ReturnModel> SetAmenitiesAndSecurityItems(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
         {
             throw new NotImplementedException();
@@ -340,18 +354,27 @@ namespace Assert.Domain.Implementation
                     ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar la cantidad máxima de huespedes permitidos en la propiedad.", useTechnicalMessages)
                 };
             }
-            if (request_.AllDoorsLooked == null)
+            if (request_.Bathrooms < 0 || request_.Bathrooms == null)
             {
                 return new ReturnModel
                 {
                     HasError = true,
                     StatusCode = ResultStatusCode.BadRequest,
-                    ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe definir si todas las puertas tienen seguro en la propiedad.", useTechnicalMessages)
+                    ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar la cantidad de baños que existen en la propiedad.", useTechnicalMessages)
                 };
             }
+            //if (request_.AllDoorsLooked == null)
+            //{
+            //    return new ReturnModel
+            //    {
+            //        HasError = true,
+            //        StatusCode = ResultStatusCode.BadRequest,
+            //        ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe definir si todas las puertas tienen seguro en la propiedad.", useTechnicalMessages)
+            //    };
+            //}
             if (listing.Beds != request_.Beds || listing.Bedrooms != request_.Bedrooms || listing.AllDoorsLocked != request_.AllDoorsLooked || listing.MaxGuests != request_.MaxGuests)
             {
-                await _listingRentRepository.SetCapacity(listing.ListingRentId, listing.Beds, listing.Bedrooms, listing.AllDoorsLocked, listing.MaxGuests);
+                await _listingRentRepository.SetCapacity(listing.ListingRentId, listing.Beds, listing.Bedrooms, listing.Bathrooms, listing.MaxGuests);
             }
             return new ReturnModel
             {
@@ -380,13 +403,13 @@ namespace Assert.Domain.Implementation
                 ZipCode = request_.Address.ZipCode
             };
             TpPropertyAddress addressResult = await _propertyAddressRepository.Add(addresInput);
-           return new ReturnModel
+            return new ReturnModel
             {
                 HasError = false,
                 StatusCode = ResultStatusCode.OK
             };
         }
-        
+
         private async Task<ReturnModel> SetPropertyLocation(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
         {
             if (!GeoUtils.ValidateLatitudLongitude(request_.Address.Latitude, request_.Address.Longitude))

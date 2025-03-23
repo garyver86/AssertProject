@@ -105,9 +105,24 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             throw new NotImplementedException();
         }
 
-        public Task SetCapacity(long listingRentId, int? beds, int? bedrooms, bool? allDoorsLocked, int? maxGuests)
+        public async Task SetCapacity(long listingRentId, int? beds, int? bedrooms, bool? allDoorsLocked, int? maxGuests)
         {
-            throw new NotImplementedException();
+            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefault();
+            listing.Beds = beds;
+            listing.Bedrooms = bedrooms;
+            listing.AllDoorsLocked = allDoorsLocked;
+            listing.MaxGuests = maxGuests;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task SetCapacity(long listingRentId, int? beds, int? bedrooms, int? bathrooms, int? maxGuests)
+        {
+            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefault();
+            listing.Beds = beds;
+            listing.Bedrooms = bedrooms;
+            listing.Bathrooms = bathrooms;
+            listing.MaxGuests = maxGuests;
+            await _context.SaveChangesAsync();
         }
 
         public Task SetDescription(long listingRentId, string description)
@@ -121,6 +136,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         }
 
         public Task SetSecurityConfirmationData(long listingRentId, bool? presenceOfWeapons, bool? noiseDesibelesMonitor, bool? externalCameras)
+        {
+            throw new NotImplementedException();
+        }
+
+        Task IListingRentRepository.SetAsConfirmed(long listingRentId)
         {
             throw new NotImplementedException();
         }
