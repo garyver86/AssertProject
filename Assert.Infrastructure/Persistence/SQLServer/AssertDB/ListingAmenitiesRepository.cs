@@ -16,5 +16,35 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             var result = await _context.TlListingAmenities.Where(x => x.ListingRentId == listingRentId).ToListAsync();
             return result;
         }
+
+        public async Task SetListingAmmenities(long listingRentId, List<int> amenities)
+        {
+            var actualAmenities = _context.TlListingAmenities.Where(x => x.ListingRentId == listingRentId).ToList();
+            List<int> alreadyExist = new List<int>();
+            foreach (var amenity in actualAmenities)
+            {
+                if (!amenities.Contains(amenity.AmenitiesTypeId))
+                {
+                    _context.TlListingAmenities.Remove(amenity);
+                }
+                else
+                {
+                    alreadyExist.Add(amenity.AmenitiesTypeId);
+                }
+            }
+            foreach (var amenity in amenities)
+            {
+                if (!alreadyExist.Contains(amenity))
+                {
+                    TlListingAmenity newAmenity = new TlListingAmenity
+                    {
+                        AmenitiesTypeId = amenity,
+                        ListingRentId = listingRentId
+                    };
+                    _context.TlListingAmenities.Add(newAmenity);
+                }
+            }
+            await _context.SaveChangesAsync();
+        }
     }
 }

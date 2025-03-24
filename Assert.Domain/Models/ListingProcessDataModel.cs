@@ -36,7 +36,8 @@
         public bool UseTechnicalMessages { get; set; }
         public bool? ListingConfirmation { get; set; }
         public int? CurrencyId { get; internal set; }
-        public int Bathrooms { get; internal set; }
+        public int? Bathrooms { get; internal set; }
+        public decimal? WeekendPrice { get; internal set; }
     }
     public class ProcessData_AddressModel
     {

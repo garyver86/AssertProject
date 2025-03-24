@@ -18,5 +18,6 @@ namespace Assert.Domain.Repositories
         Task SetApprovalPolicy(long listingRentId, int? approvalPolicyTypeId);
         Task SetDescription(long listingRentId, string description);
         Task SetName(long listingRentId, string title);
+        Task SetNameAndDescription(long listingRentId, string title, string description);
     }
 }
