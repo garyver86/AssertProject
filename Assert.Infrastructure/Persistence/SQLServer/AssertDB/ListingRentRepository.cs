@@ -135,6 +135,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             throw new NotImplementedException();
         }
 
+        public Task SetNameAndDescription(long listingRentId, string title, string description)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task SetSecurityConfirmationData(long listingRentId, bool? presenceOfWeapons, bool? noiseDesibelesMonitor, bool? externalCameras)
         {
             throw new NotImplementedException();

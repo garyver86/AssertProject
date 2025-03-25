@@ -8,5 +8,10 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         {
             throw new NotImplementedException();
         }
+
+        public Task SetPricing(long listingRentId, decimal? pricing, decimal? weekendPrice, int? currencyId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

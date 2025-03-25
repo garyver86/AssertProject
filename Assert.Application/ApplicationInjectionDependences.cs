@@ -48,6 +48,7 @@ namespace Assert.Application
             services.AddScoped<IListingRentService, ListingRentService>();
             services.AddScoped<IErrorHandler, ErrorHandler>();
             services.AddScoped<ISearchService, SearchService>();
+            services.AddScoped<IImageService, ImageService>();
 
             //Repositories
             services.AddScoped<IUserRepository, UserRepository>();
@@ -77,6 +78,7 @@ namespace Assert.Application
             services.AddScoped<IPropertySubTypeRepository, PropertySubTypeRepository>();
             services.AddScoped<IAccommodationTypeRepository, AccommodationTypeRepository>();
             services.AddScoped<IPropertyAddressRepository, PropertyAddressRepository>();
+            services.AddScoped<ISystemConfigurationRepository, SystemConfigurationRepository>();
 
 
             return services;

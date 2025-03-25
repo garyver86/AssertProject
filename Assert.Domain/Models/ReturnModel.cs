@@ -4,7 +4,7 @@
     {
         public string? StatusCode { get; set; }
         public object? Data { get; set; }
-        public bool HasError { get; internal set; }
+        public bool HasError { get; set; }
         public ErrorCommon ResultError { get; set; }
     }
     public class ReturnModel<T> : ReturnModel

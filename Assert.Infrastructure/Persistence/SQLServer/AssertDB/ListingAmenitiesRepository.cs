@@ -46,5 +46,10 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
             await _context.SaveChangesAsync();
         }
+
+        public Task SetListingAmmenities(long listingRentId, List<int> amenities, Dictionary<string, string> clientData, bool useTechnicalMessages)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
