@@ -37,6 +37,14 @@ public partial class TlListingRent
 
     public int? Beds { get; set; }
 
+    public DateTime? ListingRentConfirmationDate { get; set; }
+
+    public bool? ExternalCameras { get; set; }
+
+    public bool? PresenceOfWeapons { get; set; }
+
+    public bool? NoiseDesibelesMonitor { get; set; }
+
     public virtual TlAccommodationType? AccomodationType { get; set; }
 
     public virtual TApprovalPolicyType? ApprovalPolicyType { get; set; }
@@ -84,8 +92,4 @@ public partial class TlListingRent
     public virtual ICollection<TpProperty> TpProperties { get; set; } = new List<TpProperty>();
 
     public virtual ICollection<TuUserListingRent> TuUserListingRents { get; set; } = new List<TuUserListingRent>();
-    public object ListingRentConfirmationDate { get; internal set; }
-    public bool? PresenceOfWeapons { get; internal set; }
-    public bool? NoiseDesibelesMonitor { get; internal set; }
-    public bool? ExternalCameras { get; internal set; }
 }

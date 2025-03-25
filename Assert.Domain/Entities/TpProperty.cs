@@ -17,6 +17,8 @@ public partial class TpProperty
 
     public double? Longitude { get; set; }
 
+    public int? CityId { get; set; }
+
     public virtual TlListingRent? ListingRent { get; set; }
 
     public virtual TpPropertySubtype? PropertySubtype { get; set; }

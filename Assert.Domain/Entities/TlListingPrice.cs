@@ -19,6 +19,8 @@ public partial class TlListingPrice
 
     public decimal? SecurityDepositPrice { get; set; }
 
+    public decimal? WeekendNightlyPrice { get; set; }
+
     public virtual TCurrency? Currency { get; set; }
 
     public virtual TlListingRent? ListingRent { get; set; }

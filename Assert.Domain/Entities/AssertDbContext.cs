@@ -1779,6 +1779,9 @@ public partial class AssertDbContext : DbContext
                 .HasColumnType("decimal(18, 2)")
                 .HasColumnName("securityDepositPrice");
             entity.Property(e => e.TimeUnitId).HasColumnName("timeUnitId");
+            entity.Property(e => e.WeekendNightlyPrice)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("weekendNightlyPrice");
 
             entity.HasOne(d => d.Currency).WithMany(p => p.TlListingPrices)
                 .HasForeignKey(d => d.CurrencyId)
@@ -1812,16 +1815,22 @@ public partial class AssertDbContext : DbContext
                 .HasMaxLength(500)
                 .IsUnicode(false)
                 .HasColumnName("description");
+            entity.Property(e => e.ExternalCameras).HasColumnName("externalCameras");
+            entity.Property(e => e.ListingRentConfirmationDate)
+                .HasColumnType("datetime")
+                .HasColumnName("listingRentConfirmationDate");
             entity.Property(e => e.ListingStatusId).HasColumnName("listingStatusId");
             entity.Property(e => e.MaxGuests).HasColumnName("maxGuests");
             entity.Property(e => e.MinimunRentalPerDay)
                 .HasColumnType("decimal(18, 2)")
                 .HasColumnName("minimunRentalPerDay");
             entity.Property(e => e.Name)
-                .HasMaxLength(100)
+                .HasMaxLength(32)
                 .IsUnicode(false)
                 .HasColumnName("name");
+            entity.Property(e => e.NoiseDesibelesMonitor).HasColumnName("noiseDesibelesMonitor");
             entity.Property(e => e.OwnerUserId).HasColumnName("ownerUserId");
+            entity.Property(e => e.PresenceOfWeapons).HasColumnName("presenceOfWeapons");
             entity.Property(e => e.StepsCount).HasColumnName("stepsCount");
 
             entity.HasOne(d => d.AccomodationType).WithMany(p => p.TlListingRents)
@@ -2459,6 +2468,7 @@ public partial class AssertDbContext : DbContext
             entity.HasIndex(e => e.ListingRentId, "NonClusteredIndex-20250309-205609");
 
             entity.Property(e => e.PropertyId).HasColumnName("propertyId");
+            entity.Property(e => e.CityId).HasColumnName("cityId");
             entity.Property(e => e.ExternalReference)
                 .HasMaxLength(200)
                 .IsUnicode(false)

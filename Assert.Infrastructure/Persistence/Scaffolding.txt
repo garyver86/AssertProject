@@ -1,5 +1,0 @@
-﻿
-AssertDB:
-
-Scaffold-DbContext "Server=.;Database=AssertDB;uid=assert_user;pwd=Passw0rd;Trusted_Connection=False;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Persistence\SQLServer\AssertDB -force
-----------------------------------------------------------------------------------------------------------------------------------------------------------
