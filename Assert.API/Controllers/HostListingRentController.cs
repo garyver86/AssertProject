@@ -41,5 +41,15 @@ namespace Assert.API.Controllers
             ReturnModelDTO<ProcessDataResult> result = await _appListingRentService.ProcessListingData(listinRentId ?? 0, request, requestInfo, request.UseTechnicalMessages);
             return result;
         }
+
+        [HttpPost]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("UploadListingRentImages")]
+        public async Task<List<ReturnModelDTO>> UploadListingRentImages([FromForm] List<IFormFile> images)
+        {
+            var clientData = HttpContext.GetRequestInfo();
+            List<ReturnModelDTO> result = await _appListingRentService.UploadImages(images, clientData);
+            return result;
+        }
     }
 }

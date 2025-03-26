@@ -21,9 +21,11 @@ namespace Assert.Domain.Implementation
         private readonly IListingPricingRepository _listingPriceRepository;
         private readonly IListingAmenitiesRepository _listingAmenitiesRepository;
         private readonly IListingFeaturedAspectRepository _listingFeaturedAspectRepository;
+        private readonly IListingPhotoRepository _listingPhotoRepository;
         public ListingRent_StepViewService(IErrorHandler errorHandler, IPropertySubTypeRepository propertySubtypeRepository,
             IListingRentRepository listingRentRepository, IPropertyRepository propertyRepository, IAccommodationTypeRepository accommodationTypeRepository,
-            IPropertyAddressRepository propertyAddressRepository, IListingAmenitiesRepository listingAmenitiesRepository)
+            IPropertyAddressRepository propertyAddressRepository, IListingAmenitiesRepository listingAmenitiesRepository,
+            IListingPhotoRepository listingPhotoRepository)
         {
             _errorHandler = errorHandler;
             _propertySubtypeRepository = propertySubtypeRepository;
@@ -32,6 +34,7 @@ namespace Assert.Domain.Implementation
             _accommodationTypeRepository = accommodationTypeRepository;
             _propertyAddressRepository = propertyAddressRepository;
             _listingAmenitiesRepository = listingAmenitiesRepository;
+            _listingPhotoRepository = listingPhotoRepository;
         }
         public Task<ReturnModel<ListingProcessDataResultModel>> GetNextListingStepViewData(int? nextViewTypeId, TlListingRent? data, bool useTechnicalMessages)
         {
@@ -352,7 +355,12 @@ namespace Assert.Domain.Implementation
 
         private async Task<ReturnModel> SetPhotos(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
         {
-            throw new NotImplementedException();
+            await _listingPhotoRepository.UpdatePhotos(listing.ListingRentId, request_.Photos);
+            return new ReturnModel
+            {
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
         }
 
         private async Task<ReturnModel> SetAmenities(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
@@ -363,20 +371,6 @@ namespace Assert.Domain.Implementation
                 HasError = false,
                 StatusCode = ResultStatusCode.OK
             };
-        }
-        private async Task<ReturnModel> SetAmenitiesAndSecurityItems(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
-        {
-            throw new NotImplementedException();
-        }
-
-        private async Task<ReturnModel> SetStayPrecense(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
-        {
-            throw new NotImplementedException();
-        }
-
-        private async Task<ReturnModel> SetBathrooms(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
-        {
-            throw new NotImplementedException();
         }
 
         private async Task<ReturnModel> SetListingCapacity(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)

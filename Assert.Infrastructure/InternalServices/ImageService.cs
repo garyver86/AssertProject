@@ -1,11 +1,7 @@
-﻿using Assert.Domain.Entities;
-using Assert.Domain.Models;
+﻿using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using Microsoft.IdentityModel.Tokens;
-using System.Linq;
 
 namespace Assert.Infrastructure.InternalServices
 {
@@ -32,7 +28,7 @@ namespace Assert.Infrastructure.InternalServices
             }
         }
 
-        public async Task<List<ReturnModel>> SaveListingRentImage(IEnumerable<IFormFile> imageFiles, bool useTechnicalMessages)
+        public async Task<List<ReturnModel>> SaveListingRentImages(IEnumerable<IFormFile> imageFiles, bool useTechnicalMessages)
         {
             List<ReturnModel> savedFiles = new List<ReturnModel>();
 
@@ -43,11 +39,7 @@ namespace Assert.Infrastructure.InternalServices
                 try
                 {
                     var fileName = await SaveSingleImageAsync(imageFile, useTechnicalMessages, _basePath);
-                    savedFiles.Add(new ReturnModel
-                    {
-                        StatusCode = ResultStatusCode.OK,
-                        Data = fileName
-                    });
+                    savedFiles.Add(fileName);
                 }
                 catch (Exception ex)
                 {
@@ -117,6 +109,92 @@ namespace Assert.Infrastructure.InternalServices
                 HasError = false,
                 Data = fileName
             };
+        }
+
+        public async Task RemoveListingRentImage(string imageName)
+        {
+            if (string.IsNullOrWhiteSpace(imageName) || !(await VerifyListingRentImage(imageName)))
+            {
+                return;
+            }
+            string _basePath = await _SystemConfigurationRepository.GetListingResourcePath();
+            var imagePath = Path.Combine(_basePath, imageName);
+            int attempt = 0;
+
+            while (attempt < 3)
+            {
+                try
+                {
+                    File.Delete(imagePath);
+                    return;
+                }
+                catch (IOException ex) when (IsFileLocked(ex))
+                {
+                    attempt++;
+
+                    if (attempt < 3)
+                    {
+                        Thread.Sleep(1000);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return;
+                }
+            }
+
+            return;
+        }
+
+        public async Task<bool> VerifyListingRentImage(string fileName)
+        {
+            string _basePath = await _SystemConfigurationRepository.GetListingResourcePath();
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                return false;
+            }
+
+            var imagePath = Path.Combine(_basePath, fileName);
+            return File.Exists(imagePath);
+        }
+
+        /// <summary>
+        /// Elimina una imagen cuando se libere (patrón Dispose)
+        /// </summary>
+        public IDisposable ScheduleDeleteOnRelease(string imageName)
+        {
+            return new ImageDeleteDisposable(this, imageName);
+        }
+
+        private bool IsFileLocked(IOException ex)
+        {
+            var errorCode = ex.HResult & 0xFFFF;
+            return errorCode == 32 || errorCode == 33; // ERROR_SHARING_VIOLATION o ERROR_LOCK_VIOLATION
+        }
+
+        // Implementación del disposable para eliminación diferida
+        private class ImageDeleteDisposable : IDisposable
+        {
+            private readonly IImageService _service;
+            private readonly string _imageName;
+
+            public ImageDeleteDisposable(IImageService service, string imageName)
+            {
+                _service = service;
+                _imageName = imageName;
+            }
+
+            public void Dispose()
+            {
+                try
+                {
+                    _service.RemoveListingRentImage(_imageName);
+                }
+                catch (Exception ex)
+                {
+                    //TODO: Guardar Log Error
+                }
+            }
         }
     }
 }

@@ -59,7 +59,7 @@
     {
         public long? PhotoId { get; set; }
         public string Title { get; set; }
-        public string Base64 { get; set; }
+        public string FileName { get; set; }
     }
     public class ProcessData_DiscountModel
     {

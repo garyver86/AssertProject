@@ -13,7 +13,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         public async Task<string> GetListingResourcePath()
         {
             string resourcePath = string.Empty;
-            resourcePath = (await _context.TSystemConfigurations.Where(x => x.Name == "vgg_resource_listing").LastOrDefaultAsync())?.Value;
+            resourcePath = (await _context.TSystemConfigurations.Where(x => x.Name == "vgg_resource_listing").FirstOrDefaultAsync())?.Value;
             return resourcePath;
         }
     }

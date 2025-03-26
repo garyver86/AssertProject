@@ -60,5 +60,41 @@ namespace Assert.API.Controllers
 
             return properties;
         }
+        
+        /// <summary>
+         /// Servicio que permite marcar o desmarcar una propiedad como favorita.
+         /// </summary>
+         /// <param name="filters">Diferentes valores que reducen el rango de busqueda de propiedades.</param>
+         /// <returns>Listado de propiedades que cumplen con los parametros ingresados y que se encuentran publicados y listos para rentar.</returns>
+         /// <response code="200">Si se procesó correctamente.</response>
+         /// <remarks>
+         /// Actualmente no se tiene una restricción, pero se debe definir si existirán parametros obligatorios.
+         /// --------------------------------------------------------------------------------------------------
+         /// > Latitude y Longitude : Funcionan en conjunto con el Radius, el cual debe estar expresado en metros. En caso de ingresar estos parametros, las propiedades resultado devolverán la distancia aproximada hacia el punto de referencia ingresado.
+         /// </remarks>
+        //[Authorize(Policy = "GuestOnly")]
+        //[HttpPost("{propertyId}/favorite")]
+        //public async Task<IActionResult> AddToFavorites(int propertyId)
+        //{
+        //    var userId = GetCurrentUserId();
+        //    bool result = await _favoriteService.ToggleFavorite(propertyId, userId);
+        //    return Ok(new { IsFavorite = result });
+        //}
+
+        //[HttpDelete("{propertyId}/favorite")]
+        //public async Task<IActionResult> RemoveFromFavorites(int propertyId)
+        //{
+        //    var userId = GetCurrentUserId();
+        //    bool isCurrentlyFavorite = await _favoriteService.IsFavorite(propertyId, userId);
+        //    if (isCurrentlyFavorite)
+        //    {
+        //        await _favoriteService.ToggleFavorite(propertyId, userId);
+        //        return Ok(new { IsFavorite = false });
+        //    }
+        //    else
+        //    {
+        //        return NotFound($"La propiedad con ID {propertyId} no estaba marcada como favorita para el usuario.");
+        //    }
+        //}
     }
 }
