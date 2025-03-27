@@ -13,11 +13,13 @@ namespace Assert.API.Controllers
     public class ListingRentController : Controller
     {
         private readonly IAppListingRentService _appListingRentService;
+        private readonly IAppListingFavoriteService _appListingFavoriteService;
         private readonly IAppSearchService _searchService;
-        public ListingRentController(IAppListingRentService appListingRentService, IAppSearchService searchService)
+        public ListingRentController(IAppListingRentService appListingRentService, IAppSearchService searchService, IAppListingFavoriteService appListingFavoriteService)
         {
             _appListingRentService = appListingRentService;
             _searchService = searchService;
+            _appListingFavoriteService = appListingFavoriteService;
         }
 
 
@@ -60,41 +62,42 @@ namespace Assert.API.Controllers
 
             return properties;
         }
-        
-        /// <summary>
-         /// Servicio que permite marcar o desmarcar una propiedad como favorita.
-         /// </summary>
-         /// <param name="filters">Diferentes valores que reducen el rango de busqueda de propiedades.</param>
-         /// <returns>Listado de propiedades que cumplen con los parametros ingresados y que se encuentran publicados y listos para rentar.</returns>
-         /// <response code="200">Si se procesó correctamente.</response>
-         /// <remarks>
-         /// Actualmente no se tiene una restricción, pero se debe definir si existirán parametros obligatorios.
-         /// --------------------------------------------------------------------------------------------------
-         /// > Latitude y Longitude : Funcionan en conjunto con el Radius, el cual debe estar expresado en metros. En caso de ingresar estos parametros, las propiedades resultado devolverán la distancia aproximada hacia el punto de referencia ingresado.
-         /// </remarks>
-        //[Authorize(Policy = "GuestOnly")]
-        //[HttpPost("{propertyId}/favorite")]
-        //public async Task<IActionResult> AddToFavorites(int propertyId)
-        //{
-        //    var userId = GetCurrentUserId();
-        //    bool result = await _favoriteService.ToggleFavorite(propertyId, userId);
-        //    return Ok(new { IsFavorite = result });
-        //}
 
-        //[HttpDelete("{propertyId}/favorite")]
-        //public async Task<IActionResult> RemoveFromFavorites(int propertyId)
-        //{
-        //    var userId = GetCurrentUserId();
-        //    bool isCurrentlyFavorite = await _favoriteService.IsFavorite(propertyId, userId);
-        //    if (isCurrentlyFavorite)
-        //    {
-        //        await _favoriteService.ToggleFavorite(propertyId, userId);
-        //        return Ok(new { IsFavorite = false });
-        //    }
-        //    else
-        //    {
-        //        return NotFound($"La propiedad con ID {propertyId} no estaba marcada como favorita para el usuario.");
-        //    }
-        //}
+        /// <summary>
+        /// Servicio que permite agregar una propiedad a los favoritos de un usuario.
+        /// </summary>
+        /// <param name="listingRentId">Id del linsting a marcar como favorito.</param>
+        /// <returns>Confirmación del marcado de la propiedad como favorito (StatusCode=200).</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// </remarks>
+        [Authorize(Policy = "GuestOnly")]
+        [HttpPost("{listingRentId}/favorite")]
+        public async Task<ReturnModelDTO> AddToFavorites(int listingRentId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+            ReturnModelDTO result = await _appListingFavoriteService.ToggleFavorite(listingRentId, true, userId, requestInfo);
+            return result;
+        }
+
+        /// <summary>
+        /// Servicio que permite eliminar una propiedad de los favorios de un usuario.
+        /// </summary>
+        /// <param name="listingRentId">Id del linsting a eliminar de favoritos.</param>
+        /// <returns>Confirmación del marcado de la eliminación de la propiedad como favorito (StatusCode=200).</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// </remarks>
+        [HttpDelete("{listingRentId}/favorite")]
+        public async Task<ReturnModelDTO> RemoveFromFavorites(int listingRentId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+            ReturnModelDTO result = await _appListingFavoriteService.ToggleFavorite(listingRentId, false, userId, requestInfo);
+            return result;
+        }
     }
 }

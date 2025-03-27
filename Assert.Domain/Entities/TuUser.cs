@@ -55,6 +55,8 @@ public partial class TuUser
 
     public virtual TuTitleType? TitleType { get; set; }
 
+    public virtual ICollection<TlListingFavorite> TlListingFavorites { get; set; } = new List<TlListingFavorite>();
+
     public virtual ICollection<TlListingRent> TlListingRents { get; set; } = new List<TlListingRent>();
 
     public virtual ICollection<TlListingReview> TlListingReviews { get; set; } = new List<TlListingReview>();

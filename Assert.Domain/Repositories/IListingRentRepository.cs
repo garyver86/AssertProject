@@ -1,4 +1,5 @@
 ﻿using Assert.Domain.Entities;
+using Assert.Domain.Models;
 
 namespace Assert.Domain.Repositories
 {

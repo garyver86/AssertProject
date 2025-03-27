@@ -1,4 +1,5 @@
 ﻿using Assert.Domain.Entities;
+using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -96,11 +97,6 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         }
 
         public Task SetApprovalPolicy(long listingRentId, int? approvalPolicyTypeId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void SetAsConfirmed(long listingRentId)
         {
             throw new NotImplementedException();
         }

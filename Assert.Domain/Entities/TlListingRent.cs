@@ -67,6 +67,8 @@ public partial class TlListingRent
 
     public virtual ICollection<TlListingAvailability> TlListingAvailabilities { get; set; } = new List<TlListingAvailability>();
 
+    public virtual ICollection<TlListingFavorite> TlListingFavorites { get; set; } = new List<TlListingFavorite>();
+
     public virtual ICollection<TlListingFeaturedAspect> TlListingFeaturedAspects { get; set; } = new List<TlListingFeaturedAspect>();
 
     public virtual ICollection<TlListingPhoto> TlListingPhotos { get; set; } = new List<TlListingPhoto>();

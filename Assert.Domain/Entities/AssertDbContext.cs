@@ -119,6 +119,8 @@ public partial class AssertDbContext : DbContext
 
     public virtual DbSet<TlListingDiscountForRate> TlListingDiscountForRates { get; set; }
 
+    public virtual DbSet<TlListingFavorite> TlListingFavorites { get; set; }
+
     public virtual DbSet<TlListingFeaturedAspect> TlListingFeaturedAspects { get; set; }
 
     public virtual DbSet<TlListingPhoto> TlListingPhotos { get; set; }
@@ -1706,6 +1708,34 @@ public partial class AssertDbContext : DbContext
                 .HasForeignKey(d => d.ListingPriceId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TL_ListingDiscountForRate_TL_ListingPrice");
+        });
+
+        modelBuilder.Entity<TlListingFavorite>(entity =>
+        {
+            entity.HasKey(e => e.FavoriteListingId);
+
+            entity.ToTable("TL_ListingFavorite");
+
+            entity.HasIndex(e => e.UserId, "NonClusteredIndex-20250327-000813");
+
+            entity.HasIndex(e => e.ListingRentId, "NonClusteredIndex-20250327-000910");
+
+            entity.Property(e => e.FavoriteListingId).HasColumnName("favoriteListingId");
+            entity.Property(e => e.CreateAt)
+                .HasColumnType("datetime")
+                .HasColumnName("createAt");
+            entity.Property(e => e.ListingRentId).HasColumnName("listingRentId");
+            entity.Property(e => e.UserId).HasColumnName("userId");
+
+            entity.HasOne(d => d.ListingRent).WithMany(p => p.TlListingFavorites)
+                .HasForeignKey(d => d.ListingRentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TL_ListingFavorite_TL_ListingRent");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TlListingFavorites)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TL_ListingFavorite_TU_User");
         });
 
         modelBuilder.Entity<TlListingFeaturedAspect>(entity =>

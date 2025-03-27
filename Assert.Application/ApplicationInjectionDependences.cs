@@ -39,6 +39,7 @@ namespace Assert.Application
             services.AddScoped<ISecurityService, SecurityService>();
             services.AddScoped<IAppListingRentService, AppListingRentService>();
             services.AddScoped<IAppSearchService, AppSearchService>();
+            services.AddScoped<IAppListingFavoriteService, AppListingFavoriteService>();
 
             //Infra Services
             services.AddScoped<IJWTSecurity, JWTSecurityService>();
@@ -49,6 +50,7 @@ namespace Assert.Application
             services.AddScoped<IErrorHandler, ErrorHandler>();
             services.AddScoped<ISearchService, SearchService>();
             services.AddScoped<IImageService, ImageService>();
+            services.AddScoped<IListingFavoriteService, ListingFavoriteService>();
 
             //Repositories
             services.AddScoped<IUserRepository, UserRepository>();
@@ -79,6 +81,7 @@ namespace Assert.Application
             services.AddScoped<IAccommodationTypeRepository, AccommodationTypeRepository>();
             services.AddScoped<IPropertyAddressRepository, PropertyAddressRepository>();
             services.AddScoped<ISystemConfigurationRepository, SystemConfigurationRepository>();
+            services.AddScoped<IListingFavoriteRepository, ListingFavoriteRepository>();
 
 
             return services;
