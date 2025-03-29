@@ -104,11 +104,11 @@ namespace Assert.Application.Services
             CreateMap<TpPropertySubtype, DiscountDTO>();
             CreateMap<TpPropertySubtype, ListingSpecialDatePriceDTO>();
             CreateMap<TCity, CityDTO>()
-                .ForMember(dest => dest.StateCode, opt => opt.MapFrom(src => src.State != null ? src.State.IataCode : null))
-                .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.State != null ? src.State.Name : null))
-                .ForMember(dest => dest.CountryCode, opt => opt.MapFrom(src => src.State != null && src.State.Country != null ? src.State.Country.IataCode : null))
-                .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.State != null && src.State.Country != null ? src.Name : null))
-                .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.State != null && src.State.Country != null ? src.State.Country.Name : null));
+                .ForMember(dest => dest.StateCode, opt => opt.MapFrom(src => src.County.State != null ? src.County.State.IataCode : null))
+                .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.County.State != null ? src.County.State.Name : null))
+                .ForMember(dest => dest.CountryCode, opt => opt.MapFrom(src => src.County.State != null && src.County.State.Country != null ? src.County.State.Country.IataCode : null))
+                .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.County.State != null && src.County.State.Country != null ? src.Name : null))
+                .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.County.State != null && src.County.State.Country != null ? src.County.State.Country.Name : null));
         }
     }
 }

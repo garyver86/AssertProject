@@ -13,5 +13,7 @@ public partial class TCountry
 
     public string? Description { get; set; }
 
+    public bool? IsDisabled { get; set; }
+
     public virtual ICollection<TState> TStates { get; set; } = new List<TState>();
 }

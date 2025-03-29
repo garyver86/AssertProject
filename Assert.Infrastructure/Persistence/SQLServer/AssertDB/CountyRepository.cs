@@ -4,26 +4,20 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
-    public class StateRepository : IStateRepository
+    public class CountyRepository : ICountyRepository
     {
         private readonly InfraAssertDbContext _context;
-        public StateRepository(InfraAssertDbContext infraAssertDbContext)
+        public CountyRepository(InfraAssertDbContext infraAssertDbContext)
         {
             _context = infraAssertDbContext;
         }
 
-        public async Task<IEnumerable<TState>> Find(string filter)
+        public async Task<IEnumerable<TCounty>> Find(string filter)
         {
-            return await _context.TStates
+            return await _context.TCounties
            .Where(co => !(co.IsDisabled ?? false) && co.Name.StartsWith(filter))
            .AsNoTracking()
            .ToListAsync();
-        }
-
-        public async Task<TState> GetByCityId(long cityId)
-        {
-            var result = (await _context.TCities.Where(x => x.CityId == cityId).FirstOrDefaultAsync())?.County.State;
-            return result;
         }
     }
 }

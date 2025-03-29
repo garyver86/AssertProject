@@ -15,9 +15,9 @@ public partial class TState
 
     public string? Description { get; set; }
 
-    public virtual TCountry Country { get; set; } = null!;
+    public bool? IsDisabled { get; set; }
 
-    public virtual ICollection<TCity> TCities { get; set; } = new List<TCity>();
+    public virtual TCountry Country { get; set; } = null!;
 
     public virtual ICollection<TCounty> TCounties { get; set; } = new List<TCounty>();
 

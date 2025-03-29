@@ -11,6 +11,8 @@ public partial class TCounty
 
     public long? StateId { get; set; }
 
+    public bool? IsDisabled { get; set; }
+
     public virtual TState? State { get; set; }
 
     public virtual ICollection<TCity> TCities { get; set; } = new List<TCity>();

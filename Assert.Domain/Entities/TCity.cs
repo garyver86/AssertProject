@@ -9,13 +9,11 @@ public partial class TCity
 
     public string Name { get; set; } = null!;
 
-    public long StateId { get; set; }
+    public long CountyId { get; set; }
 
-    public long? CountyId { get; set; }
+    public bool? IsDisabled { get; set; }
 
-    public virtual TCounty? County { get; set; }
-
-    public virtual TState State { get; set; } = null!;
+    public virtual TCounty County { get; set; } = null!;
 
     public virtual ICollection<TpPropertyAddress> TpPropertyAddresses { get; set; } = new List<TpPropertyAddress>();
 }

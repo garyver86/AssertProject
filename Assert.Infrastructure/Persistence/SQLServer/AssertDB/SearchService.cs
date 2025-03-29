@@ -1,5 +1,6 @@
 ﻿using Assert.Domain.Entities;
 using Assert.Domain.Models;
+using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Assert.Domain.Utils;
 using Microsoft.EntityFrameworkCore;
@@ -9,11 +10,23 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
     public class SearchService : ISearchService
     {
         private readonly InfraAssertDbContext _context;
-
-        public SearchService(InfraAssertDbContext dbContext)
+        private readonly ICityRepository _cityRepository;
+        public SearchService(InfraAssertDbContext dbContext, ICityRepository cityRepository)
         {
             _context = dbContext;
+            _cityRepository = cityRepository;
         }
+
+        public async Task<ReturnModel<List<TCity>>> SearchCities(string filter)
+        {
+            var result = await _cityRepository.FindByFilter(filter);
+            return new ReturnModel<List<TCity>>
+            {
+                StatusCode = ResultStatusCode.OK,
+                Data = result
+            };
+        }
+
         public async Task<ReturnModel<List<TlListingRent>>> SearchPropertiesAsync(SearchFilters filters)
         {
             var query = _context.TlListingRents.AsQueryable();
@@ -27,7 +40,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
             if (filters.CountryId > 0)
             {
-                query = query.Where(p => p.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().City.State.CountryId == filters.CountryId);
+                query = query.Where(p => p.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().City.County.State.CountryId == filters.CountryId);
             }
 
             if (filters.MinPrice.HasValue && !filters.MaxPrice.HasValue)

@@ -386,22 +386,20 @@ public partial class AssertDbContext : DbContext
 
             entity.ToTable("T_City");
 
+            entity.HasIndex(e => e.Name, "IX_T_City_Name");
+
             entity.Property(e => e.CityId).HasColumnName("cityId");
             entity.Property(e => e.CountyId).HasColumnName("countyId");
+            entity.Property(e => e.IsDisabled).HasColumnName("isDisabled");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("name");
-            entity.Property(e => e.StateId).HasColumnName("stateId");
 
             entity.HasOne(d => d.County).WithMany(p => p.TCities)
                 .HasForeignKey(d => d.CountyId)
-                .HasConstraintName("FK_T_City_T_County");
-
-            entity.HasOne(d => d.State).WithMany(p => p.TCities)
-                .HasForeignKey(d => d.StateId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_T_City_T_State");
+                .HasConstraintName("FK_T_City_T_County");
         });
 
         modelBuilder.Entity<TCountry>(entity =>
@@ -409,6 +407,8 @@ public partial class AssertDbContext : DbContext
             entity.HasKey(e => e.CountryId);
 
             entity.ToTable("T_Country");
+
+            entity.HasIndex(e => e.Name, "IX_T_Country_Name");
 
             entity.Property(e => e.CountryId).HasColumnName("countryId");
             entity.Property(e => e.Description)
@@ -419,6 +419,7 @@ public partial class AssertDbContext : DbContext
                 .HasMaxLength(5)
                 .IsUnicode(false)
                 .HasColumnName("iataCode");
+            entity.Property(e => e.IsDisabled).HasColumnName("isDisabled");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .IsUnicode(false)
@@ -431,6 +432,9 @@ public partial class AssertDbContext : DbContext
 
             entity.ToTable("T_County");
 
+            entity.HasIndex(e => e.Name, "IX_T_County_Name");
+
+            entity.Property(e => e.IsDisabled).HasColumnName("isDisabled");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .IsUnicode(false);
@@ -825,6 +829,8 @@ public partial class AssertDbContext : DbContext
 
             entity.ToTable("T_State");
 
+            entity.HasIndex(e => e.Name, "IX_T_State_Name");
+
             entity.HasIndex(e => e.CountryId, "NonClusteredIndex-20250309-204945");
 
             entity.Property(e => e.StateId).HasColumnName("stateId");
@@ -837,6 +843,7 @@ public partial class AssertDbContext : DbContext
                 .HasMaxLength(5)
                 .IsUnicode(false)
                 .HasColumnName("iataCode");
+            entity.Property(e => e.IsDisabled).HasColumnName("isDisabled");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .IsUnicode(false)
