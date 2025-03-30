@@ -42,6 +42,19 @@ namespace Assert.API.Controllers
             return result;
         }
 
+
+        /// <summary>
+        /// Servicio que realiza la subida de las imagenes asociadas a los listing rent.
+        /// </summary>
+        /// <param name="images">Lista de imágenes .</param>
+        /// <returns>Lista de resultados de la subida de los archivos.</returns>
+        /// <response code="200">Si se procesó la información de la vista de forma correcta.</response>
+        /// <remarks>
+        /// En caso de que el resultado de la subbida de los archivos sea exitosa, devuelve el nombre del archivo. 
+        /// Los nombres de todos los archivos deben ser enviados al procesar los datos de la vista <br>LV007</br>.
+        /// Se implementó la subida de las imágenes en dos pasos para mejorar la eficiencia de la subida de archivos,
+        /// facilitar las pruebas, mejorar la experiencia de los usuarios, entre otros.
+        /// </remarks>
         [HttpPost]
         [Authorize(Policy = "GuestOrHost")]
         [Route("UploadListingRentImages")]
