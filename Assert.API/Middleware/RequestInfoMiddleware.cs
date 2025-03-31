@@ -1,4 +1,4 @@
-﻿namespace Assert.API
+﻿namespace Assert.API.Middleware
 {
     public class RequestInfoMiddleware
     {
