@@ -1,6 +1,8 @@
 ﻿using Assert.Domain.Implementation;
+using Assert.Domain.Interfaces.Infraestructure.External;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
+using Assert.Infrastructure.External.AuthProviderValidator;
 using Assert.Infrastructure.InternalServices;
 using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 using Assert.Infrastructure.Security;
@@ -37,11 +39,24 @@ public static class InfrastructureInjectionDependences
         services.AddScoped<ISearchService, SearchService>();
         services.AddScoped<IImageService, ImageService>();
 
-        //Domain Services
-        services.AddScoped<IListingRentService, ListingRentService>();
-        services.AddScoped<IListingFavoriteService, ListingFavoriteService>();
+        services.AddScoped<GoogleAuthValidator>();
+        services.AddScoped<AppleAuthValidator>();
+        services.AddScoped<FacebookAuthValidator>();
+        services.AddScoped<LocalAuthValidator>();
 
-        //Repositories
+        services.AddScoped<Func<string, IAuthProviderValidator>>(serviceProvider => key =>
+        {
+            return key switch
+            {
+                "google" => serviceProvider.GetRequiredService<GoogleAuthValidator>(),
+                "apple" => serviceProvider.GetRequiredService<AppleAuthValidator>(),
+                "facebook" => serviceProvider.GetRequiredService<FacebookAuthValidator>(),
+                "local" => serviceProvider.GetRequiredService<LocalAuthValidator>(),
+                _ => throw new ArgumentException("Invalid provider")
+            };
+        });
+
+        #region Repositories
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IExceptionLogRepository, ExceptionLogRepository>();
         services.AddScoped<IListingrentChangeRepository, ListingRentChangeRepository>();
@@ -71,7 +86,7 @@ public static class InfrastructureInjectionDependences
         services.AddScoped<IPropertyAddressRepository, PropertyAddressRepository>();
         services.AddScoped<ISystemConfigurationRepository, SystemConfigurationRepository>();
         services.AddScoped<IListingFavoriteRepository, ListingFavoriteRepository>();
-
+        #endregion
 
         return services;
     }
