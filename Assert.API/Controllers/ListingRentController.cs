@@ -99,5 +99,26 @@ namespace Assert.API.Controllers
             ReturnModelDTO result = await _appListingFavoriteService.ToggleFavorite(listingRentId, false, userId, requestInfo);
             return result;
         }
+
+        /// <summary>
+        /// Servicio que devuelve la lista de propiedades destacadas.
+        /// </summary>
+        /// <param name="countryCode">Código de país de la que se quieren obtener las propiedades destacadas (no es requerido).</param>
+        /// <param name="limit">Cantidad de propiedades destacadas que se quieren obtener (Por defecto 10).</param>
+        /// <returns>Lista de propiedades destacadas. (StatusCode=200).</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// Si se envia el countryId, las propiedades destacadas devueltas corresponteran al pais, caso contrario, se devolveran
+        /// las propiedades destacadas de la totalidad. El calculo de propiedades destacadas se la realiza en base a los
+        /// </remarks>
+        [HttpGet("Featureds")]
+        public async Task<ReturnModelDTO> FeaturedListings([FromQuery] int? countryId, [FromQuery] int? limit = 10)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+            ReturnModelDTO result = await _appListingRentService.GetFeaturedListings(countryId, limit, requestInfo);
+            return result;
+        }
     }
 }

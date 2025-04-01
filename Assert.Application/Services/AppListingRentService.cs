@@ -156,5 +156,29 @@ namespace Assert.Application.Services
 
             }
         }
+
+        public async Task<ReturnModelDTO<List<ListingRentDTO>>> GetFeaturedListings(int? countryId, int? limit, Dictionary<string, string> requestInfo)
+        {
+            ReturnModelDTO<List<ListingRentDTO>> result = new ReturnModelDTO<List<ListingRentDTO>>();
+            try
+            {
+                List<TlListingRent> listings = await _listingRentRepository.GetFeatureds(countryId, limit);
+                //listings = listings.OrderByDescending(x => x.ListingRentId).ToList();
+                result = new ReturnModelDTO<List<ListingRentDTO>>
+                {
+                    Data = _mapper.Map<List<ListingRentDTO>>(listings),
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("L_ListingRentView.GetAllListingsRentsData", ex, new { countryId, limit }, UseTechnicalMessages));
+            }
+            return result;
+        }
     }
 }

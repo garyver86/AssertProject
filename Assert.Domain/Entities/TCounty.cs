@@ -5,11 +5,11 @@ namespace Assert.Domain.Entities;
 
 public partial class TCounty
 {
-    public long CountyId { get; set; }
+    public int CountyId { get; set; }
 
     public string Name { get; set; } = null!;
 
-    public long? StateId { get; set; }
+    public int? StateId { get; set; }
 
     public bool? IsDisabled { get; set; }
 

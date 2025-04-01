@@ -65,13 +65,73 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task<TlListingRent> Get(long id, int ownerID)
         {
-            var result = _context.TlListingRents.Where(x => x.ListingRentId == id && x.OwnerUserId == ownerID).FirstOrDefault();
+            var result = _context.TlListingRents
+                .Include(x => x.ListingStatus)
+                .Include(x => x.AccomodationType)
+                .Include(x => x.ApprovalPolicyType)
+                .Include(x => x.CancelationPolicyType)
+                .Include(x => x.OwnerUser)
+                .Include(x => x.TlListingAmenities)
+                    .ThenInclude(y => y.AmenitiesType)
+                .Include(x => x.TlCheckInOutPolicies)
+                .Include(x => x.TlListingFeaturedAspects)
+                    .ThenInclude(y => y.FeaturesAspectType)
+                .Include(x => x.TpProperties)
+                    .ThenInclude(y => y.TpPropertyAddresses)
+                .Include(x => x.TlListingPhotos)
+                .Include(x => x.TlListingPrices)
+                .Include(x => x.TlListingRentRules)
+                    .ThenInclude(y => y.RuleType)
+                .Include(x => x.TlListingSecurityItems)
+                    .ThenInclude(y => y.SecurityItemType)
+                .Include(x => x.TlListingSpaces)
+                    .ThenInclude(y => y.SpaceType)
+                .Include(x => x.TlListingSpecialDatePrices)
+                .Include(x => x.TlStayPresences)
+                    .ThenInclude(y => y.StayPrecenseType)
+                .AsNoTracking()
+                .Where(x => x.ListingRentId == id && x.OwnerUserId == ownerID).FirstOrDefault();
             return await Task.FromResult(result);
         }
 
         public async Task<List<TlListingRent>> GetAll(int ownerID)
         {
             var result = _context.TlListingRents.Where(x => x.OwnerUserId == ownerID).ToList();
+            return await Task.FromResult(result);
+        }
+
+        public async Task<List<TlListingRent>> GetFeatureds(int? countryId, int? limit)
+        {
+            var result = await _context.TlListingRents
+                .Include(x => x.ListingStatus)
+                .Include(x => x.AccomodationType)
+                .Include(x => x.ApprovalPolicyType)
+                .Include(x => x.CancelationPolicyType)
+                .Include(x => x.OwnerUser)
+                .Include(x => x.TlListingAmenities)
+                    .ThenInclude(y => y.AmenitiesType)
+                .Include(x => x.TlCheckInOutPolicies)
+                .Include(x => x.TlListingFeaturedAspects)
+                    .ThenInclude(y => y.FeaturesAspectType)
+                .Include(x => x.TpProperties)
+                    .ThenInclude(y => y.TpPropertyAddresses)
+                .Include(x => x.TlListingPhotos)
+                .Include(x => x.TlListingPrices)
+                .Include(x => x.TlListingRentRules)
+                    .ThenInclude(y => y.RuleType)
+                .Include(x => x.TlListingSecurityItems)
+                    .ThenInclude(y => y.SecurityItemType)
+                .Include(x => x.TlListingSpaces)
+                    .ThenInclude(y => y.SpaceType)
+                .Include(x => x.TlListingSpecialDatePrices)
+                .Include(x => x.TlStayPresences)
+                    .ThenInclude(y => y.StayPrecenseType)
+                .AsNoTracking()
+                .Where(x => x.ListingStatusId == 3 && (countryId == null || x.TpProperties.FirstOrDefault().City.County.State.CountryId == countryId))
+                .OrderByDescending(x => x.TlListingReviews.Average(y => y.Calification))
+                .Take(limit ?? 10)
+                .ToListAsync();
+
             return await Task.FromResult(result);
         }
 
