@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
-    internal class FeaturedAspectsRepository : IFeaturesAspectsRepository
+    public class FeaturedAspectsRepository : IFeaturesAspectsRepository
     {
         private readonly InfraAssertDbContext _context;
         public FeaturedAspectsRepository(InfraAssertDbContext infraAssertDbContext)
