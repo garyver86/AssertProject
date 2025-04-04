@@ -12,9 +12,11 @@ namespace Assert.API.Controllers
     public class ParametricsController : Controller
     {
         private readonly IAppSearchService _searchService;
-        public ParametricsController(IAppSearchService searchService)
+        private readonly IAppParametricService _parametricService;
+        public ParametricsController(IAppSearchService searchService, IAppParametricService parametricService)
         {
             _searchService = searchService;
+            _parametricService = parametricService;
         }
 
         /// <summary>
@@ -32,6 +34,24 @@ namespace Assert.API.Controllers
         {
             var requestInfo = HttpContext.GetRequestInfo();
             var cities = await _searchService.SearchCities(filter, requestInfo, true);
+
+            return cities;
+        }
+        
+        /// <summary>
+         /// Servicio que devuelve la lista de tipos de alojamientos activos.
+         /// </summary>
+         /// <returns>Listado de tipos de alojamientos.</returns>
+         /// <response code="200">Si se procesó correctamente.</response>
+         /// <remarks>
+         /// Solo se consideraran los tipos de alojamiento que no se encuentren deshabilitadas.
+         /// </remarks>
+        [HttpGet("AccomodationType")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO<List<AccomodationTypeDTO>>> AccomodationType()
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            var cities = await _parametricService.GetAccomodationTypes(requestInfo, true);
 
             return cities;
         }

@@ -26,10 +26,12 @@ namespace Assert.Application
             services.AddScoped<IAppListingRentService, AppListingRentService>();
             services.AddScoped<IAppSearchService, AppSearchService>();
             services.AddScoped<IAppListingFavoriteService, AppListingFavoriteService>();
+            services.AddScoped<IAppParametricService, AppParametricService>();
 
             //Domain Services
             services.AddScoped<IListingRentService, ListingRentService>();
             services.AddScoped<IListingFavoriteService, ListingFavoriteService>();
+            services.AddScoped<IParametricService, ParametricService>();
 
             return services;
         }
