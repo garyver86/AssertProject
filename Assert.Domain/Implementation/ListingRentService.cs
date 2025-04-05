@@ -269,7 +269,7 @@ namespace Assert.Domain.Implementation
                             ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, $"El código de vista {viewCode} necesita un listingId.", useTechnicalMessages)
                         };
                     }
-                    else if ((listingRentId == null || listingRentId < 0) && viewCode == "LV001")
+                    else if ((listingRentId == null || listingRentId <= 0) && viewCode == "LV001")
                     {
                         ReturnModel<TlListingRent> newListing = await InitializeListingRent(viewType, request_, _userID, clientData, useTechnicalMessages);
                         if (newListing.StatusCode == ResultStatusCode.OK)
@@ -291,12 +291,20 @@ namespace Assert.Domain.Implementation
                     {
                         //Se procesan las siguientes vistas, en las cuales se necesita el lisging rent. (Si se encuentra publicado no deberia poder modificar.)
                         var listing = await _listingRentRepository.Get(listingRentId ?? 0, _userID);
-                        if (listing == null)
+                        if (listing == null || listing.ListingStatusId == 5)
                         {
                             return new ReturnModel<ListingProcessDataResultModel>
                             {
                                 StatusCode = ResultStatusCode.NotFound,
                                 ResultError = _errorHandler.GetError(ResultStatusCode.NotFound, $"El listing rent con id {listingRentId} no fué encontrado.", useTechnicalMessages)
+                            };
+                        }
+                        else if (listing.ListingStatusId == 3)
+                        {
+                            return new ReturnModel<ListingProcessDataResultModel>
+                            {
+                                StatusCode = ResultStatusCode.BadRequest,
+                                ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, $"El listing rent con id {listingRentId} no puede ser editado porque se encuentra en estado {listing.ListingStatus.Code}.", useTechnicalMessages)
                             };
                         }
                         else
@@ -306,7 +314,6 @@ namespace Assert.Domain.Implementation
                             {
                                 if (viewType.NextViewTypeId == null)
                                 {
-                                    //TODO: Habilitar rol de HOST si es que este no tuviera el rol, solamente en el ultimo paso.
                                     return new ReturnModel<ListingProcessDataResultModel>
                                     {
                                         HasError = false,

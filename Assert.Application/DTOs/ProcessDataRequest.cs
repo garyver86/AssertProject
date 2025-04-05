@@ -35,6 +35,10 @@
         public bool? PresenceOfWeapons { get; set; }
         public bool ReviewConfirmatin { get; set; }
         public bool UseTechnicalMessages { get; set; }
+        public bool? ListingConfirmation { get; set; }
+        public int? CurrencyId { get; set; }
+        public int? Bathrooms { get; set; }
+        public decimal? WeekendPrice { get; set; }
     }
     public class ProcessData_Address : AddressDTO
     {
@@ -50,7 +54,7 @@
     {
         public long? PhotoId { get; set; }
         public string Title { get; set; }
-        public string Base64 { get; set; }
+        public string FileName { get; set; }
     }
     public class ProcessData_Discount
     {
