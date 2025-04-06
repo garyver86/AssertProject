@@ -89,6 +89,8 @@ public static class InfrastructureInjectionDependences
         services.AddScoped<IAmenitiesRepository, AmenitiesRepository>();
         services.AddScoped<IFeaturesAspectsRepository, FeaturedAspectsRepository>();
         services.AddScoped<IDiscountTypeRepository, DiscountTypeRepository>();
+        services.AddScoped<IUserRoleRepository, UserRoleRepository>();
+        services.AddScoped<IUserTypeRepository, UserTypeRepository>();
         #endregion
 
         return services;
