@@ -18,10 +18,10 @@ namespace Assert.Application.Services
             CreateMap<ProcessData_Space, ProcessData_SpaceModel>();
             CreateMap<ProcessData_Photo, ProcessData_PhotoModel>();
             CreateMap<ProcessData_Discount, ProcessData_DiscountModel>();
-            
+
             CreateMap<ListingProcessDataResultModel, ProcessDataResult>();
 
-            
+
 
 
             CreateMap<ReturnModel<TlListingRent>, ReturnModelDTO<ListingRentDTO>>()
@@ -32,6 +32,10 @@ namespace Assert.Application.Services
 
             CreateMap<ReturnModel<ListingProcessDataResultModel>, ReturnModelDTO<ProcessDataResult>>()
             .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src.Data));
+
+            CreateMap<Assert.Domain.Models.ListingProcessData_Parametrics, Assert.Application.DTOs.ListingProcessData_Parametrics>();
+            CreateMap<Assert.Domain.Models.ListingProcessData_ListingData, Assert.Application.DTOs.ListingProcessData_ListingData>();
+
 
 
             CreateMap<ErrorCommon, ErrorCommonDTO>();

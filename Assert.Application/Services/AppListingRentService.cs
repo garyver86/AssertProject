@@ -112,7 +112,7 @@ namespace Assert.Application.Services
             try
             {
                 ListingProcessDataModel request_ = _mapper.Map<ListingProcessDataModel>(request);
-                ReturnModel<ListingProcessDataResultModel> changeResult = await _listingRentService.ProcessData(request.ListingRentId, request.ViewCode, request_, clientData, useTechnicalMessages);
+                ReturnModel<ListingProcessDataResultModel> changeResult = await _listingRentService.ProcessData(listinRentId, request.ViewCode, request_, clientData, useTechnicalMessages);
 
                 if (changeResult.StatusCode == ResultStatusCode.OK)
                 {

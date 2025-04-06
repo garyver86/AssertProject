@@ -19,14 +19,37 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             return result;
         }
 
-        public Task SetLocation(long propertyId, double? latitude, double? longitude)
+        public async Task<TpProperty> Register(long listingRentId)
         {
-            throw new NotImplementedException();
+            var property = await _context.TpProperties.Where(x => x.ListingRentId == listingRentId).FirstOrDefaultAsync();
+            if (property == null)
+            {
+                property = new TpProperty
+                {
+                    ListingRentId = listingRentId
+                };
+                _context.TpProperties.Add(property);
+                await _context.SaveChangesAsync();
+            }
+            return property;
         }
 
-        public TpProperty SetPropertySubType(long propertyId, int? subtypeId)
+        public async Task SetLocation(long propertyId, double? latitude, double? longitude)
         {
-            throw new NotImplementedException();
+            TpProperty property = await _context.TpProperties.Where(x => x.PropertyId == propertyId).FirstOrDefaultAsync();
+
+            property.Longitude = longitude;
+            property.Latitude = latitude;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<TpProperty> SetPropertySubType(long propertyId, int? subtypeId)
+        {
+            TpProperty property = await _context.TpProperties.Where(x => x.PropertyId == propertyId).FirstOrDefaultAsync();
+
+            property.PropertySubtypeId = subtypeId;
+            await _context.SaveChangesAsync();
+            return property;
         }
 
         public async Task Update(long propertyId, TpProperty tp_property)

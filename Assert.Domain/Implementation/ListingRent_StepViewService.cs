@@ -55,8 +55,11 @@ namespace Assert.Domain.Implementation
                     ListingData = new ListingProcessData_ListingData
                     {
                         ListingRentId = data.ListingRentId
-                    }
-                }
+                    },
+                    Parametrics = new ListingProcessData_Parametrics()
+                },
+                StatusCode = ResultStatusCode.OK,
+                HasError = false
             };
             switch (view.Code)
             {
@@ -68,18 +71,18 @@ namespace Assert.Domain.Implementation
                     return result;
                 case "LV002":
                     result.Data.Parametrics.PropertySubTypes = await _propertySubtypeRepository.GetActives();
-                    result.Data.ListingData.PropertySubTypeId = data.TpProperties.FirstOrDefault().PropertySubtypeId;
+                    result.Data.ListingData.PropertySubTypeId = data.TpProperties.FirstOrDefault()?.PropertySubtypeId;
                     return result;
                 case "LV003":
                     result.Data.Parametrics.AccomodationTypes = await _accommodationTypeRepository.GetActives();
                     result.Data.ListingData.AccomodationTypeId = data.AccomodationTypeId;
                     return result;
                 case "LV004":
-                    result.Data.ListingData.Address = data.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault();
+                    result.Data.ListingData.Address = data.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault();
                     return result;
                 case "LV005":
-                    result.Data.ListingData.Latitude = data.TpProperties.FirstOrDefault().Latitude;
-                    result.Data.ListingData.Longitude = data.TpProperties.FirstOrDefault().Longitude;
+                    result.Data.ListingData.Latitude = data.TpProperties.FirstOrDefault()?.Latitude;
+                    result.Data.ListingData.Longitude = data.TpProperties.FirstOrDefault()?.Longitude;
                     return result;
                 case "LV006":
                     result.Data.Parametrics.AmenitiesTypes = await _amenitiesRepository.GetActives();
@@ -579,7 +582,7 @@ namespace Assert.Domain.Implementation
                     ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "El tipo de propiedad ingresado es incorrecto.", useTechnicalMessages)
                 };
             }
-            TpProperty setSubtyperesult = _propertyRepository.SetPropertySubType(listing.TpProperties.First().PropertyId, request_.SubtypeId);
+            TpProperty setSubtyperesult = await _propertyRepository.SetPropertySubType(listing.TpProperties.First().PropertyId, request_.SubtypeId);
             return new ReturnModel
             {
                 HasError = false,

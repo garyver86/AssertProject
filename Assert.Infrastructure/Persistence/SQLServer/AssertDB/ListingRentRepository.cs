@@ -146,7 +146,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             _context.TlListingRents.Add(listingRent);
             await _context.SaveChangesAsync();
 
-            _logRepository.RegisterLog(listingRent.ListingRentId, "Create Listing Rent " + listingRent.ListingRentId, clientData["BrowserInfo"], clientData["IsMobile"] == "True", clientData["IpAddress"], clientData["AdditionalData"], clientData["ApplicationCode"]);
+            await _logRepository.RegisterLog(listingRent.ListingRentId, "Create Listing Rent " + listingRent.ListingRentId, clientData["BrowserInfo"], clientData["IsMobile"] == "True", clientData["IpAddress"],null, clientData["ApplicationCode"]);
 
             return listingRent;
         }
