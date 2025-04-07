@@ -1,11 +1,4 @@
-﻿using Assert.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Assert.Application.DTOs
+﻿namespace Assert.Application.DTOs
 {
     public class ProcessDataResult
     {
@@ -18,7 +11,7 @@ namespace Assert.Application.DTOs
         public List<AccomodationTypeDTO> AccomodationTypes { get; set; }
         public List<AmenityDTO> AmenitiesTypes { get; set; }
         public List<FeaturedAspectDTO> FeaturedAspects { get; set; }
-        public Task<List<DiscountDTO>> DiscountTypes { get; set; }
+        public List<DiscountDTO> DiscountTypes { get; set; }
     }
     public class ListingProcessData_ListingData
     {

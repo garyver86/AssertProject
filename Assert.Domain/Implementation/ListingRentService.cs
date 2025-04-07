@@ -5,6 +5,7 @@ using Assert.Domain.Services;
 using Assert.Domain.ValueObjects;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System.Data;
 
 namespace Assert.Domain.Implementation
 {
@@ -101,12 +102,25 @@ namespace Assert.Domain.Implementation
                                     };
                                     break;
                                 case 2:
-                                    result = new ReturnModel
+                                    if (listingRent.ListingStatusId == 1)
                                     {
-                                        StatusCode = ResultStatusCode.BadRequest,
-                                        HasError = true,
-                                        ResultError = _errorHandler.GetError(ConstantsHelp.ERR_1, "Estado " + status.Code + " no soportado para este servicio.", useTechnicalMessages)
-                                    };
+                                        var changeResult2 = await _listingRentRepository.ChangeStatus(listingRentId, ownerUserId, status.ListingStatusId, clientData);
+
+                                        result = new ReturnModel
+                                        {
+                                            HasError = false,
+                                            StatusCode = ResultStatusCode.OK
+                                        };
+                                    }
+                                    else
+                                    {
+                                        result = new ReturnModel
+                                        {
+                                            StatusCode = ResultStatusCode.BadRequest,
+                                            HasError = true,
+                                            ResultError = _errorHandler.GetError(ConstantsHelp.ERR_1, "No es posible pasar del estado " + oldStatus.Code + " al estado " + status.Code, useTechnicalMessages)
+                                        };
+                                    }
                                     break;
                                 case 3:
                                     if (listingRent.ListingStatusId == 4)
@@ -310,6 +324,8 @@ namespace Assert.Domain.Implementation
                         ReturnModel<TlListingRent> newListing = await InitializeListingRent(viewType, request_, _userID, clientData, useTechnicalMessages);
                         if (newListing.StatusCode == ResultStatusCode.OK)
                         {
+                            await _listingViewStepRepository.SetEnded(listingRentId ?? 0, viewType.ViewTypeId, true);
+
                             ReturnModel<ListingProcessDataResultModel> NextStepResult = await _StepViewService.GetNextListingStepViewData(viewType.NextViewTypeId, newListing.Data, useTechnicalMessages);
                             return NextStepResult;
                         }
@@ -348,13 +364,39 @@ namespace Assert.Domain.Implementation
                             ReturnModel processDataResult = await _StepViewService.ProccessListingRentData(viewType, listing, _userID, request_, clientData, useTechnicalMessages);
                             if (processDataResult.StatusCode == ResultStatusCode.OK)
                             {
+                                await _listingViewStepRepository.SetEnded(listingRentId ?? 0, viewType.ViewTypeId, true);
+
                                 if (viewType.NextViewTypeId == null)
                                 {
-                                    return new ReturnModel<ListingProcessDataResultModel>
+                                    ReturnModel resultStatuses = await _listingViewStepRepository.IsAllViewsEndeds(listingRentId ?? 0);
+                                    if (resultStatuses.StatusCode == ResultStatusCode.OK)
                                     {
-                                        HasError = false,
-                                        StatusCode = ResultStatusCode.OK
-                                    };
+                                        var newStatus = await ChangeStatus(listingRentId ?? 0, _userID, "COMPLETED", clientData, useTechnicalMessages);
+                                        if (newStatus.StatusCode != ResultStatusCode.OK)
+                                        {
+                                            return new ReturnModel<ListingProcessDataResultModel>
+                                            {
+                                                HasError = false,
+                                                StatusCode = ResultStatusCode.Accepted,
+                                                ResultError = newStatus.ResultError
+                                            };
+                                        }
+
+                                        return new ReturnModel<ListingProcessDataResultModel>
+                                        {
+                                            HasError = false,
+                                            StatusCode = ResultStatusCode.OK
+                                        };
+                                    }
+                                    else
+                                    {
+                                        return new ReturnModel<ListingProcessDataResultModel>
+                                        {
+                                            HasError = false,
+                                            StatusCode = ResultStatusCode.Accepted,
+                                            ResultError = resultStatuses.ResultError
+                                        };
+                                    }
                                 }
                                 else
                                 {

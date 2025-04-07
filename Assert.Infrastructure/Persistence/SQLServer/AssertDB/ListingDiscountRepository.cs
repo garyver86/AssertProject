@@ -8,9 +8,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
     {
         private readonly InfraAssertDbContext _context;
         private readonly IListingLogRepository _logRepository;
-        private readonly IListingPriceRepository _priceRepository;
+        private readonly IListingPricingRepository _priceRepository;
         public ListingDiscountRepository(InfraAssertDbContext infraAssertDbContext, IListingLogRepository logRepository,
-            IListingStatusRepository listingStatusRepository, IListingPriceRepository listingPriceRepository)
+            IListingStatusRepository listingStatusRepository, IListingPricingRepository listingPriceRepository)
         {
             _context = infraAssertDbContext;
             _logRepository = logRepository;

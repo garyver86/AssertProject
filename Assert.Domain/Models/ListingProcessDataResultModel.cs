@@ -13,7 +13,7 @@ namespace Assert.Domain.Models
         public List<TlAccommodationType> AccomodationTypes { get; set; }
         public List<TpAmenitiesType> AmenitiesTypes { get; set; }
         public List<TFeaturedAspectType> FeaturedAspects { get; set; }
-        public Task<List<TDiscountTypeForTypePrice>> DiscountTypes { get; set; }
+        public List<TDiscountTypeForTypePrice> DiscountTypes { get; set; }
     }
     public class ListingProcessData_ListingData
     {

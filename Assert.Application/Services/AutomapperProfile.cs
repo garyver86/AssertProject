@@ -72,10 +72,18 @@ namespace Assert.Application.Services
                 .ForMember(dest => dest.TypeCode, opt => opt.MapFrom(src => src.AmenitiesType != null ? src.AmenitiesType.Code : null))
                 .ForMember(dest => dest.IconLink, opt => opt.MapFrom(src => src.AmenitiesType != null ? src.AmenitiesType.IconLink : null))
                 .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.AmenitiesType != null ? src.AmenitiesType.Name : null));
+            CreateMap< TpAmenitiesType, AmenityDTO >()
+                .ForMember(dest => dest.TypeCode, opt => opt.MapFrom(src => src.Code))
+                .ForMember(dest => dest.IconLink, opt => opt.MapFrom(src => src.IconLink))
+                .ForMember(dest => dest.AmenitiesTypeId, opt => opt.MapFrom(src => src.AmenitiesTypeId));
             CreateMap<TlListingFeaturedAspect, FeaturedAspectDTO>()
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.FeaturesAspectType != null ? src.FeaturesAspectType.FeaturedAspectCode : null))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.FeaturesAspectType != null ? src.FeaturesAspectType.FeaturedAspectName : null))
                 .ForMember(dest => dest.Value, opt => opt.MapFrom(src => src.FeaturesAspectType != null ? src.FeaturedAspectValue : null));
+            CreateMap< TFeaturedAspectType,FeaturedAspectDTO > ()
+                .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.FeaturedAspectCode))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.FeaturedAspectName))
+                .ForMember(dest => dest.FeaturedAspectTypeId, opt => opt.MapFrom(src => src.FeaturedAspectType));
             CreateMap<TlListingPhoto, PhotoDTO>();
             CreateMap<TlListingRentRule, RentRuleDTO>()
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.RuleType != null ? src.RuleType.Code : null))
@@ -105,8 +113,12 @@ namespace Assert.Application.Services
                 .ForMember(dest => dest.SubType, opt => opt.MapFrom(src => src.Name))
                 .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.PropertyType != null ? src.PropertyType.Name : null))
                 .ForMember(dest => dest.TypeCode, opt => opt.MapFrom(src => src.PropertyType != null ? src.PropertyType.Code : null));
-            CreateMap<TpPropertySubtype, DiscountDTO>();
-            CreateMap<TpPropertySubtype, ListingSpecialDatePriceDTO>();
+            CreateMap<TDiscountTypeForTypePrice, DiscountDTO>()
+                .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.Code))
+                .ForMember(dest => dest.PorcentageSuggest, opt => opt.MapFrom(src => src.PorcentageSuggest))
+                .ForMember(dest => dest.Porcentage, opt => opt.MapFrom(src => src.PorcentageSuggest))
+                .ForMember(dest => dest.DiscountTypeForTypePriceId, opt => opt.MapFrom(src => src.DiscountTypeForTypePriceId));
+            CreateMap<TlListingSpecialDatePrice, ListingSpecialDatePriceDTO>();
             CreateMap<TCity, CityDTO>()
                 .ForMember(dest => dest.StateCode, opt => opt.MapFrom(src => src.County.State != null ? src.County.State.IataCode : null))
                 .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.County.State != null ? src.County.State.Name : null))

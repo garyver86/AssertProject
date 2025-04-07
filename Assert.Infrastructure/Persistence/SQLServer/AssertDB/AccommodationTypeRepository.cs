@@ -11,9 +11,10 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         {
             _context = infraAssertDbContext;
         }
-        public Task<TlAccommodationType> GetActive(int? accomodationId)
+        public async Task<TlAccommodationType> GetActive(int? accomodationId)
         {
-            throw new NotImplementedException();
+            TlAccommodationType accommodationTypes = await _context.TlAccommodationTypes.Where(x => x.AccommodationTypeId == accomodationId).FirstOrDefaultAsync();
+            return accommodationTypes;
         }
 
         public async Task<List<TlAccommodationType>> GetActives()

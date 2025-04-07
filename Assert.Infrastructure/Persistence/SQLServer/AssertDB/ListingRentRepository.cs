@@ -146,19 +146,24 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             _context.TlListingRents.Add(listingRent);
             await _context.SaveChangesAsync();
 
-            await _logRepository.RegisterLog(listingRent.ListingRentId, "Create Listing Rent " + listingRent.ListingRentId, clientData["BrowserInfo"], clientData["IsMobile"] == "True", clientData["IpAddress"],null, clientData["ApplicationCode"]);
+            await _logRepository.RegisterLog(listingRent.ListingRentId, "Create Listing Rent " + listingRent.ListingRentId, clientData["BrowserInfo"], clientData["IsMobile"] == "True", clientData["IpAddress"], null, clientData["ApplicationCode"]);
 
             return listingRent;
         }
 
-        public Task<TlListingRent> SetAccomodationType(long propertyId, int? subtypeId)
+        public async Task<TlListingRent> SetAccomodationType(long listingRentId, int? accomodationTypeId)
         {
-            throw new NotImplementedException();
+            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefault();
+            listing.AccomodationTypeId = accomodationTypeId;
+            await _context.SaveChangesAsync();
+            return listing;
         }
 
-        public Task SetApprovalPolicy(long listingRentId, int? approvalPolicyTypeId)
+        public async Task SetApprovalPolicy(long listingRentId, int? approvalPolicyTypeId)
         {
-            throw new NotImplementedException();
+            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefault();
+            listing.ApprovalPolicyTypeId = approvalPolicyTypeId;
+            await _context.SaveChangesAsync();
         }
 
         public async Task SetCapacity(long listingRentId, int? beds, int? bedrooms, bool? allDoorsLocked, int? maxGuests)
@@ -181,29 +186,42 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             await _context.SaveChangesAsync();
         }
 
-        public Task SetDescription(long listingRentId, string description)
+        public async Task SetDescription(long listingRentId, string description)
         {
-            throw new NotImplementedException();
+            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefault();
+            listing.Description = description;
+            await _context.SaveChangesAsync();
         }
 
-        public Task SetName(long listingRentId, string title)
+        public async Task SetName(long listingRentId, string title)
         {
-            throw new NotImplementedException();
+            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefault();
+            listing.Name = title;
+            await _context.SaveChangesAsync();
         }
 
-        public Task SetNameAndDescription(long listingRentId, string title, string description)
+        public async Task SetNameAndDescription(long listingRentId, string title, string description)
         {
-            throw new NotImplementedException();
+            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefault();
+            listing.Description = description;
+            listing.Name = title;
+            await _context.SaveChangesAsync();
         }
 
-        public Task SetSecurityConfirmationData(long listingRentId, bool? presenceOfWeapons, bool? noiseDesibelesMonitor, bool? externalCameras)
+        public async Task SetSecurityConfirmationData(long listingRentId, bool? presenceOfWeapons, bool? noiseDesibelesMonitor, bool? externalCameras)
         {
-            throw new NotImplementedException();
+            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefault();
+            listing.PresenceOfWeapons = presenceOfWeapons;
+            listing.NoiseDesibelesMonitor = noiseDesibelesMonitor;
+            listing.ExternalCameras = externalCameras;
+            await _context.SaveChangesAsync();
         }
 
-        Task IListingRentRepository.SetAsConfirmed(long listingRentId)
+        public async Task SetAsConfirmed(long listingRentId)
         {
-            throw new NotImplementedException();
+            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefault();
+            listing.ListingRentConfirmationDate = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
         }
     }
 }

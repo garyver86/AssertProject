@@ -30,7 +30,9 @@ namespace Assert.Domain.Implementation
             IListingRentRepository listingRentRepository, IPropertyRepository propertyRepository, IAccommodationTypeRepository accommodationTypeRepository,
             IPropertyAddressRepository propertyAddressRepository, IListingAmenitiesRepository listingAmenitiesRepository,
             IListingPhotoRepository listingPhotoRepository, IViewTypeRepository viewTypeRepository, IAmenitiesRepository amenitiesRepository,
-            IFeaturesAspectsRepository featuresAspectsRepository, IDiscountTypeRepository discountTypeRepository)
+            IFeaturesAspectsRepository featuresAspectsRepository, IDiscountTypeRepository discountTypeRepository,
+            IListingFeaturedAspectRepository listingFeaturedAspectRepository, IListingPricingRepository listingPricingRepository,
+            IListingDiscountRepository listingDiscountRepository)
         {
             _errorHandler = errorHandler;
             _propertySubtypeRepository = propertySubtypeRepository;
@@ -44,6 +46,9 @@ namespace Assert.Domain.Implementation
             _amenitiesRepository = amenitiesRepository;
             _featuresAspectsRepository = featuresAspectsRepository;
             _discountTypeRepository = discountTypeRepository;
+            _listingFeaturedAspectRepository = listingFeaturedAspectRepository;
+            _listingPriceRepository = listingPricingRepository;
+            _listingDiscountRepository = listingDiscountRepository;
         }
         public async Task<ReturnModel<ListingProcessDataResultModel>> GetNextListingStepViewData(int? nextViewTypeId, TlListingRent? data, bool useTechnicalMessages)
         {
@@ -98,8 +103,8 @@ namespace Assert.Domain.Implementation
                     result.Data.ListingData.FeaturedAspects = data.TlListingFeaturedAspects;
                     return result;
                 case "LV009":
-                    result.Data.Parametrics.DiscountTypes = _discountTypeRepository.GetActives();
-                    result.Data.ListingData.Discounts = data.TlListingPrices.FirstOrDefault().TlListingDiscountForRates;
+                    result.Data.Parametrics.DiscountTypes = await _discountTypeRepository.GetActives();
+                    result.Data.ListingData.Discounts = data.TlListingPrices.FirstOrDefault()?.TlListingDiscountForRates;
                     return result;
                 case "LV010":
                     return result;
@@ -179,8 +184,8 @@ namespace Assert.Domain.Implementation
                 };
             }
 
-            await _listingPriceRepository.SetPricing(request_.ListingRentId ?? 0, request_.Pricing, request_.WeekendPrice, request_.CurrencyId);
-            await _listingDiscountRepository.SetDiscounts(request_.ListingRentId ?? 0, request_.Discounts?.Select(x => x.dicountTypeId));
+            await _listingPriceRepository.SetPricing(listing.ListingRentId, request_.Pricing, request_.WeekendPrice, request_.CurrencyId);
+            await _listingDiscountRepository.SetDiscounts(listing.ListingRentId, request_.Discounts?.Select(x => x.dicountTypeId));
 
             return new ReturnModel
             {
@@ -519,10 +524,9 @@ namespace Assert.Domain.Implementation
                 Address1 = request_.Address.Address1,
                 Address2 = request_.Address.Address2,
                 CityId = request_.Address.CityId,
-                PropertyId = listing.TpProperties.First().PropertyId,
                 ZipCode = request_.Address.ZipCode
             };
-            TpPropertyAddress addressResult = await _propertyAddressRepository.Add(addresInput);
+            TpPropertyAddress addressResult = await _propertyAddressRepository.Set(addresInput, listing.TpProperties.First().PropertyId);
             return new ReturnModel
             {
                 HasError = false,
