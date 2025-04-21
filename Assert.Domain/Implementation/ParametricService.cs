@@ -8,11 +8,16 @@ namespace Assert.Domain.Implementation
     public class ParametricService : IParametricService
     {
         private readonly IAccommodationTypeRepository _accommodationTypeRepository;
+        private readonly IDiscountTypeRepository _discountTypeRepository;
+        private readonly IFeaturesAspectsRepository _featuredAspectsRepository;
         private readonly IErrorHandler _errorHandler;
-        public ParametricService(IAccommodationTypeRepository accommodationTypeRepository, IErrorHandler errorHandler)
+        public ParametricService(IAccommodationTypeRepository accommodationTypeRepository, IErrorHandler errorHandler,
+            IFeaturesAspectsRepository featuredAspectsRepository, IDiscountTypeRepository discountTypeRepository)
         {
             _accommodationTypeRepository = accommodationTypeRepository;
             _errorHandler = errorHandler;
+            _featuredAspectsRepository = featuredAspectsRepository;
+            _discountTypeRepository = discountTypeRepository;
         }
 
         public async Task<ReturnModel<List<TlAccommodationType>>> GetAccomodationTypesActives()
@@ -32,7 +37,51 @@ namespace Assert.Domain.Implementation
             {
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
-                result.ResultError = _errorHandler.GetErrorException("L_ListingRentView.GetAccomodationTypesActives", ex, null, true);
+                result.ResultError = _errorHandler.GetErrorException("IParametricService.GetAccomodationTypesActives", ex, null, true);
+            }
+            return result;
+        }
+
+        public async Task<ReturnModel<List<TDiscountTypeForTypePrice>>> GetDiscountTypes()
+        {
+            ReturnModel<List<TDiscountTypeForTypePrice>> result = new ReturnModel<List<TDiscountTypeForTypePrice>>();
+            try
+            {
+                var result_data = await _discountTypeRepository.GetActives();
+                return new ReturnModel<List<TDiscountTypeForTypePrice>>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    Data = result_data,
+                    HasError = false
+                };
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _errorHandler.GetErrorException("IParametricService.GetDiscountTypes", ex, null, true);
+            }
+            return result;
+        }
+
+        public async Task<ReturnModel<List<TFeaturedAspectType>>> GetFeaturedAspects()
+        {
+            ReturnModel<List<TFeaturedAspectType>> result = new ReturnModel<List<TFeaturedAspectType>>();
+            try
+            {
+                var result_data = await _featuredAspectsRepository.GetActives();
+                return new ReturnModel<List<TFeaturedAspectType>>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    Data = result_data,
+                    HasError = false
+                };
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _errorHandler.GetErrorException("IParametricService.GetFeaturedAspects", ex, null, true);
             }
             return result;
         }

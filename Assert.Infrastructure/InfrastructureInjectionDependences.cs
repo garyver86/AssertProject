@@ -94,6 +94,7 @@ public static class InfrastructureInjectionDependences
         services.AddScoped<IListingFeaturedAspectRepository, ListingFeaturedAspectRepository>();
         services.AddScoped<IListingPricingRepository, ListingPricingRepository>();
         services.AddScoped<IListingDiscountRepository, ListingDiscountRepository>();
+        services.AddScoped<IListingRentReviewRepository, ListingRentReviewRepository>();
         #endregion
 
         return services;

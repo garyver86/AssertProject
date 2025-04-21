@@ -21,6 +21,11 @@ builder.Services.AddFeaturesCors(builder.Configuration, allowedOrigins!);
 builder.Services.AddAuthJwt(builder.Configuration);
 builder.Services.AddSwagger();
 
+
+builder.WebHost.ConfigureKestrel(serverOptions => {
+    serverOptions.ListenAnyIP(Int32.Parse(Environment.GetEnvironmentVariable("PORT") ?? "8081"));
+});
+
 var app = builder.Build();
 
 app.UseMiddleware<RequestInfoMiddleware>();

@@ -1,5 +1,6 @@
 ﻿using Assert.Application.DTOs;
 using Assert.Application.Interfaces;
+using Assert.Domain.Entities;
 using Assert.Domain.Models;
 using Assert.Domain.Services;
 using AutoMapper;
@@ -40,6 +41,49 @@ namespace Assert.Application.Services
             }
         }
 
+        public async Task<ReturnModelDTO<List<DiscountDTO>>> GetDiscountTypes(Dictionary<string, string> requestInfo, bool useTechnicalMessages)
+        {
+            try
+            {
+                ReturnModel<List<TDiscountTypeForTypePrice>> result = await _parametricService.GetDiscountTypes();
+                if (result.HasError)
+                {
+                    return CreateErrorResult<List<DiscountDTO>>(result.StatusCode, result.ResultError, useTechnicalMessages);
+                }
+                return new ReturnModelDTO<List<DiscountDTO>>
+                {
+                    Data = _mapper.Map<List<DiscountDTO>>(result.Data),
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            catch (Exception ex)
+            {
+                return HandleException<List<DiscountDTO>>("AppParametricService.GetDiscountTypes", ex, null, useTechnicalMessages);
+            }
+        }
+
+        public async Task<ReturnModelDTO<List<FeaturedAspectDTO>>> GetFeaturedAspects(Dictionary<string, string> requestInfo, bool useTechnicalMessages)
+        {
+            try
+            {
+                ReturnModel<List<TFeaturedAspectType>> result = await _parametricService.GetFeaturedAspects();
+                if (result.HasError)
+                {
+                    return CreateErrorResult<List<FeaturedAspectDTO>>(result.StatusCode, result.ResultError, useTechnicalMessages);
+                }
+                return new ReturnModelDTO<List<FeaturedAspectDTO>>
+                {
+                    Data = _mapper.Map<List<FeaturedAspectDTO>>(result.Data),
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            catch (Exception ex)
+            {
+                return HandleException<List<FeaturedAspectDTO>>("AppParametricService.GetFeaturedAspects", ex, null, useTechnicalMessages);
+            }
+        }
 
         private ReturnModelDTO<T> CreateErrorResult<T>(string statusCode, string errorMessage, bool useTechnicalMessages)
         {

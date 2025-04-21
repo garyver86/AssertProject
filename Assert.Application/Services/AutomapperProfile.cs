@@ -63,7 +63,8 @@ namespace Assert.Application.Services
                 .ForMember(dest => dest.Phones, opt => opt.MapFrom(src => src.TuPhones))
                 .ForMember(dest => dest.ProfilePhotos, opt => opt.MapFrom(src => src.TuProfilePhotos));
             CreateMap<TpProperty, PropertyDTO>()
-                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.TpPropertyAddresses.FirstOrDefault()));
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.TpPropertyAddresses.FirstOrDefault()))
+                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.PropertySubtype));
             CreateMap<TlListingPrice, PriceDTO>()
                 .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Currency != null ? src.Currency.Name : null))
                 .ForMember(dest => dest.CurrencyCode, opt => opt.MapFrom(src => src.Currency != null ? src.Currency.Code : null));
@@ -72,7 +73,7 @@ namespace Assert.Application.Services
                 .ForMember(dest => dest.TypeCode, opt => opt.MapFrom(src => src.AmenitiesType != null ? src.AmenitiesType.Code : null))
                 .ForMember(dest => dest.IconLink, opt => opt.MapFrom(src => src.AmenitiesType != null ? src.AmenitiesType.IconLink : null))
                 .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.AmenitiesType != null ? src.AmenitiesType.Name : null));
-            CreateMap< TpAmenitiesType, AmenityDTO >()
+            CreateMap<TpAmenitiesType, AmenityDTO>()
                 .ForMember(dest => dest.TypeCode, opt => opt.MapFrom(src => src.Code))
                 .ForMember(dest => dest.IconLink, opt => opt.MapFrom(src => src.IconLink))
                 .ForMember(dest => dest.AmenitiesTypeId, opt => opt.MapFrom(src => src.AmenitiesTypeId));
@@ -80,7 +81,7 @@ namespace Assert.Application.Services
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.FeaturesAspectType != null ? src.FeaturesAspectType.FeaturedAspectCode : null))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.FeaturesAspectType != null ? src.FeaturesAspectType.FeaturedAspectName : null))
                 .ForMember(dest => dest.Value, opt => opt.MapFrom(src => src.FeaturesAspectType != null ? src.FeaturedAspectValue : null));
-            CreateMap< TFeaturedAspectType,FeaturedAspectDTO > ()
+            CreateMap<TFeaturedAspectType, FeaturedAspectDTO>()
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.FeaturedAspectCode))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.FeaturedAspectName))
                 .ForMember(dest => dest.FeaturedAspectTypeId, opt => opt.MapFrom(src => src.FeaturedAspectType));
@@ -91,7 +92,8 @@ namespace Assert.Application.Services
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.RuleType != null ? src.RuleType.Description : null))
                 .ForMember(dest => dest.IconLink, opt => opt.MapFrom(src => src.RuleType != null ? src.RuleType.IconLink : null));
             CreateMap<TlListingReview, ReviewDTO>()
-                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User != null ? $"{src.User.Name} {src.User.LastName}" : null));
+                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User != null ? $"{src.User.Name} {src.User.LastName}" : null))
+                .ForMember(dest => dest.UserProfilePhoto, opt => opt.MapFrom(src => src.User != null ? src.User.PhotoLink : null));
             CreateMap<TlListingSecurityItem, SecurityItemDTO>()
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.SecurityItemType != null ? src.SecurityItemType.Code : null))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.SecurityItemType != null ? src.SecurityItemType.Name : null))

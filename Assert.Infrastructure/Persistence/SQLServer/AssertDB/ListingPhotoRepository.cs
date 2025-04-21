@@ -23,6 +23,12 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             return result;
         }
 
+        public async Task<List<TlListingPhoto>> GetByListingRentId(long listingRentId, int userID)
+        {
+            var result = await _context.TlListingPhotos.Where(x => x.ListingRentId == listingRentId && x.ListingRent.OwnerUserId == userID).ToListAsync();
+            return result;
+        }
+
         public async Task UpdatePhotos(long listingRentId, List<ProcessData_PhotoModel> photos)
         {
             List<TlListingPhoto> actualList = await _context.TlListingPhotos.Where(x => x.ListingRentId == listingRentId).ToListAsync();

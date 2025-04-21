@@ -45,6 +45,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .ThenInclude(y => y.FeaturesAspectType)
                 .Include(x => x.TpProperties)
                     .ThenInclude(y => y.TpPropertyAddresses)
+                .Include(x => x.TpProperties) 
+                    .ThenInclude(y => y.PropertySubtype) 
+                        .ThenInclude(y => y.PropertyType)
                 .Include(x => x.TlListingPhotos)
                 .Include(x => x.TlListingPrices)
                 .Include(x => x.TlListingRentRules)
@@ -57,7 +60,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .Include(x => x.TlStayPresences)
                     .ThenInclude(y => y.StayPrecenseType)
                 .AsNoTracking()
-                .Where(x => x.ListingRentId == id && (!onlyActive || (onlyActive && x.ListingStatusId == 3))).FirstOrDefault();
+                .Where(x => x.ListingRentId == id && x.ListingStatusId != 5).FirstOrDefault();
 
             TlListingRent? tlListingRent = await Task.FromResult(result);
             return tlListingRent;
@@ -78,6 +81,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .ThenInclude(y => y.FeaturesAspectType)
                 .Include(x => x.TpProperties)
                     .ThenInclude(y => y.TpPropertyAddresses)
+                .Include(x => x.TpProperties)
+                    .ThenInclude(y => y.PropertySubtype)
+                        .ThenInclude(y => y.PropertyType)
                 .Include(x => x.TlListingPhotos)
                 .Include(x => x.TlListingPrices)
                 .Include(x => x.TlListingRentRules)
@@ -90,13 +96,13 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .Include(x => x.TlStayPresences)
                     .ThenInclude(y => y.StayPrecenseType)
                 .AsNoTracking()
-                .Where(x => x.ListingRentId == id && x.OwnerUserId == ownerID).FirstOrDefault();
+                .Where(x => x.ListingRentId == id && x.OwnerUserId == ownerID && x.ListingStatusId != 5).FirstOrDefault();
             return await Task.FromResult(result);
         }
 
         public async Task<List<TlListingRent>> GetAll(int ownerID)
         {
-            var result = _context.TlListingRents.Where(x => x.OwnerUserId == ownerID).ToList();
+            var result = _context.TlListingRents.Where(x => x.OwnerUserId == ownerID && x.ListingStatusId != 5).ToList();
             return await Task.FromResult(result);
         }
 
@@ -115,6 +121,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .ThenInclude(y => y.FeaturesAspectType)
                 .Include(x => x.TpProperties)
                     .ThenInclude(y => y.TpPropertyAddresses)
+                .Include(x => x.TpProperties)
+                    .ThenInclude(y => y.PropertySubtype)
+                        .ThenInclude(y => y.PropertyType)
                 .Include(x => x.TlListingPhotos)
                 .Include(x => x.TlListingPrices)
                 .Include(x => x.TlListingRentRules)
@@ -127,7 +136,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .Include(x => x.TlStayPresences)
                     .ThenInclude(y => y.StayPrecenseType)
                 .AsNoTracking()
-                .Where(x => x.ListingStatusId == 3 && (countryId == null || x.TpProperties.FirstOrDefault().City.County.State.CountryId == countryId))
+                .Where(x => x.ListingStatusId == 3 && (countryId == null || countryId == 0 || x.TpProperties.FirstOrDefault().City.County.State.CountryId == countryId))
                 .OrderByDescending(x => x.TlListingReviews.Average(y => y.Calification))
                 .Take(limit ?? 10)
                 .ToListAsync();
@@ -153,7 +162,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task<TlListingRent> SetAccomodationType(long listingRentId, int? accomodationTypeId)
         {
-            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefault();
+            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
             listing.AccomodationTypeId = accomodationTypeId;
             await _context.SaveChangesAsync();
             return listing;
@@ -161,14 +170,14 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task SetApprovalPolicy(long listingRentId, int? approvalPolicyTypeId)
         {
-            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefault();
+            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
             listing.ApprovalPolicyTypeId = approvalPolicyTypeId;
             await _context.SaveChangesAsync();
         }
 
         public async Task SetCapacity(long listingRentId, int? beds, int? bedrooms, bool? allDoorsLocked, int? maxGuests)
         {
-            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefault();
+            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
             listing.Beds = beds;
             listing.Bedrooms = bedrooms;
             listing.AllDoorsLocked = allDoorsLocked;
@@ -178,7 +187,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task SetCapacity(long listingRentId, int? beds, int? bedrooms, int? bathrooms, int? maxGuests)
         {
-            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefault();
+            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
             listing.Beds = beds;
             listing.Bedrooms = bedrooms;
             listing.Bathrooms = bathrooms;
@@ -188,21 +197,21 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task SetDescription(long listingRentId, string description)
         {
-            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefault();
+            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
             listing.Description = description;
             await _context.SaveChangesAsync();
         }
 
         public async Task SetName(long listingRentId, string title)
         {
-            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefault();
+            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
             listing.Name = title;
             await _context.SaveChangesAsync();
         }
 
         public async Task SetNameAndDescription(long listingRentId, string title, string description)
         {
-            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefault();
+            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
             listing.Description = description;
             listing.Name = title;
             await _context.SaveChangesAsync();
@@ -210,7 +219,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task SetSecurityConfirmationData(long listingRentId, bool? presenceOfWeapons, bool? noiseDesibelesMonitor, bool? externalCameras)
         {
-            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefault();
+            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
             listing.PresenceOfWeapons = presenceOfWeapons;
             listing.NoiseDesibelesMonitor = noiseDesibelesMonitor;
             listing.ExternalCameras = externalCameras;
@@ -219,7 +228,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task SetAsConfirmed(long listingRentId)
         {
-            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefault();
+            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
             listing.ListingRentConfirmationDate = DateTime.UtcNow;
             await _context.SaveChangesAsync();
         }

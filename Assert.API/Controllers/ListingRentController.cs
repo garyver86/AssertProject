@@ -90,13 +90,30 @@ namespace Assert.API.Controllers
         /// <response code="200">Si se procesó correctamente.</response>
         /// <remarks>
         /// </remarks>
-        [HttpDelete("{listingRentId}/favorite")]
+        [HttpDelete("{listingRentId}/Favorite")]
         public async Task<ReturnModelDTO> RemoveFromFavorites(int listingRentId)
         {
             var requestInfo = HttpContext.GetRequestInfo();
             int userId = 0;
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);
             ReturnModelDTO result = await _appListingFavoriteService.ToggleFavorite(listingRentId, false, userId, requestInfo);
+            return result;
+        }
+
+
+        /// <summary>
+        /// Servicio que recupera la lista de reviews de un listing Rent.
+        /// </summary>
+        /// <param name="listingRentId">Id del linsting.</param>
+        /// <returns>Listado de reviews asociados al listing rent.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// </remarks>
+        [HttpGet("{listingRentId}/Reviews")]
+        public async Task<ReturnModelDTO<List<ReviewDTO>>> GetReviews(int listingRentId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            ReturnModelDTO<List<ReviewDTO>> result = await _appListingRentService.GetListingRentReviews(listingRentId, false, requestInfo);
             return result;
         }
 
