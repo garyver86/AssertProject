@@ -1,15 +1,20 @@
 ﻿using Assert.Application.DTOs;
 using Assert.Domain.Entities;
+using Assert.Domain.Enums;
 using Assert.Domain.Models;
 using AutoMapper;
 
-namespace Assert.Application.Services
+namespace Assert.Application.Mappings
 
 {
     public class AutomapperProfile : Profile
     {
         public AutomapperProfile()
         {
+            #region mapping enums
+            CreateMap<string, Platform>().ConvertUsing<PlatformConverter>();
+            #endregion
+
             CreateMap<ReturnModel, ReturnModelDTO>();
 
             CreateMap<ProcessDataRequest, ListingProcessDataModel>();
@@ -18,10 +23,10 @@ namespace Assert.Application.Services
             CreateMap<ProcessData_Space, ProcessData_SpaceModel>();
             CreateMap<ProcessData_Photo, ProcessData_PhotoModel>();
             CreateMap<ProcessData_Discount, ProcessData_DiscountModel>();
-            
+
             CreateMap<ListingProcessDataResultModel, ProcessDataResult>();
 
-            
+
 
 
             CreateMap<ReturnModel<TlListingRent>, ReturnModelDTO<ListingRentDTO>>()

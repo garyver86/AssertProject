@@ -1,4 +1,5 @@
-﻿using Assert.Domain.Implementation;
+﻿using Assert.Domain.Enums;
+using Assert.Domain.Implementation;
 using Assert.Domain.Interfaces.Infraestructure.External;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
@@ -41,20 +42,22 @@ public static class InfrastructureInjectionDependences
 
         services.AddScoped<GoogleAuthValidator>();
         services.AddScoped<AppleAuthValidator>();
-        services.AddScoped<FacebookAuthValidator>();
+        services.AddScoped<MetaAuthValidator>();
         services.AddScoped<LocalAuthValidator>();
 
-        services.AddScoped<Func<string, IAuthProviderValidator>>(serviceProvider => key =>
+        #region auth validator social media
+        services.AddScoped<Func<Platform, IAuthProviderValidator>>(serviceProvider => key =>
         {
             return key switch
             {
-                "google" => serviceProvider.GetRequiredService<GoogleAuthValidator>(),
-                "apple" => serviceProvider.GetRequiredService<AppleAuthValidator>(),
-                "facebook" => serviceProvider.GetRequiredService<FacebookAuthValidator>(),
-                "local" => serviceProvider.GetRequiredService<LocalAuthValidator>(),
+                Platform.Google => serviceProvider.GetRequiredService<GoogleAuthValidator>(),
+                Platform.Apple => serviceProvider.GetRequiredService<AppleAuthValidator>(),
+                Platform.Meta => serviceProvider.GetRequiredService<MetaAuthValidator>(),
+                Platform.Local => serviceProvider.GetRequiredService<LocalAuthValidator>(),
                 _ => throw new ArgumentException("Invalid provider")
             };
         });
+        #endregion
 
         #region Repositories
         services.AddScoped<IUserRepository, UserRepository>();

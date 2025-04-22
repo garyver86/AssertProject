@@ -10,7 +10,7 @@
         /// Respuesta de la solicitud en caso de éxito.
         /// </summary>
         public object? Data { get; set; }
-        public bool HasError { get; internal set; }
+        public bool HasError { get; set; }
         public ErrorCommonDTO ResultError { get; set; }
     }
     public class ReturnModelDTO<T> : ReturnModelDTO
@@ -33,5 +33,6 @@
         public string Code { get; set; }
         public string Message { get; set; }
         public string Title { get; set; }
+        public string? CorrelationId { get; set; }
     }
 }

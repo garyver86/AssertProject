@@ -11,7 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Assert.Infrastructure", "As
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Assert.Application", "Assert.Application\Assert.Application.csproj", "{50EB771B-DA6B-453D-A129-C76324974D15}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assert.UnitTest", "Assert.UnitTest\Assert.UnitTest.csproj", "{6DD9FB28-1ED0-4678-B584-B68B5BD60859}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Assert.UnitTest", "Assert.UnitTest\Assert.UnitTest.csproj", "{6DD9FB28-1ED0-4678-B584-B68B5BD60859}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Assert.Shared", "Assert.Shared\Assert.Shared.csproj", "{BC8FD1A7-28D7-4C8E-92EB-A8721063143B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +41,10 @@ Global
 		{6DD9FB28-1ED0-4678-B584-B68B5BD60859}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6DD9FB28-1ED0-4678-B584-B68B5BD60859}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6DD9FB28-1ED0-4678-B584-B68B5BD60859}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC8FD1A7-28D7-4C8E-92EB-A8721063143B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC8FD1A7-28D7-4C8E-92EB-A8721063143B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC8FD1A7-28D7-4C8E-92EB-A8721063143B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC8FD1A7-28D7-4C8E-92EB-A8721063143B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

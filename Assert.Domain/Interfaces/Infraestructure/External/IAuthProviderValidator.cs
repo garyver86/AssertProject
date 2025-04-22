@@ -1,4 +1,5 @@
-﻿using Assert.Domain.Models.Auth;
+﻿using Assert.Domain.Models;
+using Assert.Domain.Models.Auth;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,5 +10,7 @@ namespace Assert.Domain.Interfaces.Infraestructure.External;
 
 public interface IAuthProviderValidator
 {
-    Task<AuthValidationResult> ValidateTokenAsync(string token);
+    Task<ReturnModel> ValidateTokenAsync(string token);
+
+    Task<ReturnModel> LoginAsync(string user, string password);
 }

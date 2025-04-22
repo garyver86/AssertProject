@@ -2,6 +2,7 @@
 using Assert.API.Models;
 using Assert.Application.DTOs;
 using Assert.Application.Interfaces;
+using Assert.Domain.Common;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -13,9 +14,9 @@ namespace Assert.API.Controllers
     public class SecurityController : Controller
     {
         private readonly ISecurityService _securityService;
-        private readonly JWTConfiguration _JWTConfiguration;
+        private readonly JwtConfiguration _JWTConfiguration;
         private static IConfiguration _configuration;
-        public SecurityController(ISecurityService securityService, IOptions<JWTConfiguration> JWTConfiguration)
+        public SecurityController(ISecurityService securityService, IOptions<JwtConfiguration> JWTConfiguration)
         {
             _securityService = securityService;
             _JWTConfiguration = JWTConfiguration.Value;

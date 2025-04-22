@@ -1,4 +1,6 @@
-﻿using Assert.Domain.Models;
+﻿using Assert.Domain.Common;
+using Assert.Domain.Models;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -8,30 +10,31 @@ namespace Assert.Infrastructure.Security
 {
     public class JWTSecurityService : IJWTSecurity
     {
-        public async Task<string> GenerateJwt(string secretKey, string issuer, string audience, int expireMinutes, List<Claim> claims)
+        private readonly JwtConfiguration _jwtConfig;
+
+        public JWTSecurityService(IOptions<JwtConfiguration> jwtConfig)
         {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+            _jwtConfig = jwtConfig.Value;
+        }
+
+        public async Task<string> GenerateJwt(List<Claim> claims)
+        {
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtConfig.Secret));
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
-            DateTime expiryDate = DateTime.UtcNow;
-            if (expireMinutes <= 0)
-            {
-                expiryDate = DateTime.UtcNow.AddYears(10);
-            }
-            else
-            {
-                expiryDate = DateTime.UtcNow.AddMinutes(expireMinutes);
-            }
+            var expiryDate = _jwtConfig.TimeLife <= 0
+                ? DateTime.UtcNow.AddYears(10)
+                : DateTime.UtcNow.AddMinutes(_jwtConfig.TimeLife);
 
             var token = new JwtSecurityToken(
-                issuer: issuer,
-                audience: audience,
+                issuer: _jwtConfig.Issuer,
+                audience: _jwtConfig.Audience,
                 claims: claims,
                 expires: expiryDate,
                 signingCredentials: credentials,
                 notBefore: DateTime.UtcNow
             );
-            return await Task.Run(() => new JwtSecurityTokenHandler().WriteToken(token));
+            return await Task.FromResult(new JwtSecurityTokenHandler().WriteToken(token)); // await Task.Run(() => new JwtSecurityTokenHandler().WriteToken(token));
         }
 
         public async Task<List<Claim>?> GetTokenClaims(string token)
@@ -83,7 +86,7 @@ namespace Assert.Infrastructure.Security
             }
         }
 
-        public static TimeSpan GetTokenRemainingTime(string token)
+        private static TimeSpan GetTokenRemainingTime(string token)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var jwtToken = tokenHandler.ReadJwtToken(token);

@@ -14,7 +14,7 @@ namespace Assert.Infrastructure.Security
 
         public async Task<ReturnModel> UserLogin(string user, string password, string ip, string browseInfo)
         {
-            ReturnModel? resultLogin = await _userRepository.Login(user, password, ip, browseInfo);
+            ReturnModel? resultLogin = await _userRepository.Login(user, password);
             return resultLogin;
         }
     }
