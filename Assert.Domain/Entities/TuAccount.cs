@@ -5,7 +5,7 @@ namespace Assert.Domain.Entities;
 
 public partial class TuAccount
 {
-    public int AccountId { get; set; }
+    public long AccountId { get; set; }
 
     public int? UserId { get; set; }
 

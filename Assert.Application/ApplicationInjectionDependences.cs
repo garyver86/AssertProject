@@ -3,12 +3,15 @@ using Assert.Application.Interfaces;
 using Assert.Application.Mappings;
 using Assert.Application.Services;
 using Assert.Application.Services.Security;
+using Assert.Application.Validators;
 using Assert.Domain.Implementation;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Assert.Infrastructure.InternalServices;
 using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 using Assert.Infrastructure.Security;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,11 +25,23 @@ namespace Assert.Application
         {
             services.AddAutoMapper(typeof(AutomapperProfile));
 
+            //Validator
+            //services.AddFluentValidationAutoValidation();
+            //services.AddFluentValidationClientsideAdapters();
+            //services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
+            services.AddFluentValidation(options =>
+            {
+                options.DisableDataAnnotationsValidation = true;
+                options.ImplicitlyValidateChildProperties = false;
+            });
+            services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
+
             //Application Services
             services.AddScoped<ISecurityService, SecurityService>();
             services.AddScoped<IAppListingRentService, AppListingRentService>();
             services.AddScoped<IAppSearchService, AppSearchService>();
             services.AddScoped<IAppListingFavoriteService, AppListingFavoriteService>();
+            services.AddScoped<IAppUserService, AppUserService>();
 
             //Domain Services
             services.AddScoped<IListingRentService, ListingRentService>();

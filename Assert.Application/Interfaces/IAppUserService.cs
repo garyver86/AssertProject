@@ -4,7 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-using Assert.Application.DTOs;
+using Assert.Application.DTOs.Responses;
 using Assert.Domain.Models;
 using Assert.Infrastructure.Security;
 

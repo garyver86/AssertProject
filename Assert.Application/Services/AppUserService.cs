@@ -1,4 +1,4 @@
-﻿using Assert.Application.DTOs;
+﻿using Assert.Application.DTOs.Responses;
 using Assert.Application.Exceptions;
 using Assert.Domain.Common;
 using Assert.Domain.Entities;
@@ -74,7 +74,7 @@ public class AppUserService(
                 default:
                     _metadata.UserName = userName;
                     _metadata.UserId = ((TuUser)userAccount.Data!).UserId;
-                    _metadata.AccountId = ((TuUser)userAccount.Data!).TuAccounts.First().AccountId;
+                    _metadata.AccountId = Convert.ToInt32(((TuUser)userAccount.Data!).TuAccounts.First().AccountId);
                     break;
             }
             #endregion

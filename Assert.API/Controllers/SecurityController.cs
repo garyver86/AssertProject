@@ -1,6 +1,6 @@
 ﻿using Assert.API.Helpers;
 using Assert.API.Models;
-using Assert.Application.DTOs;
+using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
 using Assert.Domain.Common;
 using Microsoft.AspNetCore.Cors;

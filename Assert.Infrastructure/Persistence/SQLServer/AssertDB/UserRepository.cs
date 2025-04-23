@@ -90,52 +90,59 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         
         public async Task<ReturnModel> ValidateUserName(string userName, bool validateStatusActive)
         {
-            var user = await _dbContext.TuUsers
-                .Where(x => x.UserName!.ToUpper() == userName.ToUpper())
-                .Include(x => x.TuAccounts)
-                .OrderByDescending(x => x.UserId) 
-                .FirstOrDefaultAsync();
-
-            if (user == null)
+            try
             {
-                return new ReturnModel
+                var user = await _dbContext.TuUsers
+                    .Where(x => x.UserName!.ToUpper() == userName.ToUpper())
+                    .Include(x => x.TuAccounts)
+                    .OrderByDescending(x => x.UserId)
+                    .FirstOrDefaultAsync();
+
+                if (user == null)
                 {
-                    StatusCode = ResultStatusCode.NotFound,
-                    ResultError = new ErrorCommon { Message = "El usuario no existe en registros." }
-                };
-            }
+                    return new ReturnModel
+                    {
+                        StatusCode = ResultStatusCode.NotFound,
+                        ResultError = new ErrorCommon { Message = "El usuario no existe en registros." }
+                    };
+                }
 
-            if (!validateStatusActive)
-            {
+                if (!validateStatusActive)
+                {
+                    return new ReturnModel
+                    {
+                        Data = user,
+                        StatusCode = ResultStatusCode.OK
+                    };
+                }
+
+                var lastAccount = user.TuAccounts.OrderByDescending(a => a.AccountId).FirstOrDefault();
+                if (lastAccount == null)
+                {
+                    return new ReturnModel
+                    {
+                        StatusCode = ResultStatusCode.NoContent,
+                        ResultError = new ErrorCommon { Message = "No se encontró cuenta asociada al usuario." },
+                        Data = user.UserId
+                    };
+                }
+
+                if (lastAccount.Status != "AC")
+                    throw new UnauthorizedException("El usuario no se encuentra activo.");
+
+                if (lastAccount.IsBlocked == true)
+                    throw new UnauthorizedException("El usuario se encuentra bloqueado.");
+
                 return new ReturnModel
                 {
                     Data = user,
                     StatusCode = ResultStatusCode.OK
                 };
             }
-
-            var lastAccount = user.TuAccounts.OrderByDescending(a => a.AccountId).FirstOrDefault();
-            if (lastAccount == null)
+            catch (Exception ex) 
             {
-                return new ReturnModel
-                {
-                    StatusCode = ResultStatusCode.NoContent,
-                    ResultError = new ErrorCommon { Message = "No se encontró cuenta asociada al usuario." },
-                    Data = user.UserId
-                };
+                throw new InfrastructureException(ex.Message);
             }
-
-            if (lastAccount.Status != "AC")
-                throw new UnauthorizedException("El usuario no se encuentra activo.");
-            
-            if (lastAccount.IsBlocked == true)
-                throw new UnauthorizedException("El usuario se encuentra bloqueado.");
-
-            return new ReturnModel
-            {
-                Data = user,
-                StatusCode = ResultStatusCode.OK
-            };
         }
 
         public async Task<ReturnModel<TuUser>> Get(int id)

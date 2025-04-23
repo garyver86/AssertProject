@@ -1,4 +1,4 @@
-﻿using Assert.Application.DTOs;
+﻿using Assert.Application.DTOs.Responses;
 using System.Security.Claims;
 
 namespace Assert.Application.Interfaces

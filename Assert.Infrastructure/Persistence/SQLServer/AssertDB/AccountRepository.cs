@@ -42,7 +42,7 @@ public class AccountRepository
         {
             await _dbContext.TuAccounts.AddAsync(account);
             await _dbContext.SaveChangesAsync();
-            return account.AccountId;
+            return Convert.ToInt32(account.AccountId);
         }
         catch (Exception ex)
         {
