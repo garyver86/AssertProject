@@ -4,7 +4,6 @@ using Assert.Domain.Enums;
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
-using Assert.Domain.ValueObjects;
 using Assert.Infrastructure.Exceptions;
 using Assert.Infrastructure.Utils;
 using Assert.Shared.Extensions;
@@ -14,10 +13,10 @@ using System.Data;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
-    public class UserRepository(IExceptionLoggerService _exceptionLoggerService, 
+    public class UserRepository(IExceptionLoggerService _exceptionLoggerService,
         RequestMetadata _metadata, InfraAssertDbContext _dbContext) : IUserRepository
     {
-        
+
         public async Task<ReturnModel> Login(string username, string password)
         {
             try
@@ -49,7 +48,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     };
                 }
                 else
-                    throw new UnauthorizedAccessException(result_login.MessageResult);                    
+                    throw new UnauthorizedAccessException(result_login.MessageResult);
             }
             catch (Exception ex)
             {
@@ -87,7 +86,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 };
             }
         }
-        
+
         public async Task<ReturnModel> ValidateUserName(string userName, bool validateStatusActive)
         {
             try
@@ -139,7 +138,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     StatusCode = ResultStatusCode.OK
                 };
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
                 throw new InfrastructureException(ex.Message);
             }
@@ -180,16 +179,16 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             return user;
         }
 
-        public async Task<int> Create(string userName, Platform platform, 
-            string name, string lastName, int genderTypeId, 
-            DateTime? dateOfBirth, string photoLink, 
+        public async Task<int> Create(string userName, Platform platform,
+            string name, string lastName, int genderTypeId,
+            DateTime? dateOfBirth, string photoLink,
             int accountTypeId, string socialId, int? timeZoneId)
         {
             string plataformStr = platform.ToString().ToLower();
             var platformId = await _dbContext.TuPlatforms.Where(x => x.Code == plataformStr)
                 .Select(x => x.PlatformId).FirstOrDefaultAsync();
 
-            if(genderTypeId == 0)
+            if (genderTypeId == 0)
                 genderTypeId = await _dbContext.TuGenderTypes.Where(x => x.Code == "nr")
                     .Select(x => x.GenderTypeId).FirstOrDefaultAsync();
 
@@ -214,7 +213,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 SocialId = socialId,
                 TimeZoneId = timeZoneId
             };
-            
+
             try
             {
                 await _dbContext.TuUsers.AddAsync(newUser);

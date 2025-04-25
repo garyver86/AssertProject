@@ -36,7 +36,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         public async Task<ReturnModel> IsAllViewsEndeds(long listingRentId)
         {
             var result = await _context.TlListingStepsViews.
-                Include(x=>x.ViewType).Where(x => x.ListingSteps.ListingRentId == listingRentId && !(x.IsEnded ?? false)).ToListAsync();
+                Include(x => x.ViewType).Where(x => x.ListingSteps.ListingRentId == listingRentId && !(x.IsEnded ?? false)).ToListAsync();
             if (result.Count > 0)
             {
                 return new ReturnModel

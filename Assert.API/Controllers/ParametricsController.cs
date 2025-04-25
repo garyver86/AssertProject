@@ -37,15 +37,15 @@ namespace Assert.API.Controllers
 
             return cities;
         }
-        
+
         /// <summary>
-         /// Servicio que devuelve la lista de tipos de alojamientos activos.
-         /// </summary>
-         /// <returns>Listado de tipos de alojamientos.</returns>
-         /// <response code="200">Si se procesó correctamente.</response>
-         /// <remarks>
-         /// Solo se consideraran los tipos de alojamiento que no se encuentren deshabilitadas.
-         /// </remarks>
+        /// Servicio que devuelve la lista de tipos de alojamientos activos.
+        /// </summary>
+        /// <returns>Listado de tipos de alojamientos.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// Solo se consideraran los tipos de alojamiento que no se encuentren deshabilitadas.
+        /// </remarks>
         [HttpGet("AccomodationTypes")]
         [Authorize(Policy = "GuestOrHostOrAdmin")]
         public async Task<ReturnModelDTO<List<AccomodationTypeDTO>>> AccomodationTypes()

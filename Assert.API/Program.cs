@@ -8,8 +8,6 @@ using Assert.API.Filters;
 using Assert.API.Middleware;
 using Assert.Application;
 using Assert.Infrastructure;
-using Assert.API.Extensions.Swagger;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +20,7 @@ builder.Services.AddControllers(options =>
     options.SuppressImplicitRequiredAttributeForNonNullableReferenceTypes = true;
 }).ConfigureApiBehaviorOptions(options =>
 {
-    options.SuppressModelStateInvalidFilter = true; 
+    options.SuppressModelStateInvalidFilter = true;
 });
 
 builder.Services.AddEndpointsApiExplorer();
@@ -41,9 +39,6 @@ builder.Logging.ClearProviders()
 builder.Services.AddQuequeExtensions();
 
 builder.Services.AddModelsConfigExtension();
-
-builder.Services.AddSwagger();
-
 
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
@@ -65,7 +60,7 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Assert.API"); 
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Assert.API");
 });
 
 app.UseHttpsRedirection();

@@ -1,9 +1,7 @@
-﻿using Assert.Application.DTOs;
-using Assert.Application.DTOs.Responses;
+﻿using Assert.Application.DTOs.Responses;
 using Assert.Application.Exceptions;
 using Assert.Domain.Exceptions;
 using Assert.Infrastructure.Exceptions;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Model;
 using ApplicationException = Assert.Application.Exceptions.ApplicationException;
 
 namespace Assert.API.Middleware;
@@ -80,25 +78,25 @@ public class ExceptionMiddleware
     }
 
     private static int GetStatusCode(Exception ex) => ex switch
-        {
-            //externals
-            HttpRequestException => StatusCodes.Status503ServiceUnavailable,
-            TimeoutException => StatusCodes.Status504GatewayTimeout,
-            
-            //users
-            NotFoundException => StatusCodes.Status404NotFound,
-            UnauthorizedException => StatusCodes.Status401Unauthorized,
+    {
+        //externals
+        HttpRequestException => StatusCodes.Status503ServiceUnavailable,
+        TimeoutException => StatusCodes.Status504GatewayTimeout,
 
-            //validations
-            ValidationException => StatusCodes.Status400BadRequest,
+        //users
+        NotFoundException => StatusCodes.Status404NotFound,
+        UnauthorizedException => StatusCodes.Status401Unauthorized,
 
-            //layers & bussinesExceptions
-            InvalidTokenException => StatusCodes.Status401Unauthorized,
-            ApplicationException => StatusCodes.Status400BadRequest,
-            DomainException => StatusCodes.Status422UnprocessableEntity,
-            InfrastructureException => StatusCodes.Status500InternalServerError,
-            _ => StatusCodes.Status500InternalServerError
-        };
+        //validations
+        ValidationException => StatusCodes.Status400BadRequest,
+
+        //layers & bussinesExceptions
+        InvalidTokenException => StatusCodes.Status401Unauthorized,
+        ApplicationException => StatusCodes.Status400BadRequest,
+        DomainException => StatusCodes.Status422UnprocessableEntity,
+        InfrastructureException => StatusCodes.Status500InternalServerError,
+        _ => StatusCodes.Status500InternalServerError
+    };
 
     private string ProcessMessage(Exception exception) => exception switch
     {

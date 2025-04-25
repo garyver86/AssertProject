@@ -1,7 +1,4 @@
-﻿using Microsoft.OpenApi.Models;
-using System.Reflection;
-
-namespace Assert.API.Extensions.Http;
+﻿namespace Assert.API.Extensions.Http;
 
 public static class HttpExtensions
 {

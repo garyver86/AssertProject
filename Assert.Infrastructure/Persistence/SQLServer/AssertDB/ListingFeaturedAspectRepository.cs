@@ -15,32 +15,32 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task SetListingFeaturesAspects(long listingRentId, List<int> featuredAspects)
         {
-                var actualAspects = _context.TlListingFeaturedAspects.Where(x => x.ListingRentId == listingRentId).ToList();
-                List<int> alreadyExist = new List<int>();
-                foreach (var featuredAspect in actualAspects)
+            var actualAspects = _context.TlListingFeaturedAspects.Where(x => x.ListingRentId == listingRentId).ToList();
+            List<int> alreadyExist = new List<int>();
+            foreach (var featuredAspect in actualAspects)
+            {
+                if (!featuredAspects.Contains(featuredAspect.FeaturesAspectTypeId))
                 {
-                    if (!featuredAspects.Contains(featuredAspect.FeaturesAspectTypeId))
-                    {
-                        _context.TlListingFeaturedAspects.Remove(featuredAspect);
-                    }
-                    else
-                    {
-                        alreadyExist.Add(featuredAspect.FeaturesAspectTypeId);
-                    }
+                    _context.TlListingFeaturedAspects.Remove(featuredAspect);
                 }
-                foreach (var featureAspect in featuredAspects)
+                else
                 {
-                    if (!alreadyExist.Contains(featureAspect))
+                    alreadyExist.Add(featuredAspect.FeaturesAspectTypeId);
+                }
+            }
+            foreach (var featureAspect in featuredAspects)
+            {
+                if (!alreadyExist.Contains(featureAspect))
+                {
+                    TlListingFeaturedAspect newAmenity = new TlListingFeaturedAspect
                     {
-                        TlListingFeaturedAspect newAmenity = new TlListingFeaturedAspect
-                        {
-                            FeaturesAspectTypeId = featureAspect,
-                            ListingRentId = listingRentId
-                        };
+                        FeaturesAspectTypeId = featureAspect,
+                        ListingRentId = listingRentId
+                    };
                     _context.TlListingFeaturedAspects.Add(newAmenity);
-                    }
                 }
-                await _context.SaveChangesAsync();
+            }
+            await _context.SaveChangesAsync();
         }
     }
 }

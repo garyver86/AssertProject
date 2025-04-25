@@ -3,9 +3,7 @@ using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Assert.Domain.Utils;
-using Azure.Core;
 using Microsoft.IdentityModel.Tokens;
-using System.Reflection;
 
 namespace Assert.Domain.Implementation
 {

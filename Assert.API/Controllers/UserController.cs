@@ -1,7 +1,9 @@
 ﻿using Assert.API.Helpers;
-using Assert.Application.DTOs;
+using Assert.Application.DTOs.Requests;
+using Assert.Application.DTOs.Responses;
 using Assert.Domain.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Assert.API.Controllers
@@ -13,6 +15,15 @@ namespace Assert.API.Controllers
         {
             _userService = userService;
         }
+
+        [HttpPost("Login")]
+        [EnableCors("AllowedOriginsPolicy")]
+        public async Task<ReturnModelDTO> Login([FromBody] LoginRequest loginRequest)
+        {
+            return await _userService.LoginAndEnrollment(loginRequest.Platform, loginRequest.Token,
+                loginRequest.UserName, loginRequest.Password);
+        }
+
         /// <summary>
         /// Servicio que habilita el rol de HOST al usuario actual.
         /// </summary>

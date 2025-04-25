@@ -38,8 +38,8 @@ namespace Assert.API.Controllers
             //{ "UserId", context.GetUserId() }
             if (!string.IsNullOrEmpty(user.User) && !string.IsNullOrEmpty(user.Password))
             {
-                var result = await _securityService.UserLogin(user.User, user.Password, 
-                    requestInfo["IpAddress"], requestInfo["BrowserInfo"], 
+                var result = await _securityService.UserLogin(user.User, user.Password,
+                    requestInfo["IpAddress"], requestInfo["BrowserInfo"],
                     _JWTConfiguration.Secret, _JWTConfiguration.Issuer);
                 return result;
             }

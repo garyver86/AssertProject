@@ -11,7 +11,7 @@ public static class JwtExtensions
 {
     public static IServiceCollection AddAuthJwt(this IServiceCollection services,
         IConfiguration configuration)
-    {  
+    {
         services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
