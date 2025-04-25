@@ -1,4 +1,7 @@
-﻿namespace Assert.API.Middleware
+﻿
+using Assert.Domain.Common;
+
+namespace Assert.API.Middleware
 {
     public class RequestInfoMiddleware
     {
@@ -9,8 +12,9 @@
             _next = next;
         }
 
-        public async Task InvokeAsync(HttpContext context)
+        public async Task InvokeAsync(HttpContext context, RequestMetadata metadata)
         {
+            #region ya estaria demas - mantiene para no afectar algun otro endpoint
             var ipAddress = context.Connection.RemoteIpAddress?.ToString();
             var userAgent = context.Request.Headers["User-Agent"].ToString();
             var isMobile = IsMobileRequest(userAgent).ToString();
@@ -18,6 +22,15 @@
             context.Items["ClientIP"] = ipAddress;
             context.Items["UserAgent"] = userAgent;
             context.Items["IsMobile"] = isMobile;
+            #endregion
+
+            #region use request metadata
+            metadata.IpAddress = context.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+            metadata.UserAgent = context.Request.Headers["User-Agent"].ToString();
+            metadata.IsMobile = IsMobileRequest(metadata.UserAgent).ToString();
+            metadata.User = context.User?.Identity?.Name ?? "Anonymous";
+            metadata.CorrelationId = context.TraceIdentifier;
+            #endregion
 
             await _next(context);
         }

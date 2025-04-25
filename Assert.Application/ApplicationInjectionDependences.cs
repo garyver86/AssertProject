@@ -1,5 +1,6 @@
 ﻿
 using Assert.Application.Interfaces;
+using Assert.Application.Mappings;
 using Assert.Application.Services;
 using Assert.Application.Services.Security;
 using Assert.Domain.Implementation;

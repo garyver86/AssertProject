@@ -1,6 +1,6 @@
 ﻿using System.IdentityModel.Tokens.Jwt;
 
-namespace Assert.API
+namespace Assert.API.Helpers
 {
     public class JwtHelper
     {

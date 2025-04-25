@@ -1,5 +1,6 @@
 ﻿using Assert.Application.DTOs;
 using Assert.Application.Interfaces;
+using Assert.Domain.Common;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
@@ -10,7 +11,7 @@ public static class JwtExtensions
 {
     public static IServiceCollection AddAuthJwt(this IServiceCollection services,
         IConfiguration configuration)
-    {
+    {  
         services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -71,7 +72,8 @@ public static class JwtExtensions
             options.AddPolicy("GuestOrHostOrAdmin", policy => policy.RequireRole("Host", "Admin", "Guest", "Application"));
             options.AddPolicy("GuestOrHost", policy => policy.RequireRole("Host", "Guest"));
         });
-        services.Configure<JWTConfiguration>(configuration.GetSection("JWT"));
+
+        services.Configure<JwtConfiguration>(configuration.GetSection("JWT"));
 
         return services;
     }

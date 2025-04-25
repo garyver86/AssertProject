@@ -1,5 +1,6 @@
 ﻿using Assert.Application.DTOs;
 using Assert.Application.Interfaces;
+using Assert.Domain.Interfaces.Infraestructure.External;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Infrastructure.Security;
@@ -13,17 +14,18 @@ namespace Assert.Application.Services.Security
         private readonly IJWTSecurity _jwtSecurity;
         private readonly IMapper _mapper;
         private readonly IUserRepository _userRepository;
-        public SecurityService(IJWTSecurity jwtSecurity, IMapper mapper, IUserRepository userRepository)
+
+        public SecurityService(IJWTSecurity jwtSecurity, IMapper mapper,
+            IUserRepository userRepository)
         {
             _jwtSecurity = jwtSecurity;
             _mapper = mapper;
             _userRepository = userRepository;
         }
 
-
         public async Task<string> GenerateJwt(string secretKey, string issuer, string audience, int expireMinutes, List<Claim> claims)
         {
-            var result = await _jwtSecurity.GenerateJwt(secretKey, issuer, audience, expireMinutes, claims);
+            var result = await _jwtSecurity.GenerateJwt(claims);
             return result;
         }
 
@@ -35,7 +37,7 @@ namespace Assert.Application.Services.Security
 
         public async Task<ReturnModelDTO> UserLogin(string user, string password, string ip, string? browseInfo, string jwtSecret, string jwtIssuer)
         {
-            var authenticationResult = await _userRepository.Login(user, password, ip, browseInfo);
+            var authenticationResult = await _userRepository.Login(user, password);
 
             if (authenticationResult.StatusCode == ResultStatusCode.OK)
             {
@@ -87,5 +89,6 @@ namespace Assert.Application.Services.Security
             var resultDto = _mapper.Map<ReturnModelDTO>(result);
             return resultDto;
         }
+
     }
 }

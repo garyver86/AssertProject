@@ -43,7 +43,7 @@ namespace Assert.API.Controllers
         [HttpGet("DisableHostRole")]
         [Authorize(Policy = "GuestOrHost")]
         public async Task<ReturnModelDTO> DisableHostRole()
-        {
+{
             var requestInfo = HttpContext.GetRequestInfo();
             int userId = 0;
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);
