@@ -5,6 +5,7 @@ using Assert.API.Extensions.Queque;
 using Assert.API.Middleware;
 using Assert.Application;
 using Assert.Infrastructure;
+using Assert.API.Extensions.Swagger;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,8 +29,11 @@ builder.Services.AddQuequeExtensions();
 
 builder.Services.AddModelsConfigExtension();
 
+builder.Services.AddSwagger();
 
-builder.WebHost.ConfigureKestrel(serverOptions => {
+
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
     serverOptions.ListenAnyIP(Int32.Parse(Environment.GetEnvironmentVariable("PORT") ?? "8081"));
 });
 

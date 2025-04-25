@@ -1,6 +1,6 @@
 ﻿using Assert.API.Helpers;
 using Assert.Application.DTOs;
-using Assert.Application.Interfaces;
+using Assert.Domain.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -43,7 +43,7 @@ namespace Assert.API.Controllers
         [HttpGet("DisableHostRole")]
         [Authorize(Policy = "GuestOrHost")]
         public async Task<ReturnModelDTO> DisableHostRole()
-{
+        {
             var requestInfo = HttpContext.GetRequestInfo();
             int userId = 0;
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);

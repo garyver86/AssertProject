@@ -33,6 +33,7 @@ namespace Assert.Infrastructure.Security
                 expires: expiryDate,
                 signingCredentials: credentials,
                 notBefore: DateTime.UtcNow
+
             );
             return await Task.FromResult(new JwtSecurityTokenHandler().WriteToken(token)); // await Task.Run(() => new JwtSecurityTokenHandler().WriteToken(token));
         }
@@ -70,7 +71,7 @@ namespace Assert.Infrastructure.Security
             var remainingTimeData = remainingTime.TotalSeconds;
             var handler = new JwtSecurityTokenHandler();
             var jwtToken = await Task.Run(() => handler.ReadJwtToken(token));
-            if (jwtToken?.Audiences?.Any(x => x == user) ?? false)
+            if (jwtToken?.Subject == user)
             {
                 return new ReturnModel
                 {
