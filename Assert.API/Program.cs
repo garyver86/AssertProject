@@ -8,6 +8,7 @@ using Assert.API.Filters;
 using Assert.API.Middleware;
 using Assert.Application;
 using Assert.Infrastructure;
+using Assert.API.Extensions.Swagger;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,16 +42,31 @@ builder.Services.AddQuequeExtensions();
 
 builder.Services.AddModelsConfigExtension();
 
+builder.Services.AddSwagger();
+
+
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ListenAnyIP(Int32.Parse(Environment.GetEnvironmentVariable("PORT") ?? "8081"));
+});
+
 var app = builder.Build();
 
 //if (app.Environment.IsDevelopment())
 //{
+//    app.UseSwagger();
+//    app.UseSwaggerUI();
+//    app.UseSwaggerUI(c =>
+//    {
+//        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Assert.API"); // Reemplaza "Tu API v1" con el nombre de tu API
+//    });
+//}
+
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Assert.API"); 
 });
-//}
 
 app.UseHttpsRedirection();
 app.UseMiddleware<RequestInfoMiddleware>();

@@ -47,7 +47,8 @@ namespace Assert.API.Helpers
                 { "IpAddress", context.GetClientIP() },
                 { "BrowserInfo", context.GetUserAgent() },
                 { "IsMobile", context.ClientIsMobile() },
-                { "UserId", context.GetUserId() }
+                { "UserId", context.GetUserId() },
+                { "ApplicationCode", "ASSERT_WEB" }
             };
         }
     }

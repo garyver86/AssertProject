@@ -91,6 +91,16 @@ public static class InfrastructureInjectionDependences
         services.AddScoped<IPropertyAddressRepository, PropertyAddressRepository>();
         services.AddScoped<ISystemConfigurationRepository, SystemConfigurationRepository>();
         services.AddScoped<IListingFavoriteRepository, ListingFavoriteRepository>();
+        services.AddScoped<IAmenitiesRepository, AmenitiesRepository>();
+        services.AddScoped<IFeaturesAspectsRepository, FeaturedAspectsRepository>();
+        services.AddScoped<IDiscountTypeRepository, DiscountTypeRepository>();
+        services.AddScoped<IUserRoleRepository, UserRoleRepository>();
+        services.AddScoped<IUserTypeRepository, UserTypeRepository>();
+        services.AddScoped<IListingFeaturedAspectRepository, ListingFeaturedAspectRepository>();
+        services.AddScoped<IListingPricingRepository, ListingPricingRepository>();
+        services.AddScoped<IListingDiscountRepository, ListingDiscountRepository>();
+        services.AddScoped<IListingRentReviewRepository, ListingRentReviewRepository>();
+        services.AddScoped<IAccountRepository, AccountRepository>();
         #endregion
 
         return services;

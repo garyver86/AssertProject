@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Assert.Domain.Entities;
 
 namespace Assert.Domain.Repositories
 {
     public interface IUserTypeRepository
     {
+        Task<TuUserType> GetByCode(string v);
     }
 }

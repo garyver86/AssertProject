@@ -90,13 +90,51 @@ namespace Assert.API.Controllers
         /// <response code="200">Si se procesó correctamente.</response>
         /// <remarks>
         /// </remarks>
-        [HttpDelete("{listingRentId}/favorite")]
+        [HttpDelete("{listingRentId}/Favorite")]
         public async Task<ReturnModelDTO> RemoveFromFavorites(int listingRentId)
         {
             var requestInfo = HttpContext.GetRequestInfo();
             int userId = 0;
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);
             ReturnModelDTO result = await _appListingFavoriteService.ToggleFavorite(listingRentId, false, userId, requestInfo);
+            return result;
+        }
+
+
+        /// <summary>
+        /// Servicio que recupera la lista de reviews de un listing Rent.
+        /// </summary>
+        /// <param name="listingRentId">Id del linsting.</param>
+        /// <returns>Listado de reviews asociados al listing rent.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// </remarks>
+        [HttpGet("{listingRentId}/Reviews")]
+        public async Task<ReturnModelDTO<List<ReviewDTO>>> GetReviews(int listingRentId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            ReturnModelDTO<List<ReviewDTO>> result = await _appListingRentService.GetListingRentReviews(listingRentId, false, requestInfo);
+            return result;
+        }
+
+        /// <summary>
+        /// Servicio que devuelve la lista de propiedades destacadas.
+        /// </summary>
+        /// <param name="countryCode">Código de país de la que se quieren obtener las propiedades destacadas (no es requerido).</param>
+        /// <param name="limit">Cantidad de propiedades destacadas que se quieren obtener (Por defecto 10).</param>
+        /// <returns>Lista de propiedades destacadas. (StatusCode=200).</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// Si se envia el countryId, las propiedades destacadas devueltas corresponteran al pais, caso contrario, se devolveran
+        /// las propiedades destacadas de la totalidad. El calculo de propiedades destacadas se la realiza en base a los
+        /// </remarks>
+        [HttpGet("Featureds")]
+        public async Task<ReturnModelDTO> FeaturedListings([FromQuery] int? countryId, [FromQuery] int? limit = 10)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+            ReturnModelDTO result = await _appListingRentService.GetFeaturedListings(countryId, limit, requestInfo);
             return result;
         }
     }

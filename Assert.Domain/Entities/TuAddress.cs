@@ -11,7 +11,7 @@ public partial class TuAddress
 
     public string? ZipCode { get; set; }
 
-    public long? StateId { get; set; }
+    public int? StateId { get; set; }
 
     public string? City { get; set; }
 

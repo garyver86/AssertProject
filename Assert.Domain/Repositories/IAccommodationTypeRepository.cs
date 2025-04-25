@@ -5,5 +5,6 @@ namespace Assert.Domain.Repositories
     public interface IAccommodationTypeRepository
     {
         Task<TlAccommodationType> GetActive(int? accomodationId);
+        Task<List<TlAccommodationType>> GetActives();
     }
 }

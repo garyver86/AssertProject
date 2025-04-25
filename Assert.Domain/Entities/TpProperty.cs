@@ -19,6 +19,8 @@ public partial class TpProperty
 
     public int? CityId { get; set; }
 
+    public virtual TCity? City { get; set; }
+
     public virtual TlListingRent? ListingRent { get; set; }
 
     public virtual TpPropertySubtype? PropertySubtype { get; set; }

@@ -2514,6 +2514,10 @@ public partial class AssertDbContext : DbContext
             entity.Property(e => e.Longitude).HasColumnName("longitude");
             entity.Property(e => e.PropertySubtypeId).HasColumnName("propertySubtypeId");
 
+            entity.HasOne(d => d.City).WithMany(p => p.TpProperties)
+                .HasForeignKey(d => d.CityId)
+                .HasConstraintName("FK_TP_Property_T_City");
+
             entity.HasOne(d => d.ListingRent).WithMany(p => p.TpProperties)
                 .HasForeignKey(d => d.ListingRentId)
                 .HasConstraintName("FK_TP_Property_TL_ListingRent");

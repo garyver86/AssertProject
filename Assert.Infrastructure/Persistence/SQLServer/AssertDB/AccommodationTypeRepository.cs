@@ -1,13 +1,26 @@
 ﻿using Assert.Domain.Entities;
 using Assert.Domain.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
     public class AccommodationTypeRepository : IAccommodationTypeRepository
     {
-        public Task<TlAccommodationType> GetActive(int? accomodationId)
+        private readonly InfraAssertDbContext _context;
+        public AccommodationTypeRepository(InfraAssertDbContext infraAssertDbContext)
         {
-            throw new NotImplementedException();
+            _context = infraAssertDbContext;
+        }
+        public async Task<TlAccommodationType> GetActive(int? accomodationId)
+        {
+            TlAccommodationType accommodationTypes = await _context.TlAccommodationTypes.Where(x => x.AccommodationTypeId == accomodationId).FirstOrDefaultAsync();
+            return accommodationTypes;
+        }
+
+        public async Task<List<TlAccommodationType>> GetActives()
+        {
+            List<TlAccommodationType> accommodationTypes = await _context.TlAccommodationTypes.Where(x => x != null).ToListAsync();
+            return accommodationTypes;
         }
     }
 }
