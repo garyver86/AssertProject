@@ -4,12 +4,7 @@ using Assert.Application.Mappings;
 using Assert.Application.Services;
 using Assert.Application.Services.Security;
 using Assert.Domain.Implementation;
-using Assert.Domain.Repositories;
 using Assert.Domain.Services;
-using Assert.Infrastructure.InternalServices;
-using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
-using Assert.Infrastructure.Security;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -29,6 +24,7 @@ namespace Assert.Application
             services.AddScoped<IAppListingFavoriteService, AppListingFavoriteService>();
             services.AddScoped<IAppParametricService, AppParametricService>();
             services.AddScoped<IAppUserService, AppUserService>();
+            services.AddScoped<IAppMessagingService, AppMessagingService>();
 
             //Domain Services
             services.AddScoped<IListingRentService, ListingRentService>();

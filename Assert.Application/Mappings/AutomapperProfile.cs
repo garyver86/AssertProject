@@ -114,6 +114,8 @@ namespace Assert.Application.Mappings
             CreateMap<TuPhone, PhoneDTO>();
             CreateMap<TuProfilePhoto, ProfilePhotoDTO>();
             CreateMap<TpPropertyAddress, AddressDTO>();
+            CreateMap<TmMessage, MessageDTO>();
+            CreateMap<TmConversation, ConversationDTO>();
             CreateMap<TpPropertySubtype, PropertyTypeDTO>()
                 .ForMember(dest => dest.SubTypeCode, opt => opt.MapFrom(src => src.Code))
                 .ForMember(dest => dest.SubTypeIcon, opt => opt.MapFrom(src => src.Icon))
