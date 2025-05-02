@@ -36,38 +36,38 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             return conversation;
         }
 
-        public async Task<List<TmMessage>> Get(long conversationId, int page, int pageSize, string orderBy)
-        {
-            if (page <= 0)
-            {
-                throw new ArgumentException("Page must be greater than zero.", nameof(page));
-            }
-            if (pageSize <= 0)
-            {
-                throw new ArgumentException("Page size must be greater than zero.", nameof(pageSize));
-            }
+        //public async Task<List<TmMessage>> Get(long conversationId, int page, int pageSize, string orderBy)
+        //{
+        //    if (page <= 0)
+        //    {
+        //        throw new ArgumentException("Page must be greater than zero.", nameof(page));
+        //    }
+        //    if (pageSize <= 0)
+        //    {
+        //        throw new ArgumentException("Page size must be greater than zero.", nameof(pageSize));
+        //    }
 
-            IQueryable<TmMessage> query = _context.TmMessages
-                .Where(m => m.ConversationId == conversationId);
+        //    IQueryable<TmMessage> query = _context.TmMessages
+        //        .Where(m => m.ConversationId == conversationId);
 
-            switch (orderBy?.ToLower())
-            {
-                case "dateasc":
-                    query = query.OrderBy(m => m.CreationDate);
-                    break;
-                case "datedesc":
-                    query = query.OrderByDescending(m => m.CreationDate);
-                    break;
-                default:
-                    query = query.OrderByDescending(m => m.CreationDate);
-                    break;
-            }
+        //    switch (orderBy?.ToLower())
+        //    {
+        //        case "dateasc":
+        //            query = query.OrderBy(m => m.CreationDate);
+        //            break;
+        //        case "datedesc":
+        //            query = query.OrderByDescending(m => m.CreationDate);
+        //            break;
+        //        default:
+        //            query = query.OrderByDescending(m => m.CreationDate);
+        //            break;
+        //    }
 
-            query = query.Skip((page - 1) * pageSize)
-                         .Take(pageSize);
+        //    query = query.Skip((page - 1) * pageSize)
+        //                 .Take(pageSize);
 
-            return await query.ToListAsync();
-        }
+        //    return await query.ToListAsync();
+        //}
 
         public async Task<List<TmConversation>> Get(int userId)
         {

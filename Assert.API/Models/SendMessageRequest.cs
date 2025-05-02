@@ -2,8 +2,8 @@
 {
     public class SendMessageRequest
     {
-        public object BookId { get; internal set; }
-        public object MessageTypeId { get; internal set; }
-        public object Body { get; internal set; }
+        public int BookId { get; set; }
+        public int MessageTypeId { get; set; }
+        public string Body { get; set; }
     }
 }

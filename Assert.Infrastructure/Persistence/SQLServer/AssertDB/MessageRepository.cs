@@ -11,7 +11,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         {
             _context = context;
         }
-        public async Task<List<TmMessage>> Get(int conversationId, int page, int pageSize, string orderBy)
+        public async Task<List<TmMessage>> Get(int conversationId, int page, int pageSize, string orderBy, int userId)
         {
             // Valida los parámetros de entrada.
             if (page <= 0)
@@ -25,7 +25,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
             // Inicia la consulta obteniendo los mensajes de la conversación.
             IQueryable<TmMessage> query = _context.TmMessages
-                .Where(m => m.ConversationId == conversationId);
+                .Where(m => m.ConversationId == conversationId && (m.Conversation.UserIdOne == userId || m.Conversation.UserIdTwo == userId));
 
             // Aplica el ordenamiento.
             switch (orderBy?.ToLower())

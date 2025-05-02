@@ -70,12 +70,15 @@ namespace Assert.API.Controllers
         /// </remarks>
         [HttpGet("Conversations/{conversationId}/Messages")]
         [Authorize(Policy = "GuestOrHost")]
-        public async Task<ReturnModelDTO<List<MessageDTO>>> GetConversationMessages(int conversationId)
+        public async Task<ReturnModelDTO<List<MessageDTO>>> GetConversationMessages(int conversationId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            [FromQuery] string orderBy = "dateDesc")
         {
             var requestInfo = HttpContext.GetRequestInfo();
             int userId = 0;
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);
-            ReturnModelDTO<List<MessageDTO>> result = await _messagingService.GetConversationMessages(conversationId, userId, requestInfo);
+            ReturnModelDTO<List<MessageDTO>> result = await _messagingService.GetConversationMessages(conversationId, userId, page, pageSize, orderBy, requestInfo);
             return result;
         }
 
@@ -96,7 +99,7 @@ namespace Assert.API.Controllers
             var requestInfo = HttpContext.GetRequestInfo();
             int userId = 0;
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);
-            ReturnModelDTO result = await _messagingService.SendMessage(conversationId, userId, conversationId, request.Body, request.MessageTypeId, request.BookId, requestInfo);
+            ReturnModelDTO result = await _messagingService.SendMessage(conversationId, userId, request.Body, request.MessageTypeId, request.BookId, requestInfo);
             return result;
         }
 
@@ -111,12 +114,12 @@ namespace Assert.API.Controllers
         /// </remarks>
         [HttpPut("Conversations/{conversationId}/Messages/Read")]
         [Authorize(Policy = "GuestOrHost")]
-        public async Task<ReturnModelDTO> MarkAsRead(int conversationId, [FromBody] int[]? messageIds)
+        public async Task<ReturnModelDTO> MarkAsRead(int conversationId, [FromBody] List<long> messageIds)
         {
             var requestInfo = HttpContext.GetRequestInfo();
             int userId = 0;
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);
-            ReturnModelDTO result = await _messagingService.SetAsRead(conversationId, userId, conversationId, messageIds, requestInfo);
+            ReturnModelDTO result = await _messagingService.SetAsRead(conversationId, userId, messageIds, requestInfo);
             return result;
         }
 
@@ -131,12 +134,12 @@ namespace Assert.API.Controllers
         /// </remarks>
         [HttpPut("Conversations/{conversationId}/Messages/Unread")]
         [Authorize(Policy = "GuestOrHost")]
-        public async Task<ReturnModelDTO> MarkAsUnread(int conversationId, [FromBody] int[]? messageIds)
+        public async Task<ReturnModelDTO> MarkAsUnread(int conversationId, [FromBody] List<long> messageIds)
         {
             var requestInfo = HttpContext.GetRequestInfo();
             int userId = 0;
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);
-            ReturnModelDTO result = await _messagingService.SetAsUnread(conversationId, userId, conversationId, messageIds, requestInfo);
+            ReturnModelDTO result = await _messagingService.SetAsUnread(conversationId, userId, messageIds, requestInfo);
             return result;
         }
 
