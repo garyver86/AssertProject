@@ -1,6 +1,4 @@
-﻿using System.Globalization;
-
-namespace Assert.Domain.Utils
+﻿namespace Assert.Domain.Utils
 {
     public static class GeoUtils
     {

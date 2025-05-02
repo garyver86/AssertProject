@@ -4,7 +4,6 @@ using Assert.Domain.Enums;
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
-using Assert.Domain.ValueObjects;
 using Assert.Infrastructure.Exceptions;
 using Assert.Infrastructure.Utils;
 using Assert.Shared.Extensions;
@@ -14,10 +13,10 @@ using System.Data;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
-    public class UserRepository(IExceptionLoggerService _exceptionLoggerService, 
+    public class UserRepository(IExceptionLoggerService _exceptionLoggerService,
         RequestMetadata _metadata, InfraAssertDbContext _dbContext) : IUserRepository
     {
-        
+
         public async Task<ReturnModel> Login(string username, string password)
         {
             try
@@ -49,7 +48,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     };
                 }
                 else
-                    throw new UnauthorizedAccessException(result_login.MessageResult);                    
+                    throw new UnauthorizedAccessException(result_login.MessageResult);
             }
             catch (Exception ex)
             {
@@ -87,55 +86,62 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 };
             }
         }
-        
+
         public async Task<ReturnModel> ValidateUserName(string userName, bool validateStatusActive)
         {
-            var user = await _dbContext.TuUsers
-                .Where(x => x.UserName!.ToUpper() == userName.ToUpper())
-                .Include(x => x.TuAccounts)
-                .OrderByDescending(x => x.UserId) 
-                .FirstOrDefaultAsync();
-
-            if (user == null)
+            try
             {
-                return new ReturnModel
+                var user = await _dbContext.TuUsers
+                    .Where(x => x.UserName!.ToUpper() == userName.ToUpper())
+                    .Include(x => x.TuAccounts)
+                    .OrderByDescending(x => x.UserId)
+                    .FirstOrDefaultAsync();
+
+                if (user == null)
                 {
-                    StatusCode = ResultStatusCode.NotFound,
-                    ResultError = new ErrorCommon { Message = "El usuario no existe en registros." }
-                };
-            }
+                    return new ReturnModel
+                    {
+                        StatusCode = ResultStatusCode.NotFound,
+                        ResultError = new ErrorCommon { Message = "El usuario no existe en registros." }
+                    };
+                }
 
-            if (!validateStatusActive)
-            {
+                if (!validateStatusActive)
+                {
+                    return new ReturnModel
+                    {
+                        Data = user,
+                        StatusCode = ResultStatusCode.OK
+                    };
+                }
+
+                var lastAccount = user.TuAccounts.OrderByDescending(a => a.AccountId).FirstOrDefault();
+                if (lastAccount == null)
+                {
+                    return new ReturnModel
+                    {
+                        StatusCode = ResultStatusCode.NoContent,
+                        ResultError = new ErrorCommon { Message = "No se encontró cuenta asociada al usuario." },
+                        Data = user.UserId
+                    };
+                }
+
+                if (lastAccount.Status != "AC")
+                    throw new UnauthorizedException("El usuario no se encuentra activo.");
+
+                if (lastAccount.IsBlocked == true)
+                    throw new UnauthorizedException("El usuario se encuentra bloqueado.");
+
                 return new ReturnModel
                 {
                     Data = user,
                     StatusCode = ResultStatusCode.OK
                 };
             }
-
-            var lastAccount = user.TuAccounts.OrderByDescending(a => a.AccountId).FirstOrDefault();
-            if (lastAccount == null)
+            catch (Exception ex)
             {
-                return new ReturnModel
-                {
-                    StatusCode = ResultStatusCode.NoContent,
-                    ResultError = new ErrorCommon { Message = "No se encontró cuenta asociada al usuario." },
-                    Data = user.UserId
-                };
+                throw new InfrastructureException(ex.Message);
             }
-
-            if (lastAccount.Status != "AC")
-                throw new UnauthorizedException("El usuario no se encuentra activo.");
-            
-            if (lastAccount.IsBlocked == true)
-                throw new UnauthorizedException("El usuario se encuentra bloqueado.");
-
-            return new ReturnModel
-            {
-                Data = user,
-                StatusCode = ResultStatusCode.OK
-            };
         }
 
         public async Task<ReturnModel<TuUser>> Get(int id)
@@ -173,16 +179,16 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             return user;
         }
 
-        public async Task<int> Create(string userName, Platform platform, 
-            string name, string lastName, int genderTypeId, 
-            DateTime? dateOfBirth, string photoLink, 
+        public async Task<int> Create(string userName, Platform platform,
+            string name, string lastName, int genderTypeId,
+            DateTime? dateOfBirth, string photoLink,
             int accountTypeId, string socialId, int? timeZoneId)
         {
             string plataformStr = platform.ToString().ToLower();
             var platformId = await _dbContext.TuPlatforms.Where(x => x.Code == plataformStr)
                 .Select(x => x.PlatformId).FirstOrDefaultAsync();
 
-            if(genderTypeId == 0)
+            if (genderTypeId == 0)
                 genderTypeId = await _dbContext.TuGenderTypes.Where(x => x.Code == "nr")
                     .Select(x => x.GenderTypeId).FirstOrDefaultAsync();
 
@@ -207,7 +213,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 SocialId = socialId,
                 TimeZoneId = timeZoneId
             };
-            
+
             try
             {
                 await _dbContext.TuUsers.AddAsync(newUser);

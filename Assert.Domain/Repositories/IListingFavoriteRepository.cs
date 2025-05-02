@@ -1,6 +1,4 @@
-﻿using Assert.Domain.Models;
-
-namespace Assert.Domain.Repositories
+﻿namespace Assert.Domain.Repositories
 {
     public interface IListingFavoriteRepository
     {

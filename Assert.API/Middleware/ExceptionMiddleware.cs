@@ -1,4 +1,4 @@
-﻿using Assert.Application.DTOs;
+﻿using Assert.Application.DTOs.Responses;
 using Assert.Application.Exceptions;
 using Assert.Domain.Exceptions;
 using Assert.Infrastructure.Exceptions;
@@ -44,6 +44,10 @@ public class ExceptionMiddleware
     {
         var statusCode = GetStatusCode(exception);
 
+        string errorMessage = ProcessMessage(exception);
+        if (exception is ValidationException validationEx)
+            errorMessage = ProcessValidationsErrors(validationEx);
+
         var response = new ReturnModelDTO
         {
             StatusCode = statusCode.ToString(),
@@ -53,7 +57,7 @@ public class ExceptionMiddleware
             {
                 Title = "Error en la solicitud",
                 Code = statusCode.ToString(),
-                Message = ProcessMessage(exception),
+                Message = errorMessage,
                 CorrelationId = correlationId
             }
         };
@@ -64,23 +68,35 @@ public class ExceptionMiddleware
         return context.Response.WriteAsJsonAsync(response);
     }
 
-    private static int GetStatusCode(Exception ex) => ex switch
-        {
-            //externals
-            HttpRequestException => StatusCodes.Status503ServiceUnavailable,
-            TimeoutException => StatusCodes.Status504GatewayTimeout,
-            
-            //users
-            NotFoundException => StatusCodes.Status404NotFound,
-            UnauthorizedException => StatusCodes.Status401Unauthorized,
+    private static string ProcessValidationsErrors(ValidationException ex)
+    {
+        var validationErrors = string.Join(" | ",
+                ex.Errors.SelectMany(e =>
+                    e.Value.Select(msg => $"{e.Key}: {msg}"))
+            );
+        return $"Errores de validación: {validationErrors}";
+    }
 
-            //layers & bussinesExceptions
-            InvalidTokenException => StatusCodes.Status401Unauthorized,
-            ApplicationException => StatusCodes.Status400BadRequest,
-            DomainException => StatusCodes.Status422UnprocessableEntity,
-            InfrastructureException => StatusCodes.Status500InternalServerError,
-            _ => StatusCodes.Status500InternalServerError
-        };
+    private static int GetStatusCode(Exception ex) => ex switch
+    {
+        //externals
+        HttpRequestException => StatusCodes.Status503ServiceUnavailable,
+        TimeoutException => StatusCodes.Status504GatewayTimeout,
+
+        //users
+        NotFoundException => StatusCodes.Status404NotFound,
+        UnauthorizedException => StatusCodes.Status401Unauthorized,
+
+        //validations
+        ValidationException => StatusCodes.Status400BadRequest,
+
+        //layers & bussinesExceptions
+        InvalidTokenException => StatusCodes.Status401Unauthorized,
+        ApplicationException => StatusCodes.Status400BadRequest,
+        DomainException => StatusCodes.Status422UnprocessableEntity,
+        InfrastructureException => StatusCodes.Status500InternalServerError,
+        _ => StatusCodes.Status500InternalServerError
+    };
 
     private string ProcessMessage(Exception exception) => exception switch
     {

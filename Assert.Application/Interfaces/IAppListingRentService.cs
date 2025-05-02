@@ -1,4 +1,5 @@
 ﻿using Assert.Application.DTOs;
+using Assert.Application.DTOs.Responses;
 using Microsoft.AspNetCore.Http;
 
 namespace Assert.Application.Interfaces

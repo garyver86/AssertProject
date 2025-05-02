@@ -3,6 +3,7 @@ using Assert.Domain.Implementation;
 using Assert.Domain.Interfaces.Infraestructure.External;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
+using Assert.Infrastructure.Exceptions;
 using Assert.Infrastructure.External.AuthProviderValidator;
 using Assert.Infrastructure.InternalServices;
 using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
@@ -10,11 +11,6 @@ using Assert.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Assert.Infrastructure;
 
@@ -54,13 +50,14 @@ public static class InfrastructureInjectionDependences
                 Platform.Apple => serviceProvider.GetRequiredService<AppleAuthValidator>(),
                 Platform.Meta => serviceProvider.GetRequiredService<MetaAuthValidator>(),
                 Platform.Local => serviceProvider.GetRequiredService<LocalAuthValidator>(),
-                _ => throw new ArgumentException("Invalid provider")
+                _ => throw new InfrastructureException("Proveedor Invalido")
             };
         });
         #endregion
 
         #region Repositories
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<IExceptionLogRepository, ExceptionLogRepository>();
         services.AddScoped<IListingrentChangeRepository, ListingRentChangeRepository>();
         services.AddScoped<IListingStatusRepository, ListingStatusRepository>();

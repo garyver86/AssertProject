@@ -1,7 +1,7 @@
 ﻿using Assert.API.Helpers;
 using Assert.Application.DTOs;
+using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
-using Assert.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 

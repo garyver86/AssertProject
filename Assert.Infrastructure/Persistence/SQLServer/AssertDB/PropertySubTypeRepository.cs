@@ -19,7 +19,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task<TpPropertySubtype> GetActive(int? subtypeId)
         {
-            TpPropertySubtype propertySubtypes = await _context.TpPropertySubtypes.Where(x =>x.PropertySubtypeId == subtypeId && x.Status == 1).FirstOrDefaultAsync();
+            TpPropertySubtype propertySubtypes = await _context.TpPropertySubtypes.Where(x => x.PropertySubtypeId == subtypeId && x.Status == 1).FirstOrDefaultAsync();
             return propertySubtypes;
         }
         public async Task<List<TpPropertySubtype>> GetActives()

@@ -2,7 +2,7 @@
 
 public static class CorsExtensions
 {
-    public static IServiceCollection AddFeaturesCors(this IServiceCollection services, 
+    public static IServiceCollection AddFeaturesCors(this IServiceCollection services,
         IConfiguration configuration, string[] allowedOrigins)
     {
         services.AddCors(options =>

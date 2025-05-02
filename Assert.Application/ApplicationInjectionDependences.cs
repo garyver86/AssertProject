@@ -3,8 +3,11 @@ using Assert.Application.Interfaces;
 using Assert.Application.Mappings;
 using Assert.Application.Services;
 using Assert.Application.Services.Security;
+using Assert.Application.Validators;
 using Assert.Domain.Implementation;
 using Assert.Domain.Services;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -16,6 +19,17 @@ namespace Assert.Application
             this IServiceCollection services, IConfiguration configuration)
         {
             services.AddAutoMapper(typeof(AutomapperProfile));
+
+            //Validator
+            //services.AddFluentValidationAutoValidation();
+            //services.AddFluentValidationClientsideAdapters();
+            //services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
+            services.AddFluentValidation(options =>
+            {
+                options.DisableDataAnnotationsValidation = true;
+                options.ImplicitlyValidateChildProperties = false;
+            });
+            services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
 
             //Application Services
             services.AddScoped<ISecurityService, SecurityService>();

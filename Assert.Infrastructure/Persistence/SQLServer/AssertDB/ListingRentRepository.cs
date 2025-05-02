@@ -1,5 +1,4 @@
 ﻿using Assert.Domain.Entities;
-using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 
@@ -45,8 +44,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .ThenInclude(y => y.FeaturesAspectType)
                 .Include(x => x.TpProperties)
                     .ThenInclude(y => y.TpPropertyAddresses)
-                .Include(x => x.TpProperties) 
-                    .ThenInclude(y => y.PropertySubtype) 
+                .Include(x => x.TpProperties)
+                    .ThenInclude(y => y.PropertySubtype)
                         .ThenInclude(y => y.PropertyType)
                 .Include(x => x.TlListingPhotos)
                 .Include(x => x.TlListingPrices)

@@ -5,27 +5,21 @@ using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Infrastructure.Exceptions;
 using Assert.Infrastructure.Utils;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
-using Microsoft.IdentityModel.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Assert.Shared.Extensions;
+using Microsoft.EntityFrameworkCore;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 
 public class AccountRepository
-    (IExceptionLoggerService _exceptionLoggerService, InfraAssertDbContext _dbContext, 
-    RequestMetadata _metadata) 
+    (IExceptionLoggerService _exceptionLoggerService, InfraAssertDbContext _dbContext,
+    RequestMetadata _metadata)
     : IAccountRepository
 {
     public async Task<int> Create(int userId, string password)
     {
         string pass = UtilsMgr.GetHash512(password);
-        TuAccount account = new TuAccount() { 
+        TuAccount account = new TuAccount()
+        {
             UserId = userId,
             Password = pass,
             IncorrectAccess = 0,
@@ -42,7 +36,7 @@ public class AccountRepository
         {
             await _dbContext.TuAccounts.AddAsync(account);
             await _dbContext.SaveChangesAsync();
-            return account.AccountId;
+            return Convert.ToInt32(account.AccountId);
         }
         catch (Exception ex)
         {

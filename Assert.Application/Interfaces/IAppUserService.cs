@@ -1,4 +1,4 @@
-﻿using Assert.Application.DTOs;
+﻿using Assert.Application.DTOs.Responses;
 
 namespace Assert.Domain.Services;
 

@@ -1,4 +1,5 @@
 ﻿using Assert.Application.DTOs;
+using Assert.Application.DTOs.Responses;
 using Assert.Domain.Entities;
 using Assert.Domain.Enums;
 using Assert.Domain.Models;

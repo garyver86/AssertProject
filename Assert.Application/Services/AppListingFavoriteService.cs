@@ -1,4 +1,4 @@
-﻿using Assert.Application.DTOs;
+﻿using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
 using Assert.Domain.Models;
 using Assert.Domain.Services;

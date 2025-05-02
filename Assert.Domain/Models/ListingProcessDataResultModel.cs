@@ -23,7 +23,7 @@ namespace Assert.Domain.Models
         public int? MaxGuests { get; set; }
         public int? Bathrooms { get; set; }
         public int? Bedrooms { get; set; }
-        public int? Beds { get;  set; }
+        public int? Beds { get; set; }
         public List<TlListingAmenity>? Amenities { get; set; }
         public int? AccomodationTypeId { get; set; }
         public TpPropertyAddress? Address { get; set; }

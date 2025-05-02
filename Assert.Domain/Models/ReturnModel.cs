@@ -1,6 +1,4 @@
-﻿using Assert.Domain.Entities;
-
-namespace Assert.Domain.Models
+﻿namespace Assert.Domain.Models
 {
     public class ReturnModel
     {

@@ -1,4 +1,4 @@
-﻿namespace Assert.Application.DTOs
+﻿namespace Assert.Application.DTOs.Responses
 {
     public class ProfilePhotoDTO
     {
