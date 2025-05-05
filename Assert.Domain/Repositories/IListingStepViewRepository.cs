@@ -1,4 +1,5 @@
 ﻿using Assert.Domain.Entities;
+using Assert.Domain.Models;
 
 namespace Assert.Domain.Repositories
 {
@@ -7,6 +8,8 @@ namespace Assert.Domain.Repositories
         Task<TlListingStepsView> Get(List<long> listingSteps, int viewTypeId);
         Task<TlListingStepsView> Get(int listngStepsViewId);
         Task<TlListingStepsView> Get(long listingRentId, string nextViewCode);
+        Task<ReturnModel> IsAllViewsEndeds(long listingRentId);
         Task SetEnded(int listngStepsViewId, bool isEnded);
+        Task SetEnded(long listingRentId, int viewTypeId, bool isEnded);
     }
 }

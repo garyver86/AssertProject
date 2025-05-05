@@ -1,5 +1,4 @@
 ﻿using Assert.Domain.Entities;
-using Assert.Domain.Models;
 
 namespace Assert.Domain.Repositories
 {
@@ -20,5 +19,6 @@ namespace Assert.Domain.Repositories
         Task SetDescription(long listingRentId, string description);
         Task SetName(long listingRentId, string title);
         Task SetNameAndDescription(long listingRentId, string title, string description);
+        Task<List<TlListingRent>> GetFeatureds(int? countryId, int? limit);
     }
 }

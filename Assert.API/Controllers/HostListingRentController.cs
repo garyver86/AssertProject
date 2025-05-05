@@ -1,7 +1,7 @@
 ﻿using Assert.API.Helpers;
+using Assert.Application.DTOs;
 using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
-using Assert.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -34,7 +34,7 @@ namespace Assert.API.Controllers
         /// </remarks>
         [HttpPost]
         [Authorize(Policy = "GuestOrHost")]
-        [Route("ProcessData/{listinRentId}")]
+        [Route("{listinRentId}/ProcessData")]
         public async Task<ReturnModelDTO<ProcessDataResult>> ProcessData(long? listinRentId, [FromBody] ProcessDataRequest request)
         {
             var requestInfo = HttpContext.GetRequestInfo();
@@ -62,6 +62,42 @@ namespace Assert.API.Controllers
         {
             var clientData = HttpContext.GetRequestInfo();
             List<ReturnModelDTO> result = await _appListingRentService.UploadImages(images, clientData);
+            return result;
+        }
+
+        /// <summary>
+        /// Servicio que devuelve los listing rent del propietario actualmente logueado.
+        /// </summary>
+        /// <returns>Listado de listing rents (lropiedades).</returns>
+        /// <response code="200">Si no existió un error al devolver las propiedades.</response>
+        /// <remarks>
+        /// No se devolveran los listing rents que se encuentren marcados como eliminados.
+        /// </remarks>
+        [HttpGet]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("")]
+        public async Task<ReturnModelDTO<List<ListingRentDTO>>> Get()
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            ReturnModelDTO<List<ListingRentDTO>> result = await _appListingRentService.GetByOwner(requestInfo, true);
+            return result;
+        }
+
+        /// <summary>
+        /// Servicio que devuelve los listing rent del propietario actualmente logueado.
+        /// </summary>
+        /// <returns>Listado de listing rents (lropiedades).</returns>
+        /// <response code="200">Si no existió un error al devolver las propiedades.</response>
+        /// <remarks>
+        /// No se devolveran los listing rents que se encuentren marcados como eliminados.
+        /// </remarks>
+        [HttpGet]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("{listinRentId}/Photos")]
+        public async Task<ReturnModelDTO<List<PhotoDTO>>> GetImages(long listinRentId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            ReturnModelDTO<List<PhotoDTO>> result = await _appListingRentService.GetPhotoByListigRent(listinRentId, requestInfo, true);
             return result;
         }
     }

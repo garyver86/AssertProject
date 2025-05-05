@@ -17,5 +17,6 @@
         public decimal PorcentageSuggest { get; set; }
 
         public string SuggestDescription { get; set; } = null!;
+        public int? DiscountTypeForTypePriceId { get; set; }
     }
 }

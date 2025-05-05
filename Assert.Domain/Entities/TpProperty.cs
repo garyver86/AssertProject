@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Assert.Domain.Entities;
+﻿namespace Assert.Domain.Entities;
 
 public partial class TpProperty
 {
@@ -18,6 +15,8 @@ public partial class TpProperty
     public double? Longitude { get; set; }
 
     public int? CityId { get; set; }
+
+    public virtual TCity? City { get; set; }
 
     public virtual TlListingRent? ListingRent { get; set; }
 

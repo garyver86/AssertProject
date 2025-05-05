@@ -1,12 +1,5 @@
 ﻿using Assert.Domain.Interfaces.Infraestructure.External;
 using Assert.Domain.Models;
-using Assert.Domain.Models.Auth;
-using Microsoft.Identity.Client;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Assert.Infrastructure.External.AuthProviderValidator;
 
@@ -21,8 +14,11 @@ public class AppleAuthValidator : IAuthProviderValidator
     {
         //if (authenticationResult.StatusCode == ResultStatusCode.OK)
 
-        var result = new ReturnModel { StatusCode = ResultStatusCode.OK, 
-            HasError = false };
+        var result = new ReturnModel
+        {
+            StatusCode = ResultStatusCode.OK,
+            HasError = false
+        };
 
         return Task.FromResult(result);
     }

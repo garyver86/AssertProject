@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
 namespace Assert.Domain.Entities;
 
@@ -2513,6 +2511,10 @@ public partial class AssertDbContext : DbContext
             entity.Property(e => e.Latitude).HasColumnName("latitude");
             entity.Property(e => e.Longitude).HasColumnName("longitude");
             entity.Property(e => e.PropertySubtypeId).HasColumnName("propertySubtypeId");
+
+            entity.HasOne(d => d.City).WithMany(p => p.TpProperties)
+                .HasForeignKey(d => d.CityId)
+                .HasConstraintName("FK_TP_Property_T_City");
 
             entity.HasOne(d => d.ListingRent).WithMany(p => p.TpProperties)
                 .HasForeignKey(d => d.ListingRentId)

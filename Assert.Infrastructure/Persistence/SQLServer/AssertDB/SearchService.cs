@@ -116,6 +116,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
 
             var properties = await query.Include(x => x.ListingStatus)
+                    .Include(x => x.ListingStatus)
                     .Include(x => x.AccomodationType)
                     .Include(x => x.ApprovalPolicyType)
                     .Include(x => x.CancelationPolicyType)
@@ -127,6 +128,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         .ThenInclude(y => y.FeaturesAspectType)
                     .Include(x => x.TpProperties)
                         .ThenInclude(y => y.TpPropertyAddresses)
+                    .Include(x => x.TpProperties)
+                        .ThenInclude(y => y.PropertySubtype)
+                            .ThenInclude(y => y.PropertyType)
                     .Include(x => x.TlListingPhotos)
                     .Include(x => x.TlListingPrices)
                     .Include(x => x.TlListingRentRules)

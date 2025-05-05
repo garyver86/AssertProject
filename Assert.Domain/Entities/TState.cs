@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Assert.Domain.Entities;
+﻿namespace Assert.Domain.Entities;
 
 public partial class TState
 {
-    public long StateId { get; set; }
+    public int StateId { get; set; }
 
-    public long CountryId { get; set; }
+    public int CountryId { get; set; }
 
     public string? IataCode { get; set; }
 

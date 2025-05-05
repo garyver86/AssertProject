@@ -1,6 +1,4 @@
-﻿using Assert.Domain.Common;
-using Assert.Domain.Entities;
-using Assert.Domain.Interfaces.Logging;
+﻿using Assert.Domain.Entities;
 using Assert.Domain.Interfaces.Queque;
 using Assert.Domain.Repositories;
 using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
@@ -9,19 +7,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Assert.Infrastructure.Logging;
 
 public class ExceptionLogBackgroundService(
     IServiceProvider serviceProvider,
     IExceptionLogQueue logQueue,
-    ILogger<ExceptionLogBackgroundService> logger) 
+    ILogger<ExceptionLogBackgroundService> logger)
     : BackgroundService
 {
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)

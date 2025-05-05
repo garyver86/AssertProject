@@ -5,6 +5,7 @@ using Assert.Domain.Services;
 using Assert.Domain.ValueObjects;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
+using System.Data;
 
 namespace Assert.Domain.Implementation
 {
@@ -101,12 +102,25 @@ namespace Assert.Domain.Implementation
                                     };
                                     break;
                                 case 2:
-                                    result = new ReturnModel
+                                    if (listingRent.ListingStatusId == 1)
                                     {
-                                        StatusCode = ResultStatusCode.BadRequest,
-                                        HasError = true,
-                                        ResultError = _errorHandler.GetError(ConstantsHelp.ERR_1, "Estado " + status.Code + " no soportado para este servicio.", useTechnicalMessages)
-                                    };
+                                        var changeResult2 = await _listingRentRepository.ChangeStatus(listingRentId, ownerUserId, status.ListingStatusId, clientData);
+
+                                        result = new ReturnModel
+                                        {
+                                            HasError = false,
+                                            StatusCode = ResultStatusCode.OK
+                                        };
+                                    }
+                                    else
+                                    {
+                                        result = new ReturnModel
+                                        {
+                                            StatusCode = ResultStatusCode.BadRequest,
+                                            HasError = true,
+                                            ResultError = _errorHandler.GetError(ConstantsHelp.ERR_1, "No es posible pasar del estado " + oldStatus.Code + " al estado " + status.Code, useTechnicalMessages)
+                                        };
+                                    }
                                     break;
                                 case 3:
                                     if (listingRent.ListingStatusId == 4)
@@ -269,11 +283,49 @@ namespace Assert.Domain.Implementation
                             ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, $"El código de vista {viewCode} necesita un listingId.", useTechnicalMessages)
                         };
                     }
-                    else if ((listingRentId == null || listingRentId < 0) && viewCode == "LV001")
+                    else if ((listingRentId == null || listingRentId <= 0) && viewCode == "LV001")
                     {
+                        if (request_.Bedrooms < 0 || request_.Bedrooms == null)
+                        {
+                            return new ReturnModel<ListingProcessDataResultModel>
+                            {
+                                HasError = true,
+                                StatusCode = ResultStatusCode.BadRequest,
+                                ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar la cantidad de habitaciones disponibles en la propiedad.", useTechnicalMessages)
+                            };
+                        }
+                        if (request_.Beds < 0 || request_.Beds == null)
+                        {
+                            return new ReturnModel<ListingProcessDataResultModel>
+                            {
+                                HasError = true,
+                                StatusCode = ResultStatusCode.BadRequest,
+                                ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar la cantidad de camas disponibles en la propiedad.", useTechnicalMessages)
+                            };
+                        }
+                        if (request_.MaxGuests <= 0 || request_.MaxGuests == null)
+                        {
+                            return new ReturnModel<ListingProcessDataResultModel>
+                            {
+                                HasError = true,
+                                StatusCode = ResultStatusCode.BadRequest,
+                                ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar la cantidad máxima de huespedes permitidos en la propiedad.", useTechnicalMessages)
+                            };
+                        }
+                        if (request_.Bathrooms < 0 || request_.Bathrooms == null)
+                        {
+                            return new ReturnModel<ListingProcessDataResultModel>
+                            {
+                                HasError = true,
+                                StatusCode = ResultStatusCode.BadRequest,
+                                ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar la cantidad de baños que existen en la propiedad.", useTechnicalMessages)
+                            };
+                        }
                         ReturnModel<TlListingRent> newListing = await InitializeListingRent(viewType, request_, _userID, clientData, useTechnicalMessages);
                         if (newListing.StatusCode == ResultStatusCode.OK)
                         {
+                            await _listingViewStepRepository.SetEnded(listingRentId ?? 0, viewType.ViewTypeId, true);
+
                             ReturnModel<ListingProcessDataResultModel> NextStepResult = await _StepViewService.GetNextListingStepViewData(viewType.NextViewTypeId, newListing.Data, useTechnicalMessages);
                             return NextStepResult;
                         }
@@ -291,7 +343,7 @@ namespace Assert.Domain.Implementation
                     {
                         //Se procesan las siguientes vistas, en las cuales se necesita el lisging rent. (Si se encuentra publicado no deberia poder modificar.)
                         var listing = await _listingRentRepository.Get(listingRentId ?? 0, _userID);
-                        if (listing == null)
+                        if (listing == null || listing.ListingStatusId == 5)
                         {
                             return new ReturnModel<ListingProcessDataResultModel>
                             {
@@ -299,19 +351,52 @@ namespace Assert.Domain.Implementation
                                 ResultError = _errorHandler.GetError(ResultStatusCode.NotFound, $"El listing rent con id {listingRentId} no fué encontrado.", useTechnicalMessages)
                             };
                         }
+                        else if (listing.ListingStatusId == 3)
+                        {
+                            return new ReturnModel<ListingProcessDataResultModel>
+                            {
+                                StatusCode = ResultStatusCode.BadRequest,
+                                ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, $"El listing rent con id {listingRentId} no puede ser editado porque se encuentra en estado {listing.ListingStatus.Code}.", useTechnicalMessages)
+                            };
+                        }
                         else
                         {
                             ReturnModel processDataResult = await _StepViewService.ProccessListingRentData(viewType, listing, _userID, request_, clientData, useTechnicalMessages);
                             if (processDataResult.StatusCode == ResultStatusCode.OK)
                             {
+                                await _listingViewStepRepository.SetEnded(listingRentId ?? 0, viewType.ViewTypeId, true);
+
                                 if (viewType.NextViewTypeId == null)
                                 {
-                                    //TODO: Habilitar rol de HOST si es que este no tuviera el rol, solamente en el ultimo paso.
-                                    return new ReturnModel<ListingProcessDataResultModel>
+                                    ReturnModel resultStatuses = await _listingViewStepRepository.IsAllViewsEndeds(listingRentId ?? 0);
+                                    if (resultStatuses.StatusCode == ResultStatusCode.OK)
                                     {
-                                        HasError = false,
-                                        StatusCode = ResultStatusCode.OK
-                                    };
+                                        var newStatus = await ChangeStatus(listingRentId ?? 0, _userID, "COMPLETED", clientData, useTechnicalMessages);
+                                        if (newStatus.StatusCode != ResultStatusCode.OK)
+                                        {
+                                            return new ReturnModel<ListingProcessDataResultModel>
+                                            {
+                                                HasError = false,
+                                                StatusCode = ResultStatusCode.Accepted,
+                                                ResultError = newStatus.ResultError
+                                            };
+                                        }
+
+                                        return new ReturnModel<ListingProcessDataResultModel>
+                                        {
+                                            HasError = false,
+                                            StatusCode = ResultStatusCode.OK
+                                        };
+                                    }
+                                    else
+                                    {
+                                        return new ReturnModel<ListingProcessDataResultModel>
+                                        {
+                                            HasError = false,
+                                            StatusCode = ResultStatusCode.Accepted,
+                                            ResultError = resultStatuses.ResultError
+                                        };
+                                    }
                                 }
                                 else
                                 {
@@ -366,6 +451,7 @@ namespace Assert.Domain.Implementation
 
                 if (result != null)
                 {
+                    var property = await _propertyRepository.Register(listingRent.ListingRentId);
                     ReturnModel processResult = await _StepViewService.ProccessListingRentData(viewType, result, userId, request_, clientData, useTechnicalMessages);
                     if (processResult.StatusCode == ResultStatusCode.OK)
                     {

@@ -11,7 +11,7 @@ public static class JwtExtensions
 {
     public static IServiceCollection AddAuthJwt(this IServiceCollection services,
         IConfiguration configuration)
-    {  
+    {
         services.AddAuthentication(options =>
         {
             options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -25,7 +25,7 @@ public static class JwtExtensions
                 ValidAudience = configuration["JWT:Audience"],
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:Secret"] ?? "")),
                 ValidateIssuer = true,
-                ValidateAudience = false,
+                ValidateAudience = true,
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
                 ClockSkew = TimeSpan.Zero

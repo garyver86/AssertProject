@@ -1,30 +1,66 @@
 ﻿using Assert.API.Helpers;
-using Assert.API.Models;
 using Assert.Application.DTOs.Requests;
 using Assert.Application.DTOs.Responses;
-using Assert.Domain.Common;
 using Assert.Domain.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
-namespace Assert.API.Controllers;
-
-[Route("[controller]")]
-[ApiController]
-public class UserController : Controller
+namespace Assert.API.Controllers
 {
-    private readonly IAppUserService _userService;
-
-    public UserController(IAppUserService userService)
+    public class UserController : Controller
     {
-        _userService = userService;
-    }
+        private readonly IAppUserService _userService;
+        public UserController(IAppUserService userService)
+        {
+            _userService = userService;
+        }
 
-    [HttpPost("Login")]
-    [EnableCors("AllowedOriginsPolicy")]
-    public async Task<ReturnModelDTO> Login([FromBody] LoginRequest loginRequest)
-    {
-        return await _userService.LoginAndEnrollment(loginRequest.Platform, loginRequest.Token,
-            loginRequest.UserName, loginRequest.Password);
+        [HttpPost("Login")]
+        [EnableCors("AllowedOriginsPolicy")]
+        public async Task<ReturnModelDTO> Login([FromBody] LoginRequest loginRequest)
+        {
+            return await _userService.LoginAndEnrollment(loginRequest.Platform, loginRequest.Token,
+                loginRequest.UserName, loginRequest.Password);
+        }
+
+        /// <summary>
+        /// Servicio que habilita el rol de HOST al usuario actual.
+        /// </summary>
+        /// <returns>Confirmación de la habilitación.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// Una vez habilitado el rol, se debe crear un nuevo JWT, ya que estos son generados con información del rol del usuario.
+        /// </remarks>
+        [HttpGet("EnableHostRole")]
+        [Authorize(Policy = "GuestOrHost")]
+        public async Task<ReturnModelDTO> EnableHostRole()
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+            var result = await _userService.EnableHostRole(userId, requestInfo, true);
+
+            return result;
+        }
+        /// <summary>
+        /// Servicio que deshabilita el rol de HOST al usuario actual.
+        /// </summary>
+        /// <returns>Confirmación de la deshabilitación.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// Una vez deshabilitado el rol, se debe crear un nuevo JWT, ya que estos son generados con información del rol del usuario.
+        /// </remarks>
+        [HttpGet("DisableHostRole")]
+        [Authorize(Policy = "GuestOrHost")]
+        public async Task<ReturnModelDTO> DisableHostRole()
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+            var result = await _userService.DisableHostRole(userId, requestInfo, true);
+
+            return result;
+        }
     }
 }

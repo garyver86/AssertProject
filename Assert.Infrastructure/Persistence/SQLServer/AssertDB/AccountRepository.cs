@@ -4,6 +4,7 @@ using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Infrastructure.Exceptions;
 using Assert.Infrastructure.Utils;
+using Assert.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 using Microsoft.IdentityModel.Logging;
@@ -18,14 +19,15 @@ using Assert.Domain.Common.Metadata;
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 
 public class AccountRepository
-    (IExceptionLoggerService _exceptionLoggerService, InfraAssertDbContext _dbContext, 
-    RequestMetadata _metadata) 
+    (IExceptionLoggerService _exceptionLoggerService, InfraAssertDbContext _dbContext,
+    RequestMetadata _metadata)
     : IAccountRepository
 {
     public async Task<int> Create(int userId, string password)
     {
         string pass = UtilsMgr.GetHash512(password);
-        TuAccount account = new TuAccount() { 
+        TuAccount account = new TuAccount()
+        {
             UserId = userId,
             Password = pass,
             IncorrectAccess = 0,

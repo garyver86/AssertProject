@@ -1,4 +1,5 @@
-﻿using Assert.Application.DTOs.Responses;
+﻿using Assert.Application.DTOs;
+using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
 using Assert.Domain.Entities;
 using Assert.Domain.Models;
@@ -16,13 +17,16 @@ namespace Assert.Application.Services
         private bool UseTechnicalMessages { get; set; } = false;
         private readonly IListingRentRepository _listingRentRepository;
         private readonly IListingStatusRepository _listingStatusRepository;
+        private readonly IListingPhotoRepository _listingPhotoRepository;
+        private readonly IListingRentReviewRepository _listingReviewRepository;
         private readonly IImageService _imageService;
 
         private readonly IMapper _mapper;
         private readonly IErrorHandler _errorHandler;
 
         public AppListingRentService(IListingRentRepository listingRentRepository, IMapper mapper, IErrorHandler errorHandler,
-            IListingStatusRepository listingStatusRepository, IListingRentService listingRentService, IImageService imageService)
+            IListingStatusRepository listingStatusRepository, IListingRentService listingRentService, IImageService imageService,
+            IListingPhotoRepository listingPhotoRepository, IListingRentReviewRepository listingReviewRepository)
         {
             _listingRentRepository = listingRentRepository;
             _mapper = mapper;
@@ -30,6 +34,8 @@ namespace Assert.Application.Services
             _listingStatusRepository = listingStatusRepository;
             _listingRentService = listingRentService;
             _imageService = imageService;
+            _listingPhotoRepository = listingPhotoRepository;
+            _listingReviewRepository = listingReviewRepository;
         }
 
         public async Task<ReturnModelDTO> ChangeStatus(long listingRentId, int ownerUserId, string newStatusCode, Dictionary<string, string> clientData,
@@ -53,7 +59,7 @@ namespace Assert.Application.Services
             {
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
-                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("L_ListingRentView.ChangeStatus", ex, new { listingRentId, ownerUserId, newStatusCode, clientData }, UseTechnicalMessages));
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.ChangeStatus", ex, new { listingRentId, ownerUserId, newStatusCode, clientData }, UseTechnicalMessages));
             }
             return result;
         }
@@ -77,7 +83,7 @@ namespace Assert.Application.Services
             {
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
-                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("L_ListingRentView.GetAllListingsRentsData", ex, new { ownerUserId }, UseTechnicalMessages));
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.GetAllListingsRentsData", ex, new { ownerUserId }, UseTechnicalMessages));
             }
             return result;
         }
@@ -89,19 +95,46 @@ namespace Assert.Application.Services
             try
             {
                 TlListingRent listings = await _listingRentRepository.Get(listingRentId, onlyActive);
-                result = new ReturnModelDTO<ListingRentDTO>
+                if (listings == null)
                 {
-                    Data = _mapper.Map<ListingRentDTO>(listings),
-                    HasError = false,
-                    StatusCode = ResultStatusCode.OK
-                };
+                    return new ReturnModelDTO<ListingRentDTO>
+                    {
+                        StatusCode = ResultStatusCode.NotFound,
+                        ResultError = new ErrorCommonDTO
+                        {
+                            Code = ResultStatusCode.NotFound,
+                            Message = "El listing no ha podido ser encontrado."
+                        }
+                    };
+                }
+                else if (!onlyActive || (onlyActive && listings.ListingStatusId == 3))
+                {
+                    result = new ReturnModelDTO<ListingRentDTO>
+                    {
+                        Data = _mapper.Map<ListingRentDTO>(listings),
+                        HasError = false,
+                        StatusCode = ResultStatusCode.OK
+                    };
+                }
+                else
+                {
+                    return new ReturnModelDTO<ListingRentDTO>
+                    {
+                        StatusCode = ResultStatusCode.NotFound,
+                        ResultError = new ErrorCommonDTO
+                        {
+                            Code = ResultStatusCode.NotFound,
+                            Message = "El listing no está activo o no ha podido ser encontrado."
+                        }
+                    };
+                }
 
             }
             catch (Exception ex)
             {
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
-                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("L_ListingRentView.GetAllListingsRentsData", ex, new { listingRentId }, useTechnicalMessages));
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.GetAllListingsRentsData", ex, new { listingRentId }, useTechnicalMessages));
             }
             return result;
         }
@@ -112,7 +145,7 @@ namespace Assert.Application.Services
             try
             {
                 ListingProcessDataModel request_ = _mapper.Map<ListingProcessDataModel>(request);
-                ReturnModel<ListingProcessDataResultModel> changeResult = await _listingRentService.ProcessData(request.ListingRentId, request.ViewCode, request_, clientData, useTechnicalMessages);
+                ReturnModel<ListingProcessDataResultModel> changeResult = await _listingRentService.ProcessData(listinRentId, request.ViewCode, request_, clientData, useTechnicalMessages);
 
                 if (changeResult.StatusCode == ResultStatusCode.OK)
                 {
@@ -127,7 +160,7 @@ namespace Assert.Application.Services
             {
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
-                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("L_ListingRentView.ProcessListingData", ex, new { listinRentId, request, clientData }, UseTechnicalMessages));
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.ProcessListingData", ex, new { listinRentId, request, clientData }, UseTechnicalMessages));
             }
             return result;
         }
@@ -150,11 +183,113 @@ namespace Assert.Application.Services
                     {
                         StatusCode = ResultStatusCode.InternalError,
                         HasError = true,
-                        ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("L_ListingRentView.ProcessListingData", ex, new { imageFiles = imageFiles?.Select(x=>x.FileName), clientData }, UseTechnicalMessages))
+                        ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.ProcessListingData", ex, new { imageFiles = imageFiles?.Select(x=>x.FileName), clientData }, UseTechnicalMessages))
                     }
                 };
 
             }
+        }
+
+        public async Task<ReturnModelDTO<List<ListingRentDTO>>> GetFeaturedListings(int? countryId, int? limit, Dictionary<string, string> requestInfo)
+        {
+            ReturnModelDTO<List<ListingRentDTO>> result = new ReturnModelDTO<List<ListingRentDTO>>();
+            try
+            {
+                List<TlListingRent> listings = await _listingRentRepository.GetFeatureds(countryId, limit);
+                //listings = listings.OrderByDescending(x => x.ListingRentId).ToList();
+                result = new ReturnModelDTO<List<ListingRentDTO>>
+                {
+                    Data = _mapper.Map<List<ListingRentDTO>>(listings),
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.GetAllListingsRentsData", ex, new { countryId, limit }, UseTechnicalMessages));
+            }
+            return result;
+        }
+
+        public async Task<ReturnModelDTO<List<ListingRentDTO>>> GetByOwner(Dictionary<string, string> clientData, bool userTechnicalMessages)
+        {
+            string userId = clientData["UserId"] ?? "-50";
+            int _userID = -1;
+            int.TryParse(userId, out _userID);
+
+            ReturnModelDTO<List<ListingRentDTO>> result = new ReturnModelDTO<List<ListingRentDTO>>();
+            try
+            {
+                List<TlListingRent> listings = await _listingRentRepository.GetAll(_userID);
+                result = new ReturnModelDTO<List<ListingRentDTO>>
+                {
+                    Data = _mapper.Map<List<ListingRentDTO>>(listings),
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.GetByOwner", ex, new { userId }, UseTechnicalMessages));
+            }
+            return result;
+        }
+
+        public async Task<ReturnModelDTO<List<PhotoDTO>>> GetPhotoByListigRent(long listinRentId, Dictionary<string, string> clientData, bool useTechnicalMessages)
+        {
+            string userId = clientData["UserId"] ?? "-50";
+            int _userID = -1;
+            int.TryParse(userId, out _userID);
+
+            ReturnModelDTO<List<PhotoDTO>> result = new ReturnModelDTO<List<PhotoDTO>>();
+            try
+            {
+                List<TlListingPhoto> listings = await _listingPhotoRepository.GetByListingRentId(listinRentId, _userID);
+                result = new ReturnModelDTO<List<PhotoDTO>>
+                {
+                    Data = _mapper.Map<List<PhotoDTO>>(listings),
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.GetByOwner", ex, new { userId }, UseTechnicalMessages));
+            }
+            return result;
+        }
+
+        public async Task<ReturnModelDTO<List<ReviewDTO>>> GetListingRentReviews(int listingRentId, bool UseTechnicalMessages, Dictionary<string, string> requestInfo)
+        {
+
+            ReturnModelDTO<List<ReviewDTO>> result = new ReturnModelDTO<List<ReviewDTO>>();
+            try
+            {
+                List<TlListingReview> listings = await _listingReviewRepository.GetByListingRent(listingRentId);
+                result = new ReturnModelDTO<List<ReviewDTO>>
+                {
+                    Data = _mapper.Map<List<ReviewDTO>>(listings),
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.GetListingRentReviews", ex, new { listingRentId }, UseTechnicalMessages));
+            }
+            return result;
         }
     }
 }

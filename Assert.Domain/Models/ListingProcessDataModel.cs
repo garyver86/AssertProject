@@ -35,9 +35,9 @@
         public bool ReviewConfirmatin { get; set; }
         public bool UseTechnicalMessages { get; set; }
         public bool? ListingConfirmation { get; set; }
-        public int? CurrencyId { get; internal set; }
-        public int? Bathrooms { get; internal set; }
-        public decimal? WeekendPrice { get; internal set; }
+        public int? CurrencyId { get; set; }
+        public int? Bathrooms { get; set; }
+        public decimal? WeekendPrice { get; set; }
     }
     public class ProcessData_AddressModel
     {
@@ -48,7 +48,7 @@
         public string? Address1 { get; set; }
 
         public string? Address2 { get; set; }
-        public long? CityId { get; set; }
+        public int? CityId { get; set; }
     }
     public class ProcessData_SpaceModel
     {

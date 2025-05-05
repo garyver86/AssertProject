@@ -5,18 +5,12 @@ using Assert.Domain.Entities;
 using Assert.Domain.Enums;
 using Assert.Domain.Interfaces.Infraestructure.External;
 using Assert.Domain.Models;
-using Assert.Domain.Models.Auth;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Assert.Infrastructure.Security;
 using AutoMapper;
-using Microsoft.Identity.Client;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 using ApplicationException = Assert.Application.Exceptions.ApplicationException;
 
 namespace Assert.Application.Services;
@@ -27,7 +21,7 @@ public class AppUserService(
         IUserRolRepository _userRolRespository,
         Func<Platform, IAuthProviderValidator> _authValidatorFactory) : IAppUserService
 {
-    public async Task<ReturnModelDTO> LoginAndEnrollment(string platform, string token, 
+    public async Task<ReturnModelDTO> LoginAndEnrollment(string platform, string token,
         string userName, string password)
     {
         #region platform context: google - apple - meta - local
@@ -129,5 +123,46 @@ public class AppUserService(
                 throw new UnauthorizedAccessException(authenticationResult.ResultError.Message);
             else throw new InvalidTokenException(authenticationResult.ResultError.Message);
         }
+    }
+
+    public async Task<ReturnModelDTO> DisableHostRole(long userId, Dictionary<string, string> clientData, bool useTechnicalMessages)
+    {
+        try
+        {
+            var listings = await _userService.DisableHostRole(userId);
+            var dataResult = _mapper.Map<ReturnModelDTO>(listings);
+
+            return dataResult;
+        }
+        catch (Exception ex)
+        {
+            return HandleException<ReturnModelDTO>("AppUserService.DisableHostRole", ex, new { userId }, useTechnicalMessages);
+        }
+    }
+
+    public async Task<ReturnModelDTO> EnableHostRole(long userId, Dictionary<string, string> clientData, bool useTechnicalMessages)
+    {
+        try
+        {
+            var listings = await _userService.EnableHostRole(userId);
+            var dataResult = _mapper.Map<ReturnModelDTO>(listings);
+
+            return dataResult;
+        }
+        catch (Exception ex)
+        {
+            return HandleException<ReturnModelDTO>("AppUserService.EnableHostRole", ex, new { userId }, useTechnicalMessages);
+        }
+    }
+
+    private ReturnModelDTO<T> HandleException<T>(string action, Exception ex, object data, bool useTechnicalMessages)
+    {
+        var error = _errorHandler.GetErrorException(action, ex, data, useTechnicalMessages);
+        return new ReturnModelDTO<T>
+        {
+            HasError = true,
+            StatusCode = ResultStatusCode.InternalError,
+            ResultError = _mapper.Map<ErrorCommonDTO>(error)
+        };
     }
 }

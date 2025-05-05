@@ -7,5 +7,6 @@
         public DateTime? DateTimeReview { get; set; }
         public int Calification { get; set; }
         public string? Comment { get; set; }
+        public string UserProfilePhoto { get; set; }
     }
 }

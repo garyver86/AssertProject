@@ -1,10 +1,10 @@
 ﻿using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
-using Assert.Domain.Interfaces.Infraestructure.External;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Infrastructure.Security;
 using AutoMapper;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace Assert.Application.Services.Security
@@ -47,7 +47,8 @@ namespace Assert.Application.Services.Security
                 List<Claim> claims = new()
                     {
                         new("identifier", (string)authenticationResult.Data),
-                        new("value", value)
+                        new("value", value),
+                        new Claim(JwtRegisteredClaimNames.Sub, user)
                     };
 
                 foreach (var role in authenticationResult.ResultError?.Code.Split(','))

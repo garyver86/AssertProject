@@ -6,5 +6,6 @@ namespace Assert.Domain.Repositories
     {
         Task<TpPropertySubtype> Get(int? subtypeId);
         Task<TpPropertySubtype> GetActive(int? subtypeId);
+        Task<List<TpPropertySubtype>> GetActives();
     }
 }

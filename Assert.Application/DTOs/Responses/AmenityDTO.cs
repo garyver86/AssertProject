@@ -14,5 +14,6 @@
         public string? Type { get; set; }
 
         public string? IconLink { get; set; }
+        public int? AmenitiesTypeId { get; set; }
     }
 }
