@@ -6,5 +6,8 @@
         public string MessageResult { get; set; }
         public int Identifier { get; set; }
         public string Roles { get; set; }
+        public string userName { get; set; }
+        public string givenName { get; set; }
+        public string lastName { get; set; }
     }
 }

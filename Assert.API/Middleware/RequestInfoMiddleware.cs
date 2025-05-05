@@ -1,5 +1,4 @@
-﻿
-using Assert.Domain.Common;
+﻿using Assert.Domain.Common.Metadata;
 
 namespace Assert.API.Middleware
 {

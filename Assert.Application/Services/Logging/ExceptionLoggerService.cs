@@ -1,4 +1,5 @@
 ﻿using Assert.Domain.Common;
+using Assert.Domain.Common.Metadata;
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Interfaces.Queque;
 using System;

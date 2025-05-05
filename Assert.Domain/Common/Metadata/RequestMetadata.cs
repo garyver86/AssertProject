@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Assert.Domain.Common;
+namespace Assert.Domain.Common.Metadata;
 
 public class RequestMetadata
 {

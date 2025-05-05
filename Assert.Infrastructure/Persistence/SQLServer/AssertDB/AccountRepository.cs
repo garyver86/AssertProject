@@ -1,5 +1,4 @@
-﻿using Assert.Domain.Common;
-using Assert.Domain.Entities;
+﻿using Assert.Domain.Entities;
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
@@ -14,6 +13,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Assert.Shared.Extensions;
+using Assert.Domain.Common.Metadata;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 

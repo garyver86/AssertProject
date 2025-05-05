@@ -62,6 +62,7 @@ public static class InfrastructureInjectionDependences
 
         #region Repositories
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IUserRolRepository, UserRolRepository>();
         services.AddScoped<IAccountRepository, AccountRepository>();
         services.AddScoped<IExceptionLogRepository, ExceptionLogRepository>();
         services.AddScoped<IListingrentChangeRepository, ListingRentChangeRepository>();

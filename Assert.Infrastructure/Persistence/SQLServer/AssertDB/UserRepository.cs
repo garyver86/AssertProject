@@ -1,4 +1,4 @@
-﻿using Assert.Domain.Common;
+﻿using Assert.Domain.Common.Metadata;
 using Assert.Domain.Entities;
 using Assert.Domain.Enums;
 using Assert.Domain.Interfaces.Logging;
@@ -40,7 +40,14 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     return new ReturnModel
                     {
                         StatusCode = ResultStatusCode.OK,
-                        Data = result_login.MessageResult,
+                        //Data = result_login.MessageResult,
+                        Data = new ProviderUser
+                        {
+                            UserId = result_login.Identifier.ToString(),
+                            Email = result_login.userName,
+                            Name = result_login.givenName,
+                            LastName = result_login.lastName
+                        },
                         ResultError = new ErrorCommon
                         {
                             Message = result_login.Identifier.ToString(),
@@ -186,7 +193,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             int accountTypeId, string socialId, int? timeZoneId)
         {
             string plataformStr = platform.ToString().ToLower();
-            var platformId = await _dbContext.TuPlatforms.Where(x => x.Code == plataformStr)
+            var platformId = await _dbContext.TuPlatforms.Where(x => x.Code.ToLower() == plataformStr)
                 .Select(x => x.PlatformId).FirstOrDefaultAsync();
 
             if(genderTypeId == 0)

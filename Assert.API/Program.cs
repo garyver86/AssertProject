@@ -39,7 +39,7 @@ builder.Logging.ClearProviders()
 
 builder.Services.AddQuequeExtensions();
 
-builder.Services.AddModelsConfigExtension();
+builder.Services.AddModelsConfigExtension(builder.Configuration);
 
 var app = builder.Build();
 

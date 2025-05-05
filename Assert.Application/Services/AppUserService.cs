@@ -1,6 +1,6 @@
 ﻿using Assert.Application.DTOs.Responses;
 using Assert.Application.Exceptions;
-using Assert.Domain.Common;
+using Assert.Domain.Common.Metadata;
 using Assert.Domain.Entities;
 using Assert.Domain.Enums;
 using Assert.Domain.Interfaces.Infraestructure.External;
@@ -24,6 +24,7 @@ namespace Assert.Application.Services;
 public class AppUserService(
         IJWTSecurity _jwtSecurity, IMapper _mapper, IUserRepository _userRepository,
         RequestMetadata _metadata,IAccountRepository _accountRepository,
+        IUserRolRepository _userRolRespository,
         Func<Platform, IAuthProviderValidator> _authValidatorFactory) : IAppUserService
 {
     public async Task<ReturnModelDTO> LoginAndEnrollment(string platform, string token, 
@@ -39,9 +40,9 @@ public class AppUserService(
         #region authenticator: local - socialMedia
         var authContext = _authValidatorFactory(enumPlatform);
         ReturnModel? authenticationResult = null;
-
+        
         if (enumPlatform == Platform.Local)
-            authenticationResult = await authContext.LoginAsync(userName, password);   
+            authenticationResult = await authContext.LoginAsync(userName, password);
         else
         {
             authenticationResult = await authContext.ValidateTokenAsync(token);
@@ -55,42 +56,55 @@ public class AppUserService(
         {
             #region user & account validation
             var userAccount = await _userRepository.ValidateUserName(userName, true);
-            switch(userAccount.StatusCode)
+            int userId;
+            int accountId;
+            int userRolId;
+
+            var providerUser = (ProviderUser)authenticationResult.Data!;
+
+            List<string> userRoles = new();
+            switch (userAccount.StatusCode)
             {
-                case "NotFound":
-                    var newUserId = await _userRepository.Create(userName, enumPlatform, "", "", 0, null, "", 1, "", null);
-                    var newAccountId = await _accountRepository.Create(newUserId, password);
-                    _metadata.UserId = newUserId;
-                    _metadata.UserName = userName;
-                    _metadata.AccountId = newAccountId;
+                case "404": //notFound user
+                    userId = await _userRepository.Create(userName, enumPlatform, providerUser.Name, 
+                        providerUser.LastName, 0, null, "", 1, "", null);
+                    accountId = await _accountRepository.Create(userId, password);
+                    userRolId = await _userRolRespository.CreateGuest(userId);
+                    userRoles.Add("Guest");
                     break;
-                case "NoContent":
-                    var userId = Convert.ToInt32(userAccount.Data);
-                    newAccountId = await _accountRepository.Create(userId, password);
-                    _metadata.UserId = userId;
-                    _metadata.UserName = userName;
-                    _metadata.AccountId = newAccountId;
+
+                case "204": //notFound account
+                    userId = Convert.ToInt32(userAccount.Data);
+                    accountId = await _accountRepository.Create(userId, password);
+                    userRolId = await _userRolRespository.CreateGuest(userId);
+                    userRoles.Add("Guest");
                     break;
+
                 default:
-                    _metadata.UserName = userName;
-                    _metadata.UserId = ((TuUser)userAccount.Data!).UserId;
-                    _metadata.AccountId = Convert.ToInt32(((TuUser)userAccount.Data!).TuAccounts.First().AccountId);
+                    var user = (TuUser)userAccount.Data!;
+                    userId = user.UserId;
+                    accountId = Convert.ToInt32(user.TuAccounts.First().AccountId);
+                    if (enumPlatform == Platform.Local)
+                        foreach (var role in authenticationResult.ResultError?.Code.Split(','))
+                            userRoles.Add(role);
+                    else
+                        userRoles = await _userRolRespository.GetUserRoles(userId);
                     break;
             }
+            _metadata.UserId = userId;
+            _metadata.UserName = userName;
+            _metadata.AccountId = accountId;
             #endregion
 
             #region claims
-            string value = authenticationResult.ResultError?.Message;
             List<Claim> claims = new()
             {
-                new("identifier", (string)authenticationResult.Data!),
-                new("value", value)
+                new("identifier", _metadata.UserId.ToString()),
+                new("value", _metadata.UserId.ToString())
             };
 
-            foreach (var role in authenticationResult.ResultError?.Code.Split(','))
-            {
+            foreach (var role in userRoles)
                 claims.Add(new Claim(ClaimTypes.Role, role.ToString()));
-            }
             #endregion
 
             #region jwt generator
@@ -110,6 +124,10 @@ public class AppUserService(
             return result;
         }
         else
-            throw new UnauthorizedAccessException(authenticationResult.ResultError.Message);
+        {
+            if (enumPlatform == Platform.Local)
+                throw new UnauthorizedAccessException(authenticationResult.ResultError.Message);
+            else throw new InvalidTokenException(authenticationResult.ResultError.Message);
+        }
     }
 }

@@ -3,6 +3,7 @@ using Assert.Domain.Entities;
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Interfaces.Queque;
 using Assert.Domain.Repositories;
+using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -32,7 +33,7 @@ public class ExceptionLogBackgroundService(
                 try
                 {
                     using var scope = serviceProvider.CreateScope();
-                    var context = scope.ServiceProvider.GetRequiredService<AssertDbContext>();
+                    var context = scope.ServiceProvider.GetRequiredService<InfraAssertDbContext>();
 
                     var message = logModel.Exception.Message;
 
