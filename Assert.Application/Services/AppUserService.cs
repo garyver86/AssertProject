@@ -19,7 +19,9 @@ public class AppUserService(
         IJWTSecurity _jwtSecurity, IMapper _mapper, IUserRepository _userRepository,
         RequestMetadata _metadata,IAccountRepository _accountRepository,
         IUserRolRepository _userRolRespository,
-        Func<Platform, IAuthProviderValidator> _authValidatorFactory) : IAppUserService
+        IUserService _userService,
+        Func<Platform, IAuthProviderValidator> _authValidatorFactory,
+        IErrorHandler _errorHandler) : IAppUserService
 {
     public async Task<ReturnModelDTO> LoginAndEnrollment(string platform, string token,
         string userName, string password)

@@ -8,9 +8,13 @@ namespace Assert.Domain.Repositories
     {
         Task<ReturnModel<TuUser>> Get(int ownerUserId);
         Task<ReturnModel> Login(string username, string password);
-        Task<ReturnModel> ValidateUserName(string userName, bool validateStatusActive);
+        Task<ReturnModel> ValidateUserName(string userName, 
+            bool validateStatusActive);
         Task<int> Create(string userName, Platform platform, string name,
                 string lastName, int genderTypeId, DateTime? dateOfBirth, string photoLink,
                 int accountTypeId, string socialId, int? timeZoneId);
+        Task<int> Update(TuUser user);
+        Task<ReturnModel<List<TuUserRole>>> GetRoles(int userId, 
+            bool getOnlyActives);
     }
 }

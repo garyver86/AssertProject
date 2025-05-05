@@ -16,6 +16,14 @@ namespace Assert.API.Controllers
             _userService = userService;
         }
 
+        /// <summary>
+        /// Servicio de inicio de sesion de usuaerios locales + validacion de token y enrollamiento de usuarios de redes sociales
+        /// </summary>
+        /// <param name="loginRequest">En caso de usuaerio local requiere usuaerio y contrasena ; en caso de usuarios de redes sociales requiere usuario y token</param>
+        /// <returns code="200">Si proceso se ejcuto con exito</returns>
+        /// <remarks>
+        /// En caso de usuarios de redes sociales si el token es valido y no existe en BD Assert estos son registrados y creados con rol Guest por defecto
+        /// </remarks>
         [HttpPost("Login")]
         [EnableCors("AllowedOriginsPolicy")]
         public async Task<ReturnModelDTO> Login([FromBody] LoginRequest loginRequest)
