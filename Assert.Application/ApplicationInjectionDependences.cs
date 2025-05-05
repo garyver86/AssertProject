@@ -38,6 +38,7 @@ namespace Assert.Application
             services.AddScoped<IAppListingFavoriteService, AppListingFavoriteService>();
             services.AddScoped<IAppParametricService, AppParametricService>();
             services.AddScoped<IAppUserService, AppUserService>();
+            services.AddScoped<IAppMessagingService, AppMessagingService>();
 
             //Domain Services
             services.AddScoped<IListingRentService, ListingRentService>();
