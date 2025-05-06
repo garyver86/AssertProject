@@ -95,7 +95,9 @@ public class AppUserService(
             List<Claim> claims = new()
             {
                 new("identifier", _metadata.UserId.ToString()),
-                new("value", _metadata.UserId.ToString())
+                new("value", _metadata.UserId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Sub, userName)
+
             };
 
             foreach (var role in userRoles)
