@@ -17,12 +17,14 @@ namespace Assert.API.Controllers
         }
 
         /// <summary>
-        /// Servicio de inicio de sesion de usuaerios locales + validacion de token y enrollamiento de usuarios de redes sociales
+        /// Servicio de inicio de sesion de usuarios locales + validacion de token y enrollamiento de usuarios de redes sociales
         /// </summary>
-        /// <param name="loginRequest">En caso de usuaerio local requiere usuaerio y contrasena ; en caso de usuarios de redes sociales requiere usuario y token</param>
+        /// <param name="loginRequest">Platform: local-google-meta-apple
+        ///  ; Usuarios local: UserName - Password 
+        ///  ; Usuaerios redes sociales: UserName - Token</param>
         /// <returns code="200">Si proceso se ejcuto con exito</returns>
         /// <remarks>
-        /// En caso de usuarios de redes sociales si el token es valido y no existe en BD Assert estos son registrados y creados con rol Guest por defecto
+        /// En caso de usuarios de redes sociales si el token es valido y no existe en BD Assert, estos seran registrados con rol Guest por defecto
         /// </remarks>
         [HttpPost("Login")]
         [EnableCors("AllowedOriginsPolicy")]
