@@ -8,7 +8,7 @@ public class LoginRequest
     public string Platform { get; set; } = "none"; //apple - meta - google - local
     public string Token { get; set; } = string.Empty;
     [Required]
-    [EmailAddress]
+    //[EmailAddress]
     public string UserName { get; set; } = string.Empty;
     [Required]
     [DataType(DataType.Password)]
