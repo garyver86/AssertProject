@@ -62,8 +62,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         public async Task SetEnded(long listingRentId, int viewTypeId, bool isEnded)
         {
             var result = await _context.TlListingStepsViews.FirstOrDefaultAsync(x => x.ViewTypeId == viewTypeId && x.ListingSteps.ListingRentId == listingRentId);
-            result.IsEnded = isEnded;
-            await _context.SaveChangesAsync();
+            if (result != null)
+            {
+                result.IsEnded = isEnded;
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

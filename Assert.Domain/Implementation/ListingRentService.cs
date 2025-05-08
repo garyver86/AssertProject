@@ -327,6 +327,10 @@ namespace Assert.Domain.Implementation
                             await _listingViewStepRepository.SetEnded(listingRentId ?? 0, viewType.ViewTypeId, true);
 
                             ReturnModel<ListingProcessDataResultModel> NextStepResult = await _StepViewService.GetNextListingStepViewData(viewType.NextViewTypeId, newListing.Data, useTechnicalMessages);
+                            if(NextStepResult.StatusCode == ResultStatusCode.OK)
+                            {
+                                NextStepResult.Data.ListingData.actualViewCode = viewType.Code;
+                            }
                             return NextStepResult;
                         }
                         else
@@ -402,6 +406,10 @@ namespace Assert.Domain.Implementation
                                 {
 
                                     ReturnModel<ListingProcessDataResultModel> NextStepResult = await _StepViewService.GetNextListingStepViewData(viewType.NextViewTypeId, listing, useTechnicalMessages);
+                                    if (NextStepResult.StatusCode == ResultStatusCode.OK)
+                                    {
+                                        NextStepResult.Data.ListingData.actualViewCode = viewType.Code;
+                                    }
                                     return NextStepResult;
                                 }
                             }

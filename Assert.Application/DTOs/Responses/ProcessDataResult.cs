@@ -34,5 +34,7 @@ namespace Assert.Application.DTOs
         public ICollection<FeaturedAspectDTO> FeaturedAspects { get; set; }
         public ICollection<DiscountDTO> Discounts { get; set; }
         public long ListingRentId { get; set; }
+        public string? nextViewCode { get; set; }
+        public string? actualViewCode { get; set; }
     }
 }

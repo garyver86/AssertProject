@@ -57,7 +57,8 @@ namespace Assert.Domain.Implementation
                 {
                     ListingData = new ListingProcessData_ListingData
                     {
-                        ListingRentId = data.ListingRentId
+                        ListingRentId = data.ListingRentId,
+                        nextViewCode = view.Code,
                     },
                     Parametrics = new ListingProcessData_Parametrics()
                 },
@@ -209,7 +210,7 @@ namespace Assert.Domain.Implementation
                 {
                     HasError = true,
                     StatusCode = ResultStatusCode.BadRequest,
-                    ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, $"el título de la publicación no debe tener mas de 32 caracteres, usted ingresó {request_.Description.Length}.", useTechnicalMessages)
+                    ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, $"El título de la publicación no debe tener mas de 32 caracteres, usted ingresó {request_.Description.Length}.", useTechnicalMessages)
                 };
             }
             if (request_.Description.IsNullOrEmpty())

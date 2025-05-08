@@ -34,5 +34,7 @@ namespace Assert.Domain.Models
         public ICollection<TlListingFeaturedAspect> FeaturedAspects { get; set; }
         public ICollection<TlListingDiscountForRate> Discounts { get; set; }
         public long ListingRentId { get; set; }
+        public string? nextViewCode { get; set; }
+        public string? actualViewCode { get; set; }
     }
 }
