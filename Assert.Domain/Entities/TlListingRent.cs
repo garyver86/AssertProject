@@ -1,4 +1,7 @@
-﻿namespace Assert.Domain.Entities;
+﻿using System;
+using System.Collections.Generic;
+
+namespace Assert.Domain.Entities;
 
 public partial class TlListingRent
 {
@@ -63,6 +66,8 @@ public partial class TlListingRent
     public virtual ICollection<TlListingAmenity> TlListingAmenities { get; set; } = new List<TlListingAmenity>();
 
     public virtual ICollection<TlListingAvailability> TlListingAvailabilities { get; set; } = new List<TlListingAvailability>();
+
+    public virtual ICollection<TlListingDiscountForRate> TlListingDiscountForRates { get; set; } = new List<TlListingDiscountForRate>();
 
     public virtual ICollection<TlListingFavorite> TlListingFavorites { get; set; } = new List<TlListingFavorite>();
 

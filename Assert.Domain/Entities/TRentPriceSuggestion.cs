@@ -1,4 +1,7 @@
-﻿namespace Assert.Domain.Entities;
+﻿using System;
+using System.Collections.Generic;
+
+namespace Assert.Domain.Entities;
 
 public partial class TRentPriceSuggestion
 {

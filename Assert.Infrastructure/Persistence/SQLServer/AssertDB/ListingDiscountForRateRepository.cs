@@ -13,7 +13,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         }
         public async Task<List<TlListingDiscountForRate>?> GetByListingRentId(long listingRentId)
         {
-            var result = await _context.TlListingDiscountForRates.Where(x => x.ListingPrice.ListingRentId == listingRentId).ToListAsync();
+            var result = await _context.TlListingDiscountForRates.Where(x => x.ListingRentId == listingRentId).ToListAsync();
             return result;
         }
     }

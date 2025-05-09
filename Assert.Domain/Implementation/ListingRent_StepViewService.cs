@@ -100,7 +100,7 @@ namespace Assert.Domain.Implementation
                     return result;
                 case "LV008":
                     result.Data.Parametrics.DiscountTypes = await _discountTypeRepository.GetActives();
-                    result.Data.ListingData.Discounts = data.TlListingPrices.FirstOrDefault()?.TlListingDiscountForRates;
+                    //result.Data.ListingData.Discounts = data.Dis.TlListingDiscountForRates;
                     result.Data.ListingData.PriceNightly = data.TlListingPrices.FirstOrDefault()?.PriceNightly;
                     result.Data.ListingData.CurrencyId = data.TlListingPrices.FirstOrDefault()?.CurrencyId;
                     result.Data.ListingData.WeekendNightlyPrice = data.TlListingPrices.FirstOrDefault()?.WeekendNightlyPrice;

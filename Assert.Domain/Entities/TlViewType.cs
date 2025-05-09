@@ -1,4 +1,7 @@
-﻿namespace Assert.Domain.Entities;
+﻿using System;
+using System.Collections.Generic;
+
+namespace Assert.Domain.Entities;
 
 public partial class TlViewType
 {
@@ -15,6 +18,8 @@ public partial class TlViewType
     public int? ViewTypeIdParent { get; set; }
 
     public int? NextViewTypeId { get; set; }
+
+    public bool? IsActive { get; set; }
 
     public virtual TlStepsType? StepType { get; set; }
 
