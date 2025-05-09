@@ -515,7 +515,7 @@ namespace Assert.Domain.Implementation
             //}
             if (listing.Beds != request_.Beds || listing.Bedrooms != request_.Bedrooms || listing.AllDoorsLocked != request_.AllDoorsLooked || listing.MaxGuests != request_.MaxGuests)
             {
-                await _listingRentRepository.SetCapacity(listing.ListingRentId, listing.Beds, listing.Bedrooms, listing.Bathrooms, listing.MaxGuests);
+                await _listingRentRepository.SetCapacity(listing.ListingRentId, request_.Beds, request_.Bedrooms, request_.Bathrooms, request_.MaxGuests);
             }
             return new ReturnModel
             {
