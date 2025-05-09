@@ -24,7 +24,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
             var statusListing = await _listingStatusRepository.Get(newStatus);
 
-            _logRepository.RegisterLog(id, "Update Status " + statusListing.Code + " (StatusId:" + statusListing.ListingStatusId.ToString() + ")", userInfo["BrowserInfo"], userInfo["IsMobile"] == "True", userInfo["IpAddress"], userInfo["AdditionalData"], userInfo["ApplicationCode"]);
+            _logRepository.RegisterLog(id, "Update Status " + statusListing.Code + " (StatusId:" + statusListing.ListingStatusId.ToString() + ")", userInfo["BrowserInfo"], userInfo["IsMobile"] == "True", userInfo["IpAddress"], null, userInfo["ApplicationCode"]);
 
             return listing;
         }

@@ -57,6 +57,24 @@ namespace Assert.API.Controllers
         }
 
         /// <summary>
+        /// Servicio que devuelve la lista de tipos de alojamientos activos.
+        /// </summary>
+        /// <returns>Listado de tipos de alojamientos.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// Solo se consideraran los tipos de alojamiento que no se encuentren deshabilitadas.
+        /// </remarks>
+        [HttpGet("PropertyTypes")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO<List<PropertyTypeDTO>>> PropertyTypes()
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            var propertyTypes = await _parametricService.GetPropertyTypes(requestInfo, true);
+
+            return propertyTypes;
+        }
+
+        /// <summary>
         /// Servicio que devuelve la lista de aspectos destacados.
         /// </summary>
         /// <returns>Listado de aspectos destacados.</returns>

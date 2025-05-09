@@ -285,49 +285,58 @@ namespace Assert.Domain.Implementation
                     }
                     else if ((listingRentId == null || listingRentId <= 0) && viewCode == "LV001")
                     {
-                        if (request_.Bedrooms < 0 || request_.Bedrooms == null)
+                        if (!(request_.SubtypeId > 0))
                         {
                             return new ReturnModel<ListingProcessDataResultModel>
                             {
                                 HasError = true,
                                 StatusCode = ResultStatusCode.BadRequest,
-                                ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar la cantidad de habitaciones disponibles en la propiedad.", useTechnicalMessages)
+                                ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe seleccionar el tipo de propiedad que desea registrar.", useTechnicalMessages)
                             };
                         }
-                        if (request_.Beds < 0 || request_.Beds == null)
-                        {
-                            return new ReturnModel<ListingProcessDataResultModel>
-                            {
-                                HasError = true,
-                                StatusCode = ResultStatusCode.BadRequest,
-                                ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar la cantidad de camas disponibles en la propiedad.", useTechnicalMessages)
-                            };
-                        }
-                        if (request_.MaxGuests <= 0 || request_.MaxGuests == null)
-                        {
-                            return new ReturnModel<ListingProcessDataResultModel>
-                            {
-                                HasError = true,
-                                StatusCode = ResultStatusCode.BadRequest,
-                                ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar la cantidad máxima de huespedes permitidos en la propiedad.", useTechnicalMessages)
-                            };
-                        }
-                        if (request_.Bathrooms < 0 || request_.Bathrooms == null)
-                        {
-                            return new ReturnModel<ListingProcessDataResultModel>
-                            {
-                                HasError = true,
-                                StatusCode = ResultStatusCode.BadRequest,
-                                ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar la cantidad de baños que existen en la propiedad.", useTechnicalMessages)
-                            };
-                        }
+                        //if (request_.Bedrooms < 0 || request_.Bedrooms == null)
+                        //{
+                        //    return new ReturnModel<ListingProcessDataResultModel>
+                        //    {
+                        //        HasError = true,
+                        //        StatusCode = ResultStatusCode.BadRequest,
+                        //        ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar la cantidad de habitaciones disponibles en la propiedad.", useTechnicalMessages)
+                        //    };
+                        //}
+                        //if (request_.Beds < 0 || request_.Beds == null)
+                        //{
+                        //    return new ReturnModel<ListingProcessDataResultModel>
+                        //    {
+                        //        HasError = true,
+                        //        StatusCode = ResultStatusCode.BadRequest,
+                        //        ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar la cantidad de camas disponibles en la propiedad.", useTechnicalMessages)
+                        //    };
+                        //}
+                        //if (request_.MaxGuests <= 0 || request_.MaxGuests == null)
+                        //{
+                        //    return new ReturnModel<ListingProcessDataResultModel>
+                        //    {
+                        //        HasError = true,
+                        //        StatusCode = ResultStatusCode.BadRequest,
+                        //        ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar la cantidad máxima de huespedes permitidos en la propiedad.", useTechnicalMessages)
+                        //    };
+                        //}
+                        //if (request_.Bathrooms < 0 || request_.Bathrooms == null)
+                        //{
+                        //    return new ReturnModel<ListingProcessDataResultModel>
+                        //    {
+                        //        HasError = true,
+                        //        StatusCode = ResultStatusCode.BadRequest,
+                        //        ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar la cantidad de baños que existen en la propiedad.", useTechnicalMessages)
+                        //    };
+                        //}
                         ReturnModel<TlListingRent> newListing = await InitializeListingRent(viewType, request_, _userID, clientData, useTechnicalMessages);
                         if (newListing.StatusCode == ResultStatusCode.OK)
                         {
-                            await _listingViewStepRepository.SetEnded(listingRentId ?? 0, viewType.ViewTypeId, true);
+                            await _listingViewStepRepository.SetEnded(newListing.Data?.ListingRentId ?? 0, viewType.ViewTypeId, true);
 
                             ReturnModel<ListingProcessDataResultModel> NextStepResult = await _StepViewService.GetNextListingStepViewData(viewType.NextViewTypeId, newListing.Data, useTechnicalMessages);
-                            if(NextStepResult.StatusCode == ResultStatusCode.OK)
+                            if (NextStepResult.StatusCode == ResultStatusCode.OK)
                             {
                                 NextStepResult.Data.ListingData.actualViewCode = viewType.Code;
                             }
@@ -389,7 +398,14 @@ namespace Assert.Domain.Implementation
                                         return new ReturnModel<ListingProcessDataResultModel>
                                         {
                                             HasError = false,
-                                            StatusCode = ResultStatusCode.OK
+                                            StatusCode = ResultStatusCode.OK,
+                                            Data = new ListingProcessDataResultModel
+                                            {
+                                                ListingData = new ListingProcessData_ListingData
+                                                {
+                                                    ListingRentId = listingRentId ?? 0
+                                                }
+                                            }
                                         };
                                     }
                                     else

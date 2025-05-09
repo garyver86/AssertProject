@@ -36,5 +36,8 @@ namespace Assert.Domain.Models
         public long ListingRentId { get; set; }
         public string? nextViewCode { get; set; }
         public string? actualViewCode { get; set; }
+        public decimal? PriceNightly { get; internal set; }
+        public int? CurrencyId { get; internal set; }
+        public decimal? WeekendNightlyPrice { get; internal set; }
     }
 }

@@ -29,18 +29,24 @@ namespace Assert.API.Controllers
         /// <remarks>
         /// El proceso de alta de un Listing Rent consta de 3 pasos, los cuales agrupan 10 vistas:<br />
         /// Paso 1:<br />
-        ///     Vista 1 (LV001): Set Capacity. Se Define la capicidad de la propiedad (Bedrooms, Beds, Bathrooms, y MaxGuests). En este punto, si se envía el campo "ListingRentId" se actualiza la propiedad, si no se envía se crea una nueva.
-        ///         {"viewCode": "LV001", "maxGuests": 4, "bathrooms": 2, "bedrooms": 3, "beds": 3 } <br />
-        ///     Vista 2 (LV002): Set Property Type. Se define el tipo de propiedad (SubtypeId). Los posibles valores de Property Subtype son retornados en la respuesta exitosa del paso anterior.
-        ///         {"viewCode": "LV002",  "subtypeId": 6}<br />
-        ///     Vista 3 (LV003): Set Accomodation Type. Se define el tipo de alojamiento (AccomodationId). Los posibles valores de AccomodationType son retornados en la respuesta exitosa del paso anterior.<br />
-        ///     Vista 4 (LV004): Set Address. Se define la dirección de la propiedad (Address(Address1, CityId, ZipCode)). Los posibles valores de CityId son retornados en la respuesta exitosa del paso anterior.<br />
-        ///     Vista 5 (LV005): Set Location. Se define la ubicación de la propiedad (Address(Latitude, Longitude)).<br />
-        ///     Vista 6 (LV006): Set Amenities. Se definen los amenities de la propiedad (Amenities). Los posibles valores de Amenities son retornados en la respuesta exitosa del paso anterior.<br />
-        ///     Vista 7 (LV007): Set Photos. Se registran las fotos de la propiedad. Esta accion se divide en dos servicios, para mejorar la experiencia del usuario y los tiempos de carga de las imágenes. En el primer paso se suben los archivos al servidor a traves de la llamada al servicio "UploadListingRentImages", este servicio devolverá los nombres de estados de la subida de cada archivo y los nombres asignados por el servicio, una vez subidos los archivos, estos deben ser enviados en el servicio actual en el elemento "Photos".<br />
-        ///     Vista 8 (LV008): Set Attributes. Se definen los atributos de la propiedad (Title, Description, FeaturedAspects). Los posibles valores de FeaturedAspects son retornados en la respuesta exitosa del paso anterior.<br />
-        ///     Vista 9 (LV009): Set Set Pricing and Discounts. Se definen los precios y descuentos de la propiedad (Pricing (Pricing, WeekendPrice), Discounts). Los posibles valores de DiscountTypes son retornados en la respuesta exitosa del paso anterior. No es obligatorio registrar descuentos.<br />
-        ///     Vista 10 (LV010): Review and Confirmation. Registra la confirmación de los datos por parte del host. En este paso se define el campo ListingConfirmation.<br />
+        /// 
+        ///     Vista 1 (LV001): Set Property Type. Se define el tipo de propiedad (SubtypeId). Los posibles valores de Property Subtype deben ser recuperados del servicio 'Parametrics/PropertyTypes'. En este punto, si se envía el campo "ListingRentId" se actualiza la propiedad, si no se envía se crea una nueva.
+        ///         {"viewCode": "LV001",  "subtypeId": 6} <br />
+        ///     Vista 2 (LV002): Set Accomodation Type. Se define el tipo de alojamiento (AccomodationId). Los posibles valores de AccomodationType son retornados en la respuesta exitosa del paso anterior.
+        ///         {"viewCode": "LV002",  "AccomodationId": 1} <br />
+        ///     Vista 3 (LV003): Set Address. Se define la dirección de la propiedad (Address(Address1, CityId, ZipCode)). Los posibles valores de CityId son retornados en la respuesta exitosa del paso anterior.
+        ///         {"viewCode": "LV003",  "address": { "zipCode": "0000", "address1": "Av. Heroinas y Belzu", "cityId": 28896}} <br />
+        ///     Vista 4 (LV004): Set Location. Se define la ubicación de la propiedad (Address(Latitude, Longitude)).
+        ///         {"viewCode": "LV004",  "address": { "latitude": "-17.38981233345421", "longitude": "-66.14371647547648"}} <br />
+        ///     Vista 5 (LV005): Set Capacity. Se Define la capicidad de la propiedad (Bedrooms, Beds, Bathrooms, y MaxGuests).
+        ///         {"viewCode": "LV005", "maxGuests": 4, "bathrooms": 2, "bedrooms": 3, "beds": 3 } <br />
+        /// Paso 2:<br />
+        ///     Vista 6 (LV006): Set Amenities. Se definen los amenities de la propiedad (Amenities). Los posibles valores de Amenities son retornados en la respuesta exitosa del paso anterior.
+        ///         {"viewCode": "LV006", "Amenities": [1,2,3,4,5] } <br />
+        ///     Vista 7 (LV007): Set Attributes. Se definen los atributos de la propiedad (Title, Description, FeaturedAspects). Los posibles valores de FeaturedAspects son retornados en la respuesta exitosa del paso anterior.
+        ///         {"viewCode": "LV007", "FeaturedAspects": [1,2,3], "Title": "Casa centrica a pasos del cristo", "Description": "Propiedad en pleno centro de la ciudad." } <br />
+        /// Paso 3:<br />
+        ///     Vista 8 (LV008): Set Set Pricing and Discounts. Se definen los precios y descuentos de la propiedad (Pricing (Pricing, WeekendPrice), Discounts). Los posibles valores de DiscountTypes son retornados en la respuesta exitosa del paso anterior. No es obligatorio registrar descuentos.<br />
         /// </remarks>
         [HttpPost]
         [Authorize(Policy = "GuestOrHost")]

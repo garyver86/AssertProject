@@ -27,5 +27,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             List<TpPropertySubtype> propertySubtypes = await _context.TpPropertySubtypes.Where(x => x.Status == 1).ToListAsync();
             return propertySubtypes;
         }
+
+        public async Task<List<TpPropertySubtype>?> GetAll()
+        {
+            List<TpPropertySubtype> propertySubtypes = await _context.TpPropertySubtypes.ToListAsync();
+            return propertySubtypes;
+        }
     }
 }
