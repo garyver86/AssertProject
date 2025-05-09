@@ -26,7 +26,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task<List<TlViewType>> GetByType(int stepsTypeId)
         {
-            var result = await _context.TlViewTypes.Where(x => x.StepTypeId == stepsTypeId).ToListAsync();
+            var result = await _context.TlViewTypes.Where(x => x.StepTypeId == stepsTypeId && x.IsActive != false).ToListAsync();
             return result;
         }
 
