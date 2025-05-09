@@ -1,4 +1,4 @@
 ﻿
 AssertDB:
 
-Scaffold-DbContext "Server=.;Database=AssertDB;uid=assert_user;pwd=Passw0rd;Trusted_Connection=False;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Entities -force
+Scaffold-DbContext "Server=35.193.165.194;Database=AssertDB;uid=assertdb-user;pwd=Fdgsh2025%;Trusted_Connection=False;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Entities -force

@@ -1,10 +1,13 @@
-﻿namespace Assert.Domain.Entities;
+﻿using System;
+using System.Collections.Generic;
+
+namespace Assert.Domain.Entities;
 
 public partial class TlListingPrice
 {
     public long ListingPriceId { get; set; }
 
-    public long? ListingRentId { get; set; }
+    public long ListingRentId { get; set; }
 
     public int? ListingPriceOfferId { get; set; }
 
@@ -20,7 +23,5 @@ public partial class TlListingPrice
 
     public virtual TCurrency? Currency { get; set; }
 
-    public virtual TlListingRent? ListingRent { get; set; }
-
-    public virtual ICollection<TlListingDiscountForRate> TlListingDiscountForRates { get; set; } = new List<TlListingDiscountForRate>();
+    public virtual TlListingRent ListingRent { get; set; } = null!;
 }

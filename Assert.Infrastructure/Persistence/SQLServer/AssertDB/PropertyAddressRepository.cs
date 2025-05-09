@@ -30,7 +30,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     Address1 = addresInput.Address1,
                     CityId = addresInput.CityId,
                     Address2 = addresInput.Address2,
-                    ZipCode = addresInput.ZipCode
+                    ZipCode = addresInput.ZipCode,
+                    PropertyId = propertyId
                 };
                 await _context.TpPropertyAddresses.AddAsync(address);
                 await _context.SaveChangesAsync();

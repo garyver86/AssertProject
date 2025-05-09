@@ -27,10 +27,27 @@ namespace Assert.API.Controllers
         /// <returns>Datos necesarios para la siguiente vista, si es que corresponde.</returns>
         /// <response code="200">Si se procesó la información de la vista de forma correcta.</response>
         /// <remarks>
-        /// El proceso de alta de un Listing Rent consta de 3 pasos, los cuales agrupan 16 vistas:<br />
-        /// Paso 1: 6 vistas (Subtype, Accomodation Type, Address, Hosts-Bedrooms-Beds, Bathrooms-Stay, Precense)<br />
-        /// Paso 2: 5 vistas (Amenities-Security Items, Photos, Title, FeaturedAspects, Description)<br />
-        /// Paso 3: 5 vistas (Approval Policy, Pricing, Discounts, Security Confirmation, Review and confirmation)<br />
+        /// El proceso de alta de un Listing Rent consta de 3 pasos, los cuales agrupan 10 vistas:<br />
+        /// Paso 1:<br />
+        /// 
+        ///     Vista 1 (LV001): Set Property Type. Se define el tipo de propiedad (SubtypeId). Los posibles valores de Property Subtype deben ser recuperados del servicio 'Parametrics/PropertyTypes'. En este punto, si se envía el campo "ListingRentId" se actualiza la propiedad, si no se envía se crea una nueva.
+        ///         {"viewCode": "LV001",  "subtypeId": 6} <br />
+        ///     Vista 2 (LV002): Set Accomodation Type. Se define el tipo de alojamiento (AccomodationId). Los posibles valores de AccomodationType son retornados en la respuesta exitosa del paso anterior.
+        ///         {"viewCode": "LV002",  "AccomodationId": 1} <br />
+        ///     Vista 3 (LV003): Set Address. Se define la dirección de la propiedad (Address(Address1, CityId, ZipCode)). Los posibles valores de CityId son retornados en la respuesta exitosa del paso anterior.
+        ///         {"viewCode": "LV003",  "address": { "zipCode": "0000", "address1": "Av. Heroinas y Belzu", "cityId": 28896}} <br />
+        ///     Vista 4 (LV004): Set Location. Se define la ubicación de la propiedad (Address(Latitude, Longitude)).
+        ///         {"viewCode": "LV004",  "address": { "latitude": "-17.38981233345421", "longitude": "-66.14371647547648"}} <br />
+        ///     Vista 5 (LV005): Set Capacity. Se Define la capicidad de la propiedad (Bedrooms, Beds, Bathrooms, y MaxGuests).
+        ///         {"viewCode": "LV005", "maxGuests": 4, "bathrooms": 2, "bedrooms": 3, "beds": 3 } <br />
+        /// Paso 2:<br />
+        ///     Vista 6 (LV006): Set Amenities. Se definen los amenities de la propiedad (Amenities). Los posibles valores de Amenities son retornados en la respuesta exitosa del paso anterior.
+        ///         {"viewCode": "LV006", "Amenities": [1,2,3,4,5] } <br />
+        ///     Vista 7 (LV007): Set Attributes. Se definen los atributos de la propiedad (Title, Description, FeaturedAspects). Los posibles valores de FeaturedAspects son retornados en la respuesta exitosa del paso anterior.
+        ///         {"viewCode": "LV007", "FeaturedAspects": [1,2,3], "Title": "Casa centrica a pasos del cristo", "Description": "Propiedad en pleno centro de la ciudad." } <br />
+        /// Paso 3:<br />
+        ///     Vista 8 (LV008): Set Set Pricing and Discounts. Se definen los precios y descuentos de la propiedad (Pricing (Pricing, WeekendPrice), Discounts). Los posibles valores de DiscountTypes son retornados en la respuesta exitosa del paso anterior. No es obligatorio registrar descuentos.
+        ///     {"viewCode": "LV008", "Discounts": [{"dicountTypeId":1},{"dicountTypeId":1}], "Pricing": 50.50, "WeekendPrice": 70, "CurrencyId": 2 }<br />
         /// </remarks>
         [HttpPost]
         [Authorize(Policy = "GuestOrHost")]
@@ -38,7 +55,7 @@ namespace Assert.API.Controllers
         public async Task<ReturnModelDTO<ProcessDataResult>> ProcessData(long? listinRentId, [FromBody] ProcessDataRequest request)
         {
             var requestInfo = HttpContext.GetRequestInfo();
-            ReturnModelDTO<ProcessDataResult> result = await _appListingRentService.ProcessListingData(listinRentId ?? 0, request, requestInfo, request.UseTechnicalMessages);
+            ReturnModelDTO<ProcessDataResult> result = await _appListingRentService.ProcessListingData(listinRentId ?? 0, request, requestInfo, true);
             return result;
         }
 
@@ -50,7 +67,7 @@ namespace Assert.API.Controllers
         /// <returns>Lista de resultados de la subida de los archivos.</returns>
         /// <response code="200">Si se procesó la información de la vista de forma correcta.</response>
         /// <remarks>
-        /// En caso de que el resultado de la subbida de los archivos sea exitosa, devuelve el nombre del archivo. 
+        /// En caso de que el resultado de la subida de los archivos sea exitosa, devuelve el nombre del archivo. 
         /// Los nombres de todos los archivos deben ser enviados al procesar los datos de la vista <br>LV007</br>.
         /// Se implementó la subida de las imágenes en dos pasos para mejorar la eficiencia de la subida de archivos,
         /// facilitar las pruebas, mejorar la experiencia de los usuarios, entre otros.

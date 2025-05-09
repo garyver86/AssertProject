@@ -84,6 +84,27 @@ namespace Assert.Application.Services
                 return HandleException<List<FeaturedAspectDTO>>("AppParametricService.GetFeaturedAspects", ex, null, useTechnicalMessages);
             }
         }
+        public async Task<ReturnModelDTO<List<PropertyTypeDTO>>> GetPropertyTypes(Dictionary<string, string> requestInfo, bool useTechnicalMessages)
+        {
+            try
+            {
+                ReturnModel<List<TpPropertySubtype>> result = await _parametricService.GetPropertySubTypes(true);
+                if (result.HasError)
+                {
+                    return CreateErrorResult<List<PropertyTypeDTO>>(result.StatusCode, result.ResultError, useTechnicalMessages);
+                }
+                return new ReturnModelDTO<List<PropertyTypeDTO>>
+                {
+                    Data = _mapper.Map<List<PropertyTypeDTO>>(result.Data),
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            catch (Exception ex)
+            {
+                return HandleException<List<PropertyTypeDTO>>("AppParametricService.GetPropertyTypes", ex, null, useTechnicalMessages);
+            }
+        }
 
         private ReturnModelDTO<T> CreateErrorResult<T>(string statusCode, string errorMessage, bool useTechnicalMessages)
         {

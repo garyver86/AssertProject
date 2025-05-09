@@ -19,7 +19,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task SetDiscounts(long listingRentId, IEnumerable<int>? enumerable)
         {
-            var activeDiscounts = await _context.TlListingDiscountForRates.Where(x => x.ListingPrice.ListingRentId == listingRentId).ToListAsync();
+            List<TlListingDiscountForRate> activeDiscounts = await _context.TlListingDiscountForRates.Where(x => x.ListingRentId == listingRentId).ToListAsync();
             List<int> alreadyExist = new List<int>();
             foreach (var discount in activeDiscounts)
             {
@@ -41,9 +41,10 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         TlListingDiscountForRate newDiscount = new TlListingDiscountForRate
                         {
                             DiscountTypeForTypePriceId = discountTypeId,
-                            ListingPriceId = listingRentId
+                            ListingRentId = listingRentId
                         };
                         _context.Add(newDiscount);
+                        alreadyExist.Add(discountTypeId);
                     }
                 }
             }

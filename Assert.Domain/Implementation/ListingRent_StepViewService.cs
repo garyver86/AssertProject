@@ -57,7 +57,8 @@ namespace Assert.Domain.Implementation
                 {
                     ListingData = new ListingProcessData_ListingData
                     {
-                        ListingRentId = data.ListingRentId
+                        ListingRentId = data.ListingRentId,
+                        nextViewCode = view.Code,
                     },
                     Parametrics = new ListingProcessData_Parametrics()
                 },
@@ -67,45 +68,48 @@ namespace Assert.Domain.Implementation
             switch (view.Code)
             {
                 case "LV001":
+                    result.Data.Parametrics.PropertySubTypes = await _propertySubtypeRepository.GetActives();
+                    result.Data.ListingData.PropertySubTypeId = data.TpProperties.FirstOrDefault()?.PropertySubtypeId;
+                    return result;
+                case "LV002":
+                    result.Data.Parametrics.AccomodationTypes = await _accommodationTypeRepository.GetActives();
+                    result.Data.ListingData.AccomodationTypeId = data.AccomodationTypeId;
+                    return result;
+                case "LV003":
+                    result.Data.ListingData.Address = data.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault();
+                    return result;
+                case "LV004":
+                    result.Data.ListingData.Latitude = data.TpProperties.FirstOrDefault()?.Latitude;
+                    result.Data.ListingData.Longitude = data.TpProperties.FirstOrDefault()?.Longitude;
+                    return result;
+                case "LV005":
                     result.Data.ListingData.MaxGuests = data.MaxGuests;
                     result.Data.ListingData.Bathrooms = data.Bathrooms;
                     result.Data.ListingData.Bedrooms = data.Bedrooms;
                     result.Data.ListingData.Beds = data.Beds;
-                    return result;
-                case "LV002":
-                    result.Data.Parametrics.PropertySubTypes = await _propertySubtypeRepository.GetActives();
-                    result.Data.ListingData.PropertySubTypeId = data.TpProperties.FirstOrDefault()?.PropertySubtypeId;
-                    return result;
-                case "LV003":
-                    result.Data.Parametrics.AccomodationTypes = await _accommodationTypeRepository.GetActives();
-                    result.Data.ListingData.AccomodationTypeId = data.AccomodationTypeId;
-                    return result;
-                case "LV004":
-                    result.Data.ListingData.Address = data.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault();
-                    return result;
-                case "LV005":
-                    result.Data.ListingData.Latitude = data.TpProperties.FirstOrDefault()?.Latitude;
-                    result.Data.ListingData.Longitude = data.TpProperties.FirstOrDefault()?.Longitude;
                     return result;
                 case "LV006":
                     result.Data.Parametrics.AmenitiesTypes = await _amenitiesRepository.GetActives();
                     result.Data.ListingData.Amenities = await _listingAmenitiesRepository.GetByListingRentId(data.ListingRentId);
                     return result;
                 case "LV007":
-                    result.Data.ListingData.ListingPhotos = await _listingPhotoRepository.GetByListingRentId(data.ListingRentId);
-                    return result;
-                case "LV008":
                     result.Data.Parametrics.FeaturedAspects = await _featuresAspectsRepository.GetActives();
                     result.Data.ListingData.Title = data.Name;
                     result.Data.ListingData.Description = data.Description;
                     result.Data.ListingData.FeaturedAspects = data.TlListingFeaturedAspects;
                     return result;
-                case "LV009":
+                case "LV008":
                     result.Data.Parametrics.DiscountTypes = await _discountTypeRepository.GetActives();
-                    result.Data.ListingData.Discounts = data.TlListingPrices.FirstOrDefault()?.TlListingDiscountForRates;
+                    //result.Data.ListingData.Discounts = data.Dis.TlListingDiscountForRates;
+                    result.Data.ListingData.PriceNightly = data.TlListingPrices.FirstOrDefault()?.PriceNightly;
+                    result.Data.ListingData.CurrencyId = data.TlListingPrices.FirstOrDefault()?.CurrencyId;
+                    result.Data.ListingData.WeekendNightlyPrice = data.TlListingPrices.FirstOrDefault()?.WeekendNightlyPrice;
                     return result;
-                case "LV010":
-                    return result;
+                //case "LV009":
+                //    result.Data.ListingData.ListingPhotos = await _listingPhotoRepository.GetByListingRentId(data.ListingRentId);
+                //    return result;
+                //case "LV010":
+                //    return result;
                 default:
                     return new ReturnModel<ListingProcessDataResultModel>
                     {
@@ -120,36 +124,50 @@ namespace Assert.Domain.Implementation
         {
             switch (viewType.Code)
             {
+                #region Paso 1
                 case "LV001":
-                    ReturnModel capacityResult = await SetListingCapacity(listing, request_, useTechnicalMessages, clientData);
-                    return capacityResult;
-                case "LV002":
                     ReturnModel propertypeResult = await SetPropertyType(listing, request_, useTechnicalMessages, clientData);
                     return propertypeResult;
-                case "LV003":
+                case "LV002":
                     ReturnModel accomodationResult = await SetAccomodationType(listing, request_, useTechnicalMessages, clientData);
                     return accomodationResult;
-                case "LV004":
+                case "LV003":
                     ReturnModel addressResult = await SetPropertyAddress(listing, request_, useTechnicalMessages, clientData);
                     return addressResult;
-                case "LV005":
+                case "LV004":
                     ReturnModel locationResult = await SetPropertyLocation(listing, request_, useTechnicalMessages, clientData);
                     return locationResult;
+                case "LV005":
+                    ReturnModel capacityResult = await SetListingCapacity(listing, request_, useTechnicalMessages, clientData);
+                    return capacityResult;
+                #endregion
+                #region Paso 2
                 case "LV006":
                     ReturnModel amenitiesResult = await SetAmenities(listing, request_, useTechnicalMessages, clientData);
                     return amenitiesResult;
                 case "LV007":
-                    ReturnModel photosResult = await SetPhotos(listing, request_, useTechnicalMessages, clientData);
-                    return photosResult;
-                case "LV008":
                     ReturnModel titleResult = await SetAttibutes(listing, request_, useTechnicalMessages, clientData);
                     return titleResult;
-                case "LV009":
+                #endregion
+                #region Paso 3
+                case "LV008":
                     ReturnModel pricingResult = await SetPricingAndDiscount(listing, request_, useTechnicalMessages, clientData);
+                    //return pricingResult;
+                    if (pricingResult.StatusCode == ResultStatusCode.OK)
+                    {
+                        request_.ListingConfirmation = true;
+                        request_.ReviewConfirmatin = true;
+                        ReturnModel reviewConfirmationResult = await SetReviewConfirmation(listing, request_, useTechnicalMessages, clientData);
+                        return reviewConfirmationResult;
+                    }
                     return pricingResult;
-                case "LV010":
-                    ReturnModel reviewConfirmationResult = await SetReviewConfirmation(listing, request_, useTechnicalMessages, clientData);
-                    return reviewConfirmationResult;
+                #endregion
+                //case "LV009":
+                //    ReturnModel photosResult = await SetPhotos(listing, request_, useTechnicalMessages, clientData);
+                //    return photosResult;
+                //case "LV010":
+                //    ReturnModel reviewConfirmationResult = await SetReviewConfirmation(listing, request_, useTechnicalMessages, clientData);
+                //    return reviewConfirmationResult;
                 default:
                     return new ReturnModel
                     {
@@ -209,7 +227,7 @@ namespace Assert.Domain.Implementation
                 {
                     HasError = true,
                     StatusCode = ResultStatusCode.BadRequest,
-                    ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, $"el título de la publicación no debe tener mas de 32 caracteres, usted ingresó {request_.Description.Length}.", useTechnicalMessages)
+                    ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, $"El título de la publicación no debe tener mas de 32 caracteres, usted ingresó {request_.Description.Length}.", useTechnicalMessages)
                 };
             }
             if (request_.Description.IsNullOrEmpty())
@@ -497,7 +515,7 @@ namespace Assert.Domain.Implementation
             //}
             if (listing.Beds != request_.Beds || listing.Bedrooms != request_.Bedrooms || listing.AllDoorsLocked != request_.AllDoorsLooked || listing.MaxGuests != request_.MaxGuests)
             {
-                await _listingRentRepository.SetCapacity(listing.ListingRentId, listing.Beds, listing.Bedrooms, listing.Bathrooms, listing.MaxGuests);
+                await _listingRentRepository.SetCapacity(listing.ListingRentId, request_.Beds, request_.Bedrooms, request_.Bathrooms, request_.MaxGuests);
             }
             return new ReturnModel
             {
@@ -561,7 +579,7 @@ namespace Assert.Domain.Implementation
                 {
                     HasError = true,
                     StatusCode = ResultStatusCode.BadRequest,
-                    ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "El tipo de alquiler ingresado es incorrecto.", useTechnicalMessages)
+                    ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar un tipo de alojamiento correcto.", useTechnicalMessages)
                 };
             }
             TlListingRent accomodationTypeResult = await _listingRentRepository.SetAccomodationType(listing.ListingRentId, request_.AccomodationId);

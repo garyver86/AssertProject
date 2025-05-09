@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 
 namespace Assert.Domain.Entities;
 
@@ -229,7 +231,7 @@ public partial class AssertDbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=.;Database=AssertDB;uid=assert_user;pwd=Passw0rd;Trusted_Connection=False;TrustServerCertificate=True");
+        => optionsBuilder.UseSqlServer("Server=35.193.165.194;Database=AssertDB;uid=assertdb-user;pwd=Fdgsh2025%;Trusted_Connection=False;TrustServerCertificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -855,7 +857,7 @@ public partial class AssertDbContext : DbContext
 
         modelBuilder.Entity<TStayPresenceType>(entity =>
         {
-            entity.HasKey(e => e.StayPrecenseTypeId).HasName("PK__T_StayPr__0464CCD13CE9A254");
+            entity.HasKey(e => e.StayPrecenseTypeId).HasName("PK__T_StayPr__0464CCD1B7D460DF");
 
             entity.ToTable("T_StayPresenceType");
 
@@ -938,10 +940,6 @@ public partial class AssertDbContext : DbContext
             entity.HasKey(e => e.BookId).HasName("PK_TB_Booking");
 
             entity.ToTable("TB_Book");
-
-            entity.HasIndex(e => new { e.StartDate, e.EndDate }, "NonClusteredIndex-20250309-205457");
-
-            entity.HasIndex(e => e.ListingRentId, "NonClusteredIndex-20250309-205708");
 
             entity.Property(e => e.AdditionalInfo)
                 .HasMaxLength(2000)
@@ -1066,7 +1064,7 @@ public partial class AssertDbContext : DbContext
 
         modelBuilder.Entity<TbBookInsuranceClaim>(entity =>
         {
-            entity.HasKey(e => e.ClaimId).HasName("PK__TB_BookI__01BDF9D3D9263EB5");
+            entity.HasKey(e => e.ClaimId).HasName("PK__TB_BookI__01BDF9D352ABF84A");
 
             entity.ToTable("TB_BookInsuranceClaim");
 
@@ -1088,12 +1086,12 @@ public partial class AssertDbContext : DbContext
             entity.HasOne(d => d.Booking).WithMany(p => p.TbBookInsuranceClaims)
                 .HasForeignKey(d => d.BookingId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TB_BookIn__booki__1AF3F935");
+                .HasConstraintName("FK__TB_BookIn__booki__00EA0E6F");
 
             entity.HasOne(d => d.User).WithMany(p => p.TbBookInsuranceClaims)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TB_BookIn__userI__1BE81D6E");
+                .HasConstraintName("FK__TB_BookIn__userI__01DE32A8");
         });
 
         modelBuilder.Entity<TbBookPayment>(entity =>
@@ -1302,7 +1300,7 @@ public partial class AssertDbContext : DbContext
 
         modelBuilder.Entity<TbBookingInsurance>(entity =>
         {
-            entity.HasKey(e => e.BookingInsuranceId).HasName("PK__TB_Booki__C2134D3F33DC9527");
+            entity.HasKey(e => e.BookingInsuranceId).HasName("PK__TB_Booki__C2134D3F4CEA6EF0");
 
             entity.ToTable("TB_BookingInsurance");
 
@@ -1316,12 +1314,12 @@ public partial class AssertDbContext : DbContext
             entity.HasOne(d => d.Booking).WithMany(p => p.TbBookingInsurances)
                 .HasForeignKey(d => d.BookingId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TB_Bookin__booki__1EC48A19");
+                .HasConstraintName("FK__TB_Bookin__booki__7F01C5FD");
 
             entity.HasOne(d => d.Insurance).WithMany(p => p.TbBookingInsurances)
                 .HasForeignKey(d => d.InsuranceId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TB_Bookin__insur__1FB8AE52");
+                .HasConstraintName("FK__TB_Bookin__insur__7FF5EA36");
         });
 
         modelBuilder.Entity<TbPaymentStatus>(entity =>
@@ -1342,7 +1340,7 @@ public partial class AssertDbContext : DbContext
 
         modelBuilder.Entity<TiIssue>(entity =>
         {
-            entity.HasKey(e => e.IssueId).HasName("PK__TI_Issue__749E806CD307C309");
+            entity.HasKey(e => e.IssueId).HasName("PK__TI_Issue__749E806C3DE2B077");
 
             entity.ToTable("TI_Issues");
 
@@ -1374,12 +1372,12 @@ public partial class AssertDbContext : DbContext
 
             entity.HasOne(d => d.RelatedUser).WithMany(p => p.TiIssueRelatedUsers)
                 .HasForeignKey(d => d.RelatedUserId)
-                .HasConstraintName("FK__TI_Issues__relat__0E8E2250");
+                .HasConstraintName("FK__TI_Issues__relat__097F5470");
 
             entity.HasOne(d => d.ReportedByUser).WithMany(p => p.TiIssueReportedByUsers)
                 .HasForeignKey(d => d.ReportedByUserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TI_Issues__repor__0CA5D9DE");
+                .HasConstraintName("FK__TI_Issues__repor__0A7378A9");
 
             entity.HasOne(d => d.StatusIssue).WithMany(p => p.TiIssues)
                 .HasForeignKey(d => d.StatusIssueId)
@@ -1513,7 +1511,7 @@ public partial class AssertDbContext : DbContext
 
         modelBuilder.Entity<TlAccommodationType>(entity =>
         {
-            entity.HasKey(e => e.AccommodationTypeId).HasName("PK__TL_Accom__7380C37A7AC27990");
+            entity.HasKey(e => e.AccommodationTypeId).HasName("PK__TL_Accom__7380C37A0D6D6857");
 
             entity.ToTable("TL_AccommodationType");
 
@@ -1537,7 +1535,7 @@ public partial class AssertDbContext : DbContext
 
         modelBuilder.Entity<TlCheckInOutPolicy>(entity =>
         {
-            entity.HasKey(e => e.PolicyId).HasName("PK__TL_Check__78E3A9220408A967");
+            entity.HasKey(e => e.PolicyId).HasName("PK__TL_Check__78E3A922FD2A3B68");
 
             entity.ToTable("TL_CheckInOutPolicies");
 
@@ -1625,8 +1623,6 @@ public partial class AssertDbContext : DbContext
 
             entity.ToTable("TL_ListingAmenities");
 
-            entity.HasIndex(e => e.AmenitiesTypeId, "NonClusteredIndex-20250309-205427");
-
             entity.Property(e => e.AmenitiesTypeId).HasColumnName("amenitiesTypeId");
             entity.Property(e => e.IsPremium).HasColumnName("isPremium");
             entity.Property(e => e.Value).HasColumnName("value");
@@ -1699,7 +1695,7 @@ public partial class AssertDbContext : DbContext
                 .HasColumnName("discountCalculated");
             entity.Property(e => e.DiscountTypeForTypePriceId).HasColumnName("discountTypeForTypePriceId");
             entity.Property(e => e.IsDiscount).HasColumnName("isDiscount");
-            entity.Property(e => e.ListingPriceId).HasColumnName("listingPriceId");
+            entity.Property(e => e.ListingRentId).HasColumnName("listingRentId");
             entity.Property(e => e.Porcentage)
                 .HasColumnType("decimal(5, 2)")
                 .HasColumnName("porcentage");
@@ -1709,10 +1705,10 @@ public partial class AssertDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TL_ListingDiscountForRate_T_DiscountTypeForTypePrice");
 
-            entity.HasOne(d => d.ListingPrice).WithMany(p => p.TlListingDiscountForRates)
-                .HasForeignKey(d => d.ListingPriceId)
+            entity.HasOne(d => d.ListingRent).WithMany(p => p.TlListingDiscountForRates)
+                .HasForeignKey(d => d.ListingRentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_TL_ListingDiscountForRate_TL_ListingPrice");
+                .HasConstraintName("FK_TL_ListingDiscountForRate_TL_ListingDiscountForRate");
         });
 
         modelBuilder.Entity<TlListingFavorite>(entity =>
@@ -1720,10 +1716,6 @@ public partial class AssertDbContext : DbContext
             entity.HasKey(e => e.FavoriteListingId);
 
             entity.ToTable("TL_ListingFavorite");
-
-            entity.HasIndex(e => e.UserId, "NonClusteredIndex-20250327-000813");
-
-            entity.HasIndex(e => e.ListingRentId, "NonClusteredIndex-20250327-000910");
 
             entity.Property(e => e.FavoriteListingId).HasColumnName("favoriteListingId");
             entity.Property(e => e.CreateAt)
@@ -1800,10 +1792,6 @@ public partial class AssertDbContext : DbContext
 
             entity.ToTable("TL_ListingPrice");
 
-            entity.HasIndex(e => e.PriceNightly, "NonClusteredIndex-20250309-205044");
-
-            entity.HasIndex(e => e.ListingRentId, "NonClusteredIndex-20250309-205641");
-
             entity.Property(e => e.ListingPriceId).HasColumnName("listingPriceId");
             entity.Property(e => e.CurrencyId).HasColumnName("currencyId");
             entity.Property(e => e.ListingPriceOfferId).HasColumnName("listingPriceOfferId");
@@ -1824,6 +1812,7 @@ public partial class AssertDbContext : DbContext
 
             entity.HasOne(d => d.ListingRent).WithMany(p => p.TlListingPrices)
                 .HasForeignKey(d => d.ListingRentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TL_ListingPrice_TL_ListingRent");
         });
 
@@ -1832,10 +1821,6 @@ public partial class AssertDbContext : DbContext
             entity.HasKey(e => e.ListingRentId).HasName("PK_ListingRent");
 
             entity.ToTable("TL_ListingRent");
-
-            entity.HasIndex(e => e.OwnerUserId, "NonClusteredIndex-20250212-225953");
-
-            entity.HasIndex(e => e.ListingStatusId, "NonClusteredIndex-20250315-224533");
 
             entity.Property(e => e.ListingRentId).HasColumnName("listingRentId");
             entity.Property(e => e.AccomodationTypeId).HasColumnName("accomodationTypeId");
@@ -1906,7 +1891,7 @@ public partial class AssertDbContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.BrowserInfoInfo)
-                .HasMaxLength(50)
+                .HasMaxLength(5000)
                 .IsUnicode(false);
             entity.Property(e => e.DateTimeChange).HasColumnType("datetime");
             entity.Property(e => e.IpAddress)
@@ -2179,7 +2164,7 @@ public partial class AssertDbContext : DbContext
 
         modelBuilder.Entity<TlStayPresence>(entity =>
         {
-            entity.HasKey(e => e.StayPresenceId).HasName("PK__TL_StayP__E0A2D2879787F7EB");
+            entity.HasKey(e => e.StayPresenceId).HasName("PK__TL_StayP__E0A2D287CA95D2B0");
 
             entity.ToTable("TL_StayPresence");
 
@@ -2195,7 +2180,7 @@ public partial class AssertDbContext : DbContext
             entity.HasOne(d => d.StayPrecenseType).WithMany(p => p.TlStayPresences)
                 .HasForeignKey(d => d.StayPrecenseTypeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TL_StayPr__stayP__2D12A970");
+                .HasConstraintName("FK__TL_StayPr__stayP__37461F20");
         });
 
         modelBuilder.Entity<TlStepsType>(entity =>
@@ -2240,6 +2225,7 @@ public partial class AssertDbContext : DbContext
                 .HasMaxLength(500)
                 .IsUnicode(false)
                 .HasColumnName("description");
+            entity.Property(e => e.IsActive).HasColumnName("isActive");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .IsUnicode(false)
@@ -2292,6 +2278,12 @@ public partial class AssertDbContext : DbContext
             entity.HasKey(e => e.MessageId);
 
             entity.ToTable("TM_Message");
+
+            entity.HasIndex(e => e.ConversationId, "IX_TM_Message_ConversationID");
+
+            entity.HasIndex(e => e.CreationDate, "IX_TM_Message_CreationDate");
+
+            entity.HasIndex(e => e.UserId, "IX_TM_Message_UserID");
 
             entity.Property(e => e.MessageId).HasColumnName("messageId");
             entity.Property(e => e.AdditionalData)
@@ -2350,15 +2342,9 @@ public partial class AssertDbContext : DbContext
 
         modelBuilder.Entity<TmNotification>(entity =>
         {
-            entity.HasKey(e => e.NotificationId).HasName("PK__TM_Notif__20CF2E32DEFAA487");
+            entity.HasKey(e => e.NotificationId).HasName("PK__TM_Notif__20CF2E3253BCCECF");
 
             entity.ToTable("TM_Notification");
-
-            entity.HasIndex(e => e.UserId, "NonClusteredIndex-20250212-234349");
-
-            entity.HasIndex(e => new { e.ReferenceId, e.ReferecceTable }, "NonClusteredIndex-20250212-234426");
-
-            entity.HasIndex(e => e.ReferenceId, "NonClusteredIndex-20250212-234439");
 
             entity.Property(e => e.NotificationId).HasColumnName("NotificationID");
             entity.Property(e => e.MessageNotification).HasColumnType("text");
@@ -2387,7 +2373,7 @@ public partial class AssertDbContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.TmNotifications)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TM_Notifi__UserI__63A3C44B");
+                .HasConstraintName("FK__TM_Notifi__UserI__3CFEF876");
         });
 
         modelBuilder.Entity<TmTypeMessage>(entity =>
@@ -2496,12 +2482,6 @@ public partial class AssertDbContext : DbContext
 
             entity.ToTable("TP_Property");
 
-            entity.HasIndex(e => e.PropertySubtypeId, "NonClusteredIndex-20250309-205357");
-
-            entity.HasIndex(e => new { e.Latitude, e.Longitude }, "NonClusteredIndex-20250309-205529");
-
-            entity.HasIndex(e => e.ListingRentId, "NonClusteredIndex-20250309-205609");
-
             entity.Property(e => e.PropertyId).HasColumnName("propertyId");
             entity.Property(e => e.CityId).HasColumnName("cityId");
             entity.Property(e => e.ExternalReference)
@@ -2530,8 +2510,6 @@ public partial class AssertDbContext : DbContext
             entity.HasKey(e => e.PropertyAddressId);
 
             entity.ToTable("TP_PropertyAddress");
-
-            entity.HasIndex(e => e.CityId, "NonClusteredIndex-20250309-204857");
 
             entity.Property(e => e.PropertyAddressId).HasColumnName("propertyAddressId");
             entity.Property(e => e.Address1)
@@ -2660,7 +2638,7 @@ public partial class AssertDbContext : DbContext
 
         modelBuilder.Entity<TsInsurance>(entity =>
         {
-            entity.HasKey(e => e.InsuranceId).HasName("PK__TS_Insur__79D82ED0B3269907");
+            entity.HasKey(e => e.InsuranceId).HasName("PK__TS_Insur__79D82ED0E14AD0AC");
 
             entity.ToTable("TS_Insurances");
 
