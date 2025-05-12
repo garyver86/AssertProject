@@ -1,85 +1,111 @@
 ﻿using Assert.Domain.Entities;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
-using Assert.Domain.Services;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
     public class ListingPhotoRepository : IListingPhotoRepository
     {
         private readonly InfraAssertDbContext _context;
-        private readonly IImageService _imageService;
-        public ListingPhotoRepository(InfraAssertDbContext infraAssertDbContext, IImageService imageService)
+        public ListingPhotoRepository(InfraAssertDbContext infraAssertDbContext)
         {
             _context = infraAssertDbContext;
-            _imageService = imageService;
+        }
+
+        public async Task<ReturnModel> DeleteListingRentImage(long listingRentId, int photoId)
+        {
+            var result = await _context.TlListingPhotos.Where(x => x.ListingPhotoId == photoId).FirstOrDefaultAsync();
+            if (result == null)
+            {
+                throw new InvalidOperationException($"la imagen no puede ser encontrada.");
+            }
+            else if (result.ListingRentId != listingRentId)
+            {
+                throw new InvalidOperationException($"la imagen no corresponde al listing rent.");
+            }
+            else
+            {
+                _context.TlListingPhotos.Remove(result);
+                await _context.SaveChangesAsync();
+                return new ReturnModel { StatusCode = ResultStatusCode.OK, HasError = false };
+            }
         }
 
         public async Task<List<TlListingPhoto>> GetByListingRentId(long listingRentId)
         {
-            var result = await _context.TlListingPhotos.Where(x => x.ListingRentId == listingRentId).ToListAsync();
+            var result = await _context.TlListingPhotos.Where(x => x.ListingRentId == listingRentId)
+                .Include(x => x.SpaceType).ToListAsync();
             return result;
         }
 
         public async Task<List<TlListingPhoto>> GetByListingRentId(long listingRentId, int userID)
         {
-            var result = await _context.TlListingPhotos.Where(x => x.ListingRentId == listingRentId && x.ListingRent.OwnerUserId == userID).ToListAsync();
+            var result = await _context.TlListingPhotos.Where(x => x.ListingRentId == listingRentId && x.ListingRent.OwnerUserId == userID)
+                .Include(x => x.SpaceType).ToListAsync(); ;
             return result;
         }
 
-        public async Task UpdatePhotos(long listingRentId, List<ProcessData_PhotoModel> photos)
+        public async Task<ReturnModel> UploadPhoto(long listingRentId, string fileName, string description, int? spaceType, bool isMain)
         {
-            List<TlListingPhoto> actualList = await _context.TlListingPhotos.Where(x => x.ListingRentId == listingRentId).ToListAsync();
-            List<string> alreadyList = [];
-            List<string> removeds = [];
-            if (photos == null)
+            if (isMain)
             {
-                photos = [];
-            }
-            foreach (var photo in actualList)
-            {
-                var db_photo = photos.Where(x => x.FileName == photo.Name).FirstOrDefault();
-                if (db_photo == null) //Si es que no existe en la lista actualizada, se elimina la foto
+                var result = _context.TlListingPhotos.Where(x => x.ListingRentId == listingRentId && x.IsPrincipal == true).FirstOrDefault();
+                if (result != null)
                 {
-                    _context.TlListingPhotos.Remove(photo);
-                    removeds.Add(photo.Name);
-                }
-                else
-                {
-                    if (!db_photo.Title.IsNullOrEmpty() && db_photo.Title != photo.Description)
-                    {
-                        photo.Description = db_photo.Title;
-                    }
-                    alreadyList.Add(photo.Name);
+                    result.IsPrincipal = false;
+                    _context.SaveChanges();
                 }
             }
-            foreach (var photo in photos)
+            var photo = await _context.TlListingPhotos.Where(x => x.ListingRentId == listingRentId && x.Name == fileName).FirstOrDefaultAsync();
+            if (photo != null)
             {
-                if (!alreadyList.Where(x => x == photo.FileName).Any())
-                {
-                    bool existFile = await _imageService.VerifyListingRentImage(photo.FileName);
-                    if (existFile)
-                    {
-                        TlListingPhoto newPhoto = new TlListingPhoto
-                        {
-                            Description = photo.Title,
-                            ListingRentId = listingRentId,
-                            Name = photo.FileName
-                        };
-                        _context.TlListingPhotos.Add(newPhoto);
-                    }
-                }
+                throw new InvalidOperationException($"Ya existe la imagen {fileName}.");
             }
+            else
+            {
+                var newPhoto = new TlListingPhoto
+                {
+                    ListingRentId = listingRentId,
+                    Name = fileName,
+                    IsPrincipal = isMain,
+                    Description = description,
+                    SpaceTypeId = spaceType
+                };
+                _context.TlListingPhotos.Add(newPhoto);
+                await _context.SaveChangesAsync();
+                return new ReturnModel { StatusCode = ResultStatusCode.OK, HasError = false };
+            }
+        }
 
-            await _context.SaveChangesAsync();
-            if (removeds.Count > 0)
+        public async Task<TlListingPhoto> UpdatePhoto(long listingRentId, ProcessData_PhotoModel photo)
+        {
+            TlListingPhoto photoDb = await _context.TlListingPhotos.Where(x => x.ListingPhotoId == photo.PhotoId).FirstOrDefaultAsync();
+
+            if (photoDb == null)
             {
-                foreach (var fileName in removeds)
+                throw new InvalidOperationException($"la imagen no puede ser encontrada.");
+            }
+            else if (photoDb.ListingRentId != listingRentId)
+            {
+                throw new InvalidOperationException($"la imagen no corresponde al listing rent.");
+            }
+            else
+            {
+                photoDb.Description = photo.Description ?? photoDb.Description;
+                photoDb.IsPrincipal = photo.IsPrincipal;
+                if (photo.IsPrincipal ?? false)
                 {
-                    await _imageService.RemoveListingRentImage(fileName);
+                    var result = _context.TlListingPhotos.Where(x => x.ListingRentId == listingRentId && x.IsPrincipal == true).FirstOrDefault();
+                    if (result != null)
+                    {
+                        result.IsPrincipal = false;
+                        await _context.SaveChangesAsync();
+                    }
                 }
+                photoDb.SpaceTypeId = photo.SpaceTypeId ?? photoDb.SpaceTypeId;
+                await _context.SaveChangesAsync();
+                return photoDb;
             }
         }
     }

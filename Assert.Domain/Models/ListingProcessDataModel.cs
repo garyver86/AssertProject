@@ -59,7 +59,9 @@
     {
         public long? PhotoId { get; set; }
         public string Title { get; set; }
-        public string FileName { get; set; }
+        public string Description { get; set; }
+        public int? SpaceTypeId { get; set; }
+        public bool? IsPrincipal { get; set; }
     }
     public class ProcessData_DiscountModel
     {

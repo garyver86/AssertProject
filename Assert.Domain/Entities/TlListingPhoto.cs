@@ -19,5 +19,9 @@ public partial class TlListingPhoto
 
     public int? Position { get; set; }
 
+    public int? SpaceTypeId { get; set; }
+
     public virtual TlListingRent? ListingRent { get; set; }
+
+    public virtual TSpaceType? SpaceType { get; set; }
 }

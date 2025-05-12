@@ -1,4 +1,5 @@
 ﻿using Assert.Application.DTOs;
+using Assert.Application.DTOs.Requests;
 using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
 using Assert.Domain.Entities;
@@ -7,6 +8,7 @@ using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Assert.Application.Services
 {
@@ -16,26 +18,27 @@ namespace Assert.Application.Services
 
         private bool UseTechnicalMessages { get; set; } = false;
         private readonly IListingRentRepository _listingRentRepository;
-        private readonly IListingStatusRepository _listingStatusRepository;
         private readonly IListingPhotoRepository _listingPhotoRepository;
         private readonly IListingRentReviewRepository _listingReviewRepository;
+        private readonly ISystemConfigurationRepository _SystemConfigurationRepository;
         private readonly IImageService _imageService;
 
         private readonly IMapper _mapper;
         private readonly IErrorHandler _errorHandler;
 
         public AppListingRentService(IListingRentRepository listingRentRepository, IMapper mapper, IErrorHandler errorHandler,
-            IListingStatusRepository listingStatusRepository, IListingRentService listingRentService, IImageService imageService,
-            IListingPhotoRepository listingPhotoRepository, IListingRentReviewRepository listingReviewRepository)
+            IListingRentService listingRentService, IImageService imageService,
+            IListingPhotoRepository listingPhotoRepository, IListingRentReviewRepository listingReviewRepository,
+            ISystemConfigurationRepository systemConfigurationRepository)
         {
             _listingRentRepository = listingRentRepository;
             _mapper = mapper;
             _errorHandler = errorHandler;
-            _listingStatusRepository = listingStatusRepository;
             _listingRentService = listingRentService;
             _imageService = imageService;
             _listingPhotoRepository = listingPhotoRepository;
             _listingReviewRepository = listingReviewRepository;
+            _SystemConfigurationRepository = systemConfigurationRepository;
         }
 
         public async Task<ReturnModelDTO> ChangeStatus(long listingRentId, int ownerUserId, string newStatusCode, Dictionary<string, string> clientData,
@@ -94,6 +97,9 @@ namespace Assert.Application.Services
             ReturnModelDTO<ListingRentDTO> result = new ReturnModelDTO<ListingRentDTO>();
             try
             {
+                string userId = clientData["UserId"] ?? "-50";
+                int _userID = -1;
+                int.TryParse(userId, out _userID);
                 TlListingRent listings = await _listingRentRepository.Get(listingRentId, onlyActive);
                 if (listings == null)
                 {
@@ -104,6 +110,18 @@ namespace Assert.Application.Services
                         {
                             Code = ResultStatusCode.NotFound,
                             Message = "El listing no ha podido ser encontrado."
+                        }
+                    };
+                }
+                else if (listings.OwnerUserId != _userID)
+                {
+                    return new ReturnModelDTO<ListingRentDTO>
+                    {
+                        StatusCode = ResultStatusCode.NotFound,
+                        ResultError = new ErrorCommonDTO
+                        {
+                            Code = ResultStatusCode.NotFound,
+                            Message = "No tiene permisos sobre el listing rent solicitado."
                         }
                     };
                 }
@@ -144,8 +162,12 @@ namespace Assert.Application.Services
             ReturnModelDTO<ProcessDataResult> result = new ReturnModelDTO<ProcessDataResult>();
             try
             {
+                string userId = clientData["UserId"] ?? "-50";
+                int _userID = -1;
+                int.TryParse(userId, out _userID);
+
                 ListingProcessDataModel request_ = _mapper.Map<ListingProcessDataModel>(request);
-                ReturnModel<ListingProcessDataResultModel> changeResult = await _listingRentService.ProcessData(listinRentId, request.ViewCode, request_, clientData, useTechnicalMessages);
+                ReturnModel<ListingProcessDataResultModel> changeResult = await _listingRentService.ProcessData(listinRentId, request.ViewCode, request_, _userID, clientData, useTechnicalMessages);
 
                 if (changeResult.StatusCode == ResultStatusCode.OK)
                 {
@@ -251,6 +273,14 @@ namespace Assert.Application.Services
             try
             {
                 List<TlListingPhoto> listings = await _listingPhotoRepository.GetByListingRentId(listinRentId, _userID);
+
+                string _basePath = await _SystemConfigurationRepository.GetListingResourceUrl();
+
+                foreach (var item in listings)
+                {
+                    item.PhotoLink = _basePath + item.Name;
+                }
+
                 result = new ReturnModelDTO<List<PhotoDTO>>
                 {
                     Data = _mapper.Map<List<PhotoDTO>>(listings),
@@ -290,6 +320,86 @@ namespace Assert.Application.Services
                 result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.GetListingRentReviews", ex, new { listingRentId }, UseTechnicalMessages));
             }
             return result;
+        }
+
+
+        public async Task<List<ReturnModelDTO>> UploadImagesDescription(long listingRentId, List<UploadImageRequest> images, Dictionary<string, string> clientData)
+        {
+            string userId = clientData["UserId"] ?? "-50";
+            int _userID = -1;
+            int.TryParse(userId, out _userID);
+
+            List<ReturnModelDTO> result = [];
+            try
+            {
+                var imageFiles = _mapper.Map<List<UploadImageListingRent>>(images);
+                int i = -1;
+                var savingResult = await _imageService.SaveListingRentImages(listingRentId, imageFiles, _userID, true);
+                result = _mapper.Map<List<ReturnModelDTO>>(savingResult);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return new List<ReturnModelDTO>
+                {
+                    new ReturnModelDTO
+                    {
+                        StatusCode = ResultStatusCode.InternalError,
+                        HasError = true,
+                        ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.UploadImages", ex, new { images, clientData }, UseTechnicalMessages))
+                    }
+                };
+
+            }
+        }
+
+
+        public async Task<ReturnModelDTO> DeletePhoto(long listingRentId, int photoId, Dictionary<string, string> clientData)
+        {
+            ReturnModelDTO result = null;
+            try
+            {
+                string userId = clientData["UserId"] ?? "-50";
+                int _userID = -1;
+                int.TryParse(userId, out _userID);
+                ReturnModel savingResult = await _imageService.DeleteListingRentImage(listingRentId, photoId, _userID, true);
+                result = _mapper.Map<ReturnModelDTO>(savingResult);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return new ReturnModelDTO
+                {
+                    StatusCode = ResultStatusCode.InternalError,
+                    HasError = true,
+                    ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.DeletePhoto", ex, new { listingRentId, photoId, clientData }, UseTechnicalMessages))
+
+                };
+            }
+        }
+
+        public async Task<ReturnModelDTO<PhotoDTO>> UpdatePhoto(long listingRentId, int photoId, UploadImageListingRent request, Dictionary<string, string> clientData)
+        {
+            ReturnModelDTO<PhotoDTO> result = null;
+            try
+            {
+                string userId = clientData["UserId"] ?? "-50";
+                int _userID = -1;
+                int.TryParse(userId, out _userID);
+                ReturnModel<TlListingPhoto> savingResult = await _imageService.UpdatePhoto(listingRentId, photoId, request, _userID, true);
+                result = _mapper.Map<ReturnModelDTO<PhotoDTO>>(savingResult);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return new ReturnModelDTO<PhotoDTO>
+                {
+                    StatusCode = ResultStatusCode.InternalError,
+                    HasError = true,
+                    ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.UpdatePhoto", ex, new { listingRentId, photoId, request, clientData }, UseTechnicalMessages))
+
+                };
+            }
         }
     }
 }

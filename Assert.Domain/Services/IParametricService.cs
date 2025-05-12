@@ -9,5 +9,6 @@ namespace Assert.Domain.Services
         Task<ReturnModel<List<TDiscountTypeForTypePrice>>> GetDiscountTypes();
         Task<ReturnModel<List<TFeaturedAspectType>>> GetFeaturedAspects();
         Task<ReturnModel<List<TpPropertySubtype>>> GetPropertySubTypes(bool onlyActives);
+        Task<ReturnModel<List<TSpaceType>>> GetSpaceTypes();
     }
 }

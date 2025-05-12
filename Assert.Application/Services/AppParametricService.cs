@@ -106,6 +106,27 @@ namespace Assert.Application.Services
             }
         }
 
+        public async Task<ReturnModelDTO<List<SpaceTypeDTO>>> GetSpaceTypes(Dictionary<string, string> requestInfo, bool useTechnicalMessages)
+        {
+            try
+            {
+                ReturnModel<List<TSpaceType>> result = await _parametricService.GetSpaceTypes();
+                if (result.HasError)
+                {
+                    return CreateErrorResult<List<SpaceTypeDTO>>(result.StatusCode, result.ResultError, useTechnicalMessages);
+                }
+                return new ReturnModelDTO<List<SpaceTypeDTO>>
+                {
+                    Data = _mapper.Map<List<SpaceTypeDTO>>(result.Data),
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            catch (Exception ex)
+            {
+                return HandleException<List<SpaceTypeDTO>>("AppParametricService.GetSpaceTypes", ex, null, useTechnicalMessages);
+            }
+        }
         private ReturnModelDTO<T> CreateErrorResult<T>(string statusCode, string errorMessage, bool useTechnicalMessages)
         {
             return new ReturnModelDTO<T>

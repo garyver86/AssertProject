@@ -1,4 +1,5 @@
 ﻿using Assert.Application.DTOs;
+using Assert.Application.DTOs.Requests;
 using Assert.Application.DTOs.Responses;
 using Assert.Domain.Entities;
 using Assert.Domain.Enums;
@@ -91,7 +92,9 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.FeaturedAspectCode))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.FeaturedAspectName))
                 .ForMember(dest => dest.FeaturedAspectTypeId, opt => opt.MapFrom(src => src.FeaturedAspectType));
-            CreateMap<TlListingPhoto, PhotoDTO>();
+            CreateMap<TlListingPhoto, PhotoDTO>()
+                .ForMember(dest => dest.SpaceType, opt => opt.MapFrom(src => src.SpaceType != null ? src.SpaceType.Name : null))
+                .ForMember(dest => dest.SpaceTypeCode, opt => opt.MapFrom(src => src.SpaceType != null ? src.SpaceType.Code : null));
             CreateMap<TlListingRentRule, RentRuleDTO>()
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.RuleType != null ? src.RuleType.Code : null))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.RuleType != null ? src.RuleType.Name : null))
@@ -135,6 +138,9 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.CountryCode, opt => opt.MapFrom(src => src.County.State != null && src.County.State.Country != null ? src.County.State.Country.IataCode : null))
                 .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.County.State != null && src.County.State.Country != null ? src.Name : null))
                 .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.County.State != null && src.County.State.Country != null ? src.County.State.Country.Name : null));
+
+            CreateMap<UploadImageRequest, UploadImageListingRent>();
+            CreateMap<TSpaceType, SpaceTypeDTO>();
         }
     }
 }

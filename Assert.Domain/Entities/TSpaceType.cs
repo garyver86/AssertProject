@@ -17,5 +17,7 @@ public partial class TSpaceType
 
     public bool? Status { get; set; }
 
+    public virtual ICollection<TlListingPhoto> TlListingPhotos { get; set; } = new List<TlListingPhoto>();
+
     public virtual ICollection<TlListingSpace> TlListingSpaces { get; set; } = new List<TlListingSpace>();
 }

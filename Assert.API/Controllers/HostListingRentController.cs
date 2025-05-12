@@ -1,7 +1,9 @@
 ﻿using Assert.API.Helpers;
 using Assert.Application.DTOs;
+using Assert.Application.DTOs.Requests;
 using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
+using Assert.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -60,27 +62,27 @@ namespace Assert.API.Controllers
         }
 
 
-        /// <summary>
-        /// Servicio que realiza la subida de las imagenes asociadas a los listing rent.
-        /// </summary>
-        /// <param name="images">Lista de imágenes .</param>
-        /// <returns>Lista de resultados de la subida de los archivos.</returns>
-        /// <response code="200">Si se procesó la información de la vista de forma correcta.</response>
-        /// <remarks>
-        /// En caso de que el resultado de la subida de los archivos sea exitosa, devuelve el nombre del archivo. 
-        /// Los nombres de todos los archivos deben ser enviados al procesar los datos de la vista <br>LV007</br>.
-        /// Se implementó la subida de las imágenes en dos pasos para mejorar la eficiencia de la subida de archivos,
-        /// facilitar las pruebas, mejorar la experiencia de los usuarios, entre otros.
-        /// </remarks>
-        [HttpPost]
-        [Authorize(Policy = "GuestOrHost")]
-        [Route("UploadListingRentImages")]
-        public async Task<List<ReturnModelDTO>> UploadListingRentImages([FromForm] List<IFormFile> images)
-        {
-            var clientData = HttpContext.GetRequestInfo();
-            List<ReturnModelDTO> result = await _appListingRentService.UploadImages(images, clientData);
-            return result;
-        }
+        ///// <summary>
+        ///// Servicio que realiza la subida de las imagenes asociadas a los listing rent.
+        ///// </summary>
+        ///// <param name="images">Lista de imágenes .</param>
+        ///// <returns>Lista de resultados de la subida de los archivos.</returns>
+        ///// <response code="200">Si se procesó la información de la vista de forma correcta.</response>
+        ///// <remarks>
+        ///// En caso de que el resultado de la subida de los archivos sea exitosa, devuelve el nombre del archivo. 
+        ///// Los nombres de todos los archivos deben ser enviados al procesar los datos de la vista <br>LV007</br>.
+        ///// Se implementó la subida de las imágenes en dos pasos para mejorar la eficiencia de la subida de archivos,
+        ///// facilitar las pruebas, mejorar la experiencia de los usuarios, entre otros.
+        ///// </remarks>
+        //[HttpPost]
+        //[Authorize(Policy = "GuestOrHost")]
+        //[Route("UploadListingRentImages")]
+        //public async Task<List<ReturnModelDTO>> UploadListingRentImages([FromForm] List<IFormFile> images)
+        //{
+        //    var clientData = HttpContext.GetRequestInfo();
+        //    List<ReturnModelDTO> result = await _appListingRentService.UploadImages(images, clientData);
+        //    return result;
+        //}
 
         /// <summary>
         /// Servicio que devuelve los listing rent del propietario actualmente logueado.
@@ -115,6 +117,84 @@ namespace Assert.API.Controllers
         {
             var requestInfo = HttpContext.GetRequestInfo();
             ReturnModelDTO<List<PhotoDTO>> result = await _appListingRentService.GetPhotoByListigRent(listinRentId, requestInfo, true);
+            return result;
+        }
+
+        /// <summary>
+        /// Servicio que realiza la subida del archivo asociada a la foto de un listing rent.
+        /// </summary>
+        /// <param name="listingRentId">ID del listing rent</param>
+        /// <param name="images">Lista de imágenes con su sector correspondiente</param>
+        /// <returns>Lista de resultados de la subida de los archivos con sus IDs generados</returns>
+        /// <response code="200">Si se procesó la información correctamente</response>
+        /// <remarks>
+        /// Este servicio devuelve una lista con los nombres de los archivos subidos, posteriormente debe  usarse el servicio "{listingRentId}/Photos"
+        /// para subir el detalle de las fotos con los respectivos nombres.
+        /// </remarks>
+        [HttpPost]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("UploadPhotoImage")]
+        public async Task<List<ReturnModelDTO>> UploadPhotosImages(long listingRentId, [FromForm] List<IFormFile> ImageFiles)
+        {
+            var clientData = HttpContext.GetRequestInfo();
+            var result = await _appListingRentService.UploadImages(ImageFiles, clientData);
+            return result;
+        }
+
+        /// <summary>
+        /// Servicio que realiza la subida de una imagen asociada a un listing rent.
+        /// </summary>
+        /// <param name="listingRentId">ID del listing rent</param>
+        /// <param name="images">Lista de imágenes con su sector correspondiente</param>
+        /// <returns>Lista de resultados de la subida de los archivos con sus IDs generados</returns>
+        /// <response code="200">Si se procesó la información correctamente</response>
+        [HttpPost]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("{listingRentId}/Photos")]
+        public async Task<List<ReturnModelDTO>> UploadImagesWithSector(long listingRentId, [FromBody] List<UploadImageRequest> imagesDescription)
+        {
+            var clientData = HttpContext.GetRequestInfo();
+            var result = await _appListingRentService.UploadImagesDescription(listingRentId, imagesDescription, clientData);
+            return result;
+        }
+
+        /// <summary>
+        /// Servicio que elimina una foto de un listing rent
+        /// </summary>
+        /// <param name="listingRentId">ID del listing rent</param>
+        /// <param name="photoId">ID de la foto a eliminar</param>
+        /// <returns>Resultado de la operación</returns>
+        /// <response code="200">Si se eliminó correctamente</response>
+        /// <response code="404">Si la foto no existe o no pertenece al listing</response>
+        [HttpDelete]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("{listingRentId}/Photos/{photoId}")]
+        public async Task<ReturnModelDTO> DeletePhoto(long listingRentId, int photoId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            var result = await _appListingRentService.DeletePhoto(listingRentId, photoId, requestInfo);
+            return result;
+        }
+
+        /// <summary>
+        /// Servicio que actualiza la información de una foto
+        /// </summary>
+        /// <param name="listingRentId">ID del listing rent</param>
+        /// <param name="photoId">ID de la foto a actualizar</param>
+        /// <param name="request">Nueva información de la foto</param>
+        /// <returns>Foto actualizada</returns>
+        /// <response code="200">Si se actualizó correctamente</response>
+        /// <response code="404">Si la foto no existe o no pertenece al listing</response>
+        [HttpPut]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("{listingRentId}/Photos/{photoId}")]
+        public async Task<ReturnModelDTO<PhotoDTO>> UpdatePhotoSpaceId(
+            long listingRentId,
+            int photoId,
+            [FromBody] UploadImageListingRent request)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            var result = await _appListingRentService.UpdatePhoto(listingRentId, photoId, request, requestInfo);
             return result;
         }
     }

@@ -11,5 +11,8 @@
         public string? Description { get; set; }
 
         public int? Position { get; set; }
+        public object SpaceType { get; set; }
+        public object SpaceTypeCode { get; set; }
+        public int? SpaceTypeId { get; set; }
     }
 }

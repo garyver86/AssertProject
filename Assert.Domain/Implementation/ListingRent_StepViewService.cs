@@ -446,16 +446,6 @@ namespace Assert.Domain.Implementation
             };
         }
 
-        private async Task<ReturnModel> SetPhotos(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
-        {
-            await _listingPhotoRepository.UpdatePhotos(listing.ListingRentId, request_.Photos);
-            return new ReturnModel
-            {
-                HasError = false,
-                StatusCode = ResultStatusCode.OK
-            };
-        }
-
         private async Task<ReturnModel> SetAmenities(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
         {
             await _listingAmenitiesRepository.SetListingAmmenities(listing.ListingRentId, request_.Amenities, clientData, useTechnicalMessages);

@@ -4,7 +4,6 @@ using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Assert.Domain.ValueObjects;
 using Microsoft.Extensions.Configuration;
-using Microsoft.IdentityModel.Tokens;
 using System.Data;
 
 namespace Assert.Domain.Implementation
@@ -246,11 +245,9 @@ namespace Assert.Domain.Implementation
             throw new NotImplementedException();
         }
 
-        public async Task<ReturnModel<ListingProcessDataResultModel>> ProcessData(long? listingRentId, string viewCode, ListingProcessDataModel request_, Dictionary<string, string> clientData, bool useTechnicalMessages)
+        public async Task<ReturnModel<ListingProcessDataResultModel>> ProcessData(long? listingRentId, string viewCode, ListingProcessDataModel request_, int userId, Dictionary<string, string> clientData, bool useTechnicalMessages)
         {
-            string userId = clientData["UserId"];
-            int _userID = -1;
-            if (userId.IsNullOrEmpty())
+            if (userId <= 0)
             {
                 //Devolver Error de no autorizado
                 return new ReturnModel<ListingProcessDataResultModel>
@@ -261,7 +258,6 @@ namespace Assert.Domain.Implementation
             }
             else
             {
-                int.TryParse(userId, out _userID);
                 TlViewType viewType = await _viewTypeRepository.GetByCode(viewCode);
                 if (viewType == null)
                 {
@@ -330,7 +326,7 @@ namespace Assert.Domain.Implementation
                         //        ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar la cantidad de baños que existen en la propiedad.", useTechnicalMessages)
                         //    };
                         //}
-                        ReturnModel<TlListingRent> newListing = await InitializeListingRent(viewType, request_, _userID, clientData, useTechnicalMessages);
+                        ReturnModel<TlListingRent> newListing = await InitializeListingRent(viewType, request_, userId, clientData, useTechnicalMessages);
                         if (newListing.StatusCode == ResultStatusCode.OK)
                         {
                             await _listingViewStepRepository.SetEnded(newListing.Data?.ListingRentId ?? 0, viewType.ViewTypeId, true);
@@ -355,7 +351,7 @@ namespace Assert.Domain.Implementation
                     else
                     {
                         //Se procesan las siguientes vistas, en las cuales se necesita el lisging rent. (Si se encuentra publicado no deberia poder modificar.)
-                        var listing = await _listingRentRepository.Get(listingRentId ?? 0, _userID);
+                        var listing = await _listingRentRepository.Get(listingRentId ?? 0, userId);
                         if (listing == null || listing.ListingStatusId == 5)
                         {
                             return new ReturnModel<ListingProcessDataResultModel>
@@ -374,7 +370,7 @@ namespace Assert.Domain.Implementation
                         }
                         else
                         {
-                            ReturnModel processDataResult = await _StepViewService.ProccessListingRentData(viewType, listing, _userID, request_, clientData, useTechnicalMessages);
+                            ReturnModel processDataResult = await _StepViewService.ProccessListingRentData(viewType, listing, userId, request_, clientData, useTechnicalMessages);
                             if (processDataResult.StatusCode == ResultStatusCode.OK)
                             {
                                 await _listingViewStepRepository.SetEnded(listingRentId ?? 0, viewType.ViewTypeId, true);
@@ -384,7 +380,7 @@ namespace Assert.Domain.Implementation
                                     ReturnModel resultStatuses = await _listingViewStepRepository.IsAllViewsEndeds(listingRentId ?? 0);
                                     if (resultStatuses.StatusCode == ResultStatusCode.OK)
                                     {
-                                        var newStatus = await ChangeStatus(listingRentId ?? 0, _userID, "COMPLETED", clientData, useTechnicalMessages);
+                                        var newStatus = await ChangeStatus(listingRentId ?? 0, userId, "COMPLETED", clientData, useTechnicalMessages);
                                         if (newStatus.StatusCode != ResultStatusCode.OK)
                                         {
                                             return new ReturnModel<ListingProcessDataResultModel>
@@ -515,6 +511,19 @@ namespace Assert.Domain.Implementation
             }
 
             return rstl;
+        }
+
+        public Task<bool> ValidateListingRentOwner(long listingRentId, int userId)
+        {
+            var listing = _listingRentRepository.Get(listingRentId, userId);
+            if(listing != null)
+            {
+                return Task.FromResult(true);
+            }
+            else
+            {
+                return Task.FromResult(false);
+            }
         }
     }
 }
