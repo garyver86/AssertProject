@@ -1,5 +1,7 @@
 ﻿using Assert.Application.DTOs;
+using Assert.Application.DTOs.Requests;
 using Assert.Application.DTOs.Responses;
+using Assert.Domain.Models;
 using Microsoft.AspNetCore.Http;
 
 namespace Assert.Application.Interfaces
@@ -14,5 +16,9 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<List<ListingRentDTO>>> GetByOwner(Dictionary<string, string> requestInfo, bool useTechnicalMessages);
         Task<ReturnModelDTO<List<PhotoDTO>>> GetPhotoByListigRent(long listinRentId, Dictionary<string, string> requestInfo, bool useTechnicalMessages);
         Task<ReturnModelDTO<List<ReviewDTO>>> GetListingRentReviews(int listingRentId, bool UseTechnicalMessages, Dictionary<string, string> requestInfo);
+        //Task<List<ReturnModelDTO>> UploadImages(long listingRentId, List<UploadImageRequest> images, List<IFormFile> imagesFile, Dictionary<string, string> clientData);
+        Task<ReturnModelDTO> DeletePhoto(long listingRentId, int photoId, Dictionary<string, string> requestInfo);
+        Task<ReturnModelDTO<PhotoDTO>> UpdatePhoto(long listingRentId, int photoId, UploadImageListingRent request, Dictionary<string, string> requestInfo);
+        Task<List<ReturnModelDTO>> UploadImagesDescription(long listingRentId, List<UploadImageRequest> imagesDescription, Dictionary<string, string> clientData);
     }
 }

@@ -1,4 +1,5 @@
-﻿using Assert.Domain.Models;
+﻿using Assert.Domain.Entities;
+using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Microsoft.AspNetCore.Http;
@@ -12,12 +13,17 @@ namespace Assert.Infrastructure.InternalServices
         private readonly string[] _allowedExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
         private readonly int[] _allowedResolutions = { 1920, 2560, 3840 }; // Anchos permitidos (Confirmar si se validarán)
         private readonly ISystemConfigurationRepository _SystemConfigurationRepository;
+        private readonly IListingRentService _listingRentService;
+        private readonly IListingPhotoRepository _listingPhotoRepository;
         private readonly IErrorHandler _errorHandler;
 
-        public ImageService(ISystemConfigurationRepository systemConfigurationRepository, IErrorHandler errorHandler)
+        public ImageService(ISystemConfigurationRepository systemConfigurationRepository, IErrorHandler errorHandler, IListingRentService listingRentService,
+            IListingPhotoRepository listingPhotoRepository)
         {
             _SystemConfigurationRepository = systemConfigurationRepository;
             _errorHandler = errorHandler;
+            _listingRentService = listingRentService;
+            _listingPhotoRepository = listingPhotoRepository;
         }
 
         private void EnsureDirectoryExists(string _basePath)
@@ -170,6 +176,143 @@ namespace Assert.Infrastructure.InternalServices
         {
             var errorCode = ex.HResult & 0xFFFF;
             return errorCode == 32 || errorCode == 33; // ERROR_SHARING_VIOLATION o ERROR_LOCK_VIOLATION
+        }
+
+        public async Task<List<ReturnModel>> SaveListingRentImages(long listingRentId, List<UploadImageListingRent> imageFiles, int userId, bool useTechnicalMessages)
+        {
+            List<ReturnModel> savedFiles = new List<ReturnModel>();
+
+            string _basePath = await _SystemConfigurationRepository.GetListingResourcePath();
+            EnsureDirectoryExists(_basePath);
+
+            bool isOwner = await ValidateListingRentOwner(listingRentId, userId);
+            if (!isOwner)
+            {
+                return new List<ReturnModel>
+                {
+                    new ReturnModel
+                    {
+                        StatusCode = ResultStatusCode.Forbidden,
+                        ResultError = _errorHandler.GetError(ResultStatusCode.Forbidden, "No tiene permisos para modificar este listado", useTechnicalMessages),
+                        HasError = true
+                    }
+                };
+            }
+
+            foreach (var imageFile in imageFiles)
+            {
+                try
+                {
+                    bool ifExist = await VerifyListingRentImage(imageFile.FileName);
+                    if (ifExist)
+                    {
+                        var fileResult = await _listingPhotoRepository.UploadPhoto(listingRentId, imageFile.FileName, imageFile.Description, imageFile.SpaceTypeId, imageFile.IsMain);
+                        savedFiles.Add(fileResult);
+                    }
+                    else
+                    {
+                        savedFiles.Add(new ReturnModel
+                        {
+                            ResultError = _errorHandler.GetError(ResultStatusCode.NotFound, $"El archivo de imagen no existe {imageFile.FileName}", useTechnicalMessages),
+                            StatusCode = ResultStatusCode.InternalError,
+                            Data = imageFile.FileName
+                        });
+                    }
+                }
+                catch (Exception ex)
+                {
+                    savedFiles.Add(new ReturnModel
+                    {
+                        ResultError = _errorHandler.GetErrorException(ResultStatusCode.InternalError, ex, "", useTechnicalMessages),
+                        StatusCode = ResultStatusCode.InternalError,
+                        Data = imageFile.FileName
+                    });
+                }
+            }
+            return savedFiles;
+        }
+
+        private async Task<bool> ValidateListingRentOwner(long listingRentId, int userId)
+        {
+            bool isOwner = await _listingRentService.ValidateListingRentOwner(listingRentId, userId);
+            return isOwner;
+        }
+
+        public async Task<ReturnModel> DeleteListingRentImage(long listingRentId, int photoId, int userId, bool useTechnicalMessages)
+        {
+            string _basePath = await _SystemConfigurationRepository.GetListingResourcePath();
+            EnsureDirectoryExists(_basePath);
+            try
+            {
+                bool isOwner = await ValidateListingRentOwner(listingRentId, userId);
+                if (!isOwner)
+                {
+                    return
+                    new ReturnModel
+                    {
+                        StatusCode = ResultStatusCode.Forbidden,
+                        ResultError = _errorHandler.GetError(ResultStatusCode.Forbidden, "No tiene permisos para modificar este listado", useTechnicalMessages),
+                        HasError = true
+                    };
+                }
+
+                ReturnModel result = await _listingPhotoRepository.DeleteListingRentImage(listingRentId, photoId);
+
+                if (result.StatusCode == ResultStatusCode.OK)
+                {
+                    RemoveListingRentImage(result.Data.ToString());
+                }
+                return result;
+            }
+            catch (Exception ex)
+            {
+                return new ReturnModel
+                {
+                    ResultError = _errorHandler.GetErrorException(ResultStatusCode.InternalError, ex, "", useTechnicalMessages),
+                    StatusCode = ResultStatusCode.InternalError,
+                };
+            }
+        }
+
+        public async Task<ReturnModel<TlListingPhoto>> UpdatePhoto(long listingRentId, int photoId, UploadImageListingRent request, int userId, bool useTechnicalMessages)
+        {
+            try
+            {
+                bool isOwner = await ValidateListingRentOwner(listingRentId, userId);
+                if (!isOwner)
+                {
+                    return
+                    new ReturnModel<TlListingPhoto>
+                    {
+                        StatusCode = ResultStatusCode.Forbidden,
+                        ResultError = _errorHandler.GetError(ResultStatusCode.Forbidden, "No tiene permisos para modificar este listado", useTechnicalMessages),
+                        HasError = true
+                    };
+                }
+
+                TlListingPhoto result = await _listingPhotoRepository.UpdatePhoto(listingRentId, new ProcessData_PhotoModel
+                {
+                    Description = request.Description,
+                    IsPrincipal = request.IsMain,
+                    PhotoId = photoId,
+                    SpaceTypeId = request.SpaceTypeId
+                });
+
+                return new ReturnModel<TlListingPhoto>
+                {
+                    Data = result,
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ReturnModel<TlListingPhoto>
+                {
+                    ResultError = _errorHandler.GetErrorException(ResultStatusCode.InternalError, ex, "", useTechnicalMessages),
+                    StatusCode = ResultStatusCode.InternalError,
+                };
+            }
         }
 
         // Implementación del disposable para eliminación diferida

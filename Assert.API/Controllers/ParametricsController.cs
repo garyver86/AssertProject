@@ -109,5 +109,23 @@ namespace Assert.API.Controllers
 
             return discountTypesResult;
         }
+
+        /// <summary>
+        /// Servicio que devuelve la lista de tipos de espacios en una propiedad.
+        /// </summary>
+        /// <returns>Listado de tipos de espacios.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// Solo se consideraran los tipos de espacios que no se encuentren deshabilitadas.
+        /// </remarks>
+        [HttpGet("SpaceType")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO<List<DiscountDTO>>> SpaceType()
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            var discountTypesResult = await _parametricService.GetDiscountTypes(requestInfo, true);
+
+            return discountTypesResult;
+        }
     }
 }

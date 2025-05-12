@@ -1780,10 +1780,15 @@ public partial class AssertDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("photoLink");
             entity.Property(e => e.Position).HasColumnName("position");
+            entity.Property(e => e.SpaceTypeId).HasColumnName("spaceTypeId");
 
             entity.HasOne(d => d.ListingRent).WithMany(p => p.TlListingPhotos)
                 .HasForeignKey(d => d.ListingRentId)
                 .HasConstraintName("FK_TL_ListingPhoto_TL_ListingRent");
+
+            entity.HasOne(d => d.SpaceType).WithMany(p => p.TlListingPhotos)
+                .HasForeignKey(d => d.SpaceTypeId)
+                .HasConstraintName("FK_TL_ListingPhoto_T_SpaceType");
         });
 
         modelBuilder.Entity<TlListingPrice>(entity =>

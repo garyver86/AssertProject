@@ -20,6 +20,7 @@ namespace Assert.Domain.Services
         Task<string> SetCalendarByDay(long listingRentId, int ownerUserId, string startDate, string endDate, List<YearCalendarEvent> Years);
         Task<string> GetOwnerCalendar(int ownerUserId, string startDate, string endDate);
         Task<string> GetPriceNightlySuggestion(int spaces, int year, int amenities, bool UseTechnicalMessages);
-        Task<ReturnModel<ListingProcessDataResultModel>> ProcessData(long? listingRentId, string viewCode, ListingProcessDataModel request_, Dictionary<string, string> clientData, bool useTechnicalMessages);
+        Task<ReturnModel<ListingProcessDataResultModel>> ProcessData(long? listingRentId, string viewCode, ListingProcessDataModel request_, int userId, Dictionary<string, string> clientData, bool useTechnicalMessages);
+        Task<bool> ValidateListingRentOwner(long listingRentId, int userId);
     }
 }
