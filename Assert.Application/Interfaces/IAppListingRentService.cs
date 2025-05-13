@@ -20,5 +20,7 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO> DeletePhoto(long listingRentId, int photoId, Dictionary<string, string> requestInfo);
         Task<ReturnModelDTO<PhotoDTO>> UpdatePhoto(long listingRentId, int photoId, UploadImageListingRent request, Dictionary<string, string> requestInfo);
         Task<List<ReturnModelDTO>> UploadImagesDescription(long listingRentId, List<UploadImageRequest> imagesDescription, Dictionary<string, string> clientData);
+
+        Task<ReturnModelDTO<string>> UpdateBasicData(long listingRentId, BasicListingRentData basicData);
     }
 }

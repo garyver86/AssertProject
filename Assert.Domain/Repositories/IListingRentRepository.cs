@@ -20,5 +20,7 @@ namespace Assert.Domain.Repositories
         Task SetName(long listingRentId, string title);
         Task SetNameAndDescription(long listingRentId, string title, string description);
         Task<List<TlListingRent>> GetFeatureds(int? countryId, int? limit);
+
+        Task<string> UpdateBasicData(long listingRentId, string title, string description, List<int> aspectTypeIdList);
     }
 }

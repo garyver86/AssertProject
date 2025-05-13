@@ -1,6 +1,7 @@
 ﻿using Assert.Application.DTOs;
 using Assert.Application.DTOs.Requests;
 using Assert.Application.DTOs.Responses;
+using Assert.Application.Exceptions;
 using Assert.Application.Interfaces;
 using Assert.Domain.Entities;
 using Assert.Domain.Models;
@@ -401,5 +402,22 @@ namespace Assert.Application.Services
                 };
             }
         }
+
+        public async Task<ReturnModelDTO<string>> UpdateBasicData(long listingRentId, 
+            BasicListingRentData basicData)
+        {
+            ReturnModelDTO<string> result = null;
+            try
+            {
+                string updatedResult = await _listingRentRepository.UpdateBasicData(listingRentId, basicData.Title, basicData.Description, basicData.AspectTypeIdList);
+                result = _mapper.Map<ReturnModelDTO<string>>(updatedResult);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                throw new Exceptions.ApplicationException(ex.Message);
+            }
+        }
+
     }
 }

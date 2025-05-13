@@ -29,6 +29,8 @@ public class ExceptionLogBackgroundService(
 
                     var message = logModel.Exception.Message;
 
+                    var serializedData = JsonConvert.SerializeObject(logModel.Data,
+                            new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
                     var entity = new TExceptionLog
                     {
                         Action = logModel.Action,
@@ -39,16 +41,16 @@ public class ExceptionLogBackgroundService(
                         IpAddress = logModel.IpAddress,
                         UserId = logModel.UserId,
                         StackTrace = logModel.Exception.StackTrace,
-                        DataRequest = JsonConvert.SerializeObject(logModel.Data,
-                            new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore })
+                        DataRequest = serializedData
                     };
 
+                    logger.LogInformation($"Log Data: {serializedData}");
                     context.TExceptionLogs.Add(entity);
                     await context.SaveChangesAsync(stoppingToken);
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Error al guardar log de excepción.");
+                    logger.LogError(ex, "Error to save exception LOG");
                 }
             }
             else

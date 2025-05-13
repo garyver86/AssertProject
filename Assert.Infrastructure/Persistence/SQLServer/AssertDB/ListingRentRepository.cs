@@ -1,21 +1,18 @@
 ﻿using Assert.Domain.Entities;
+using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Repositories;
+using Assert.Infrastructure.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
-    public class ListingRentRepository : IListingRentRepository
+    public class ListingRentRepository(InfraAssertDbContext _context,
+        IListingLogRepository _logRepository,
+        IListingStatusRepository _listingStatusRepository,
+        IExceptionLoggerService _exceptionLoggerService,
+        ILogger<ListingRentRepository> _logger) : IListingRentRepository
     {
-        private readonly InfraAssertDbContext _context;
-        private readonly IListingLogRepository _logRepository;
-        private readonly IListingStatusRepository _listingStatusRepository;
-        public ListingRentRepository(InfraAssertDbContext infraAssertDbContext, IListingLogRepository logRepository, IListingStatusRepository listingStatusRepository)
-        {
-            _context = infraAssertDbContext;
-            _logRepository = logRepository;
-            _listingStatusRepository = listingStatusRepository;
-        }
-
         public async Task<TlListingRent> ChangeStatus(long id, int ownerID, int newStatus, Dictionary<string, string> userInfo)
         {
             var listing = _context.TlListingRents.Where(x => x.ListingRentId == id).FirstOrDefault();
@@ -230,6 +227,49 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
             listing.ListingRentConfirmationDate = DateTime.UtcNow;
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<string> UpdateBasicData(long listingRentId, string title, string description, List<int> aspectTypeIdList)
+        {
+            try
+            {
+                var listing = await _context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefaultAsync();
+                if (listing != null)
+                {
+                    listing.Name = string.IsNullOrEmpty(title) ? listing.Name : title;
+                    listing.Description = string.IsNullOrEmpty(description) ? listing.Description : description;
+
+                    if (aspectTypeIdList?.Count > 0)
+                    {
+                        var currentAspects = await _context.TlListingFeaturedAspects
+                            .Where(l => l.ListingRentId == listingRentId).ToListAsync();
+
+                        _context.TlListingFeaturedAspects.RemoveRange(currentAspects);
+
+                        var newAspects = aspectTypeIdList
+                            .Select(id => new TlListingFeaturedAspect
+                            {
+                                ListingRentId = listingRentId,
+                                FeaturesAspectTypeId = id,
+                                FeaturedAspectValue = ""
+                            }).ToList();
+
+                        await _context.TlListingFeaturedAspects.AddRangeAsync(newAspects);
+                    }
+
+                    await _context.SaveChangesAsync();
+                    return "UPDATED";
+                }
+                else
+                {
+                    throw new DatabaseUnavailableException("El identificador de la actual renta no existe. Verifique e intente nuevamente.");
+                }
+            }
+            catch (Exception ex)
+            {
+                //add logger
+                throw new DatabaseUnavailableException(ex.Message);
+            }
         }
     }
 }

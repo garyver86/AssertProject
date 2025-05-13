@@ -90,6 +90,9 @@ public class ExceptionMiddleware
         //validations
         ValidationException => StatusCodes.Status400BadRequest,
 
+        //dataBase
+        DatabaseUnavailableException => StatusCodes.Status503ServiceUnavailable,
+
         //layers & bussinesExceptions
         InvalidTokenException => StatusCodes.Status401Unauthorized,
         ApplicationException => StatusCodes.Status400BadRequest,
@@ -100,7 +103,8 @@ public class ExceptionMiddleware
 
     private string ProcessMessage(Exception exception) => exception switch
     {
-        ApplicationException or DomainException or InfrastructureException => exception.Message,
+        ApplicationException or DomainException or InfrastructureException
+        or DatabaseUnavailableException => exception.Message,
         _ => _env.IsDevelopment()
             ? $"{exception.Message} | StackTrace: {exception.StackTrace} | InnerException: {exception.InnerException?.Message}"
             : exception.Message

@@ -28,7 +28,10 @@ namespace Assert.Application.Mappings
 
             CreateMap<ListingProcessDataResultModel, ProcessDataResult>();
 
-
+            CreateMap<string, ReturnModelDTO<string>>()
+                .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src))
+                .ForMember(dest => dest.StatusCode, opt => opt.MapFrom(_ => "200"))
+                .ForMember(dest => dest.HasError, opt => opt.MapFrom(_ => false));
 
 
             CreateMap<ReturnModel<TlListingRent>, ReturnModelDTO<ListingRentDTO>>()
