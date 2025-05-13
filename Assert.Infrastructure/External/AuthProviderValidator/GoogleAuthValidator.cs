@@ -2,16 +2,10 @@
 using Assert.Domain.Interfaces.Infraestructure.External;
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
-using Assert.Domain.Models.Auth;
 using Assert.Infrastructure.Exceptions;
 using Assert.Shared.Extensions;
 using Google.Apis.Auth;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Assert.Infrastructure.External.AuthProviderValidator;
 
@@ -30,7 +24,7 @@ public class GoogleAuthValidator(GoogleAuthConfig _googleConfig,
     {
         try
         {
-            _logger.LogInformation("Token recibido para validar: {Token}", token);
+            //_logger.LogInformation("Token recibido para validar: {Token}", token);
             var settings = new GoogleJsonWebSignature.ValidationSettings
             {
                 Audience = _googleConfig.ClientIds
