@@ -4,6 +4,7 @@ using Assert.Application.DTOs.Responses;
 using Assert.Domain.Entities;
 using Assert.Domain.Enums;
 using Assert.Domain.Models;
+using Assert.Infrastructure.Utils;
 using AutoMapper;
 
 namespace Assert.Application.Mappings
@@ -63,7 +64,12 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.SecurityItems, opt => opt.MapFrom(src => src.TlListingSecurityItems))
                 .ForMember(dest => dest.Reviews, opt => opt.MapFrom(src => src.TlListingReviews))
                 .ForMember(dest => dest.Spaces, opt => opt.MapFrom(src => src.TlListingSpaces))
-                .ForMember(dest => dest.StayPresences, opt => opt.MapFrom(src => src.TlStayPresences));
+                .ForMember(dest => dest.StayPresences, opt => opt.MapFrom(src => src.TlStayPresences))
+                    //.ForMember(dest => dest.Valoration, opt => opt.MapFrom(src => src.TlListingReviews.Select(y=>y.Calification).Average()));
+                    .ForMember(dest => dest.Valoration, opt => opt.MapFrom(src => UtilsMgr.CalculateAverageCalification(src.TlListingReviews)));
+
+
+
             CreateMap<TlAccommodationType, AccomodationTypeDTO>();
             CreateMap<TApprovalPolicyType, ApprovalPolicyDTO>();
             CreateMap<TCancelationPolicyType, CancelationPolicyDTO>();
@@ -144,6 +150,7 @@ namespace Assert.Application.Mappings
 
             CreateMap<UploadImageRequest, UploadImageListingRent>();
             CreateMap<TSpaceType, SpaceTypeDTO>();
+
         }
     }
 }

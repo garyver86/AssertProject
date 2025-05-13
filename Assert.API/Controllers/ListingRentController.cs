@@ -129,12 +129,13 @@ namespace Assert.API.Controllers
         /// las propiedades destacadas de la totalidad. El calculo de propiedades destacadas se la realiza en base a los
         /// </remarks>
         [HttpGet("Featureds")]
-        public async Task<ReturnModelDTO> FeaturedListings([FromQuery] int? countryId, [FromQuery] int? limit = 10)
+        //public async Task<ReturnModelDTO> FeaturedListings([FromQuery] int? countryId, [FromQuery] int? limit = 10)
+        public async Task<ReturnModelDTO> FeaturedListings([FromQuery] int? countryId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             var requestInfo = HttpContext.GetRequestInfo();
             int userId = 0;
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);
-            ReturnModelDTO result = await _appListingRentService.GetFeaturedListings(countryId, limit, requestInfo);
+            ReturnModelDTO result = await _appListingRentService.GetFeaturedListings(countryId, pageNumber, pageSize, requestInfo);
             return result;
         }
     }

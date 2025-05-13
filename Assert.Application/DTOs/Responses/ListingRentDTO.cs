@@ -38,7 +38,6 @@
         public List<SecurityItemDTO> SecurityItems { get; set; }
         public List<SpaceDTO> Spaces { get; set; }
         public List<StayPresenceDTO> StayPresences { get; set; }
-
-
+        public object Valoration { get; set; }
     }
 }
