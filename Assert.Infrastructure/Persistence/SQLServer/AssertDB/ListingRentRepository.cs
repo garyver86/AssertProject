@@ -2,6 +2,7 @@
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Repositories;
 using Assert.Infrastructure.Exceptions;
+using Assert.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -262,12 +263,16 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 }
                 else
                 {
-                    throw new DatabaseUnavailableException("El identificador de la actual renta no existe. Verifique e intente nuevamente.");
+                    var errorMsg = $"El identificador de la actual renta no existe: {listingRentId}";
+                    _logger.LogWarning(errorMsg);
+                    throw new DatabaseUnavailableException(errorMsg);
                 }
             }
             catch (Exception ex)
             {
-                //add logger
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { listingRentId, title, description, aspectTypeIdList });
+
                 throw new DatabaseUnavailableException(ex.Message);
             }
         }
