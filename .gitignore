@@ -361,3 +361,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Ignore content of image directories
+Resources/Listings/*
+Resources/Icons/*

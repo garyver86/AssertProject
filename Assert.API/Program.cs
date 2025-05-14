@@ -8,6 +8,7 @@ using Assert.API.Filters;
 using Assert.API.Middleware;
 using Assert.Application;
 using Assert.Infrastructure;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +57,31 @@ var app = builder.Build();
 //        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Assert.API"); // Reemplaza "Tu API v1" con el nombre de tu API
 //    });
 //}
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "Resources", "Listings")),
+    RequestPath = "/resources/listings" 
+});
+
+// Expone los iconos de los tipos de propiedades
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "Resources", "Icons", "PropertyType")),
+    RequestPath = "/resources/icons" 
+});
+
+// Expone los iconos de las comodidades
+//app.UseStaticFiles(new StaticFileOptions
+//{
+//    FileProvider = new PhysicalFileProvider(
+//        Path.Combine(builder.Environment.ContentRootPath, "Resources", "Icons", "Amenities")),
+//    RequestPath = "/icons/amenities" // Las URLs comenzarán con /icons/amenities
+//});
+
+
 
 app.UseSwagger();
 app.UseSwaggerUI(c =>
