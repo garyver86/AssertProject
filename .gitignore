@@ -363,20 +363,5 @@ MigrationBackup/
 FodyWeavers.xsd
 
 # Ignore content of image directories
-Resources/Listings/*
-Resources/Icons/*
-/Assert.API/Resources/Listings/08b75698-cda8-4727-9354-884106409ffc.jpg
-/Assert.API/Resources/Listings/0dc4cf7a-3773-4b52-91af-e5946bdb372c.jpg
-/Assert.API/Resources/Listings/117cb7ad-bf80-4b60-8153-9dfdb8298e41.jpg
-/Assert.API/Resources/Listings/2ffb48c7-f054-4c0f-ad4f-b5d69a586d69.jpg
-/Assert.API/Resources/Listings/353472bf-bd84-487c-8866-b79ff2465a6f.jpg
-/Assert.API/Resources/Listings/3c1bee40-dacd-43dc-a895-edd68fe2a5fc.jpg
-/Assert.API/Resources/Listings/62605737-69f6-410d-a89a-1e58846e4360.jpg
-/Assert.API/Resources/Listings/7fdc2532-1447-4f53-aa05-2a29ed88d66f.jpg
-/Assert.API/Resources/Listings/8d9c774b-195b-483f-8df5-30fdc61facfb.jpg
-/Assert.API/Resources/Listings/9e728980-423d-4180-87fe-233c946b01cd.jpg
-/Assert.API/Resources/Listings/e987c160-0090-4773-b70f-a75ed9cf04fb.jpg
-/Assert.API/Resources/Listings/f7641d1e-9d3d-4336-b73e-c8637ab58799.jpg
-/Assert.API/Resources/Listings/fc15c0c2-02e2-4b83-b02a-03f6b08b308a.jpg
-/Assert.API/Resources/Listings/readme.txt
-/Assert.API/Resources/Icons/readme.txt
+/Assert.API/Resources/Listings/*
+/Assert.API/Resources/Icons/*
