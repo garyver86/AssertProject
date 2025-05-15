@@ -364,4 +364,4 @@ FodyWeavers.xsd
 
 # Ignore content of image directories
 /Assert.API/Resources/Listings/*
-/Assert.API/Resources/Icons/*
+/Assert.API/Resources/*
