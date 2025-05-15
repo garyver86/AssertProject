@@ -5,6 +5,7 @@ using Assert.Application.Services;
 using Assert.Application.Services.Security;
 using Assert.Application.Validators;
 using Assert.Domain.Implementation;
+using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using FluentValidation;
 using FluentValidation.AspNetCore;
@@ -18,6 +19,9 @@ namespace Assert.Application
         public static IServiceCollection AddApplicationInjections(
             this IServiceCollection services, IConfiguration configuration)
         {
+
+
+            //services.AddSingleton<IUrlBaseService, UrlBaseService>();
             services.AddAutoMapper(typeof(AutomapperProfile));
 
             //Validator

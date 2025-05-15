@@ -4,5 +4,6 @@
     {
         Task<string> GetListingResourcePath();
         Task<string> GetListingResourceUrl();
+        Task<string> GetIconsResourceUrl();
     }
 }

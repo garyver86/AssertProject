@@ -22,5 +22,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             resourcePath = (await _context.TSystemConfigurations.Where(x => x.Name == "vgg_resource_url_listing").FirstOrDefaultAsync())?.Value;
             return resourcePath;
         }
+        public async Task<string> GetIconsResourceUrl()
+        {
+            string resourcePath = string.Empty;
+            resourcePath = (await _context.TSystemConfigurations.Where(x => x.Name == "vgg_resource_url_icons").FirstOrDefaultAsync())?.Value;
+            return resourcePath;
+        }
     }
 }

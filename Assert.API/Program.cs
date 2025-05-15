@@ -26,8 +26,8 @@ builder.Services.AddControllers(options =>
 
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddApplicationInjections(builder.Configuration);
 builder.Services.AddInfrastructureInjections(builder.Configuration);
+builder.Services.AddApplicationInjections(builder.Configuration);
 builder.Services.AddFeaturesCors(builder.Configuration, allowedOrigins!);
 builder.Services.AddAuthJwt(builder.Configuration);
 builder.Services.AddHttpExtension();
