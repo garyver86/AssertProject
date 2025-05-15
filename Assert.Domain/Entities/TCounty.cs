@@ -16,4 +16,6 @@ public partial class TCounty
     public virtual TState? State { get; set; }
 
     public virtual ICollection<TCity> TCities { get; set; } = new List<TCity>();
+
+    public virtual ICollection<TpPropertyAddress> TpPropertyAddresses { get; set; } = new List<TpPropertyAddress>();
 }

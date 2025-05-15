@@ -42,6 +42,19 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .ThenInclude(y => y.FeaturesAspectType)
                 .Include(x => x.TpProperties)
                     .ThenInclude(y => y.TpPropertyAddresses)
+                    .ThenInclude(y => y.City)
+                    .ThenInclude(y => y.County)
+                    .ThenInclude(y => y.State)
+                    .ThenInclude(y => y.Country)
+                .Include(x => x.TpProperties)
+                    .ThenInclude(y => y.TpPropertyAddresses)
+                    .ThenInclude(y => y.County)
+                    .ThenInclude(y => y.State)
+                    .ThenInclude(y => y.Country)
+                .Include(x => x.TpProperties)
+                    .ThenInclude(y => y.TpPropertyAddresses)
+                    .ThenInclude(y => y.State)
+                    .ThenInclude(y => y.Country)
                 .Include(x => x.TpProperties)
                     .ThenInclude(y => y.PropertySubtype)
                         .ThenInclude(y => y.PropertyType)
@@ -59,6 +72,43 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .Include(x => x.TlListingReviews)
                 .AsNoTracking()
                 .Where(x => x.ListingRentId == id && x.ListingStatusId != 5).FirstOrDefault();
+
+
+            if (result != null)
+            {
+                if (result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault() != null)
+                {
+                    //if (result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().City != null)
+                    //{
+                    //    result.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().State = result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().City.County.State;
+                    //    result.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().County = result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().City.County;
+                    //}
+                    //else if (result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().County != null)
+                    //{
+                    //    result.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().State = result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().County.State;
+                    //}
+                    if (result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().City == null)
+                    {
+                        if (result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().County != null)
+                        {
+                            result.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().City = new TCity
+                            {
+                                County = result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().County,
+                            };
+                        }
+                        else if (result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().State != null)
+                        {
+                            result.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().City = new TCity
+                            {
+                                County = new TCounty
+                                {
+                                    State = result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().State
+                                }
+                            };
+                        }
+                    }
+                }
+            }
 
             TlListingRent? tlListingRent = await Task.FromResult(result);
             return tlListingRent;
@@ -79,6 +129,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .ThenInclude(y => y.FeaturesAspectType)
                 .Include(x => x.TpProperties)
                     .ThenInclude(y => y.TpPropertyAddresses)
+                    .ThenInclude(y => y.City)
+                    .ThenInclude(y => y.County)
+                    .ThenInclude(y => y.State)
                 .Include(x => x.TpProperties)
                     .ThenInclude(y => y.PropertySubtype)
                         .ThenInclude(y => y.PropertyType)
@@ -95,6 +148,22 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .ThenInclude(y => y.StayPrecenseType)
                 .AsNoTracking()
                 .Where(x => x.ListingRentId == id && x.OwnerUserId == ownerID && x.ListingStatusId != 5).FirstOrDefault();
+
+            if (result != null)
+            {
+                if (result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault() != null)
+                {
+                    if (result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().City != null)
+                    {
+                        result.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().State = result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().City.County.State;
+                        result.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().County = result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().City.County;
+                    }
+                    if (result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().County != null)
+                    {
+                        result.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().State = result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().County.State;
+                    }
+                }
+            }
             return await Task.FromResult(result);
         }
 
@@ -154,7 +223,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .Include(x => x.CancelationPolicyType)
                 .Include(x => x.OwnerUser)
                 //.Include(x => x.TlListingAmenities)
-                    //.ThenInclude(y => y.AmenitiesType)
+                //.ThenInclude(y => y.AmenitiesType)
                 .Include(x => x.TlCheckInOutPolicies)
                 //.Include(x => x.TlListingFeaturedAspects)
                 //    .ThenInclude(y => y.FeaturesAspectType)

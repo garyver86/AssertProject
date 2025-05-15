@@ -21,6 +21,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 address.CityId = addresInput.CityId;
                 address.Address2 = addresInput.Address2;
                 address.ZipCode = addresInput.ZipCode;
+                address.CountyId = addresInput.CountyId;
+                address.StateId = addresInput.StateId;
                 await _context.SaveChangesAsync();
             }
             else
@@ -31,7 +33,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     CityId = addresInput.CityId,
                     Address2 = addresInput.Address2,
                     ZipCode = addresInput.ZipCode,
-                    PropertyId = propertyId
+                    PropertyId = propertyId,
+                    CountyId = addresInput.CountyId,
+                    StateId = addresInput.StateId
                 };
                 await _context.TpPropertyAddresses.AddAsync(address);
                 await _context.SaveChangesAsync();

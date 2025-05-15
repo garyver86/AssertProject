@@ -2522,7 +2522,9 @@ public partial class InfraAssertDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("address2");
             entity.Property(e => e.CityId).HasColumnName("cityId");
+            entity.Property(e => e.CountyId).HasColumnName("countyId");
             entity.Property(e => e.PropertyId).HasColumnName("propertyId");
+            entity.Property(e => e.StateId).HasColumnName("stateId");
             entity.Property(e => e.ZipCode)
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -2532,9 +2534,17 @@ public partial class InfraAssertDbContext : DbContext
                 .HasForeignKey(d => d.CityId)
                 .HasConstraintName("FK_TP_PropertyAddress_T_City");
 
+            entity.HasOne(d => d.County).WithMany(p => p.TpPropertyAddresses)
+                .HasForeignKey(d => d.CountyId)
+                .HasConstraintName("FK_TP_PropertyAddress_T_County");
+
             entity.HasOne(d => d.Property).WithMany(p => p.TpPropertyAddresses)
                 .HasForeignKey(d => d.PropertyId)
                 .HasConstraintName("FK_TP_PropertyAddress_TP_Property");
+
+            entity.HasOne(d => d.State).WithMany(p => p.TpPropertyAddresses)
+                .HasForeignKey(d => d.StateId)
+                .HasConstraintName("FK_TP_PropertyAddress_T_State");
         });
 
         modelBuilder.Entity<TpPropertySubtype>(entity =>

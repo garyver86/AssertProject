@@ -8,6 +8,7 @@
         public string StateCode { get; set; }
         public string Country { get; set; }
         public string CountryCode { get; set; }
+        public string County { get; set; }
     }
 
     public class City2DTO
