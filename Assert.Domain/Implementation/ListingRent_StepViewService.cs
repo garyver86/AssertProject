@@ -4,6 +4,7 @@ using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Assert.Domain.Utils;
 using Microsoft.IdentityModel.Tokens;
+using System.Net;
 
 namespace Assert.Domain.Implementation
 {
@@ -530,7 +531,9 @@ namespace Assert.Domain.Implementation
                 Address1 = request_.Address.Address1,
                 Address2 = request_.Address.Address2,
                 CityId = request_.Address.CityId,
-                ZipCode = request_.Address.ZipCode
+                ZipCode = request_.Address.ZipCode,
+                StateId = request_.Address.StateId,
+                CountyId = request_.Address.CountyId
             };
             TpPropertyAddress addressResult = await _propertyAddressRepository.Set(addresInput, listing.TpProperties.First().PropertyId);
             return new ReturnModel

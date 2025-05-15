@@ -49,6 +49,8 @@
 
         public string? Address2 { get; set; }
         public int? CityId { get; set; }
+        public int? CountyId { get; set; }
+        public int? StateId { get; set; }
     }
     public class ProcessData_SpaceModel
     {

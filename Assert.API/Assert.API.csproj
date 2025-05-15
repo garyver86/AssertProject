@@ -26,4 +26,8 @@
     <ProjectReference Include="..\Assert.Application\Assert.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Resources\Icons\" />
+  </ItemGroup>
+
 </Project>

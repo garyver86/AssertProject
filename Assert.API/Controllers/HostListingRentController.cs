@@ -37,7 +37,7 @@ namespace Assert.API.Controllers
         ///     Vista 2 (LV002): Set Accomodation Type. Se define el tipo de alojamiento (AccomodationId). Los posibles valores de AccomodationType son retornados en la respuesta exitosa del paso anterior.
         ///         {"viewCode": "LV002",  "AccomodationId": 1} <br />
         ///     Vista 3 (LV003): Set Address. Se define la dirección de la propiedad (Address(Address1, CityId, ZipCode)). Los posibles valores de CityId son retornados en la respuesta exitosa del paso anterior.
-        ///         {"viewCode": "LV003",  "address": { "zipCode": "0000", "address1": "Av. Heroinas y Belzu", "cityId": 28896}} <br />
+        ///         {"viewCode": "LV003",  "address": { "zipCode": "0000", "address1": "Av. Heroinas y Belzu", "cityId": 28896, "countyId": 1913,"stateId": 173}}. State: Departamento, County: Provincia <br />
         ///     Vista 4 (LV004): Set Location. Se define la ubicación de la propiedad (Address(Latitude, Longitude)).
         ///         {"viewCode": "LV004",  "address": { "latitude": "-17.38981233345421", "longitude": "-66.14371647547648"}} <br />
         ///     Vista 5 (LV005): Set Capacity. Se Define la capicidad de la propiedad (Bedrooms, Beds, Bathrooms, y MaxGuests).

@@ -21,7 +21,6 @@ namespace Assert.Application.Services
         private readonly IListingRentRepository _listingRentRepository;
         private readonly IListingPhotoRepository _listingPhotoRepository;
         private readonly IListingRentReviewRepository _listingReviewRepository;
-        private readonly ISystemConfigurationRepository _SystemConfigurationRepository;
         private readonly IImageService _imageService;
 
         private readonly IMapper _mapper;
@@ -39,7 +38,6 @@ namespace Assert.Application.Services
             _imageService = imageService;
             _listingPhotoRepository = listingPhotoRepository;
             _listingReviewRepository = listingReviewRepository;
-            _SystemConfigurationRepository = systemConfigurationRepository;
         }
 
         public async Task<ReturnModelDTO> ChangeStatus(long listingRentId, int ownerUserId, string newStatusCode, Dictionary<string, string> clientData,
@@ -275,12 +273,12 @@ namespace Assert.Application.Services
             {
                 List<TlListingPhoto> listings = await _listingPhotoRepository.GetByListingRentId(listinRentId, _userID);
 
-                string _basePath = await _SystemConfigurationRepository.GetListingResourceUrl();
+                //string _basePath = await _SystemConfigurationRepository.GetListingResourceUrl();
 
-                foreach (var item in listings)
-                {
-                    item.PhotoLink = _basePath + item.Name;
-                }
+                //foreach (var item in listings)
+                //{
+                //    item.PhotoLink = _basePath + item.Name;
+                //}
 
                 result = new ReturnModelDTO<List<PhotoDTO>>
                 {

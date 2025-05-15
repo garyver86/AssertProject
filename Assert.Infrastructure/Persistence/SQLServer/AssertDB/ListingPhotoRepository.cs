@@ -8,9 +8,13 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
     public class ListingPhotoRepository : IListingPhotoRepository
     {
         private readonly InfraAssertDbContext _context;
-        public ListingPhotoRepository(InfraAssertDbContext infraAssertDbContext)
+        private readonly ISystemConfigurationRepository _systemConfigurationRepository;
+
+
+        public ListingPhotoRepository(InfraAssertDbContext infraAssertDbContext, ISystemConfigurationRepository systemConfigurationRepository)
         {
             _context = infraAssertDbContext;
+            _systemConfigurationRepository = systemConfigurationRepository;
         }
 
         public async Task<ReturnModel> DeleteListingRentImage(long listingRentId, int photoId)
@@ -70,7 +74,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     Name = fileName,
                     IsPrincipal = isMain,
                     Description = description,
-                    SpaceTypeId = spaceType
+                    SpaceTypeId = spaceType,
+                    PhotoLink = _systemConfigurationRepository.GetListingResourcePath() + fileName
                 };
                 _context.TlListingPhotos.Add(newPhoto);
                 await _context.SaveChangesAsync();

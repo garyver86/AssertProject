@@ -126,7 +126,12 @@ namespace Assert.Application.Mappings
             CreateMap<TuDocument, DocumentDTO>();
             CreateMap<TuPhone, PhoneDTO>();
             CreateMap<TuProfilePhoto, ProfilePhotoDTO>();
-            CreateMap<TpPropertyAddress, AddressDTO>();
+            CreateMap<TpPropertyAddress, AddressDTO>()
+                .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City))
+                .ForMember(dest => dest.cityId, opt => opt.MapFrom(src => src.CityId))
+                .ForMember(dest => dest.CountyId, opt => opt.MapFrom(src => src.City != null ? src.City.CountyId : 0))
+                .ForMember(dest => dest.StateId, opt => opt.MapFrom(src => src.City != null && src.City.County != null ? src.City.County.StateId : 0));
+
             CreateMap<TmMessage, MessageDTO>();
             CreateMap<TmConversation, ConversationDTO>();
             CreateMap<TpPropertySubtype, PropertyTypeDTO>()
@@ -145,9 +150,9 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.StateCode, opt => opt.MapFrom(src => src.County.State != null ? src.County.State.IataCode : null))
                 .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.County.State != null ? src.County.State.Name : null))
                 .ForMember(dest => dest.CountryCode, opt => opt.MapFrom(src => src.County.State != null && src.County.State.Country != null ? src.County.State.Country.IataCode : null))
-                .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.County.State != null && src.County.State.Country != null ? src.Name : null))
-                .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.County.State != null && src.County.State.Country != null ? src.County.State.Country.Name : null));
-
+                .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.County.State != null && src.County.State.Country != null ? src.County.State.Country.Name : null))
+                .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.Name))
+                .ForMember(dest => dest.County, opt => opt.MapFrom(src => src.County != null ? src.County.Name : null));
             CreateMap<UploadImageRequest, UploadImageListingRent>();
             CreateMap<TSpaceType, SpaceTypeDTO>();
 
