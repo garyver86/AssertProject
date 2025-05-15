@@ -9,11 +9,15 @@ public class LoginRequestValidator : AbstractValidator<LoginRequest>
     {
         RuleFor(x => x.UserName)
             .NotEmpty().WithMessage("El nombre de usuario es obligatorio. Con formato de email.");
-            //.EmailAddress().WithMessage("Formato de email inválido.");
 
-        //RuleFor(x => x.Password)
-        //    .NotEmpty().WithMessage("La contraseña es obligatoria.")
-        //    .MinimumLength(6).WithMessage("Mínimo 6 caracteres.");
+        RuleFor(x => x.UserName)
+            .EmailAddress().WithMessage("Formato de email inválido.")
+            .When(x => !string.Equals(x.UserName, "ASSERT_WEB", StringComparison.OrdinalIgnoreCase));
+
+        RuleFor(x => x.Password)
+            .NotEmpty().WithMessage("La contraseña es obligatoria.")
+            .MinimumLength(8).WithMessage("Mínimo 8 caracteres.")
+            .When(x => x.Platform?.ToLower() == "local");
 
         RuleFor(x => x.Platform)
             .NotEmpty().WithMessage("La plataforma es requerida.")

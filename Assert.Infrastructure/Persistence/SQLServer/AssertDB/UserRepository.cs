@@ -9,12 +9,14 @@ using Assert.Infrastructure.Utils;
 using Assert.Shared.Extensions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Data;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
     public class UserRepository(IExceptionLoggerService _exceptionLoggerService,
-        RequestMetadata _metadata, InfraAssertDbContext _dbContext) : IUserRepository
+        RequestMetadata _metadata, InfraAssertDbContext _dbContext, ILogger<UserRepository> _logger) 
+        : IUserRepository
     {
 
         public async Task<ReturnModel> Login(string username, string password)
@@ -55,9 +57,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     };
                 }
                 else
-                    throw new UnauthorizedAccessException(result_login.MessageResult);
+                    throw new UnauthorizedException(result_login.MessageResult);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not UnauthorizedException)
             {
                 var (className, methodName) = this.GetCallerInfo();
                 _exceptionLoggerService.LogAsync(ex, methodName, className, new { username });
@@ -94,14 +96,41 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task<ReturnModel> ValidateUserName(string userName, bool validateStatusActive)
+        public async Task<ReturnModel<bool>> ExistLocalUser(string userName)
+        {
+            try
+            {
+                //var platformObj = await _dbContext.TuPlatforms.Where(x => x.Code.ToLower() == "local").FirstAsync();
+
+                var user = await _dbContext.TuUsers
+                    .Where(x => x.UserName!.ToUpper() == userName.ToUpper() 
+                    && x.Status == "AC")
+                    .FirstOrDefaultAsync();
+
+                var existUser = user != null;
+
+                return new ReturnModel<bool>
+                {
+                    Data = existUser,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            catch(Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { userName });
+                throw new InfrastructureException(ex.Message);
+            }
+        }
+
+        public async Task<ReturnModel> ValidateUserName(string userName, 
+            bool validateStatusActive, Platform platform)
         {
             try
             {
                 var user = await _dbContext.TuUsers
-                    .Where(x => x.UserName!.ToUpper() == userName.ToUpper())
+                    .Where(x => x.UserName!.ToUpper() == userName.ToUpper() && x.Status == "AC")
                     .Include(x => x.TuAccounts)
-                    .OrderByDescending(x => x.UserId)
                     .FirstOrDefaultAsync();
 
                 if (user == null)
@@ -111,6 +140,17 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         StatusCode = ResultStatusCode.NotFound,
                         ResultError = new ErrorCommon { Message = "El usuario no existe en registros." }
                     };
+                }
+
+                string plataformStr = platform.ToString().ToLower();
+                var platformObj = await _dbContext.TuPlatforms.Where(x => x.Code.ToLower() == plataformStr).FirstAsync();
+
+                if(user.PlatformId != platformObj.PlatformId)
+                {
+                    var plaformFrom = await _dbContext.TuPlatforms.Where(x => x.PlatformId == user.PlatformId).FirstAsync();
+
+                    _logger.LogError($"User registered in: {platformObj.Name!}", platformObj);
+                    throw new InfrastructureException($"El usuario se encuentra registrado en plataforma: {plaformFrom.Code!.ToUpper()}. No puede realizar Login por plataforma: {platform.ToString().ToUpper()}");
                 }
 
                 if (!validateStatusActive)
@@ -145,8 +185,12 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     StatusCode = ResultStatusCode.OK
                 };
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!(ex is UnauthorizedException 
+                                      || ex is InfrastructureException))
             {
+                _logger.LogError($"Exception while validate user: {userName}", new { userName });
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { userName });
                 throw new InfrastructureException(ex.Message);
             }
         }
@@ -189,7 +233,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         public async Task<int> Create(string userName, Platform platform,
             string name, string lastName, int genderTypeId,
             DateTime? dateOfBirth, string photoLink,
-            int accountTypeId, string socialId, int? timeZoneId)
+            int accountTypeId, string socialId, int? timeZoneId, string phoneNumber = "")
         {
             string plataformStr = platform.ToString().ToLower();
             var platformId = await _dbContext.TuPlatforms.Where(x => x.Code.ToLower() == plataformStr)
@@ -201,7 +245,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
             var currentDate = DateTime.UtcNow;
 
-            TuUser newUser = new TuUser
+            var newUser = new TuUser
             {
                 UserName = userName,
                 PlatformId = platformId,
@@ -225,6 +269,23 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 await _dbContext.TuUsers.AddAsync(newUser);
                 await _dbContext.SaveChangesAsync();
+
+                if(!string.IsNullOrEmpty(phoneNumber))
+                {
+                    var phoneNumberObject = phoneNumber.SplitCountryCode();
+                    await _dbContext.TuPhones.AddAsync(new TuPhone
+                    {
+                        UserId = newUser.UserId,
+                        CountryCode = phoneNumberObject.CountryCode,
+                        AreaCode = "",
+                        Number = phoneNumberObject.PhoneNumber,
+                        IsPrimary = true,
+                        IsMobile = true,
+                        Status = 1
+                    });
+                    await _dbContext.SaveChangesAsync();
+                }
+
                 return newUser.UserId;
             }
             catch (Exception ex)

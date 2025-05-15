@@ -1,4 +1,5 @@
-﻿using Assert.Application.DTOs.Responses;
+﻿using Assert.Application.DTOs.Requests;
+using Assert.Application.DTOs.Responses;
 using Assert.Application.Exceptions;
 using Assert.Domain.Common.Metadata;
 using Assert.Domain.Entities;
@@ -7,8 +8,12 @@ using Assert.Domain.Interfaces.Infraestructure.External;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
+using Assert.Domain.ValueObjects;
 using Assert.Infrastructure.Security;
 using AutoMapper;
+using Microsoft.Extensions.Logging;
+using Microsoft.Identity.Client;
+using Newtonsoft.Json.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using ApplicationException = Assert.Application.Exceptions.ApplicationException;
@@ -17,10 +22,11 @@ namespace Assert.Application.Services;
 
 public class AppUserService(
         IJWTSecurity _jwtSecurity, IMapper _mapper, IUserRepository _userRepository,
-        RequestMetadata _metadata,IAccountRepository _accountRepository,
+        RequestMetadata _metadata, IAccountRepository _accountRepository,
         IUserRolRepository _userRolRespository,
         Func<Platform, IAuthProviderValidator> _authValidatorFactory, IUserService _userService,
-        IErrorHandler _errorHandler) : IAppUserService
+        IErrorHandler _errorHandler, ILogger<AppUserService> _logger) 
+        : IAppUserService
 {
     public async Task<ReturnModelDTO> LoginAndEnrollment(string platform, string token,
         string userName, string password)
@@ -35,7 +41,7 @@ public class AppUserService(
         #region authenticator: local - socialMedia
         var authContext = _authValidatorFactory(enumPlatform);
         ReturnModel? authenticationResult = null;
-        
+
         if (enumPlatform == Platform.Local)
             authenticationResult = await authContext.LoginAsync(userName, password);
         else
@@ -50,7 +56,7 @@ public class AppUserService(
         if (authenticationResult.StatusCode == ResultStatusCode.OK)
         {
             #region user & account validation
-            var userAccount = await _userRepository.ValidateUserName(userName, true);
+            var userAccount = await _userRepository.ValidateUserName(userName, true, enumPlatform);
             int userId;
             int accountId;
             int userRolId;
@@ -61,8 +67,8 @@ public class AppUserService(
             switch (userAccount.StatusCode)
             {
                 case "404": //notFound user
-                    userId = await _userRepository.Create(userName, enumPlatform, providerUser.Name, 
-                        providerUser.LastName, 0, null, "", 1, "", null);
+                    userId = await _userRepository.Create(userName, enumPlatform, providerUser.Name,
+                        providerUser.LastName, 0, null, "", 1, "", null, "");
                     accountId = await _accountRepository.Create(userId, password);
                     userRolId = await _userRolRespository.CreateGuest(userId);
                     userRoles.Add("Guest");
@@ -158,6 +164,33 @@ public class AppUserService(
         }
     }
 
+    public async Task<ReturnModelDTO> LocalUserEnrollment(LocalUserRequest userRequest)
+    {
+        var existUserValidation = await _userRepository.ExistLocalUser(userRequest.Email);
+
+        if(existUserValidation.Data)
+        {
+            _logger.LogError($"Enrollment error, user already exist: {userRequest.Email}", userRequest);
+            throw new ApplicationException($"El usuario ya se encuentra registrado en Assert: {userRequest.Email}");
+        } 
+
+        var userId = await _userRepository.Create(userRequest.Email, Platform.Local,
+            userRequest.Name, userRequest.LastName, 3, null, "", 1, "",
+        userRequest.CountryId, userRequest.PhoneNumber);
+        var accountId = await _accountRepository.Create(userId, userRequest.Password);
+        var userRolId = await _userRolRespository.CreateGuest(userId);
+
+        if (userId > 0)
+        {
+            _logger.LogInformation($"Enrollment local user: {userRequest.Email}", userRequest);
+            return await LoginAndEnrollment("local", "", userRequest.Email, userRequest.Password);
+        }
+
+        _logger.LogError($"Enrollment error to create local user: {userRequest.Email}", userRequest);
+        throw new ApplicationException($"No se pudo realizar el enrollamiento del usuario {userRequest.Email}");
+    }
+
+    //private funcs
     private ReturnModelDTO<T> HandleException<T>(string action, Exception ex, object data, bool useTechnicalMessages)
     {
         var error = _errorHandler.GetErrorException(action, ex, data, useTechnicalMessages);
@@ -168,4 +201,5 @@ public class AppUserService(
             ResultError = _mapper.Map<ErrorCommonDTO>(error)
         };
     }
+
 }

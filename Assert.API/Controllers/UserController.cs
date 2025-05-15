@@ -35,6 +35,21 @@ namespace Assert.API.Controllers
         }
 
         /// <summary>
+        /// Servicio de enrolamiento de usuario local (Assert)
+        /// </summary>
+        /// <param name="userRequest">Name - LastName - Email - Password - CountryId - PhoneNumber</param>
+        /// <returns code="200">Enrola usuaerio y retorna token de login realizado</returns>
+        /// <remarks>
+        /// En caso de existir usuario en cualquier otra plataforma lanza error
+        /// </remarks>
+        [HttpPost("EnrollmentLocalUserAndLogin")]
+        [EnableCors("AllowedOriginsPolicy")]
+        public async Task<ReturnModelDTO> EnrollmentLocalUserAndLogin([FromBody] LocalUserRequest userRequest)
+        {
+            return await _userService.LocalUserEnrollment(userRequest);
+        }
+
+        /// <summary>
         /// Servicio que habilita el rol de HOST al usuario actual.
         /// </summary>
         /// <returns>Confirmación de la habilitación.</returns>

@@ -30,6 +30,7 @@ namespace Assert.Application
                 options.ImplicitlyValidateChildProperties = false;
             });
             services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
+            services.AddValidatorsFromAssemblyContaining<LocalUserRequestValidator>();
 
             //Application Services
             services.AddScoped<ISecurityService, SecurityService>();
