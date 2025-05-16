@@ -1,7 +1,6 @@
 ﻿using Assert.Application.DTOs;
 using Assert.Application.DTOs.Requests;
 using Assert.Application.DTOs.Responses;
-using Assert.Application.Exceptions;
 using Assert.Application.Interfaces;
 using Assert.Domain.Entities;
 using Assert.Domain.Interfaces.Logging;
@@ -11,8 +10,6 @@ using Assert.Domain.Services;
 using Assert.Shared.Extensions;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
-using Newtonsoft.Json.Linq;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Assert.Application.Services
 {
@@ -25,11 +22,11 @@ namespace Assert.Application.Services
         IImageService _imageService,
         IMapper _mapper,
         IErrorHandler _errorHandler,
-        IExceptionLoggerService _exceptionLoggerService) 
+        IExceptionLoggerService _exceptionLoggerService)
         : IAppListingRentService
     {
         private bool UseTechnicalMessages { get; set; } = false;
-        
+
         public async Task<ReturnModelDTO> ChangeStatus(long listingRentId, int ownerUserId, string newStatusCode, Dictionary<string, string> clientData,
             bool useTechnicalMessages = true)
         {
@@ -391,7 +388,7 @@ namespace Assert.Application.Services
             }
         }
 
-        public async Task<ReturnModelDTO<string>> UpdateBasicData(long listingRentId, 
+        public async Task<ReturnModelDTO<string>> UpdateBasicData(long listingRentId,
             BasicListingRentData basicData)
         {
             ReturnModelDTO<string> result = null;
@@ -418,7 +415,7 @@ namespace Assert.Application.Services
                 await _listingPriceRepository.SetPricing(listingRentId, pricingData.NightlyPrice,
                     pricingData.WeekendNightlyPrice, pricingData.CurrencyId);
 
-                if(pricingData.DiscountPrices != null)
+                if (pricingData.DiscountPrices != null)
                 {
                     string response = await _listingDiscountForRateRepository.SetDiscounts(listingRentId, pricingData.DiscountPrices
                                 .Select(d => (d.DiscountId, d.Price)).ToList());
