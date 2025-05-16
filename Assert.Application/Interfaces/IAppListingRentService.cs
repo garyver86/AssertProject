@@ -22,5 +22,8 @@ namespace Assert.Application.Interfaces
         Task<List<ReturnModelDTO>> UploadImagesDescription(long listingRentId, List<UploadImageRequest> imagesDescription, Dictionary<string, string> clientData);
 
         Task<ReturnModelDTO<string>> UpdateBasicData(long listingRentId, BasicListingRentData basicData);
+
+        Task<ReturnModelDTO<string>> UpdatePricesAndDiscounts(long listingRentId,
+            PricesAndDiscountRequest pricingData);
     }
 }

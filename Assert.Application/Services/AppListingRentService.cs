@@ -4,42 +4,32 @@ using Assert.Application.DTOs.Responses;
 using Assert.Application.Exceptions;
 using Assert.Application.Interfaces;
 using Assert.Domain.Entities;
+using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
+using Assert.Shared.Extensions;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Newtonsoft.Json.Linq;
 using static System.Net.Mime.MediaTypeNames;
 
 namespace Assert.Application.Services
 {
-    internal class AppListingRentService : IAppListingRentService
+    internal class AppListingRentService(IListingRentService _listingRentService,
+        IListingRentRepository _listingRentRepository,
+        IListingPhotoRepository _listingPhotoRepository,
+        IListingRentReviewRepository _listingReviewRepository,
+        IListingPricingRepository _listingPriceRepository,
+        IListingDiscountForRateRepository _listingDiscountForRateRepository,
+        IImageService _imageService,
+        IMapper _mapper,
+        IErrorHandler _errorHandler,
+        IExceptionLoggerService _exceptionLoggerService) 
+        : IAppListingRentService
     {
-        private IListingRentService _listingRentService;
-
         private bool UseTechnicalMessages { get; set; } = false;
-        private readonly IListingRentRepository _listingRentRepository;
-        private readonly IListingPhotoRepository _listingPhotoRepository;
-        private readonly IListingRentReviewRepository _listingReviewRepository;
-        private readonly IImageService _imageService;
-
-        private readonly IMapper _mapper;
-        private readonly IErrorHandler _errorHandler;
-
-        public AppListingRentService(IListingRentRepository listingRentRepository, IMapper mapper, IErrorHandler errorHandler,
-            IListingRentService listingRentService, IImageService imageService,
-            IListingPhotoRepository listingPhotoRepository, IListingRentReviewRepository listingReviewRepository,
-            ISystemConfigurationRepository systemConfigurationRepository)
-        {
-            _listingRentRepository = listingRentRepository;
-            _mapper = mapper;
-            _errorHandler = errorHandler;
-            _listingRentService = listingRentService;
-            _imageService = imageService;
-            _listingPhotoRepository = listingPhotoRepository;
-            _listingReviewRepository = listingReviewRepository;
-        }
-
+        
         public async Task<ReturnModelDTO> ChangeStatus(long listingRentId, int ownerUserId, string newStatusCode, Dictionary<string, string> clientData,
             bool useTechnicalMessages = true)
         {
@@ -413,9 +403,36 @@ namespace Assert.Application.Services
             }
             catch (Exception ex)
             {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, basicData);
                 throw new Exceptions.ApplicationException(ex.Message);
             }
         }
 
+        public async Task<ReturnModelDTO<string>> UpdatePricesAndDiscounts(long listingRentId,
+            PricesAndDiscountRequest pricingData)
+        {
+            ReturnModelDTO<string> result = null;
+            try
+            {
+                await _listingPriceRepository.SetPricing(listingRentId, pricingData.NightlyPrice,
+                    pricingData.WeekendNightlyPrice, pricingData.CurrencyId);
+
+                if(pricingData.DiscountPrices != null)
+                {
+                    string response = await _listingDiscountForRateRepository.SetDiscounts(listingRentId, pricingData.DiscountPrices
+                                .Select(d => (d.DiscountId, d.Price)).ToList());
+                }
+
+                result = _mapper.Map<ReturnModelDTO<string>>("UPDATE");
+                return result;
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, pricingData);
+                throw new Exceptions.ApplicationException(ex.Message);
+            }
+        }
     }
 }
