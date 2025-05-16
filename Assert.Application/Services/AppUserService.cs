@@ -9,6 +9,7 @@ using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Assert.Infrastructure.Security;
 using AutoMapper;
+using Newtonsoft.Json.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using ApplicationException = Assert.Application.Exceptions.ApplicationException;
@@ -17,7 +18,7 @@ namespace Assert.Application.Services;
 
 public class AppUserService(
         IJWTSecurity _jwtSecurity, IMapper _mapper, IUserRepository _userRepository,
-        RequestMetadata _metadata,IAccountRepository _accountRepository,
+        RequestMetadata _metadata, IAccountRepository _accountRepository,
         IUserRolRepository _userRolRespository,
         Func<Platform, IAuthProviderValidator> _authValidatorFactory, IUserService _userService,
         IErrorHandler _errorHandler) : IAppUserService
@@ -35,7 +36,7 @@ public class AppUserService(
         #region authenticator: local - socialMedia
         var authContext = _authValidatorFactory(enumPlatform);
         ReturnModel? authenticationResult = null;
-        
+
         if (enumPlatform == Platform.Local)
             authenticationResult = await authContext.LoginAsync(userName, password);
         else
@@ -61,7 +62,7 @@ public class AppUserService(
             switch (userAccount.StatusCode)
             {
                 case "404": //notFound user
-                    userId = await _userRepository.Create(userName, enumPlatform, providerUser.Name, 
+                    userId = await _userRepository.Create(userName, enumPlatform, providerUser.Name,
                         providerUser.LastName, 0, null, "", 1, "", null);
                     accountId = await _accountRepository.Create(userId, password);
                     userRolId = await _userRolRespository.CreateGuest(userId);
@@ -155,6 +156,63 @@ public class AppUserService(
         catch (Exception ex)
         {
             return HandleException<ReturnModelDTO>("AppUserService.EnableHostRole", ex, new { userId }, useTechnicalMessages);
+        }
+    }
+
+    public async Task<ReturnModelDTO> RenewJwtToken(string expiredToken)
+    {
+        try
+        {
+            var (claims, isValid) = _jwtSecurity.GetClaimsFromExpiredToken(expiredToken);
+
+            if (!isValid || claims == null)
+            {
+                return new ReturnModelDTO
+                {
+                    StatusCode = ResultStatusCode.Unauthorized,
+                    HasError = true,
+                    ResultError = new ErrorCommonDTO { Message = "Invalid or malformed token." }
+                };
+            }
+
+            //string? userName = claims.FirstOrDefault(c => c.Type == JwtRegisteredClaimNames.Sub)?.Value;
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(expiredToken);
+            string userName = jwtToken?.Subject;
+
+
+            if (string.IsNullOrEmpty(userName))
+            {
+                return new ReturnModelDTO
+                {
+                    StatusCode = ResultStatusCode.Unauthorized,
+                    HasError = true,
+                    ResultError = new ErrorCommonDTO { Message = "Token does not contain username." }
+                };
+            }
+            var userAccount = await _userRepository.ValidateUserName(userName, true);
+
+            if (userAccount.StatusCode != "200")
+            {
+                return new ReturnModelDTO
+                {
+                    StatusCode = ResultStatusCode.Unauthorized,
+                    HasError = true,
+                    ResultError = new ErrorCommonDTO { Message = "User not found or inactive." }
+                };
+            }
+
+            string newJwtToken = await _jwtSecurity.GenerateJwt(claims);
+
+            return new ReturnModelDTO
+            {
+                StatusCode = ResultStatusCode.OK,
+                Data = new { jwtToken = newJwtToken }
+            };
+        }
+        catch (Exception ex)
+        {
+            return HandleException<ReturnModelDTO>("AppUserService.RenewJwtToken", ex, new { expiredToken }, useTechnicalMessages: true); // Consider the useTechnicalMessages flag
         }
     }
 

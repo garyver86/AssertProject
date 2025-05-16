@@ -19,7 +19,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task<List<TlAccommodationType>> GetActives()
         {
-            List<TlAccommodationType> accommodationTypes = await _context.TlAccommodationTypes.Where(x => x != null).ToListAsync();
+            List<TlAccommodationType> accommodationTypes = await _context.TlAccommodationTypes.Where(x => x.Status == 1).ToListAsync();
             return accommodationTypes;
         }
     }

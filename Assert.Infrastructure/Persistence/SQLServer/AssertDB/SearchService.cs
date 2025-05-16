@@ -117,31 +117,44 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
             var properties = await query.Include(x => x.ListingStatus)
                     .Include(x => x.ListingStatus)
-                    .Include(x => x.AccomodationType)
-                    .Include(x => x.ApprovalPolicyType)
-                    .Include(x => x.CancelationPolicyType)
+                    //.Include(x => x.AccomodationType)
+                    //.Include(x => x.ApprovalPolicyType)
+                    //.Include(x => x.CancelationPolicyType)
                     .Include(x => x.OwnerUser)
                     .Include(x => x.TlListingAmenities)
                         .ThenInclude(y => y.AmenitiesType)
-                    .Include(x => x.TlCheckInOutPolicies)
+                    //.Include(x => x.TlCheckInOutPolicies)
                     .Include(x => x.TlListingFeaturedAspects)
                         .ThenInclude(y => y.FeaturesAspectType)
                     .Include(x => x.TpProperties)
                         .ThenInclude(y => y.TpPropertyAddresses)
+                        .ThenInclude(y => y.City)
+                        .ThenInclude(y => y.County)
+                        .ThenInclude(y => y.State)
+                        .ThenInclude(y => y.Country)
+                    .Include(x => x.TpProperties)
+                        .ThenInclude(y => y.TpPropertyAddresses)
+                        .ThenInclude(y => y.County)
+                        .ThenInclude(y => y.State)
+                        .ThenInclude(y => y.Country)
+                    .Include(x => x.TpProperties)
+                        .ThenInclude(y => y.TpPropertyAddresses)
+                        .ThenInclude(y => y.State)
+                        .ThenInclude(y => y.Country)
                     .Include(x => x.TpProperties)
                         .ThenInclude(y => y.PropertySubtype)
                             .ThenInclude(y => y.PropertyType)
                     .Include(x => x.TlListingPhotos)
                     .Include(x => x.TlListingPrices)
-                    .Include(x => x.TlListingRentRules)
-                        .ThenInclude(y => y.RuleType)
-                    .Include(x => x.TlListingSecurityItems)
-                        .ThenInclude(y => y.SecurityItemType)
-                    .Include(x => x.TlListingSpaces)
-                        .ThenInclude(y => y.SpaceType)
-                    .Include(x => x.TlListingSpecialDatePrices)
-                    .Include(x => x.TlStayPresences)
-                        .ThenInclude(y => y.StayPrecenseType)
+                    //.Include(x => x.TlListingRentRules)
+                    //    .ThenInclude(y => y.RuleType)
+                    //.Include(x => x.TlListingSecurityItems)
+                    //    .ThenInclude(y => y.SecurityItemType)
+                    //.Include(x => x.TlListingSpaces)
+                    //    .ThenInclude(y => y.SpaceType)
+                    //.Include(x => x.TlListingSpecialDatePrices)
+                    //.Include(x => x.TlStayPresences)
+                    //    .ThenInclude(y => y.StayPrecenseType)
                     .AsNoTracking().ToListAsync();
 
             List<TlListingRent> result = new List<TlListingRent>();
@@ -168,6 +181,25 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             else
             {
                 result = properties;
+            }
+
+            if (result != null)
+            {
+                foreach (var prop in result)
+                {
+                    if (prop.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault() != null)
+                    {
+                        if (prop.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().City != null)
+                        {
+                            prop.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().State = prop.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().City.County.State;
+                            prop.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().County = prop.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().City.County;
+                        }
+                        if (prop.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().County != null)
+                        {
+                            prop.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().State = prop.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().County.State;
+                        }
+                    }
+                }
             }
 
             return new ReturnModel<List<TlListingRent>>

@@ -21,6 +21,7 @@ namespace Assert.Domain.Models
         public static string ServiceUnavailable => GetStatusCode("ServiceUnavailable");
         public static string InternalError => GetStatusCode("InternalError");
         public static string Error => "ERR";
+
         public static string NotFoundRecord = "El recurso solicitado no fue encontrado.";
         public static string NotFoundUpdate = "Recurso no encontrado, para actualización";
         public static string NotFoundDelete = "Recurso no encontrado, para eliminación";

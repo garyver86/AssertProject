@@ -1531,6 +1531,7 @@ public partial class AssertDbContext : DbContext
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("accomodationCode");
+            entity.Property(e => e.Status).HasColumnName("status");
         });
 
         modelBuilder.Entity<TlCheckInOutPolicy>(entity =>
@@ -3032,10 +3033,6 @@ public partial class AssertDbContext : DbContext
             entity.HasOne(d => d.Platform).WithMany(p => p.TuUsers)
                 .HasForeignKey(d => d.PlatformId)
                 .HasConstraintName("FK_TU_User_TU_Platform");
-
-            entity.HasOne(d => d.TimeZone).WithMany(p => p.TuUsers)
-                .HasForeignKey(d => d.TimeZoneId)
-                .HasConstraintName("FK_TU_User_TimeZone");
 
             entity.HasOne(d => d.TitleType).WithMany(p => p.TuUsers)
                 .HasForeignKey(d => d.TitleTypeId)

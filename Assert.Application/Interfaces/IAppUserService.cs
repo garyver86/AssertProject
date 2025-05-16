@@ -8,5 +8,5 @@ public interface IAppUserService
     Task<ReturnModelDTO> LoginAndEnrollment(string platform, string token, string user, string password);
     Task<ReturnModelDTO> EnableHostRole(long userId, Dictionary<string, string> clientData, bool useTechnicalMessages);
     Task<ReturnModelDTO> DisableHostRole(long userId, Dictionary<string, string> clientData, bool useTechnicalMessages);
-
+    Task<ReturnModelDTO> RenewJwtToken(string expiredToken);
 }

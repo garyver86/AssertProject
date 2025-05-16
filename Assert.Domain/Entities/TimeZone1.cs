@@ -24,6 +24,4 @@ public partial class TimeZone1
     public int? GmtOffset { get; set; }
 
     public bool? Dst { get; set; }
-
-    public virtual ICollection<TuUser> TuUsers { get; set; } = new List<TuUser>();
 }

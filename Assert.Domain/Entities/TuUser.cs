@@ -51,8 +51,6 @@ public partial class TuUser
 
     public virtual ICollection<TiIssue> TiIssueReportedByUsers { get; set; } = new List<TiIssue>();
 
-    public virtual TimeZone1? TimeZone { get; set; }
-
     public virtual TuTitleType? TitleType { get; set; }
 
     public virtual ICollection<TlListingFavorite> TlListingFavorites { get; set; } = new List<TlListingFavorite>();

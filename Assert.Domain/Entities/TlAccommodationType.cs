@@ -15,5 +15,7 @@ public partial class TlAccommodationType
 
     public string? AccommodationIcon { get; set; }
 
+    public int? Status { get; set; }
+
     public virtual ICollection<TlListingRent> TlListingRents { get; set; } = new List<TlListingRent>();
 }
