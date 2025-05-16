@@ -73,13 +73,32 @@ namespace Assert.API.Controllers
         [HttpPost]
         [Authorize(Policy = "GuestOrHost")]
         [Route("{listinRentId}/UpdateBasicData")]
-        public async Task<ReturnModelDTO<string>> UpdateBasicData(long listinRentId, [FromBody] BasicListingRentData request)
+        public async Task<ReturnModelDTO<string>> UpdateBasicData(long listinRentId, 
+            [FromBody] BasicListingRentData request)
         {
-            var requestInfo = HttpContext.GetRequestInfo();
             var result = await _appListingRentService.UpdateBasicData(listinRentId, request);
             return result;
         }
 
+        /// <summary>
+        /// Servicio que actualiza informacion de precios de renta y descuentos
+        /// </summary>
+        /// <param name="listinRentId">Identificador de Listing Rent</param>
+        /// <param name="request">Precios de renta para: semana - fin de semana y lista de descuentos</param>
+        /// <returns></returns>
+        /// <response code="200">El valor de Data seria UPDATED</response>
+        /// <remarks>
+        /// Si no existe descuentos enviar null el valor de la lista
+        /// </remarks>
+        [HttpPost]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("{listinRentId}/UpdatePricesAndDiscounts")]
+        public async Task<ReturnModelDTO<string>> UpdatePricesAndDiscounts(long listinRentId, 
+            [FromBody] PricesAndDiscountRequest request)
+        {
+            var result = await _appListingRentService.UpdatePricesAndDiscounts(listinRentId, request);
+            return result;
+        }
 
         ///// <summary>
         ///// Servicio que realiza la subida de las imagenes asociadas a los listing rent.
