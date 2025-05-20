@@ -202,7 +202,7 @@ namespace Assert.Domain.Implementation
             }
 
             await _listingPriceRepository.SetPricing(listing.ListingRentId, request_.Pricing, request_.WeekendPrice, request_.CurrencyId);
-            await _listingDiscountRepository.SetDiscounts(listing.ListingRentId, request_.Discounts?.Select(x => x.dicountTypeId));
+            await _listingDiscountRepository.SetDiscounts(listing.ListingRentId, request_.Discounts?.Select(x => (x.dicountTypeId,x.Price)).ToList());
 
             return new ReturnModel
             {
@@ -329,7 +329,7 @@ namespace Assert.Domain.Implementation
 
         private async Task<ReturnModel> SetDiscount(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
         {
-            await _listingDiscountRepository.SetDiscounts(listing.ListingRentId, request_.Discounts?.Select(x => x.dicountTypeId));
+            await _listingDiscountRepository.SetDiscounts(listing.ListingRentId, request_.Discounts?.Select(x => (x.dicountTypeId, x.Price)).ToList());
             return new ReturnModel
             {
                 HasError = false,

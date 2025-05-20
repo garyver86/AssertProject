@@ -39,7 +39,7 @@ namespace Assert.Application.Services
             }
         }
 
-        public async Task<ReturnModelDTO<List<CountryDTO>>> SearchCities(string filter, Dictionary<string, string> clientData, bool useTechnicalMessages)
+        public async Task<ReturnModelDTO<List<CountryDTO>>> SearchCities(string filter, int filterType, Dictionary<string, string> clientData, bool useTechnicalMessages)
         {
             if (string.IsNullOrEmpty(filter) || filter.Length < 3)
             {
@@ -48,7 +48,7 @@ namespace Assert.Application.Services
 
             try
             {
-                var citiesResult = await _searchService.SearchCities(filter);
+                var citiesResult = await _searchService.SearchCities(filter, filterType);
                 if (citiesResult.HasError)
                 {
                     return CreateErrorResult<List<CountryDTO>>(citiesResult.StatusCode, citiesResult.ResultError, useTechnicalMessages);

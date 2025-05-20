@@ -17,13 +17,13 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             _priceRepository = listingPriceRepository;
         }
 
-        public async Task SetDiscounts(long listingRentId, IEnumerable<int>? enumerable)
+        public async Task SetDiscounts(long listingRentId, List<(int, decimal)> discountList)
         {
             List<TlListingDiscountForRate> activeDiscounts = await _context.TlListingDiscountForRates.Where(x => x.ListingRentId == listingRentId).ToListAsync();
             List<int> alreadyExist = new List<int>();
             foreach (var discount in activeDiscounts)
             {
-                if (!(enumerable?.Contains(discount.DiscountTypeForTypePriceId) ?? false))
+                if (!(discountList?.Select(x => x.Item1).Contains(discount.DiscountTypeForTypePriceId) ?? false))
                 {
                     _context.TlListingDiscountForRates.Remove(discount);
                 }
@@ -32,19 +32,22 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     alreadyExist.Add(discount.DiscountTypeForTypePriceId);
                 }
             }
-            if (enumerable.Count() > 0)
+            if (discountList.Count() > 0)
             {
-                foreach (int discountTypeId in enumerable)
+                foreach (var discountTypeId in discountList)
                 {
-                    if (!alreadyExist.Contains(discountTypeId))
+                    if (!alreadyExist.Contains(discountTypeId.Item1))
                     {
                         TlListingDiscountForRate newDiscount = new TlListingDiscountForRate
                         {
-                            DiscountTypeForTypePriceId = discountTypeId,
-                            ListingRentId = listingRentId
+                            DiscountTypeForTypePriceId = discountTypeId.Item1,
+                            ListingRentId = listingRentId,
+                            DiscountCalculated = discountTypeId.Item2,
+                            Porcentage = 0,
+                            IsDiscount = true
                         };
                         _context.Add(newDiscount);
-                        alreadyExist.Add(discountTypeId);
+                        alreadyExist.Add(discountTypeId.Item1);
                     }
                 }
             }

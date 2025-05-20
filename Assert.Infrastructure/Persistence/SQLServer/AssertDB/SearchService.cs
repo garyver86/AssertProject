@@ -17,9 +17,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             _cityRepository = cityRepository;
         }
 
-        public async Task<ReturnModel<List<TCity>>> SearchCities(string filter)
+        public async Task<ReturnModel<List<TCity>>> SearchCities(string filter, int filterType)
         {
-            var result = await _cityRepository.FindByFilter(filter);
+            var result = await _cityRepository.FindByFilter(filter, filterType);
             return new ReturnModel<List<TCity>>
             {
                 StatusCode = ResultStatusCode.OK,

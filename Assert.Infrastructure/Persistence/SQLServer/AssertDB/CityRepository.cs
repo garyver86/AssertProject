@@ -19,31 +19,75 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
            .AsNoTracking()
            .ToListAsync();
         }
-        public async Task<List<TCity>> FindByFilter(string filter)
+        public async Task<List<TCity>> FindByFilter(string filter, int filterType)
         {
-            //var cities = await _context.TCities
-            //.Where(c => c.Name.StartsWith(filter) &&
-            //            !(c.IsDisabled ?? false))
-            //.Include(c => c.County)
-            //    .Where(co => !(co.IsDisabled ?? false)) // Filtrar condados deshabilitados
-            //.Include(c => c.State)
-            //    .Where(s => !(s.IsDisabled ?? false)) // Filtrar Estados deshabilitados
-            //.Include(c => c.County)
-            //    .Where(c => !(c.IsDisabled ?? false)) // Filtrar estados y países deshabilitados
-            //.AsNoTracking()
-            //.ToListAsync();
-
-            var cities = await _context.TCities
-            .Where(c => c.Name.Contains(filter) &&
-                        !(c.IsDisabled ?? false))
-            .Include(c => c.County)
-                .Where(co => !(co.County.IsDisabled ?? false))
+            List<TCity> cities = null;
+            if (filterType == 4 || filterType == 0 || filterType == null)
+            {
+                cities = await _context.TCities
+                .Where(c => c.Name.Contains(filter) &&
+                            !(c.IsDisabled ?? false))
+                .Include(c => c.County)
+                    .Where(co => !(co.County.IsDisabled ?? false))
+                    .Include(co => co.County.State)
+                        .Where(s => !(s.County.State.IsDisabled ?? false))
+                        .Include(s => s.County.State.Country)
+                            .Where(country => !(country.County.State.Country.IsDisabled ?? false))
+                .AsNoTracking()
+                .ToListAsync();
+            }
+            else if (filterType == 1) // Country
+            {
+                cities = await _context.TCities
+                .Where(c => !(c.IsDisabled ?? false))
+                .Include(c => c.County)
+                    .Where(co => !(co.County.IsDisabled ?? false))
+                    .Include(co => co.County.State)
+                        .Where(s => !(s.County.State.IsDisabled ?? false))
+                        .Include(s => s.County.State.Country)
+                            .Where(country => !(country.County.State.Country.IsDisabled ?? false) && country.County.State.Country.Name.Contains(filter))
+                .AsNoTracking()
+                .ToListAsync();
+            }
+            else if (filterType == 2) // State
+            {
+                cities = await _context.TCities
+                .Where(c => !(c.IsDisabled ?? false))
+                .Include(c => c.County)
+                    .Where(co => !(co.County.IsDisabled ?? false))
                 .Include(co => co.County.State)
-                    .Where(s => !(s.County.State.IsDisabled ?? false))
-                    .Include(s => s.County.State.Country)
-                        .Where(country => !(country.County.State.Country.IsDisabled ?? false))
-            .AsNoTracking()
-            .ToListAsync();
+                        .Where(s => !(s.County.State.IsDisabled ?? false) && s.County.State.Name.Contains(filter))
+                        .Include(s => s.County.State.Country)
+                            .Where(country => !(country.County.State.Country.IsDisabled ?? false))
+                .AsNoTracking()
+                .ToListAsync();
+            }
+            else if (filterType == 3) // County
+            {
+                cities = await _context.TCities
+                .Where(c => !(c.IsDisabled ?? false))
+                .Include(c => c.County)
+                    .Where(co => !(co.County.IsDisabled ?? false) && co.County.Name.Contains(filter))
+                .Include(co => co.County.State)
+                        .Where(s => !(s.County.State.IsDisabled ?? false))
+                        .Include(s => s.County.State.Country)
+                            .Where(country => !(country.County.State.Country.IsDisabled ?? false))
+                .AsNoTracking()
+                .ToListAsync();
+            }
+            else if (filterType == 3) // City
+            {
+                cities = await _context.TCities
+                .Where(c => !(c.IsDisabled ?? false))
+                .Include(c => c.County)
+                    .Where(co => !(co.County.IsDisabled ?? false))
+                .Include(co => co.County.State)
+                        .Where(s => !(s.County.State.IsDisabled ?? false))
+                        .Include(s => s.County.State.Country)
+                            .Where(country => !(country.County.State.Country.IsDisabled ?? false))
+                .AsNoTracking()
+                .ToListAsync();
+            }
 
             return cities;
         }
