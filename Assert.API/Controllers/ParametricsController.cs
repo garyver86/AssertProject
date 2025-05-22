@@ -1,6 +1,7 @@
 ﻿using Assert.API.Helpers;
 using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
+using Assert.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -67,6 +68,9 @@ namespace Assert.API.Controllers
                 case "country":
                     _filterType = 1;
                     break;
+                case "all":
+                    _filterType = 0;
+                    break;
                 default:
                     return new ReturnModelDTO<List<CountryDTO>>()
                     {
@@ -80,6 +84,25 @@ namespace Assert.API.Controllers
                     };
             }
             var cities = await _searchService.SearchCities(filter, _filterType, requestInfo, true);
+
+            return cities;
+        }
+
+        /// <summary>
+        /// Servicio que devuelve una lista de sugerencias de locations en base a un filtro ingresado.
+        /// </summary>
+        /// <param name="filter">Texto que permite filtrar las localizaciones (Mínimo 3 caracteres).</param>
+        /// <returns>Listado de localizaciones que coinciden con la búsqueda.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// </remarks>
+        [HttpGet("Locations/Suggest/{filter}")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO<List<LocationSuggestion>>> SuggestLocation(string filter)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+
+            var cities = await _searchService.SuggestLocation(filter, requestInfo, true);
 
             return cities;
         }

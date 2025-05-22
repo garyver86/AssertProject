@@ -10,13 +10,15 @@ namespace Assert.Application.Services
     public class AppSearchService : IAppSearchService
     {
         private readonly ISearchService _searchService;
+        private readonly ILocationSugestionService _locationService;
         private readonly IMapper _mapper;
         private readonly IErrorHandler _errorHandler;
-        public AppSearchService(ISearchService searchService, IMapper mapper, IErrorHandler errorHandler)
+        public AppSearchService(ISearchService searchService, IMapper mapper, IErrorHandler errorHandler, ILocationSugestionService locationService)
         {
             _searchService = searchService;
             _mapper = mapper;
             _errorHandler = errorHandler;
+            _locationService = locationService;
         }
 
         public async Task<ReturnModelDTO<List<ListingRentDTO>>> SearchProperties(SearchFilters filters, Dictionary<string, string> clientData, bool useTechnicalMessages)
@@ -65,6 +67,34 @@ namespace Assert.Application.Services
             catch (Exception ex)
             {
                 return HandleException<List<CountryDTO>>("AppSearchProperties.SearchCities", ex, new { filter }, useTechnicalMessages);
+            }
+        }
+
+        public async Task<ReturnModelDTO<List<LocationSuggestion>>> SuggestLocation(string filter, Dictionary<string, string> clientData, bool useTechnicalMessages)
+        {
+            if (string.IsNullOrEmpty(filter) || filter.Length < 3)
+            {
+                return CreateErrorResult<List<LocationSuggestion>>(ResultStatusCode.BadRequest, "El filtro de búsqueda debe tener al menos 3 caracteres.", useTechnicalMessages);
+            }
+
+            try
+            {
+                var citiesResult = await _locationService.GetLocationSuggestions(filter);
+                if (citiesResult.HasError)
+                {
+                    return CreateErrorResult<List<LocationSuggestion>>(citiesResult.StatusCode, citiesResult.ResultError, useTechnicalMessages);
+                }
+
+                return new ReturnModelDTO<List<LocationSuggestion>>
+                {
+                    Data = citiesResult.Data,
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            catch (Exception ex)
+            {
+                return HandleException<List<LocationSuggestion>>("AppSearchProperties.SuggestLocation", ex, new { filter }, useTechnicalMessages);
             }
         }
 

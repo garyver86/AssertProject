@@ -7,5 +7,6 @@ namespace Assert.Application.Interfaces
     {
         Task<ReturnModelDTO<List<ListingRentDTO>>> SearchProperties(SearchFilters filters, Dictionary<string, string> clientData, bool useTechnicalMessages);
         Task<ReturnModelDTO<List<CountryDTO>>> SearchCities(string filter, int filterType, Dictionary<string, string> clientData, bool useTechnicalMessages);
+        Task<ReturnModelDTO<List<LocationSuggestion>>> SuggestLocation(string filter, Dictionary<string, string> clientData, bool useTechnicalMessages);
     }
 }
