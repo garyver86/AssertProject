@@ -31,7 +31,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         {
             var query = _context.TlListingRents.AsQueryable();
 
-            query.Where(x => x.ListingStatus.Code == "PUBLISH");
+            query = query.Where(x => x.ListingStatus.Code == "PUBLISH");
 
             if (filters.CityId > 0)
             {
