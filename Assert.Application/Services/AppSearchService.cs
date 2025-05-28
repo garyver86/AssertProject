@@ -4,6 +4,7 @@ using Assert.Domain.Entities;
 using Assert.Domain.Models;
 using Assert.Domain.Services;
 using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Assert.Application.Services
 {
@@ -21,11 +22,11 @@ namespace Assert.Application.Services
             _locationService = locationService;
         }
 
-        public async Task<ReturnModelDTO<List<ListingRentDTO>>> SearchProperties(SearchFilters filters, Dictionary<string, string> clientData, bool useTechnicalMessages)
+        public async Task<ReturnModelDTO<List<ListingRentDTO>>> SearchProperties(SearchFilters filters, int pageNumber, int pageSize, Dictionary<string, string> clientData, bool useTechnicalMessages)
         {
             try
             {
-                var listings = await _searchService.SearchPropertiesAsync(filters);
+                var listings = await _searchService.SearchPropertiesAsync(filters, pageNumber, pageSize);
                 var dataResult = _mapper.Map<List<ListingRentDTO>>(listings.Data);
 
                 return new ReturnModelDTO<List<ListingRentDTO>>

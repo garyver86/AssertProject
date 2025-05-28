@@ -46,6 +46,8 @@ namespace Assert.API.Controllers
         /// Servicio que permite la busqueda de propiedades en base a distintos parámetros.
         /// </summary>
         /// <param name="filters">Diferentes valores que reducen el rango de busqueda de propiedades.</param>
+        /// <param name="pageNumber">Pagina o grupo de resultados que se quieren obtener. (Por defecto 1).</param>
+        /// <param name="pageSize">Cantidad de propiedades destacadas que se quieren obtener por página (Por defecto 10).</param>
         /// <returns>Listado de propiedades que cumplen con los parametros ingresados y que se encuentran publicados y listos para rentar.</returns>
         /// <response code="200">Si se procesó correctamente.</response>
         /// <remarks>
@@ -55,10 +57,10 @@ namespace Assert.API.Controllers
         /// </remarks>
         [HttpGet("Search")]
         [Authorize(Policy = "GuestOnly")]
-        public async Task<ReturnModelDTO<List<ListingRentDTO>>> Search([FromQuery] SearchFilters filters)
+        public async Task<ReturnModelDTO<List<ListingRentDTO>>> Search([FromQuery] SearchFilters filters, [FromQuery] int? pageNumber = 1, [FromQuery] int? pageSize = 10)
         {
             var requestInfo = HttpContext.GetRequestInfo();
-            var properties = await _searchService.SearchProperties(filters, requestInfo, true);
+            var properties = await _searchService.SearchProperties(filters, pageNumber ?? 1, pageSize ?? 10, requestInfo, true);
 
             return properties;
         }
@@ -120,22 +122,22 @@ namespace Assert.API.Controllers
         /// <summary>
         /// Servicio que devuelve la lista de propiedades destacadas.
         /// </summary>
-        /// <param name="countryCode">Código de país de la que se quieren obtener las propiedades destacadas (no es requerido).</param>
-        /// <param name="limit">Cantidad de propiedades destacadas que se quieren obtener (Por defecto 10).</param>
+        /// <param name="countryId">id de país de la que se quieren obtener las propiedades destacadas (no es requerido).</param>
+        /// <param name="pageNumber">Pagina o grupo de resultados que se quieren obtener. (Por defecto 1).</param>
+        /// <param name="pageSize">Cantidad de propiedades destacadas que se quieren obtener por página (Por defecto 10).</param>
         /// <returns>Lista de propiedades destacadas. (StatusCode=200).</returns>
         /// <response code="200">Si se procesó correctamente.</response>
         /// <remarks>
         /// Si se envia el countryId, las propiedades destacadas devueltas corresponteran al pais, caso contrario, se devolveran
-        /// las propiedades destacadas de la totalidad. El calculo de propiedades destacadas se la realiza en base a los
+        /// las propiedades destacadas de la totalidad. El calculo de propiedades destacadas se la realiza en base a las valoraciones o reviews.
         /// </remarks>
         [HttpGet("Featureds")]
-        //public async Task<ReturnModelDTO> FeaturedListings([FromQuery] int? countryId, [FromQuery] int? limit = 10)
-        public async Task<ReturnModelDTO> FeaturedListings([FromQuery] int? countryId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<ReturnModelDTO> FeaturedListings([FromQuery] int? countryId, [FromQuery] int? pageNumber = 1, [FromQuery] int? pageSize = 10)
         {
             var requestInfo = HttpContext.GetRequestInfo();
             int userId = 0;
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);
-            ReturnModelDTO result = await _appListingRentService.GetFeaturedListings(countryId, pageNumber, pageSize, requestInfo);
+            ReturnModelDTO result = await _appListingRentService.GetFeaturedListings(countryId, pageNumber ?? 1, pageSize ?? 10, requestInfo);
             return result;
         }
     }

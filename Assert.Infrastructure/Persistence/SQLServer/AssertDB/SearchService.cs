@@ -27,8 +27,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             };
         }
 
-        public async Task<ReturnModel<List<TlListingRent>>> SearchPropertiesAsync(SearchFilters filters)
+        public async Task<ReturnModel<List<TlListingRent>>> SearchPropertiesAsync(SearchFilters filters, int pageNumber, int pageSize)
         {
+            var skipAmount = (pageNumber - 1) * pageSize;
             var query = _context.TlListingRents.AsQueryable();
 
             query = query.Where(x => x.ListingStatus.Code == "PUBLISH");
@@ -115,7 +116,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     p.TpProperties.FirstOrDefault().Longitude >= minLon && p.TpProperties.FirstOrDefault().Longitude <= maxLon);
             }
 
-            var properties = await query.Include(x => x.ListingStatus)
+            query = query.Include(x => x.ListingStatus)
                     .Include(x => x.ListingStatus)
                     //.Include(x => x.AccomodationType)
                     //.Include(x => x.ApprovalPolicyType)
@@ -155,7 +156,12 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     //.Include(x => x.TlListingSpecialDatePrices)
                     //.Include(x => x.TlStayPresences)
                     //    .ThenInclude(y => y.StayPrecenseType)
-                    .AsNoTracking().ToListAsync();
+                    .AsNoTracking();
+
+            var properties = await query
+               .Skip(skipAmount)
+               .Take(pageSize)
+               .ToListAsync();
 
             List<TlListingRent> result = new List<TlListingRent>();
             if (boundingBox != null)
