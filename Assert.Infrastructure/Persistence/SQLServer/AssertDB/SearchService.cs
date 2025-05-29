@@ -39,6 +39,16 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 query = query.Where(p => p.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().CityId == filters.CityId);
             }
 
+            if (filters.CountyId > 0)
+            {
+                query = query.Where(p => p.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().City.CountyId == filters.CountyId);
+            }
+
+            if (filters.StateId > 0)
+            {
+                query = query.Where(p => p.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().City.County.StateId == filters.CityId);
+            }
+
             if (filters.CountryId > 0)
             {
                 query = query.Where(p => p.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().City.County.State.CountryId == filters.CountryId);

@@ -65,6 +65,14 @@
         /// Id de la ciudad donde se encuentra la propiedad.
         /// </summary>
         public long? CityId { get; set; }
+        /// <summary>
+        /// Id de la ciudad donde se encuentra la propiedad.
+        /// </summary>
+        public long? CountyId { get; set; }
+        /// <summary>
+        /// Id de la ciudad donde se encuentra la propiedad.
+        /// </summary>
+        public long? StateId { get; set; }
 
         /// <summary>
         /// id del país donde se encuentra la propiedad.
