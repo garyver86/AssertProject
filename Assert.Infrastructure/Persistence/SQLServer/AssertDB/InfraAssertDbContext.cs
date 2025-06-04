@@ -2257,6 +2257,16 @@ public partial class InfraAssertDbContext : DbContext
                 .HasForeignKey(d => d.StatusId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TM_Conversation_TM_ConversationStatus");
+
+            entity.HasOne(d => d.UserIdOneNavigation).WithMany(p => p.TmConversationUserIdOneNavigations)
+                .HasForeignKey(d => d.UserIdOne)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TM_Conversation_TU_User");
+
+            entity.HasOne(d => d.UserIdTwoNavigation).WithMany(p => p.TmConversationUserIdTwoNavigations)
+                .HasForeignKey(d => d.UserIdTwo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TM_Conversation_TU_User1");
         });
 
         modelBuilder.Entity<TmConversationStatus>(entity =>

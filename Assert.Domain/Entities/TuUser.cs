@@ -59,6 +59,10 @@ public partial class TuUser
 
     public virtual ICollection<TlListingReview> TlListingReviews { get; set; } = new List<TlListingReview>();
 
+    public virtual ICollection<TmConversation> TmConversationUserIdOneNavigations { get; set; } = new List<TmConversation>();
+
+    public virtual ICollection<TmConversation> TmConversationUserIdTwoNavigations { get; set; } = new List<TmConversation>();
+
     public virtual ICollection<TmNotification> TmNotifications { get; set; } = new List<TmNotification>();
 
     public virtual ICollection<TuAccount> TuAccounts { get; set; } = new List<TuAccount>();
