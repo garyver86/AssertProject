@@ -99,18 +99,18 @@ namespace Assert.Application.Services
                         }
                     };
                 }
-                else if (listings.OwnerUserId != _userID)
-                {
-                    return new ReturnModelDTO<ListingRentDTO>
-                    {
-                        StatusCode = ResultStatusCode.NotFound,
-                        ResultError = new ErrorCommonDTO
-                        {
-                            Code = ResultStatusCode.NotFound,
-                            Message = "No tiene permisos sobre el listing rent solicitado."
-                        }
-                    };
-                }
+                //else if (listings.OwnerUserId != _userID)
+                //{
+                //    return new ReturnModelDTO<ListingRentDTO>
+                //    {
+                //        StatusCode = ResultStatusCode.NotFound,
+                //        ResultError = new ErrorCommonDTO
+                //        {
+                //            Code = ResultStatusCode.NotFound,
+                //            Message = "No tiene permisos sobre el listing rent solicitado."
+                //        }
+                //    };
+                //}
                 else if (!onlyActive || (onlyActive && listings.ListingStatusId == 3))
                 {
                     result = new ReturnModelDTO<ListingRentDTO>

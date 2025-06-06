@@ -66,7 +66,8 @@ public static class JwtExtensions
 
         services.AddAuthorization(options =>
         {
-            options.AddPolicy("GuestOnly", policy => policy.RequireRole("Guest", "Application"));
+            options.AddPolicy("GuestOnly", policy => policy.RequireRole("Guest"));
+            options.AddPolicy("Guest", policy => policy.RequireRole("Guest", "Application"));
             options.AddPolicy("HostOnly", policy => policy.RequireRole("Host", "Application"));
             options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin", "Application"));
             options.AddPolicy("GuestOrHostOrAdmin", policy => policy.RequireRole("Host", "Admin", "Guest", "Application"));

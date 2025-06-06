@@ -33,7 +33,7 @@ namespace Assert.API.Controllers
         /// Este servicio devuelve el detalle de un listing rent en base a su id, al tratarse de un servicio para Guest, solo se recuperará el listing si este se encuentra publicado.
         /// </remarks>
         [HttpGet("{listinRentId}")]
-        [Authorize(Policy = "GuestOnly")]
+        [Authorize(Policy = "Guest")]
         public async Task<ReturnModelDTO> Get(long listinRentId)
         {
             var requestInfo = HttpContext.GetRequestInfo();
@@ -56,7 +56,7 @@ namespace Assert.API.Controllers
         /// > Latitude y Longitude : Funcionan en conjunto con el Radius, el cual debe estar expresado en metros. En caso de ingresar estos parametros, las propiedades resultado devolverán la distancia aproximada hacia el punto de referencia ingresado.
         /// </remarks>
         [HttpGet("Search")]
-        [Authorize(Policy = "GuestOnly")]
+        [Authorize(Policy = "Guest")]
         public async Task<ReturnModelDTO<List<ListingRentDTO>>> Search([FromQuery] SearchFilters filters, [FromQuery] int? pageNumber = 1, [FromQuery] int? pageSize = 10)
         {
             var requestInfo = HttpContext.GetRequestInfo();
@@ -92,6 +92,7 @@ namespace Assert.API.Controllers
         /// <response code="200">Si se procesó correctamente.</response>
         /// <remarks>
         /// </remarks>
+        [Authorize(Policy = "GuestOnly")]
         [HttpDelete("{listingRentId}/Favorite")]
         public async Task<ReturnModelDTO> RemoveFromFavorites(int listingRentId)
         {
@@ -111,6 +112,7 @@ namespace Assert.API.Controllers
         /// <response code="200">Si se procesó correctamente.</response>
         /// <remarks>
         /// </remarks>
+        [Authorize(Policy = "Guest")]
         [HttpGet("{listingRentId}/Reviews")]
         public async Task<ReturnModelDTO<List<ReviewDTO>>> GetReviews(int listingRentId)
         {
@@ -132,6 +134,7 @@ namespace Assert.API.Controllers
         /// las propiedades destacadas de la totalidad. El calculo de propiedades destacadas se la realiza en base a las valoraciones o reviews.
         /// </remarks>
         [HttpGet("Featureds")]
+        [Authorize(Policy = "Guest")]
         public async Task<ReturnModelDTO> FeaturedListings([FromQuery] int? countryId, [FromQuery] int? pageNumber = 1, [FromQuery] int? pageSize = 10)
         {
             var requestInfo = HttpContext.GetRequestInfo();
