@@ -29,89 +29,243 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task<TlListingRent> Get(long id, bool onlyActive)
         {
-            var result = _context.TlListingRents
-                .Include(x => x.ListingStatus)
-                .Include(x => x.AccomodationType)
-                .Include(x => x.ApprovalPolicyType)
-                .Include(x => x.CancelationPolicyType)
-                .Include(x => x.OwnerUser)
-                .Include(x => x.TlListingAmenities)
-                    .ThenInclude(y => y.AmenitiesType)
-                .Include(x => x.TlCheckInOutPolicies)
-                .Include(x => x.TlListingFeaturedAspects)
-                    .ThenInclude(y => y.FeaturesAspectType)
-                .Include(x => x.TpProperties)
-                    .ThenInclude(y => y.TpPropertyAddresses)
-                    .ThenInclude(y => y.City)
-                    .ThenInclude(y => y.County)
-                    .ThenInclude(y => y.State)
-                    .ThenInclude(y => y.Country)
-                .Include(x => x.TpProperties)
-                    .ThenInclude(y => y.TpPropertyAddresses)
-                    .ThenInclude(y => y.County)
-                    .ThenInclude(y => y.State)
-                    .ThenInclude(y => y.Country)
-                .Include(x => x.TpProperties)
-                    .ThenInclude(y => y.TpPropertyAddresses)
-                    .ThenInclude(y => y.State)
-                    .ThenInclude(y => y.Country)
-                .Include(x => x.TpProperties)
-                    .ThenInclude(y => y.PropertySubtype)
-                        .ThenInclude(y => y.PropertyType)
-                .Include(x => x.TlListingPhotos)
-                .Include(x => x.TlListingPrices)
-                .Include(x => x.TlListingRentRules)
-                    .ThenInclude(y => y.RuleType)
-                .Include(x => x.TlListingSecurityItems)
-                    .ThenInclude(y => y.SecurityItemType)
-                .Include(x => x.TlListingSpaces)
-                    .ThenInclude(y => y.SpaceType)
-                .Include(x => x.TlListingSpecialDatePrices)
-                .Include(x => x.TlStayPresences)
-                    .ThenInclude(y => y.StayPrecenseType)
-                .Include(x => x.TlListingReviews)
+            //var result = await _context.TlListingRents
+            //    .Include(x => x.ListingStatus)
+            //    .Include(x => x.AccomodationType)
+            //    .Include(x => x.ApprovalPolicyType)
+            //    .Include(x => x.CancelationPolicyType)
+            //    .Include(x => x.OwnerUser)
+            //    .Include(x => x.TlListingAmenities)
+            //        .ThenInclude(y => y.AmenitiesType)
+            //    .Include(x => x.TlCheckInOutPolicies)
+            //    .Include(x => x.TlListingFeaturedAspects)
+            //        .ThenInclude(y => y.FeaturesAspectType)
+            //    .Include(x => x.TpProperties)
+            //        .ThenInclude(y => y.TpPropertyAddresses)
+            //        .ThenInclude(y => y.City)
+            //        .ThenInclude(y => y.County)
+            //        .ThenInclude(y => y.State)
+            //        .ThenInclude(y => y.Country)
+            //    .Include(x => x.TpProperties)
+            //        .ThenInclude(y => y.TpPropertyAddresses)
+            //        .ThenInclude(y => y.County)
+            //        .ThenInclude(y => y.State)
+            //        .ThenInclude(y => y.Country)
+            //    .Include(x => x.TpProperties)
+            //        .ThenInclude(y => y.TpPropertyAddresses)
+            //        .ThenInclude(y => y.State)
+            //        .ThenInclude(y => y.Country)
+            //    .Include(x => x.TpProperties)
+            //        .ThenInclude(y => y.PropertySubtype)
+            //            .ThenInclude(y => y.PropertyType)
+            //    .Include(x => x.TlListingPhotos)
+            //    .Include(x => x.TlListingPrices)
+            //    .Include(x => x.TlListingRentRules)
+            //        .ThenInclude(y => y.RuleType)
+            //    .Include(x => x.TlListingSecurityItems)
+            //        .ThenInclude(y => y.SecurityItemType)
+            //    .Include(x => x.TlListingSpaces)
+            //        .ThenInclude(y => y.SpaceType)
+            //    .Include(x => x.TlListingSpecialDatePrices)
+            //    .Include(x => x.TlStayPresences)
+            //        .ThenInclude(y => y.StayPrecenseType)
+            //    .Include(x => x.TlListingReviews)
+            //    .AsSplitQuery()
+            //    .AsNoTracking()
+            //    .Where(x => x.ListingRentId == id && x.ListingStatusId != 5).FirstOrDefaultAsync();
+
+
+            //if (result != null)
+            //{
+            //    if (result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault() != null)
+            //    {
+            //        //if (result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().City != null)
+            //        //{
+            //        //    result.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().State = result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().City.County.State;
+            //        //    result.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().County = result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().City.County;
+            //        //}
+            //        //else if (result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().County != null)
+            //        //{
+            //        //    result.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().State = result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().County.State;
+            //        //}
+            //        if (result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().City == null)
+            //        {
+            //            if (result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().County != null)
+            //            {
+            //                result.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().City = new TCity
+            //                {
+            //                    County = result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().County,
+            //                };
+            //            }
+            //            else if (result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().State != null)
+            //            {
+            //                result.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().City = new TCity
+            //                {
+            //                    County = new TCounty
+            //                    {
+            //                        State = result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().State
+            //                    }
+            //                };
+            //            }
+            //        }
+            //    }
+            //}
+
+            //TlListingRent? tlListingRent = await Task.FromResult(result);
+
+            // Paso 1: Obtener datos básicos del listing
+            var listingData = await _context.TlListingRents
+         .AsNoTracking()
+         .Where(x => x.ListingRentId == id && x.ListingStatusId != 5)
+         .Select(x => new
+         {
+             Listing = x,
+             Status = x.ListingStatus,
+             AccomodationType = x.AccomodationType,
+             ApprovalPolicy = x.ApprovalPolicyType,
+             CancelationPolicy = x.CancelationPolicyType,
+             Owner = x.OwnerUser
+         })
+         .FirstOrDefaultAsync();
+
+            if (listingData == null) return null;
+
+            var listing = listingData.Listing;
+
+            // Paso 2: Cargar relaciones secuencialmente (evitando problemas de concurrencia)
+            listing.TlListingAmenities = await LoadAmenitiesAsync(_context, id);
+            listing.TlListingFeaturedAspects = await LoadFeaturesAsync(_context, id);
+            listing.TpProperties = await LoadPropertiesAsync(_context, id);
+            listing.TlListingPhotos = await LoadPhotosAsync(_context, id);
+            listing.TlListingPrices = await LoadPricesAsync(_context, id);
+            listing.TlListingRentRules = await LoadRulesAsync(_context, id);
+            listing.TlListingSecurityItems = await LoadSecurityItemsAsync(_context, id);
+            listing.TlListingSpaces = await LoadSpacesAsync(_context, id);
+            listing.TlListingSpecialDatePrices = await LoadSpecialDatesAsync(_context, id);
+            listing.TlStayPresences = await LoadStayPresencesAsync(_context, id);
+            listing.TlListingReviews = await LoadReviewsAsync(_context, id);
+            listing.TlCheckInOutPolicies = await LoadCheckInOutPoliciesAsync(_context, id);
+
+            // Asignar propiedades de navegación
+            listing.ListingStatus = listingData.Status;
+            listing.AccomodationType = listingData.AccomodationType;
+            listing.ApprovalPolicyType = listingData.ApprovalPolicy;
+            listing.CancelationPolicyType = listingData.CancelationPolicy;
+            listing.OwnerUser = listingData.Owner;
+
+            return listing;
+
+            //return tlListingRent;
+        }
+
+        // Métodos auxiliares para cargar cada relación
+        private async Task<List<TlListingAmenity>> LoadAmenitiesAsync(InfraAssertDbContext _context, long listingId)
+        {
+            return await _context.TlListingAmenities
                 .AsNoTracking()
-                .Where(x => x.ListingRentId == id && x.ListingStatusId != 5).FirstOrDefault();
+                .Where(a => a.ListingRentId == listingId)
+                .Include(a => a.AmenitiesType)
+                .ToListAsync();
+        }
 
+        private async Task<List<TlListingFeaturedAspect>> LoadFeaturesAsync(InfraAssertDbContext _context, long listingId)
+        {
+            return await _context.TlListingFeaturedAspects
+                .AsNoTracking()
+                .Where(f => f.ListingRentId == listingId)
+                .Include(f => f.FeaturesAspectType)
+                .ToListAsync();
+        }
 
-            if (result != null)
-            {
-                if (result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault() != null)
-                {
-                    //if (result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().City != null)
-                    //{
-                    //    result.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().State = result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().City.County.State;
-                    //    result.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().County = result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().City.County;
-                    //}
-                    //else if (result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().County != null)
-                    //{
-                    //    result.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().State = result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().County.State;
-                    //}
-                    if (result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().City == null)
-                    {
-                        if (result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().County != null)
-                        {
-                            result.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().City = new TCity
-                            {
-                                County = result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().County,
-                            };
-                        }
-                        else if (result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().State != null)
-                        {
-                            result.TpProperties.FirstOrDefault().TpPropertyAddresses.FirstOrDefault().City = new TCity
-                            {
-                                County = new TCounty
-                                {
-                                    State = result.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault().State
-                                }
-                            };
-                        }
-                    }
-                }
-            }
+        private async Task<List<TpProperty>> LoadPropertiesAsync(InfraAssertDbContext _context, long listingId)
+        {
+            return await _context.TpProperties
+                .AsNoTracking()
+                .Where(p => p.ListingRentId == listingId)
+                .Include(p => p.TpPropertyAddresses)
+                    .ThenInclude(a => a.City)
+                    .ThenInclude(c => c.County)
+                    .ThenInclude(co => co.State)
+                    .ThenInclude(s => s.Country)
+                .Include(p => p.PropertySubtype)
+                    .ThenInclude(ps => ps.PropertyType)
+                .ToListAsync();
+        }
 
-            TlListingRent? tlListingRent = await Task.FromResult(result);
-            return tlListingRent;
+        private async Task<List<TlListingPhoto>> LoadPhotosAsync(InfraAssertDbContext _context, long listingId)
+        {
+            return await _context.TlListingPhotos
+                .AsNoTracking()
+                .Where(p => p.ListingRentId == listingId)
+                .ToListAsync();
+        }
+
+        private async Task<List<TlListingPrice>> LoadPricesAsync(InfraAssertDbContext _context, long listingId)
+        {
+            return await _context.TlListingPrices
+                .AsNoTracking()
+                .Where(p => p.ListingRentId == listingId)
+                .ToListAsync();
+        }
+
+        private async Task<List<TlListingRentRule>> LoadRulesAsync(InfraAssertDbContext _context, long listingId)
+        {
+            return await _context.TlListingRentRules
+                .AsNoTracking()
+                .Where(r => r.ListingId == listingId)
+                .Include(r => r.RuleType)
+                .ToListAsync();
+        }
+
+        private async Task<List<TlListingSecurityItem>> LoadSecurityItemsAsync(InfraAssertDbContext _context, long listingId)
+        {
+            return await _context.TlListingSecurityItems
+                .AsNoTracking()
+                .Where(s => s.ListingRentId == listingId)
+                .Include(s => s.SecurityItemType)
+                .ToListAsync();
+        }
+
+        private async Task<List<TlListingSpace>> LoadSpacesAsync(InfraAssertDbContext _context, long listingId)
+        {
+            return await _context.TlListingSpaces
+                .AsNoTracking()
+                .Where(s => s.ListingId == listingId)
+                .Include(s => s.SpaceType)
+                .ToListAsync();
+        }
+
+        private async Task<List<TlListingSpecialDatePrice>> LoadSpecialDatesAsync(InfraAssertDbContext _context, long listingId)
+        {
+            return await _context.TlListingSpecialDatePrices
+                .AsNoTracking()
+                .Where(s => s.ListingRentId == listingId)
+                .ToListAsync();
+        }
+
+        private async Task<List<TlStayPresence>> LoadStayPresencesAsync(InfraAssertDbContext _context, long listingId)
+        {
+            return await _context.TlStayPresences
+                .AsNoTracking()
+                .Where(s => s.ListingRentId == listingId)
+                .Include(s => s.StayPrecenseType)
+                .ToListAsync();
+        }
+
+        private async Task<List<TlListingReview>> LoadReviewsAsync(InfraAssertDbContext _context, long listingId)
+        {
+            return await _context.TlListingReviews
+                .AsNoTracking()
+                .Where(r => r.ListingRentId == listingId)
+                .ToListAsync();
+        }
+
+        private async Task<List<TlCheckInOutPolicy>> LoadCheckInOutPoliciesAsync(InfraAssertDbContext _context, long listingId)
+        {
+            return await _context.TlCheckInOutPolicies
+                .AsNoTracking()
+                .Where(c => c.ListingRentid == listingId)
+                .ToListAsync();
         }
 
         public async Task<TlListingRent> Get(long id, int ownerID)
@@ -209,7 +363,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .Include(x => x.TlListingPhotos)
                 .Include(x => x.TlListingPrices)
                 //.Include(x => x.TlListingRentRules)
-                    //.ThenInclude(y => y.RuleType)
+                //.ThenInclude(y => y.RuleType)
                 //.Include(x => x.TlListingSecurityItems)
                 //    .ThenInclude(y => y.SecurityItemType)
                 //.Include(x => x.TlListingSpaces)
