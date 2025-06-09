@@ -96,7 +96,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task<TCity> GetByListingRentId(long listingRentId)
         {
-            var result = (await _context.TpPropertyAddresses.Where(x => x.Property.ListingRentId == listingRentId).FirstOrDefaultAsync())?.City;
+            var result = (await _context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefaultAsync())?.TpProperties.FirstOrDefault().City;
             return result;
         }
 

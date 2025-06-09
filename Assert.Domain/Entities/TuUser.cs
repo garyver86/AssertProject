@@ -37,6 +37,8 @@ public partial class TuUser
 
     public int? TimeZoneId { get; set; }
 
+    public string? FavoriteName { get; set; }
+
     public virtual TuAccountType AccountTypeNavigation { get; set; } = null!;
 
     public virtual TuGenderType? GenderType { get; set; }

@@ -1,6 +1,8 @@
 ﻿using Assert.Domain.Entities;
 using Assert.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
+using System.Data;
+using System.Diagnostics.Metrics;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
@@ -14,7 +16,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         }
         public async Task<TpPropertyAddress> Set(TpPropertyAddress addresInput, long propertyId)
         {
-            var address = await _context.TpPropertyAddresses.Where(x => x.PropertyId == propertyId).FirstOrDefaultAsync();
+            var address = await _context.TpProperties.Where(x => x.PropertyId == propertyId).FirstOrDefaultAsync();
             if (address != null)
             {
                 address.Address1 = addresInput.Address1;
@@ -24,23 +26,55 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 address.CountyId = addresInput.CountyId;
                 address.StateId = addresInput.StateId;
                 await _context.SaveChangesAsync();
-            }
-            else
-            {
-                address = new TpPropertyAddress
+
+                if (addresInput.CityId > 0)
                 {
-                    Address1 = addresInput.Address1,
-                    CityId = addresInput.CityId,
-                    Address2 = addresInput.Address2,
-                    ZipCode = addresInput.ZipCode,
-                    PropertyId = propertyId,
-                    CountyId = addresInput.CountyId,
-                    StateId = addresInput.StateId
-                };
-                await _context.TpPropertyAddresses.AddAsync(address);
-                await _context.SaveChangesAsync();
+                    var city = await _context.TCities.Where(x => x.CityId == addresInput.CityId).FirstOrDefaultAsync();
+                    if (city != null)
+                    {
+                        address.CityName = city.Name;
+                        address.CountyId = city.CountyId;
+                        address.CountyName = city.County?.Name;
+                        address.StateId = city.County?.StateId;
+                        address.StateName = city.County?.State?.Name;
+                        address.CountryId = city.County?.State?.CountryId;
+                        address.CountryName = city.County?.State?.Country?.Name;
+
+                        addresInput.CountyId = city.CountyId;
+                        addresInput.StateId = city.County?.StateId;
+                        addresInput.CityId = city.CityId;
+                    }
+                }
+                else if (addresInput.CountyId > 0)
+                {
+                    var county = await _context.TCounties.Where(x => x.CountyId == addresInput.CountyId).FirstOrDefaultAsync();
+                    if (county != null)
+                    {
+                        address.CountyName = county.Name;
+                        address.StateId = county.StateId;
+                        address.StateName = county.State?.Name;
+                        address.CountryId = county.State?.CountryId;
+                        address.CountryName = county.State?.Country?.Name;
+
+                        addresInput.CountyId = county.CountyId;
+                        addresInput.StateId = county.StateId;
+                    }
+                }
+                else if (addresInput.StateId > 0)
+                {
+                    var state = await _context.TStates.Where(x => x.StateId == addresInput.StateId).FirstOrDefaultAsync();
+                    if (state != null)
+                    {
+                        address.StateName = state.Name;
+                        address.CountryId = state.CountryId;
+                        address.CountryName = state.Country?.Name;
+                        addresInput.StateId = state.StateId;
+                    }
+                }
+                _context.SaveChangesAsync();
+                return addresInput;
             }
-            return address;
+            throw new Exception("La propiedad no fue encontrada o no puede ser modificada.");
         }
     }
 }
