@@ -2,6 +2,6 @@
 {
     public interface IListingDiscountRepository
     {
-        Task SetDiscounts(long listingRentId, IEnumerable<int>? enumerable);
+        Task SetDiscounts(long listingRentId, List<(int, decimal)> discountList);
     }
 }

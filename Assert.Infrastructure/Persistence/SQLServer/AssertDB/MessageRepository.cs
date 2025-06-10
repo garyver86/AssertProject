@@ -60,6 +60,10 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         // Envía un nuevo mensaje a una conversación.
         public async Task<TmMessage> Send(int conversationId, int userId, string body, int messageType, long? bookId)
         {
+            if (bookId == 0)
+            {
+                bookId = null;
+            }
             // Valida los parámetros de entrada
             if (string.IsNullOrWhiteSpace(body))
             {
@@ -77,8 +81,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 MessageTypeId = messageType,
                 BookId = bookId,
                 IsRead = false,
-                // Otros campos como ipAddress, additionalData, messageStatusId, etc., 
-                // deberían ser establecidos aquí según tu lógica de negocio.
+                MessageStatusId = 1
             };
 
             // Agrega el mensaje al contexto y guarda los cambios.

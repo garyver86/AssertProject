@@ -54,6 +54,8 @@ namespace Assert.Application
             services.AddScoped<IListingFavoriteService, ListingFavoriteService>();
             services.AddScoped<IParametricService, ParametricService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<ILocationSugestionService, LocationSugestionService>();
+            services.AddScoped<ILocationService, LocationService>();
 
             return services;
         }

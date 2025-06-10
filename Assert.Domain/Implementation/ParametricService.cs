@@ -15,13 +15,15 @@ namespace Assert.Domain.Implementation
         private readonly IFeaturesAspectsRepository _featuredAspectsRepository;
         private readonly IPropertySubTypeRepository _propertySubTypeRepository;
         private readonly ISpaceTypeRepository _spaceTypeRepository;
-        private readonly ILanguageRepository _languageRepository;
+        private readonly IAmenitiesRepository _amenitiesRepository;
         private readonly IErrorHandler _errorHandler;
         IExceptionLoggerService _exceptionLoggerService;
         public ParametricService(IAccommodationTypeRepository accommodationTypeRepository, IErrorHandler errorHandler,
             IFeaturesAspectsRepository featuredAspectsRepository, IDiscountTypeRepository discountTypeRepository,
             IPropertySubTypeRepository propertySubTypeRepository, ISpaceTypeRepository spaceTypeRepository, 
             ILanguageRepository languageRepository, IExceptionLoggerService exceptionLoggerService)
+            IPropertySubTypeRepository propertySubTypeRepository, ISpaceTypeRepository spaceTypeRepository, 
+            IAmenitiesRepository amenitiesRepository)
         {
             _accommodationTypeRepository = accommodationTypeRepository;
             _errorHandler = errorHandler;
@@ -29,6 +31,7 @@ namespace Assert.Domain.Implementation
             _discountTypeRepository = discountTypeRepository;
             _propertySubTypeRepository = propertySubTypeRepository;
             _spaceTypeRepository = spaceTypeRepository;
+            _amenitiesRepository = amenitiesRepository;
             _languageRepository = languageRepository;
             _exceptionLoggerService = exceptionLoggerService;
         }
@@ -51,6 +54,28 @@ namespace Assert.Domain.Implementation
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
                 result.ResultError = _errorHandler.GetErrorException("IParametricService.GetAccomodationTypesActives", ex, null, true);
+            }
+            return result;
+        }
+
+        public async Task<ReturnModel<List<TpAmenitiesType>>> GetAmenityTypesActives()
+        {
+            ReturnModel<List<TpAmenitiesType>> result = new ReturnModel<List<TpAmenitiesType>>();
+            try
+            {
+                var result_data = await _amenitiesRepository.GetActives();
+                return new ReturnModel<List<TpAmenitiesType>>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    Data = result_data,
+                    HasError = false
+                };
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _errorHandler.GetErrorException("IParametricService.GetAmenityTypesActives", ex, null, true);
             }
             return result;
         }

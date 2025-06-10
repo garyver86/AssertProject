@@ -1,6 +1,7 @@
 ﻿using Assert.API.Helpers;
 using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
+using Assert.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
@@ -34,7 +35,75 @@ namespace Assert.API.Controllers
         public async Task<ReturnModelDTO<List<CountryDTO>>> Search(string filter)
         {
             var requestInfo = HttpContext.GetRequestInfo();
-            var cities = await _searchService.SearchCities(filter, requestInfo, true);
+            var cities = await _searchService.SearchCities(filter, 4, requestInfo, true);
+
+            return cities;
+        }
+
+        /// <summary>
+        /// Servicio que permite la busqueda de Localizaciones geograficas en base a parametros.
+        /// </summary>
+        ///  /// <param name="typeFilter">Texto que permite definir el tipo de localización que se quiere buscar("city,county,state,country").</param>
+        /// <param name="filter">Texto que permite filtrar las localizaciones (Mínimo 3 caracteres).</param>
+        /// <returns>Listado de localizaciones que coinciden con la búsqueda.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// </remarks>
+        [HttpGet("Locations/{typeFilter}/{filter}")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO<List<CountryDTO>>> SearchLocation(string typeFilter, string filter)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int _filterType = 0;
+            switch (typeFilter)
+            {
+                case "city":
+                    _filterType = 4;
+                    break;
+                case "county":
+                    _filterType = 3;
+                    break;
+                case "state":
+                    _filterType = 2;
+                    break;
+                case "country":
+                    _filterType = 1;
+                    break;
+                case "all":
+                    _filterType = 0;
+                    break;
+                default:
+                    return new ReturnModelDTO<List<CountryDTO>>()
+                    {
+                        HasError = true,
+                        StatusCode = "400",
+                        ResultError = new ErrorCommonDTO
+                        {
+                            Code = "400",
+                            Message = "El tipo de filtro no es válido."
+                        }
+                    };
+            }
+            var cities = await _searchService.SearchCities(filter, _filterType, requestInfo, true);
+
+            return cities;
+        }
+
+        /// <summary>
+        /// Servicio que devuelve una lista de sugerencias de locations en base a un filtro ingresado.
+        /// </summary>
+        /// <param name="filter">Texto que permite filtrar las localizaciones (Mínimo 3 caracteres).</param>
+        /// <returns>Listado de localizaciones que coinciden con la búsqueda.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// </remarks>
+        [HttpGet("Locations/Suggest/{filter}")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO<List<LocationSuggestion>>> SuggestLocation(string filter)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+
+            var cities = await _searchService.SuggestLocation(filter, requestInfo, true);
 
             return cities;
         }
@@ -55,6 +124,24 @@ namespace Assert.API.Controllers
             var cities = await _parametricService.GetAccomodationTypes(requestInfo, true);
 
             return cities;
+        }
+
+        /// <summary>
+        /// Servicio que devuelve la lista de tipos de amenities o servicios activos.
+        /// </summary>
+        /// <returns>Listado de tipos de amenities.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// Solo se consideraran los tipos de amenities que no se encuentren deshabilitadas.
+        /// </remarks>
+        [HttpGet("AmenityTypes")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO<List<AmenityDTO>>> AmenityTypes()
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            ReturnModelDTO<List<AmenityDTO>> amenities = await _parametricService.GetAmenityTypes(requestInfo, true);
+
+            return amenities;
         }
 
         /// <summary>

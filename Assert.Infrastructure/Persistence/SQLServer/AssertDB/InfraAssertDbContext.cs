@@ -44,6 +44,8 @@ public partial class InfraAssertDbContext : DbContext
 
     public virtual DbSet<TFeaturedAspectType> TFeaturedAspectTypes { get; set; }
 
+    public virtual DbSet<TLanguage> TLanguages { get; set; }
+
     public virtual DbSet<TLocation> TLocations { get; set; }
 
     public virtual DbSet<TQuickTip> TQuickTips { get; set; }
@@ -621,6 +623,23 @@ public partial class InfraAssertDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("featuredAspectName");
             entity.Property(e => e.FeaturedAspectStatus).HasColumnName("featuredAspectStatus");
+        });
+
+        modelBuilder.Entity<TLanguage>(entity =>
+        {
+            entity.HasKey(e => e.LanguageId).HasName("PK__T_Langua__12696A625F093F0B");
+
+            entity.ToTable("T_Language");
+
+            entity.Property(e => e.LanguageId).HasColumnName("languageId");
+            entity.Property(e => e.Code)
+                .HasMaxLength(30)
+                .IsUnicode(false)
+                .HasColumnName("code");
+            entity.Property(e => e.Detail)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("detail");
         });
 
         modelBuilder.Entity<TLocation>(entity =>
@@ -1531,6 +1550,7 @@ public partial class InfraAssertDbContext : DbContext
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("accomodationCode");
+            entity.Property(e => e.Status).HasColumnName("status");
         });
 
         modelBuilder.Entity<TlCheckInOutPolicy>(entity =>
@@ -2260,6 +2280,16 @@ public partial class InfraAssertDbContext : DbContext
                 .HasForeignKey(d => d.StatusId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TM_Conversation_TM_ConversationStatus");
+
+            entity.HasOne(d => d.UserIdOneNavigation).WithMany(p => p.TmConversationUserIdOneNavigations)
+                .HasForeignKey(d => d.UserIdOne)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TM_Conversation_TU_User");
+
+            entity.HasOne(d => d.UserIdTwoNavigation).WithMany(p => p.TmConversationUserIdTwoNavigations)
+                .HasForeignKey(d => d.UserIdTwo)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TM_Conversation_TU_User1");
         });
 
         modelBuilder.Entity<TmConversationStatus>(entity =>
@@ -2488,7 +2518,26 @@ public partial class InfraAssertDbContext : DbContext
             entity.ToTable("TP_Property");
 
             entity.Property(e => e.PropertyId).HasColumnName("propertyId");
+            entity.Property(e => e.Address1)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("address1");
+            entity.Property(e => e.Address2)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("address2");
             entity.Property(e => e.CityId).HasColumnName("cityId");
+            entity.Property(e => e.CityName)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.CountryId).HasColumnName("countryId");
+            entity.Property(e => e.CountryName)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.CountyId).HasColumnName("countyId");
+            entity.Property(e => e.CountyName)
+                .HasMaxLength(100)
+                .IsUnicode(false);
             entity.Property(e => e.ExternalReference)
                 .HasMaxLength(200)
                 .IsUnicode(false)
@@ -2496,6 +2545,14 @@ public partial class InfraAssertDbContext : DbContext
             entity.Property(e => e.Latitude).HasColumnName("latitude");
             entity.Property(e => e.Longitude).HasColumnName("longitude");
             entity.Property(e => e.PropertySubtypeId).HasColumnName("propertySubtypeId");
+            entity.Property(e => e.StateId).HasColumnName("stateId");
+            entity.Property(e => e.StateName)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.ZipCode)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("zipCode");
 
             entity.HasOne(d => d.City).WithMany(p => p.TpProperties)
                 .HasForeignKey(d => d.CityId)
@@ -2508,6 +2565,10 @@ public partial class InfraAssertDbContext : DbContext
             entity.HasOne(d => d.PropertySubtype).WithMany(p => p.TpProperties)
                 .HasForeignKey(d => d.PropertySubtypeId)
                 .HasConstraintName("FK_TP_Property_TP_PropertySubtype");
+
+            entity.HasOne(d => d.State).WithMany(p => p.TpProperties)
+                .HasForeignKey(d => d.StateId)
+                .HasConstraintName("FK_TP_Property_T_State");
         });
 
         modelBuilder.Entity<TpPropertyAddress>(entity =>
@@ -3091,10 +3152,6 @@ public partial class InfraAssertDbContext : DbContext
             entity.HasOne(d => d.Platform).WithMany(p => p.TuUsers)
                 .HasForeignKey(d => d.PlatformId)
                 .HasConstraintName("FK_TU_User_TU_Platform");
-
-            entity.HasOne(d => d.TimeZone).WithMany(p => p.TuUsers)
-                .HasForeignKey(d => d.TimeZoneId)
-                .HasConstraintName("FK_TU_User_TimeZone");
 
             entity.HasOne(d => d.TitleType).WithMany(p => p.TuUsers)
                 .HasForeignKey(d => d.TitleTypeId)

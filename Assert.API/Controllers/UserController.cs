@@ -1,6 +1,7 @@
 ﻿using Assert.API.Helpers;
 using Assert.Application.DTOs.Requests;
 using Assert.Application.DTOs.Responses;
+using Assert.Domain.Models;
 using Assert.Domain.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
@@ -86,6 +87,34 @@ namespace Assert.API.Controllers
             var result = await _userService.DisableHostRole(userId, requestInfo, true);
 
             return result;
+        }
+
+        /// <summary>
+        /// Servicio para renovar un token JWT expirado.
+        /// </summary>
+        /// <param name="expiredToken">El token JWT expirado que se va a renovar (Permite el acceso sin autenticación).</param>
+        /// <returns>Un nuevo token JWT.</returns>
+        /// <response code="200">Si el token se renovó correctamente.</response>
+        /// <response code="400">Si el token proporcionado no es válido.</response>
+        /// <response code="401">Si el usuario asociado al token no se encuentra o está inactivo.</response>
+        [HttpPost("RenewToken")]
+        [AllowAnonymous] // Permite el acceso sin autenticación
+        public async Task<ReturnModelDTO> RenewToken([FromBody] string expiredToken)
+        {
+            return await _userService.RenewJwtToken(expiredToken);
+            //try
+            //{
+            //    return await _userService.RenewJwtToken(expiredToken);
+            //}
+            //catch (Exception ex)
+            //{
+            //    return new ReturnModelDTO
+            //    {
+            //        StatusCode = ResultStatusCode.InternalError,
+            //        HasError = true,
+            //        ResultError = new ErrorCommonDTO { Message = $"Error al renovar el token: {ex.Message}" }
+            //    };
+            //}
         }
 
 

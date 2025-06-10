@@ -77,7 +77,38 @@ namespace Assert.Domain.Implementation
                     result.Data.ListingData.AccomodationTypeId = data.AccomodationTypeId;
                     return result;
                 case "LV003":
-                    result.Data.ListingData.Address = data.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault();
+                    //result.Data.ListingData.Address = data.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault();
+                    var property = data.TpProperties.FirstOrDefault();
+                    result.Data.ListingData.Address = new TpPropertyAddress
+                    {
+                        Address1 = property?.Address1,
+                        Address2 = property?.Address2,
+                        CityId = property?.CityId,
+                        CountyId = property?.CountyId,
+                        City = new TCity
+                        {
+                            CountyId = property?.CountyId ?? 0,
+                            CityId = property?.CityId ?? 0,
+                            Name = property?.CityName,
+                            County = new TCounty
+                            {
+                                CountyId = property.CountyId ?? 0,
+                                Name = property.CountyName,
+                                StateId = property.StateId,
+                                State = new TState
+                                {
+                                    StateId = property.StateId ?? 0,
+                                    Name = property.StateName,
+                                    CountryId = property.CountryId ?? 0,
+                                    Country = new TCountry
+                                    {
+                                        CountryId = property.CountryId ?? 0,
+                                        Name = property.CountryName
+                                    }
+                                }
+                            }
+                        }
+                    };
                     return result;
                 case "LV004":
                     result.Data.ListingData.Latitude = data.TpProperties.FirstOrDefault()?.Latitude;
@@ -202,7 +233,7 @@ namespace Assert.Domain.Implementation
             }
 
             await _listingPriceRepository.SetPricing(listing.ListingRentId, request_.Pricing, request_.WeekendPrice, request_.CurrencyId);
-            await _listingDiscountRepository.SetDiscounts(listing.ListingRentId, request_.Discounts?.Select(x => x.dicountTypeId));
+            await _listingDiscountRepository.SetDiscounts(listing.ListingRentId, request_.Discounts?.Select(x => (x.dicountTypeId, x.Price)).ToList());
 
             return new ReturnModel
             {
@@ -329,7 +360,7 @@ namespace Assert.Domain.Implementation
 
         private async Task<ReturnModel> SetDiscount(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
         {
-            await _listingDiscountRepository.SetDiscounts(listing.ListingRentId, request_.Discounts?.Select(x => x.dicountTypeId));
+            await _listingDiscountRepository.SetDiscounts(listing.ListingRentId, request_.Discounts?.Select(x => (x.dicountTypeId, x.Price)).ToList());
             return new ReturnModel
             {
                 HasError = false,

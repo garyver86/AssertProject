@@ -18,4 +18,8 @@ public partial class TmConversation
     public virtual TmConversationStatus Status { get; set; } = null!;
 
     public virtual ICollection<TmMessage> TmMessages { get; set; } = new List<TmMessage>();
+
+    public virtual TuUser UserIdOneNavigation { get; set; } = null!;
+
+    public virtual TuUser UserIdTwoNavigation { get; set; } = null!;
 }

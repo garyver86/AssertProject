@@ -102,8 +102,8 @@ public class AppUserService(
             {
                 new("identifier", _metadata.UserId.ToString()),
                 new("value", _metadata.UserId.ToString()),
-                new Claim(JwtRegisteredClaimNames.Sub, userName)
-
+                new Claim(JwtRegisteredClaimNames.Sub, userName),
+                new Claim("platform", platform)
             };
 
             foreach (var role in userRoles)
@@ -168,11 +168,11 @@ public class AppUserService(
     {
         var existUserValidation = await _userRepository.ExistLocalUser(userRequest.Email);
 
-        if(existUserValidation.Data)
+        if (existUserValidation.Data)
         {
             _logger.LogError($"Enrollment error, user already exist: {userRequest.Email}", userRequest);
             throw new ApplicationException($"El usuario ya se encuentra registrado en Assert: {userRequest.Email}");
-        } 
+        }
 
         var userId = await _userRepository.Create(userRequest.Email, Platform.Local,
             userRequest.Name, userRequest.LastName, 3, null, "", 1, "",
@@ -190,6 +190,103 @@ public class AppUserService(
         throw new ApplicationException($"No se pudo realizar el enrollamiento del usuario {userRequest.Email}");
     }
 
+    public async Task<ReturnModelDTO> RenewJwtToken(string expiredToken)
+    {
+        try
+        {
+            var (claims, isValid) = _jwtSecurity.GetClaimsFromExpiredToken(expiredToken);
+
+            if (!isValid || claims == null)
+            {
+                return new ReturnModelDTO
+                {
+                    StatusCode = ResultStatusCode.Unauthorized,
+                    HasError = true,
+                    ResultError = new ErrorCommonDTO { Message = "Invalid or malformed token." }
+                };
+            }
+
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(expiredToken);
+            string userName = jwtToken?.Subject;
+            string? platform = jwtToken.Claims.FirstOrDefault(c => c.Type == "platform")?.Value;
+
+
+            if (string.IsNullOrEmpty(userName))
+            {
+                return new ReturnModelDTO
+                {
+                    StatusCode = ResultStatusCode.Unauthorized,
+                    HasError = true,
+                    ResultError = new ErrorCommonDTO { Message = "Token does not contain username." }
+                };
+            }
+            var enumPlatform = _mapper.Map<Platform>(platform);
+
+    
+            var userAccount = await _userRepository.ValidateUserName(userName, true, enumPlatform);
+            int userId;
+            int accountId;
+            int userRolId;
+
+            if (userAccount.StatusCode != "200")
+            {
+                return new ReturnModelDTO
+                {
+                    StatusCode = ResultStatusCode.Unauthorized,
+                    HasError = true,
+                    ResultError = new ErrorCommonDTO { Message = "User not found or inactive." }
+                };
+            }
+
+
+            List<string> userRoles = new();
+
+            var user = (TuUser)userAccount.Data!;
+            userId = user.UserId;
+            accountId = Convert.ToInt32(user.TuAccounts.First().AccountId);
+            userRoles = await _userRolRespository.GetUserRoles(userId);
+            
+                userRoles = await _userRolRespository.GetUserRoles(userId);
+            _metadata.UserId = userId;
+            _metadata.UserName = userName;
+            _metadata.AccountId = accountId;
+
+
+            #region claims
+            List<Claim> _claims = new()
+            {
+                new("identifier", _metadata.UserId.ToString()),
+                new("value", _metadata.UserId.ToString()),
+                new Claim(JwtRegisteredClaimNames.Sub, userName),
+                new Claim("platform", platform)
+            };
+
+            foreach (var role in userRoles)
+                _claims.Add(new Claim(ClaimTypes.Role, role.ToString()));
+            #endregion
+
+            #region jwt generator
+            string newJwtToken = await _jwtSecurity.GenerateJwt(_claims);
+            #endregion
+
+            #region update session info
+            await _accountRepository.UpdateLastSessionInfo();
+            #endregion
+
+
+            return new ReturnModelDTO
+            {
+                StatusCode = ResultStatusCode.OK,
+                Data = new { jwtToken = newJwtToken }
+            };
+        }
+        catch (Exception ex)
+        {
+            return HandleException<ReturnModelDTO>("AppUserService.RenewJwtToken", ex, new { expiredToken }, useTechnicalMessages: true); // Consider the useTechnicalMessages flag
+        }
+    }
+
     public async Task<ReturnModelDTO> UpdatePersonalInformation(UpdatePersonalInformationRequest request)
     {
         var validationResult = await _validator.ValidateAsync(request);
@@ -205,7 +302,7 @@ public class AppUserService(
             {
                 StatusCode = ResultStatusCode.OK,
                 HasError = false,
-                Data = "SUCCESS" 
+                Data = "SUCCESS"
             };
         }
 
@@ -223,6 +320,7 @@ public class AppUserService(
     }
 
     //private funcs
+
     private ReturnModelDTO<T> HandleException<T>(string action, Exception ex, object data, bool useTechnicalMessages)
     {
         var error = _errorHandler.GetErrorException(action, ex, data, useTechnicalMessages);

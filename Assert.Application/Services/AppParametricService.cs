@@ -37,6 +37,28 @@ namespace Assert.Application.Services
             }
         }
 
+        public async Task<ReturnModelDTO<List<AmenityDTO>>> GetAmenityTypes(Dictionary<string, string> requestInfo, bool useTechnicalMessages)
+        {
+            try
+            {
+                ReturnModel<List<TpAmenitiesType>> result = await _parametricService.GetAmenityTypesActives();
+                if (result.HasError)
+                {
+                    return CreateErrorResult<List<AmenityDTO>>(result.StatusCode, result.ResultError, useTechnicalMessages);
+                }
+                return new ReturnModelDTO<List<AmenityDTO>>
+                {
+                    Data = _mapper.Map<List<AmenityDTO>>(result.Data),
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            catch (Exception ex)
+            {
+                return HandleException<List<AmenityDTO>>("AppParametricService.GetFeaturedAspects", ex, null, useTechnicalMessages);
+            }
+        }
+
         public async Task<ReturnModelDTO<List<DiscountDTO>>> GetDiscountTypes(Dictionary<string, string> requestInfo, bool useTechnicalMessages)
         {
             try

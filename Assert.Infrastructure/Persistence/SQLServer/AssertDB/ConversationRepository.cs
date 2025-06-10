@@ -77,6 +77,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
 
             var conversations = await _context.TmConversations
+                .Include(x=>x.UserIdOneNavigation)
+                .Include(x=>x.UserIdTwoNavigation)
                 .Where(c => c.UserIdOne == userId || c.UserIdTwo == userId)
                 .ToListAsync();
 

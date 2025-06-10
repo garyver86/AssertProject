@@ -59,5 +59,7 @@
     public class ProcessData_Discount
     {
         public int dicountTypeId { get; set; }
+        public decimal Price { get; set; }
+        public decimal Percentage { get; set; }
     }
 }

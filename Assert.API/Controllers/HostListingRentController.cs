@@ -49,7 +49,7 @@ namespace Assert.API.Controllers
         ///         {"viewCode": "LV007", "FeaturedAspects": [1,2,3], "Title": "Casa centrica a pasos del cristo", "Description": "Propiedad en pleno centro de la ciudad." } <br />
         /// Paso 3:<br />
         ///     Vista 8 (LV008): Set Set Pricing and Discounts. Se definen los precios y descuentos de la propiedad (Pricing (Pricing, WeekendPrice), Discounts). Los posibles valores de DiscountTypes son retornados en la respuesta exitosa del paso anterior. No es obligatorio registrar descuentos.
-        ///     {"viewCode": "LV008", "Discounts": [{"dicountTypeId":1},{"dicountTypeId":1}], "Pricing": 50.50, "WeekendPrice": 70, "CurrencyId": 2 }<br />
+        ///     {"viewCode": "LV008", "Discounts": [{"dicountTypeId":1, "Price": 200.10},{"dicountTypeId":1, , "Price": 200.50}], "Pricing": 50.50, "WeekendPrice": 70, "CurrencyId": 2 }<br />
         /// </remarks>
         [HttpPost]
         [Authorize(Policy = "GuestOrHost")]
