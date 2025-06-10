@@ -230,8 +230,6 @@ public partial class InfraAssertDbContext : DbContext
 
     public virtual DbSet<TuUserType> TuUserTypes { get; set; }
 
-    public virtual DbSet<TLanguage> TLanguages { get; set; }
-
     public virtual DbSet<TuEmergencyContact> TuEmergencyContacts { get; set; }
 
 

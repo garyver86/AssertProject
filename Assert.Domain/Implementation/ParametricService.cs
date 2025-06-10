@@ -17,12 +17,12 @@ namespace Assert.Domain.Implementation
         private readonly ISpaceTypeRepository _spaceTypeRepository;
         private readonly IAmenitiesRepository _amenitiesRepository;
         private readonly IErrorHandler _errorHandler;
+        private readonly ILanguageRepository _languageRepository;
         IExceptionLoggerService _exceptionLoggerService;
         public ParametricService(IAccommodationTypeRepository accommodationTypeRepository, IErrorHandler errorHandler,
             IFeaturesAspectsRepository featuredAspectsRepository, IDiscountTypeRepository discountTypeRepository,
             IPropertySubTypeRepository propertySubTypeRepository, ISpaceTypeRepository spaceTypeRepository, 
-            ILanguageRepository languageRepository, IExceptionLoggerService exceptionLoggerService)
-            IPropertySubTypeRepository propertySubTypeRepository, ISpaceTypeRepository spaceTypeRepository, 
+            ILanguageRepository languageRepository, IExceptionLoggerService exceptionLoggerService, 
             IAmenitiesRepository amenitiesRepository)
         {
             _accommodationTypeRepository = accommodationTypeRepository;
