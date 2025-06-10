@@ -15,7 +15,7 @@ using System.Data;
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
     public class UserRepository(IExceptionLoggerService _exceptionLoggerService,
-        RequestMetadata _metadata, InfraAssertDbContext _dbContext, ILogger<UserRepository> _logger) 
+        RequestMetadata _metadata, InfraAssertDbContext _dbContext, ILogger<UserRepository> _logger)
         : IUserRepository
     {
 
@@ -103,7 +103,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 //var platformObj = await _dbContext.TuPlatforms.Where(x => x.Code.ToLower() == "local").FirstAsync();
 
                 var user = await _dbContext.TuUsers
-                    .Where(x => x.UserName!.ToUpper() == userName.ToUpper() 
+                    .Where(x => x.UserName!.ToUpper() == userName.ToUpper()
                     && x.Status == "AC")
                     .FirstOrDefaultAsync();
 
@@ -115,7 +115,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     StatusCode = ResultStatusCode.OK
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 var (className, methodName) = this.GetCallerInfo();
                 _exceptionLoggerService.LogAsync(ex, methodName, className, new { userName });
@@ -123,7 +123,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task<ReturnModel> ValidateUserName(string userName, 
+        public async Task<ReturnModel> ValidateUserName(string userName,
             bool validateStatusActive, Platform platform)
         {
             try
@@ -145,7 +145,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 string plataformStr = platform.ToString().ToLower();
                 var platformObj = await _dbContext.TuPlatforms.Where(x => x.Code.ToLower() == plataformStr).FirstAsync();
 
-                if(user.PlatformId != platformObj.PlatformId)
+                if (user.PlatformId != platformObj.PlatformId)
                 {
                     var plaformFrom = await _dbContext.TuPlatforms.Where(x => x.PlatformId == user.PlatformId).FirstAsync();
 
@@ -185,7 +185,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     StatusCode = ResultStatusCode.OK
                 };
             }
-            catch (Exception ex) when (!(ex is UnauthorizedException 
+            catch (Exception ex) when (!(ex is UnauthorizedException
                                       || ex is InfrastructureException))
             {
                 _logger.LogError($"Exception while validate user: {userName}", new { userName });
@@ -270,7 +270,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 await _dbContext.TuUsers.AddAsync(newUser);
                 await _dbContext.SaveChangesAsync();
 
-                if(!string.IsNullOrEmpty(phoneNumber))
+                if (!string.IsNullOrEmpty(phoneNumber))
                 {
                     var phoneNumberObject = phoneNumber.SplitCountryCode();
                     await _dbContext.TuPhones.AddAsync(new TuPhone
@@ -295,6 +295,87 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 throw new InfrastructureException(ex.Message);
             }
         }
+
+        public async Task<string> UpdatePersonalInformation(int userId,
+            string name, string lastName, string favoriteName,
+            string email, string phone)
+        {
+            try
+            {
+                TuUser? user = await _dbContext.TuUsers
+                    .Include(u => u.TuEmails)
+                    .Include(u => u.TuPhones)
+                    .FirstOrDefaultAsync(u => u.UserId == userId);
+
+                if (user == null)
+                    throw new NotFoundException("El usuario no fue encontrado. No es posible actualizar informacion.");
+
+                if (!string.IsNullOrEmpty(name)) user.Name = name;
+                if (!string.IsNullOrEmpty(lastName)) user.LastName = lastName;
+                if (!string.IsNullOrEmpty(favoriteName)) user.FavoriteName = favoriteName;
+                if (!string.IsNullOrEmpty(email))
+                {
+                    var userEmail = user.TuEmails.FirstOrDefault();
+                    if (userEmail != null)
+                    {
+                        userEmail.Email = email;
+                        userEmail.IsPrincipal = true;
+                        userEmail.IsRecover = true;
+                        userEmail.Description = "";
+                    }
+                    else
+                    {
+                        user.TuEmails.Add(new TuEmail
+                        {
+                            UserId = user.UserId,
+                            Email = email,
+                            IsPrincipal = true,
+                            IsRecover = true,
+                            Description = ""
+                        });
+                    }
+                }
+                if(!string.IsNullOrEmpty(phone))
+                {
+                    var phoneParts = phone.SplitCountryCode();
+                    var userPhone = user.TuPhones.FirstOrDefault();
+                    if(userPhone != null)
+                    {
+                        userPhone.CountryCode = phoneParts.CountryCode.Replace("+", "");
+                        userPhone.AreaCode = "";
+                        userPhone.Number = phoneParts.PhoneNumber;
+                        userPhone.IsPrimary = true;
+                        userPhone.IsMobile = true;
+                        userPhone.Status = 1;
+                    }
+                    else
+                    {
+                        user.TuPhones.Add(new TuPhone
+                        {
+                            UserId = user.UserId,
+                            CountryCode = phoneParts.CountryCode.Replace("+", ""),
+                            AreaCode = "",
+                            Number = phoneParts.PhoneNumber,
+                            IsPrimary = true,
+                            IsMobile = true,
+                            Status = 1
+                        });
+                    }
+                }
+
+                await _dbContext.SaveChangesAsync();
+
+                return "SUCCESS";
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { userId, name, lastName, favoriteName, email, phone });
+                throw new InfrastructureException(ex.Message);
+            }
+        }
+
+
 
         public async Task<int> Update(TuUser user)
         {

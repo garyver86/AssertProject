@@ -1,7 +1,10 @@
 ﻿using Assert.Domain.Entities;
+using Assert.Domain.Exceptions;
+using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
+using Assert.Shared.Extensions;
 
 namespace Assert.Domain.Implementation
 {
@@ -12,10 +15,13 @@ namespace Assert.Domain.Implementation
         private readonly IFeaturesAspectsRepository _featuredAspectsRepository;
         private readonly IPropertySubTypeRepository _propertySubTypeRepository;
         private readonly ISpaceTypeRepository _spaceTypeRepository;
+        private readonly ILanguageRepository _languageRepository;
         private readonly IErrorHandler _errorHandler;
+        IExceptionLoggerService _exceptionLoggerService;
         public ParametricService(IAccommodationTypeRepository accommodationTypeRepository, IErrorHandler errorHandler,
             IFeaturesAspectsRepository featuredAspectsRepository, IDiscountTypeRepository discountTypeRepository,
-            IPropertySubTypeRepository propertySubTypeRepository, ISpaceTypeRepository spaceTypeRepository)
+            IPropertySubTypeRepository propertySubTypeRepository, ISpaceTypeRepository spaceTypeRepository, 
+            ILanguageRepository languageRepository, IExceptionLoggerService exceptionLoggerService)
         {
             _accommodationTypeRepository = accommodationTypeRepository;
             _errorHandler = errorHandler;
@@ -23,6 +29,8 @@ namespace Assert.Domain.Implementation
             _discountTypeRepository = discountTypeRepository;
             _propertySubTypeRepository = propertySubTypeRepository;
             _spaceTypeRepository = spaceTypeRepository;
+            _languageRepository = languageRepository;
+            _exceptionLoggerService = exceptionLoggerService;
         }
 
         public async Task<ReturnModel<List<TlAccommodationType>>> GetAccomodationTypesActives()
@@ -141,6 +149,26 @@ namespace Assert.Domain.Implementation
                 result.ResultError = _errorHandler.GetErrorException("IParametricService.GetSpaceTypes", ex, null, true);
             }
             return result;
+        }
+
+        public async Task<ReturnModel<List<TLanguage>>> GetLanguages()
+        {
+            try
+            {
+                var result_data = await _languageRepository.GetAsync();
+                return new ReturnModel<List<TLanguage>>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    Data = result_data,
+                    HasError = false
+                };
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, "Language");
+                throw new DomainException(ex.Message);
+            }
         }
     }
 }

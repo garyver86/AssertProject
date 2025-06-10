@@ -1,4 +1,5 @@
 ﻿
+using Assert.Application.DTOs.Requests;
 using Assert.Application.Interfaces;
 using Assert.Application.Mappings;
 using Assert.Application.Services;
@@ -35,6 +36,9 @@ namespace Assert.Application
             });
             services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
             services.AddValidatorsFromAssemblyContaining<LocalUserRequestValidator>();
+            services.AddScoped<IValidator<UpdatePersonalInformationRequest>, 
+                PersonalInformationBaseValidator<UpdatePersonalInformationRequest>>();
+
 
             //Application Services
             services.AddScoped<ISecurityService, SecurityService>();

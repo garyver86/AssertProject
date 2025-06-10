@@ -1,24 +1,20 @@
 ﻿using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
 using Assert.Domain.Entities;
+using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
 using Assert.Domain.Services;
+using Assert.Infrastructure.Exceptions;
+using Assert.Shared.Extensions;
 using AutoMapper;
 
 namespace Assert.Application.Services
 {
-    public class AppParametricService : IAppParametricService
+    public class AppParametricService(IParametricService _parametricService,
+        IMapper _mapper, IErrorHandler _errorHandler,
+        IExceptionLoggerService _exceptionLoggerService) 
+        : IAppParametricService
     {
-
-        private readonly IParametricService _parametricService;
-        private readonly IMapper _mapper;
-        private readonly IErrorHandler _errorHandler;
-        public AppParametricService(IParametricService parametricService, IErrorHandler errorHandler, IMapper mapper)
-        {
-            _parametricService = parametricService;
-            _mapper = mapper;
-            _errorHandler = errorHandler;
-        }
         public async Task<ReturnModelDTO<List<AccomodationTypeDTO>>> GetAccomodationTypes(Dictionary<string, string> clientData, bool useTechnicalMessages)
         {
             try
@@ -127,6 +123,29 @@ namespace Assert.Application.Services
                 return HandleException<List<SpaceTypeDTO>>("AppParametricService.GetSpaceTypes", ex, null, useTechnicalMessages);
             }
         }
+        
+        public async Task<ReturnModelDTO<List<LanguageDTO>>> GetLanguageTypes()
+        {
+            try
+            {
+                var languages = await _parametricService.GetLanguages();
+                
+                return new ReturnModelDTO<List<LanguageDTO>>
+                {
+                    Data = _mapper.Map<List<LanguageDTO>>(languages.Data),
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, "Languages");
+
+                throw new ApplicationException(ex.Message);
+            }
+        }
+        
         private ReturnModelDTO<T> CreateErrorResult<T>(string statusCode, string errorMessage, bool useTechnicalMessages)
         {
             return new ReturnModelDTO<T>

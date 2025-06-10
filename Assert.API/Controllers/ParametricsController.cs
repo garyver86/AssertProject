@@ -2,6 +2,7 @@
 using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Assert.API.Controllers
@@ -127,5 +128,18 @@ namespace Assert.API.Controllers
 
             return discountTypesResult;
         }
+
+        /// <summary>
+        /// Servicio que devuelve la lista de tipos de lenguajes.
+        /// </summary>
+        /// <returns>Listado de tipos de lenguajes.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// Solo se consideraran los tipos de lenguajes habilitados.
+        /// </remarks>
+        [HttpGet("GetLanguageTypes")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO<List<LanguageDTO>>> GetLanguageTypes()
+        => await _parametricService.GetLanguageTypes();
     }
 }

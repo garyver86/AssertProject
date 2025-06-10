@@ -19,14 +19,23 @@ public static class StringExtensions
         if (string.IsNullOrWhiteSpace(phone))
             return ("", phone);
 
-        var match = Regex.Match(phone, @"^\+(?<CountryCode>\d{1,4})(?<PhoneNumber>\d{7,15})$");
+        var phoneFull = phone.Split('-', 2);
 
-        if (!match.Success)
-            return ("", phone);
+        if (phoneFull.Length == 2)
+        {
+            return (phoneFull[0], phoneFull[1]);
+        }
 
-        var countryCode = match.Groups["CountryCode"].Value;
-        var phoneNumber = match.Groups["PhoneNumber"].Value;
+        return (string.Empty, phone);
 
-        return (countryCode, phoneNumber);
+        //var match = Regex.Match(phone, @"^\+(?<CountryCode>\d{1,4})(?<PhoneNumber>\d{7,15})$");
+
+        //if (!match.Success)
+        //    return ("", phone);
+
+        //var countryCode = match.Groups["CountryCode"].Value;
+        //var phoneNumber = match.Groups["PhoneNumber"].Value;
+
+        //return (countryCode, phoneNumber);
     }
 }

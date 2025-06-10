@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Assert.Domain.Entities;
+﻿namespace Assert.Domain.Entities;
 
 public partial class TuUser
 {
@@ -36,6 +33,8 @@ public partial class TuUser
     public string? SocialId { get; set; }
 
     public int? TimeZoneId { get; set; }
+
+    public string? FavoriteName { get; set; }
 
     public virtual TuAccountType AccountTypeNavigation { get; set; } = null!;
 

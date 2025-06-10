@@ -8,11 +8,10 @@ using Assert.Domain.Interfaces.Infraestructure.External;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
-using Assert.Domain.ValueObjects;
 using Assert.Infrastructure.Security;
 using AutoMapper;
+using FluentValidation;
 using Microsoft.Extensions.Logging;
-using Microsoft.Identity.Client;
 using Newtonsoft.Json.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -25,6 +24,7 @@ public class AppUserService(
         RequestMetadata _metadata, IAccountRepository _accountRepository,
         IUserRolRepository _userRolRespository,
         Func<Platform, IAuthProviderValidator> _authValidatorFactory, IUserService _userService,
+        IValidator<UpdatePersonalInformationRequest> _validator,
         IErrorHandler _errorHandler, ILogger<AppUserService> _logger) 
         : IAppUserService
 {
@@ -188,6 +188,38 @@ public class AppUserService(
 
         _logger.LogError($"Enrollment error to create local user: {userRequest.Email}", userRequest);
         throw new ApplicationException($"No se pudo realizar el enrollamiento del usuario {userRequest.Email}");
+    }
+
+    public async Task<ReturnModelDTO> UpdatePersonalInformation(UpdatePersonalInformationRequest request)
+    {
+        var validationResult = await _validator.ValidateAsync(request);
+        if (!validationResult.IsValid)
+            throw new Exceptions.ValidationException(validationResult.Errors);
+
+        var updateData = await _userRepository.UpdatePersonalInformation(request.UserId, request.Name,
+            request.LastName, request.FavoriteName ?? "", request.Email, request.Phone);
+
+        if (updateData == "SUCCESS")
+        {
+            return new ReturnModelDTO
+            {
+                StatusCode = ResultStatusCode.OK,
+                HasError = false,
+                Data = "SUCCESS" 
+            };
+        }
+
+        return new ReturnModelDTO
+        {
+            StatusCode = ResultStatusCode.InternalError,
+            HasError = true,
+            ResultError = new ErrorCommonDTO
+            {
+                Title = "Error al actualizar la información personal",
+                Message = "No se pudo actualizar la información personal del usuario.",
+                Code = ResultStatusCode.InternalError.ToString()
+            }
+        };
     }
 
     //private funcs

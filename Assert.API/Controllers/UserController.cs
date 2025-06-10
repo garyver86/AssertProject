@@ -87,5 +87,19 @@ namespace Assert.API.Controllers
 
             return result;
         }
+
+
+        /// <summary>
+        /// Servicio que actualiza la información personal del usuario.
+        /// </summary>
+        /// <returns>Confirmación de la actualizacion: SUCCESS.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// Los valores de campos que no se requiere modificar enviar en blanco: "string.Empty"
+        /// </remarks>
+        [HttpPost("UpdatePersonalInformation")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> UpdatePersonalInformation([FromBody] UpdatePersonalInformationRequest userRequest)
+        => await _userService.UpdatePersonalInformation(userRequest);
     }
 }

@@ -2,3 +2,6 @@
 AssertDB:
 
 Scaffold-DbContext "Server=35.193.165.194;Database=AssertDB;uid=assertdb-user;pwd=Fdgsh2025%;Trusted_Connection=False;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Entities -force
+
+update tables:
+Scaffold-DbContext "Server=35.193.165.194;Database=assertdb;User Id=assertdb-user;Password=Fdgsh2025%;Trusted_Connection=False;TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Flag -Force -Tables TU_User, T_Language, TU_EmergencyContact

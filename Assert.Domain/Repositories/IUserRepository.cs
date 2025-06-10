@@ -17,5 +17,9 @@ namespace Assert.Domain.Repositories
         Task<ReturnModel<List<TuUserRole>>> GetRoles(int userId, 
             bool getOnlyActives);
         Task<ReturnModel<bool>> ExistLocalUser(string userName);
+
+        Task<string> UpdatePersonalInformation(int userId,
+            string name, string lastName, string favoriteName,
+            string email, string phone);
     }
 }

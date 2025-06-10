@@ -154,7 +154,10 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.Name))
                 .ForMember(dest => dest.County, opt => opt.MapFrom(src => src.County != null ? src.County.Name : null));
             CreateMap<UploadImageRequest, UploadImageListingRent>();
+
             CreateMap<TSpaceType, SpaceTypeDTO>();
+
+            CreateMap<TLanguage, LanguageDTO>().ReverseMap();
 
         }
     }
