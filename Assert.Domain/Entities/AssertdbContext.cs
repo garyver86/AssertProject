@@ -1,16 +1,16 @@
-﻿using Assert.Domain.Entities;
-using Assert.Domain.Entities;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB;
+namespace Assert.Domain.Entities;
 
-public partial class InfraAssertDbContext : DbContext
+public partial class AssertdbContext : DbContext
 {
-    public InfraAssertDbContext()
+    public AssertdbContext()
     {
     }
 
-    public InfraAssertDbContext(DbContextOptions<InfraAssertDbContext> options)
+    public AssertdbContext(DbContextOptions<AssertdbContext> options)
         : base(options)
     {
     }
@@ -103,7 +103,7 @@ public partial class InfraAssertDbContext : DbContext
 
     public virtual DbSet<TiStatusIssue> TiStatusIssues { get; set; }
 
-    public virtual DbSet<Domain.Entities.TimeZone> TimeZones { get; set; }
+    public virtual DbSet<TimeZone> TimeZones { get; set; }
 
     public virtual DbSet<TimeZone1> TimeZones1 { get; set; }
 
@@ -240,6 +240,10 @@ public partial class InfraAssertDbContext : DbContext
     public virtual DbSet<TuUserStatusType> TuUserStatusTypes { get; set; }
 
     public virtual DbSet<TuUserType> TuUserTypes { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Server=35.193.165.194;Database=assertdb;User Id=assertdb-user;Password=Fdgsh2025%;Trusted_Connection=False;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -1461,7 +1465,7 @@ public partial class InfraAssertDbContext : DbContext
                 .HasColumnName("statusName");
         });
 
-        modelBuilder.Entity<Domain.Entities.TimeZone>(entity =>
+        modelBuilder.Entity<TimeZone>(entity =>
         {
             entity.HasKey(e => e.TimeZone1);
 

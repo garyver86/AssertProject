@@ -4,6 +4,7 @@ using Assert.Application.DTOs.Responses;
 using Assert.Domain.Entities;
 using Assert.Domain.Enums;
 using Assert.Domain.Models;
+using Assert.Domain.ValueObjects;
 using Assert.Infrastructure.Utils;
 using AutoMapper;
 
@@ -17,6 +18,9 @@ namespace Assert.Application.Mappings
             #region mapping enums
             CreateMap<string, Platform>().ConvertUsing<PlatformConverter>();
             #endregion
+
+            CreateMap<DateOnly, DateTime>().ConvertUsing<DateOnlyToDateTimeConverter>();
+            CreateMap<DateTime, DateOnly>().ConvertUsing<DateTimeToDateOnlyConverter>();
 
             CreateMap<ReturnModel, ReturnModelDTO>();
 
@@ -159,6 +163,43 @@ namespace Assert.Application.Mappings
 
             CreateMap<TLanguage, LanguageDTO>().ReverseMap();
 
+
+            CreateMap<TlListingCalendar, CalendarDayDto>()
+                .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date))
+                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.Price))
+                .ForMember(dest => dest.BlockType, opt => opt.MapFrom(src => src.BlockType))
+                .ForMember(dest => dest.BlockReason, opt => opt.MapFrom(src => src.BlockReason))
+                .ForMember(dest => dest.BookId, opt => opt.MapFrom(src => src.BookId))
+                .ForMember(dest => dest.MinimumStay, opt => opt.MapFrom(src => src.MinimumStay))
+                .ForMember(dest => dest.MaximumStay, opt => opt.MapFrom(src => src.MaximumStay))
+                .ForMember(dest => dest.BlockTypeName, opt => opt.MapFrom(src => src.BlockTypeNavigation.BlockTypeName));
+            
+            CreateMap<(List<TlListingCalendar> CalendarDays, PaginationMetadata Pagination),
+                     (IEnumerable<CalendarDayDto> CalendarDays, PaginationMetadata Pagination)>()
+                .ForMember(dest => dest.CalendarDays, opt => opt.MapFrom(src => src.CalendarDays))
+                .ForMember(dest => dest.Pagination, opt => opt.MapFrom(src => src.Pagination));
+
+            CreateMap<(List<TlListingCalendar>, PaginationMetadata), CalendarResultPaginatedDTO>()
+            .ForMember(dest => dest.CalendarDays, opt => opt.MapFrom(src => src.Item1))
+            .ForMember(dest => dest.Pagination, opt => opt.MapFrom(src => src.Item2));
+        }
+
+        // Conversor personalizado de DateOnly a DateTime
+        public class DateOnlyToDateTimeConverter : ITypeConverter<DateOnly, DateTime>
+        {
+            public DateTime Convert(DateOnly source, DateTime destination, ResolutionContext context)
+            {
+                return source.ToDateTime(TimeOnly.MinValue);
+            }
+        }
+
+        // Conversor personalizado de DateTime a DateOnly
+        public class DateTimeToDateOnlyConverter : ITypeConverter<DateTime, DateOnly>
+        {
+            public DateOnly Convert(DateTime source, DateOnly destination, ResolutionContext context)
+            {
+                return DateOnly.FromDateTime(source);
+            }
         }
     }
 }

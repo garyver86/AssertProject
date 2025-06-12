@@ -45,6 +45,22 @@ public partial class TlListingRent
 
     public bool? NoiseDesibelesMonitor { get; set; }
 
+    public int? MinimunStay { get; set; }
+
+    public int? MaximumStay { get; set; }
+
+    public int? MinimumNotice { get; set; }
+
+    public TimeOnly? MinimumNoticeHour { get; set; }
+
+    public int? PreparationDays { get; set; }
+
+    public int? AvailabilityWindowMonth { get; set; }
+
+    public string? CheckInDays { get; set; }
+
+    public string? CheckOutDays { get; set; }
+
     public virtual TlAccommodationType? AccomodationType { get; set; }
 
     public virtual TApprovalPolicyType? ApprovalPolicyType { get; set; }
@@ -66,6 +82,8 @@ public partial class TlListingRent
     public virtual ICollection<TlListingAmenity> TlListingAmenities { get; set; } = new List<TlListingAmenity>();
 
     public virtual ICollection<TlListingAvailability> TlListingAvailabilities { get; set; } = new List<TlListingAvailability>();
+
+    public virtual ICollection<TlListingCalendar> TlListingCalendars { get; set; } = new List<TlListingCalendar>();
 
     public virtual ICollection<TlListingDiscountForRate> TlListingDiscountForRates { get; set; } = new List<TlListingDiscountForRate>();
 

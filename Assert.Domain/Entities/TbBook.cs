@@ -79,5 +79,7 @@ public partial class TbBook
 
     public virtual ICollection<TlListingAvailability> TlListingAvailabilities { get; set; } = new List<TlListingAvailability>();
 
+    public virtual ICollection<TlListingCalendar> TlListingCalendars { get; set; } = new List<TlListingCalendar>();
+
     public virtual ICollection<TlListingReview> TlListingReviews { get; set; } = new List<TlListingReview>();
 }
