@@ -1,4 +1,5 @@
-﻿using Assert.Application.DTOs.Responses;
+﻿using Assert.Application.DTOs.Requests;
+using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
 using Assert.Domain.Entities;
 using Assert.Domain.Models;
@@ -70,6 +71,51 @@ namespace Assert.Application.Services
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
                 result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingCalendarService.GetCalendarDaysWithDetails", ex, new { listingRentId, startDate, endDate, pageNumber, pageSize }, false));
+            }
+            return result;
+        }
+        public async Task<ReturnModelDTO<List<CalendarDayDto>>> BlockDays(BulkBlockCalendarDaysRequest request)
+        {
+            ReturnModelDTO<List<CalendarDayDto>> result = new ReturnModelDTO<List<CalendarDayDto>>();
+            try
+            {
+                List<TlListingCalendar> result_ = await _listingCalendarRepository.BulkBlockDaysAsync(request.ListingRentId, request.Dates, request.BlockType, request.BlockReason, request.BookId);
+
+                result = new ReturnModelDTO<List<CalendarDayDto>>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    HasError = false,
+                    Data = _mapper.Map<List<CalendarDayDto>>(result_)
+                };
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingCalendarService.BlockDays", ex, new { request }, false));
+            }
+            return result;
+        }
+
+        public async Task<ReturnModelDTO<List<CalendarDayDto>>> UnblockDays(BulkBlockCalendarDaysRequest request)
+        {
+            ReturnModelDTO<List<CalendarDayDto>> result = new ReturnModelDTO<List<CalendarDayDto>>();
+            try
+            {
+                List<TlListingCalendar> result_ = await _listingCalendarRepository.BulkUnblockDaysAsync(request.ListingRentId, request.Dates);
+
+                result = new ReturnModelDTO<List<CalendarDayDto>>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    HasError = false,
+                    Data = _mapper.Map<List<CalendarDayDto>>(result_)
+                };
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingCalendarService.UnblockDays", ex, new { request }, false));
             }
             return result;
         }

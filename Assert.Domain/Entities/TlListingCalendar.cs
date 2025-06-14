@@ -11,7 +11,7 @@ public partial class TlListingCalendar
 
     public DateOnly Date { get; set; }
 
-    public byte BlockType { get; set; }
+    public byte? BlockType { get; set; }
 
     public decimal? Price { get; set; }
 

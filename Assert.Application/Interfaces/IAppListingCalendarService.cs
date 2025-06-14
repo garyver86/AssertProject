@@ -1,5 +1,7 @@
-﻿using Assert.Application.DTOs.Responses;
+﻿using Assert.Application.DTOs.Requests;
+using Assert.Application.DTOs.Responses;
 using Assert.Domain.Entities;
+using Assert.Domain.Models;
 using Assert.Domain.ValueObjects;
 
 namespace Assert.Application.Interfaces
@@ -27,6 +29,9 @@ namespace Assert.Application.Interfaces
         /// <param name="pageSize">Tamaño de la página</param>
         /// <returns>Tupla con lista de días del calendario con información de descuentos e información de paginación</returns>
         Task<ReturnModelDTO<CalendarResultPaginatedDTO>> GetCalendarDaysWithDetails(int listingRentId, DateTime startDate, DateTime endDate, int pageNumber = 1, int pageSize = 31);
+
+        Task<ReturnModelDTO<List<CalendarDayDto>>> BlockDays(BulkBlockCalendarDaysRequest request);
+        Task<ReturnModelDTO<List<CalendarDayDto>>> UnblockDays(BulkBlockCalendarDaysRequest request);
 
     }
 }

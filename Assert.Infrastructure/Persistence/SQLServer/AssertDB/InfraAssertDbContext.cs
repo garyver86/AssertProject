@@ -1786,6 +1786,10 @@ public partial class InfraAssertDbContext : DbContext
 
             entity.ToTable("TL_ListingCalendar");
 
+            entity.HasIndex(e => e.ListingrentId, "NonClusteredIndex-20250614-001321");
+
+            entity.HasIndex(e => new { e.ListingrentId, e.Date }, "NonClusteredIndex-20250614-001342");
+
             entity.Property(e => e.CalendarId).HasColumnName("calendarId");
             entity.Property(e => e.AvailabilityWindowMonth).HasColumnName("availabilityWindowMonth");
             entity.Property(e => e.BlockReason)
