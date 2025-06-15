@@ -307,6 +307,29 @@ namespace Assert.Application.Services
             }
             return result;
         }
+        public async Task<ReturnModelDTO<ListingReviewSummaryDTO>> GetListingRentReviewsSummary(long listingRentId, int topCount, bool UseTechnicalMessages, Dictionary<string, string> requestInfo)
+        {
+
+            ReturnModelDTO<ListingReviewSummaryDTO> result = new ReturnModelDTO<ListingReviewSummaryDTO>();
+            try
+            {
+                ListingReviewSummary listings = await _listingReviewRepository.GetReviewSummary(listingRentId, topCount);
+                result = new ReturnModelDTO<ListingReviewSummaryDTO>
+                {
+                    Data = _mapper.Map<ListingReviewSummaryDTO>(listings),
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.GetListingRentReviewsSummary", ex, new { listingRentId, topCount }, UseTechnicalMessages));
+            }
+            return result;
+        }
 
 
         public async Task<List<ReturnModelDTO>> UploadImagesDescription(long listingRentId, List<UploadImageRequest> images, Dictionary<string, string> clientData)

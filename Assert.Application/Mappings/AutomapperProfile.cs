@@ -163,6 +163,7 @@ namespace Assert.Application.Mappings
 
             CreateMap<TLanguage, LanguageDTO>().ReverseMap();
 
+            CreateMap<ListingReviewSummary, ListingReviewSummaryDTO>();
 
             CreateMap<TlListingCalendar, CalendarDayDto>()
                 .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date))
@@ -173,7 +174,7 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.MinimumStay, opt => opt.MapFrom(src => src.MinimumStay))
                 .ForMember(dest => dest.MaximumStay, opt => opt.MapFrom(src => src.MaximumStay))
                 .ForMember(dest => dest.BlockTypeName, opt => opt.MapFrom(src => src.BlockTypeNavigation.BlockTypeName));
-            
+
             CreateMap<(List<TlListingCalendar> CalendarDays, PaginationMetadata Pagination),
                      (IEnumerable<CalendarDayDto> CalendarDays, PaginationMetadata Pagination)>()
                 .ForMember(dest => dest.CalendarDays, opt => opt.MapFrom(src => src.CalendarDays))

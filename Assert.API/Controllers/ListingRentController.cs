@@ -122,6 +122,24 @@ namespace Assert.API.Controllers
         }
 
         /// <summary>
+        /// Servicio que recupera un resumen de reviews de un listing Rent.
+        /// </summary>
+        /// <param name="listingRentId">Id del linsting.</param>
+        /// <param name="topCount">Cantidad de registros a recuperar por lista.</param>
+        /// <returns>Listado de resumen de reviews asociados al listing rent.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// </remarks>
+        [Authorize(Policy = "Guest")]
+        [HttpGet("{listingRentId}/Reviews/Summary")]
+        public async Task<ReturnModelDTO<ListingReviewSummaryDTO>> GetReviewsSummary(int listingRentId, int topCount = 3)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            ReturnModelDTO<ListingReviewSummaryDTO> result = await _appListingRentService.GetListingRentReviewsSummary(listingRentId, topCount, false, requestInfo);
+            return result;
+        }
+
+        /// <summary>
         /// Servicio que devuelve la lista de propiedades destacadas.
         /// </summary>
         /// <param name="countryId">id de país de la que se quieren obtener las propiedades destacadas (no es requerido).</param>
