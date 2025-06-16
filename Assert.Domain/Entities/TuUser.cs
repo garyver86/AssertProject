@@ -86,5 +86,7 @@ public partial class TuUser
 
     public virtual ICollection<TuUserRole> TuUserRoles { get; set; } = new List<TuUserRole>();
 
+    public virtual ICollection<TuEmergencyContact> TuEmergencyContacts { get; set; } = new List<TuEmergencyContact>();
+
     public virtual TuUserStatusType? UserStatusType { get; set; }
 }

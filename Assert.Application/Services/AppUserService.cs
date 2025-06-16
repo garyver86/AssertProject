@@ -23,9 +23,10 @@ public class AppUserService(
         IJWTSecurity _jwtSecurity, IMapper _mapper, IUserRepository _userRepository,
         RequestMetadata _metadata, IAccountRepository _accountRepository,
         IUserRolRepository _userRolRespository,
+        IEmergencyContactRepository _userEmergencyContactRepository,
         Func<Platform, IAuthProviderValidator> _authValidatorFactory, IUserService _userService,
         IValidator<UpdatePersonalInformationRequest> _validator,
-        IErrorHandler _errorHandler, ILogger<AppUserService> _logger) 
+        IErrorHandler _errorHandler, ILogger<AppUserService> _logger)
         : IAppUserService
 {
     public async Task<ReturnModelDTO> LoginAndEnrollment(string platform, string token,
@@ -223,7 +224,7 @@ public class AppUserService(
             }
             var enumPlatform = _mapper.Map<Platform>(platform);
 
-    
+
             var userAccount = await _userRepository.ValidateUserName(userName, true, enumPlatform);
             int userId;
             int accountId;
@@ -246,8 +247,8 @@ public class AppUserService(
             userId = user.UserId;
             accountId = Convert.ToInt32(user.TuAccounts.First().AccountId);
             userRoles = await _userRolRespository.GetUserRoles(userId);
-            
-                userRoles = await _userRolRespository.GetUserRoles(userId);
+
+            userRoles = await _userRolRespository.GetUserRoles(userId);
             _metadata.UserId = userId;
             _metadata.UserName = userName;
             _metadata.AccountId = accountId;
@@ -317,6 +318,46 @@ public class AppUserService(
                 Code = ResultStatusCode.InternalError.ToString()
             }
         };
+    }
+
+    public async Task<ReturnModelDTO> GetEmergencyContact()
+    {
+        var emergencyContact = await _userEmergencyContactRepository.GetByUserId(_metadata.UserId);
+        if (emergencyContact == null)
+        {
+            return new ReturnModelDTO
+            {
+                StatusCode = ResultStatusCode.NotFound,
+                HasError = true,
+                ResultError = new ErrorCommonDTO
+                {
+                    Title = "Contacto de emergencia no encontrado",
+                    Message = "No se encontró un contacto de emergencia para el usuario.",
+                    Code = ResultStatusCode.NotFound.ToString()
+                }
+            };
+        }
+
+        var response = _mapper.Map<EmergencyContactDTO>(emergencyContact);
+        return new ReturnModelDTO
+        {
+            StatusCode = ResultStatusCode.OK,
+            Data = response
+        };
+    }
+
+    public async Task<ReturnModelDTO> UpsertEmergencyContact(EmergencyContactRequest request)
+    {
+        var emergencyContactSuccess = await _userEmergencyContactRepository.Upsert(
+            request.EmergencyContactId, _metadata.UserId, request.Name, request.LastName,
+            request.Relationship, request.LanguageId, request.Email, request.PhoneNumber);
+
+        return new ReturnModelDTO
+        {
+            StatusCode = ResultStatusCode.OK,
+            Data = emergencyContactSuccess
+        };
+
     }
 
     //private funcs

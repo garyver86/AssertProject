@@ -3088,6 +3088,10 @@ public partial class InfraAssertDbContext : DbContext
             entity.HasOne(d => d.Language).WithMany(p => p.TuEmergencyContacts)
                 .HasForeignKey(d => d.LanguageId)
                 .HasConstraintName("FK_EmergencyContact_Language");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TuEmergencyContacts)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_TU_EmergencyContact_TU_User");
         });
 
         modelBuilder.Entity<TuUser>(entity =>

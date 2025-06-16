@@ -1,4 +1,5 @@
 ﻿using Assert.Domain.Common.Metadata;
+using System.Security.Claims;
 
 namespace Assert.API.Middleware
 {
@@ -29,6 +30,9 @@ namespace Assert.API.Middleware
             metadata.IsMobile = IsMobileRequest(metadata.UserAgent).ToString();
             metadata.User = context.User?.Identity?.Name ?? "Anonymous";
             metadata.CorrelationId = context.TraceIdentifier;
+            metadata.UserId = int.TryParse(context.User.FindFirst("identifier")?.Value, out var uid) ? uid : 0;
+            metadata.UserName = context.User.FindFirst("username")?.Value ?? "Unknown";
+
             #endregion
 
             await _next(context);
