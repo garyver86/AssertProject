@@ -1,16 +1,16 @@
-﻿using Assert.Domain.Entities;
-using Assert.Domain.Entities;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB;
+namespace Assert.Domain.Entities;
 
-public partial class InfraAssertDbContext : DbContext
+public partial class AssertdbContext : DbContext
 {
-    public InfraAssertDbContext()
+    public AssertdbContext()
     {
     }
 
-    public InfraAssertDbContext(DbContextOptions<InfraAssertDbContext> options)
+    public AssertdbContext(DbContextOptions<AssertdbContext> options)
         : base(options)
     {
     }
@@ -103,7 +103,7 @@ public partial class InfraAssertDbContext : DbContext
 
     public virtual DbSet<TiStatusIssue> TiStatusIssues { get; set; }
 
-    public virtual DbSet<Domain.Entities.TimeZone> TimeZones { get; set; }
+    public virtual DbSet<TimeZone> TimeZones { get; set; }
 
     public virtual DbSet<TimeZone1> TimeZones1 { get; set; }
 
@@ -240,6 +240,10 @@ public partial class InfraAssertDbContext : DbContext
     public virtual DbSet<TuUserStatusType> TuUserStatusTypes { get; set; }
 
     public virtual DbSet<TuUserType> TuUserTypes { get; set; }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Server=35.193.165.194;Database=assertdb;User Id=assertdb-user;Password=Fdgsh2025%;Trusted_Connection=False;TrustServerCertificate=True;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -1461,7 +1465,7 @@ public partial class InfraAssertDbContext : DbContext
                 .HasColumnName("statusName");
         });
 
-        modelBuilder.Entity<Domain.Entities.TimeZone>(entity =>
+        modelBuilder.Entity<TimeZone>(entity =>
         {
             entity.HasKey(e => e.TimeZone1);
 
@@ -1785,10 +1789,6 @@ public partial class InfraAssertDbContext : DbContext
             entity.HasKey(e => e.CalendarId).HasName("PK__TL_Listi__EE5496F6EE7EEB5C");
 
             entity.ToTable("TL_ListingCalendar");
-
-            entity.HasIndex(e => e.ListingrentId, "NonClusteredIndex-20250614-001321");
-
-            entity.HasIndex(e => new { e.ListingrentId, e.Date }, "NonClusteredIndex-20250614-001342");
 
             entity.Property(e => e.CalendarId).HasColumnName("calendarId");
             entity.Property(e => e.AvailabilityWindowMonth).HasColumnName("availabilityWindowMonth");
@@ -3215,66 +3215,6 @@ public partial class InfraAssertDbContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("name");
-        
-        });
-
-        modelBuilder.Entity<TLanguage>(entity =>
-        {
-            entity.HasKey(e => e.LanguageId).HasName("PK__T_Langua__12696A625F093F0B");
-
-            entity.ToTable("T_Language");
-
-            entity.Property(e => e.LanguageId).HasColumnName("languageId");
-            entity.Property(e => e.Code)
-                .HasMaxLength(30)
-                .IsUnicode(false)
-                .HasColumnName("code");
-            entity.Property(e => e.Detail)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("detail");
-        });
-
-        modelBuilder.Entity<TuEmergencyContact>(entity =>
-        {
-            entity.HasKey(e => e.EmergencyContactId).HasName("PK__TU_Emerg__7394A15DB7FEDEA4");
-
-            entity.ToTable("TU_EmergencyContact");
-
-            entity.Property(e => e.EmergencyContactId).HasColumnName("emergencyContactId");
-            entity.Property(e => e.Email)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("email");
-            entity.Property(e => e.LanguageId).HasColumnName("languageId");
-            entity.Property(e => e.LstName)
-                .HasMaxLength(200)
-                .IsUnicode(false)
-                .HasColumnName("lstName");
-            entity.Property(e => e.Name)
-                .HasMaxLength(200)
-                .IsUnicode(false)
-                .HasColumnName("name");
-            entity.Property(e => e.PhoneCode)
-                .HasMaxLength(10)
-                .IsUnicode(false)
-                .HasColumnName("phoneCode");
-            entity.Property(e => e.PhoneNumber)
-                .HasMaxLength(20)
-                .IsUnicode(false)
-                .HasColumnName("phoneNumber");
-            entity.Property(e => e.Relationship)
-                .HasMaxLength(200)
-                .IsUnicode(false)
-                .HasColumnName("relationship");
-
-            entity.HasOne(d => d.Language).WithMany(p => p.TuEmergencyContacts)
-                .HasForeignKey(d => d.LanguageId)
-                .HasConstraintName("FK_EmergencyContact_Language");
-
-            entity.HasOne(d => d.User).WithMany(p => p.TuEmergencyContacts)
-                .HasForeignKey(d => d.UserId)
-                .HasConstraintName("FK_TU_EmergencyContact_TU_User");
         });
 
         modelBuilder.Entity<TuUser>(entity =>

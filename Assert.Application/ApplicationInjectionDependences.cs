@@ -8,6 +8,7 @@ using Assert.Application.Validators;
 using Assert.Domain.Implementation;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
+using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.Extensions.Configuration;
@@ -48,6 +49,7 @@ namespace Assert.Application
             services.AddScoped<IAppParametricService, AppParametricService>();
             services.AddScoped<IAppUserService, AppUserService>();
             services.AddScoped<IAppMessagingService, AppMessagingService>();
+            services.AddScoped<IAppListingCalendarService, AppListingCalendarService>();
 
             //Domain Services
             services.AddScoped<IListingRentService, ListingRentService>();
