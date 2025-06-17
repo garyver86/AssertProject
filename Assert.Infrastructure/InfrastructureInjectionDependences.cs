@@ -102,6 +102,7 @@ public static class InfrastructureInjectionDependences
         services.AddScoped<ISpaceTypeRepository, SpaceTypeRepository>();
         services.AddScoped<ILanguageRepository, LanguageRepository>();
         services.AddScoped<IListingCalendarRepository, ListingCalendarRepository>();
+        services.AddScoped<IEmergencyContactRepository, EmergencyContactRepository>();
         #endregion
 
         return services;

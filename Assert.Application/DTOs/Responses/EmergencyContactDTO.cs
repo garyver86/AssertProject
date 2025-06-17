@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Assert.Domain.Entities;
+namespace Assert.Application.DTOs.Responses;
 
-public partial class TuEmergencyContact
+public class EmergencyContactDTO
 {
     public int EmergencyContactId { get; set; }
 
@@ -22,8 +25,4 @@ public partial class TuEmergencyContact
     public string? PhoneCode { get; set; }
 
     public string? PhoneNumber { get; set; }
-
-    public virtual TLanguage? Language { get; set; }
-
-    public virtual TuUser? User { get; set; }
 }

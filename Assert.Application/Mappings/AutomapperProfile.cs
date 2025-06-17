@@ -163,6 +163,8 @@ namespace Assert.Application.Mappings
 
             CreateMap<TLanguage, LanguageDTO>().ReverseMap();
 
+            CreateMap<TuEmergencyContact, EmergencyContactDTO>().ReverseMap();
+
             CreateMap<ListingReviewSummary, ListingReviewSummaryDTO>();
 
             CreateMap<TlListingCalendar, CalendarDayDto>()

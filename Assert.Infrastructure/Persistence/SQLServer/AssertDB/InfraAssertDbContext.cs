@@ -3215,6 +3215,66 @@ public partial class InfraAssertDbContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("name");
+        
+        });
+
+        modelBuilder.Entity<TLanguage>(entity =>
+        {
+            entity.HasKey(e => e.LanguageId).HasName("PK__T_Langua__12696A625F093F0B");
+
+            entity.ToTable("T_Language");
+
+            entity.Property(e => e.LanguageId).HasColumnName("languageId");
+            entity.Property(e => e.Code)
+                .HasMaxLength(30)
+                .IsUnicode(false)
+                .HasColumnName("code");
+            entity.Property(e => e.Detail)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("detail");
+        });
+
+        modelBuilder.Entity<TuEmergencyContact>(entity =>
+        {
+            entity.HasKey(e => e.EmergencyContactId).HasName("PK__TU_Emerg__7394A15DB7FEDEA4");
+
+            entity.ToTable("TU_EmergencyContact");
+
+            entity.Property(e => e.EmergencyContactId).HasColumnName("emergencyContactId");
+            entity.Property(e => e.Email)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("email");
+            entity.Property(e => e.LanguageId).HasColumnName("languageId");
+            entity.Property(e => e.LstName)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("lstName");
+            entity.Property(e => e.Name)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("name");
+            entity.Property(e => e.PhoneCode)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("phoneCode");
+            entity.Property(e => e.PhoneNumber)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("phoneNumber");
+            entity.Property(e => e.Relationship)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("relationship");
+
+            entity.HasOne(d => d.Language).WithMany(p => p.TuEmergencyContacts)
+                .HasForeignKey(d => d.LanguageId)
+                .HasConstraintName("FK_EmergencyContact_Language");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TuEmergencyContacts)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_TU_EmergencyContact_TU_User");
         });
 
         modelBuilder.Entity<TuUser>(entity =>

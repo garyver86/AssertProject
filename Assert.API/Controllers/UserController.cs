@@ -124,11 +124,39 @@ namespace Assert.API.Controllers
         /// <returns>Confirmación de la actualizacion: SUCCESS.</returns>
         /// <response code="200">Si se procesó correctamente.</response>
         /// <remarks>
-        /// Los valores de campos que no se requiere modificar enviar en blanco: "string.Empty"
+        /// Los valores de campos que no se requiere modificar enviarlos vacios en caso de string y 0 en caso de int. 
+        /// El numero de telefono es tipo string, tiene el siguiente formato: +591-72724711
         /// </remarks>
         [HttpPost("UpdatePersonalInformation")]
         [Authorize(Policy = "GuestOrHostOrAdmin")]
         public async Task<ReturnModelDTO> UpdatePersonalInformation([FromBody] UpdatePersonalInformationRequest userRequest)
         => await _userService.UpdatePersonalInformation(userRequest);
+
+        /// <summary>
+        /// Servicio que retorna el contacto de emergencia del usuario logeado.
+        /// </summary>
+        /// <returns>Confirmación modelo de contacto de emergencia.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// No requiere enviar ningun Id, ya que el contacto de emergencia se asocia al usuario logeado.
+        /// </remarks>
+        [HttpGet("GetEmergencyContactByUser")]
+        [Authorize(Policy = "GuestOrHost")]
+        public async Task<ReturnModelDTO> GetEmergencyContactByUser()
+        => await _userService.GetEmergencyContact();
+
+        /// <summary>
+        /// Servicio que inserta/actualiza la información de contacto de emergencia del usuario logeado.
+        /// </summary>
+        /// <returns>Confirmación de la actualizacion: SUCCESS.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// Los valores de campos que no se requiere modificar enviarlos vacios en caso de string y 0 en caso de int.
+        /// El numero de telefono es tipo string, tiene el siguiente formato: +591-72724711
+        /// </remarks>
+        [HttpPost("UpsertEmergencyContact")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> UpsertEmergencyContact([FromBody] EmergencyContactRequest emergencyContactRequest)
+        => await _userService.UpsertEmergencyContact(emergencyContactRequest);
     }
 }

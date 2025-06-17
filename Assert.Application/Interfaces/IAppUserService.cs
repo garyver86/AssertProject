@@ -12,5 +12,7 @@ public interface IAppUserService
     Task<ReturnModelDTO> RenewJwtToken(string expiredToken);
     Task<ReturnModelDTO> LocalUserEnrollment(LocalUserRequest userRequest);
     Task<ReturnModelDTO> UpdatePersonalInformation(UpdatePersonalInformationRequest request);
+    Task<ReturnModelDTO> GetEmergencyContact();
+    Task<ReturnModelDTO> UpsertEmergencyContact(EmergencyContactRequest request);
 
 }
