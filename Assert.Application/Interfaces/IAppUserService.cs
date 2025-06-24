@@ -13,6 +13,7 @@ public interface IAppUserService
     Task<ReturnModelDTO> LocalUserEnrollment(LocalUserRequest userRequest);
     Task<ReturnModelDTO> UpdatePersonalInformation(UpdatePersonalInformationRequest request);
     Task<ReturnModelDTO> GetEmergencyContact();
+    Task<ReturnModelDTO> GetPersonalInformation();
     Task<ReturnModelDTO> UpsertEmergencyContact(EmergencyContactRequest request);
 
 }

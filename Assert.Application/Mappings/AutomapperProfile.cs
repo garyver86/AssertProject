@@ -79,6 +79,8 @@ namespace Assert.Application.Mappings
             CreateMap<TCancelationPolicyType, CancelationPolicyDTO>();
             CreateMap<TuUser, UserDTO>().
                 ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.TuEmails.ToList().FirstOrDefault(email => email.IsPrincipal ?? true) != null ? src.TuEmails.ToList().First(email => email.IsPrincipal ?? true).Email : null))
+                .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.TuPhones.ToList().FirstOrDefault(phone => phone.IsPrimary ?? true) != null ? src.TuPhones.ToList().First(phone => phone.IsPrimary ?? true).Number : null))
+                .ForMember(dest => dest.PhoneCode, opt => opt.MapFrom(src => src.TuPhones.ToList().FirstOrDefault(phone => phone.IsPrimary ?? true) != null ? src.TuPhones.ToList().First(phone => phone.IsPrimary ?? true).CountryCode : null))
                 .ForMember(dest => dest.Documents, opt => opt.MapFrom(src => src.TuDocuments))
                 .ForMember(dest => dest.Phones, opt => opt.MapFrom(src => src.TuPhones))
                 .ForMember(dest => dest.ProfilePhotos, opt => opt.MapFrom(src => src.TuProfilePhotos));

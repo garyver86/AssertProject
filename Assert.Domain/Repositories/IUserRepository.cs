@@ -21,5 +21,7 @@ namespace Assert.Domain.Repositories
         Task<string> UpdatePersonalInformation(int userId,
             string name, string lastName, string favoriteName,
             string email, string phone);
+
+        Task<TuUser> GetPersonalInformationById(int userId);
     }
 }

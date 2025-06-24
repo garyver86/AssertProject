@@ -158,5 +158,19 @@ namespace Assert.API.Controllers
         [Authorize(Policy = "GuestOrHostOrAdmin")]
         public async Task<ReturnModelDTO> UpsertEmergencyContact([FromBody] EmergencyContactRequest emergencyContactRequest)
         => await _userService.UpsertEmergencyContact(emergencyContactRequest);
+
+        /// <summary>
+        /// Servicio que retorna informacion personal de usuario logeado.
+        /// </summary>
+        /// <returns>Confirmación modelo de contacto de emergencia.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// No requiere enviar ningun Id, ya que el contacto de emergencia se asocia al usuario logeado.
+        /// El codigo de celular no viene con el simbolo +, por ejemplo: PhoneCode = 591
+        /// </remarks>
+        [HttpGet("GetPersonalInformation")]
+        [Authorize(Policy = "GuestOrHost")]
+        public async Task<ReturnModelDTO> GetPersonalInformation()
+        => await _userService.GetPersonalInformation();
     }
 }
