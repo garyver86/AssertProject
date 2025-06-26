@@ -77,13 +77,15 @@ namespace Assert.Application.Mappings
             CreateMap<TlAccommodationType, AccomodationTypeDTO>();
             CreateMap<TApprovalPolicyType, ApprovalPolicyDTO>();
             CreateMap<TCancelationPolicyType, CancelationPolicyDTO>();
+            CreateMap<TuEmergencyContact, EmergencyContactDTO>().ReverseMap();
             CreateMap<TuUser, UserDTO>().
                 ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.TuEmails.ToList().FirstOrDefault(email => email.IsPrincipal ?? true) != null ? src.TuEmails.ToList().First(email => email.IsPrincipal ?? true).Email : null))
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.TuPhones.ToList().FirstOrDefault(phone => phone.IsPrimary ?? true) != null ? src.TuPhones.ToList().First(phone => phone.IsPrimary ?? true).Number : null))
                 .ForMember(dest => dest.PhoneCode, opt => opt.MapFrom(src => src.TuPhones.ToList().FirstOrDefault(phone => phone.IsPrimary ?? true) != null ? src.TuPhones.ToList().First(phone => phone.IsPrimary ?? true).CountryCode : null))
+                .ForMember(dest => dest.EmergencyContact, opt => opt.MapFrom(src => src.TuEmergencyContacts.FirstOrDefault()))
                 .ForMember(dest => dest.Documents, opt => opt.MapFrom(src => src.TuDocuments))
                 .ForMember(dest => dest.Phones, opt => opt.MapFrom(src => src.TuPhones))
-                .ForMember(dest => dest.ProfilePhotos, opt => opt.MapFrom(src => src.TuProfilePhotos));
+                .ForMember(dest => dest.ProfilePhotos, opt => opt.MapFrom(src => src.TuProfilePhotos));                
             CreateMap<TpProperty, PropertyDTO>()
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.TpPropertyAddresses.FirstOrDefault()))
                 .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.PropertySubtype));
@@ -164,8 +166,6 @@ namespace Assert.Application.Mappings
             CreateMap<TSpaceType, SpaceTypeDTO>();
 
             CreateMap<TLanguage, LanguageDTO>().ReverseMap();
-
-            CreateMap<TuEmergencyContact, EmergencyContactDTO>().ReverseMap();
 
             CreateMap<ListingReviewSummary, ListingReviewSummaryDTO>();
 

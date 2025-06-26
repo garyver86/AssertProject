@@ -12,7 +12,6 @@ using Assert.Infrastructure.Security;
 using AutoMapper;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using ApplicationException = Assert.Application.Exceptions.ApplicationException;

@@ -9,8 +9,10 @@
         public string? Email { get; set; }
         public string? PhoneNumber { get; set; }
         public string? PhoneCode { get; set; }
-        public List<DocumentDTO> Documents { get; set; }
-        public List<PhoneDTO> Phones { get; set; }
-        public List<ProfilePhotoDTO> ProfilePhotos { get; set; }
+        public EmergencyContactDTO? EmergencyContact { get; set; } 
+        public List<DocumentDTO>? Documents { get; set; }
+        public List<PhoneDTO>? Phones { get; set; }
+        public List<ProfilePhotoDTO>? ProfilePhotos { get; set; }
+
     }
 }

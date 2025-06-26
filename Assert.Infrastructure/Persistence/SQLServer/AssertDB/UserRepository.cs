@@ -381,6 +381,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Where(x => x.UserId == userId)
                     .Include(x => x.TuEmails)
                     .Include(x => x.TuPhones)
+                    .Include(x => x.TuEmergencyContacts)
                     .FirstOrDefaultAsync();
 
             return user ?? 
