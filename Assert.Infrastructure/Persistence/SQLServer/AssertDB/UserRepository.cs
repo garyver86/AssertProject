@@ -375,7 +375,18 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
+        public async Task<TuUser> GetPersonalInformationById(int userId)
+        {
+            var user = await _dbContext.TuUsers
+                    .Where(x => x.UserId == userId)
+                    .Include(x => x.TuEmails)
+                    .Include(x => x.TuPhones)
+                    .Include(x => x.TuEmergencyContacts)
+                    .FirstOrDefaultAsync();
 
+            return user ?? 
+                throw new NotFoundException("El usuario no fue encontrado. No es posible obtener informacion personal.");
+        }
 
         public async Task<int> Update(TuUser user)
         {

@@ -12,7 +12,6 @@ using Assert.Infrastructure.Security;
 using AutoMapper;
 using FluentValidation;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using ApplicationException = Assert.Application.Exceptions.ApplicationException;
@@ -288,6 +287,17 @@ public class AppUserService(
         }
     }
 
+    public async Task<ReturnModelDTO> GetPersonalInformation()
+    {
+        var user = await _userRepository.GetPersonalInformationById(_metadata.UserId);
+
+        return new ReturnModelDTO
+        {
+            StatusCode = ResultStatusCode.OK,
+            Data = _mapper.Map<UserDTO>(user)
+        };
+    }
+
     public async Task<ReturnModelDTO> UpdatePersonalInformation(UpdatePersonalInformationRequest request)
     {
         var validationResult = await _validator.ValidateAsync(request);
@@ -361,7 +371,6 @@ public class AppUserService(
     }
 
     //private funcs
-
     private ReturnModelDTO<T> HandleException<T>(string action, Exception ex, object data, bool useTechnicalMessages)
     {
         var error = _errorHandler.GetErrorException(action, ex, data, useTechnicalMessages);
