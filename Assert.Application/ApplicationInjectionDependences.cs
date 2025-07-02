@@ -50,6 +50,8 @@ namespace Assert.Application
             services.AddScoped<IAppUserService, AppUserService>();
             services.AddScoped<IAppMessagingService, AppMessagingService>();
             services.AddScoped<IAppListingCalendarService, AppListingCalendarService>();
+            services.AddScoped<IAppBookService, AppBookService>();
+            services.AddScoped<IAppMethodOfPaymentService, AppMethodOfPaymentService>();
 
             //Domain Services
             services.AddScoped<IListingRentService, ListingRentService>();
@@ -58,6 +60,8 @@ namespace Assert.Application
             services.AddScoped<IUserService, UserService>();
             services.AddScoped<ILocationSugestionService, LocationSugestionService>();
             services.AddScoped<ILocationService, LocationService>();
+            services.AddScoped<IBookService, BookService>();
+            services.AddScoped<IMethodOfPaymentService, MethodOfPaymentService>();
 
             return services;
         }

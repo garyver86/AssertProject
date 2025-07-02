@@ -35,7 +35,7 @@ public partial class TlListingCalendar
 
     public string? CheckOutDays { get; set; }
 
-    public virtual TCalendarBlockType BlockTypeNavigation { get; set; } = null!;
+    public virtual TCalendarBlockType? BlockTypeNavigation { get; set; }
 
     public virtual TbBook? Book { get; set; }
 

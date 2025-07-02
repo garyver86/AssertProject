@@ -75,6 +75,8 @@ public partial class TuUser
 
     public virtual ICollection<TuEmail> TuEmails { get; set; } = new List<TuEmail>();
 
+    public virtual ICollection<TuEmergencyContact> TuEmergencyContacts { get; set; } = new List<TuEmergencyContact>();
+
     public virtual ICollection<TuPhone> TuPhones { get; set; } = new List<TuPhone>();
 
     public virtual ICollection<TuProfilePhoto> TuProfilePhotos { get; set; } = new List<TuProfilePhoto>();
@@ -88,8 +90,6 @@ public partial class TuUser
     public virtual ICollection<TuUserReview> TuUserReviewUsers { get; set; } = new List<TuUserReview>();
 
     public virtual ICollection<TuUserRole> TuUserRoles { get; set; } = new List<TuUserRole>();
-
-    public virtual ICollection<TuEmergencyContact> TuEmergencyContacts { get; set; } = new List<TuEmergencyContact>();
 
     public virtual TuUserStatusType? UserStatusType { get; set; }
 }
