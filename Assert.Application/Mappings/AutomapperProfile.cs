@@ -75,6 +75,8 @@ namespace Assert.Application.Mappings
 
 
             CreateMap<TlAccommodationType, AccomodationTypeDTO>();
+            CreateMap<PayPriceCalculation, PayPriceCalculationDTO>();
+            CreateMap<PayMethodOfPayment, PayMethodOfPaymentDTO>();
             CreateMap<TApprovalPolicyType, ApprovalPolicyDTO>();
             CreateMap<TCancelationPolicyType, CancelationPolicyDTO>();
             CreateMap<TuEmergencyContact, EmergencyContactDTO>().ReverseMap();

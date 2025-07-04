@@ -63,6 +63,8 @@ public partial class TbBook
 
     public virtual TlListingRent ListingRent { get; set; } = null!;
 
+    public virtual ICollection<PayPriceCalculation> PayPriceCalculations { get; set; } = new List<PayPriceCalculation>();
+
     public virtual ICollection<TbBookChange> TbBookChanges { get; set; } = new List<TbBookChange>();
 
     public virtual ICollection<TbBookInsuranceClaim> TbBookInsuranceClaims { get; set; } = new List<TbBookInsuranceClaim>();

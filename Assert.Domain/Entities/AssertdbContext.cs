@@ -4,18 +4,28 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Assert.Domain.Entities;
 
-public partial class AssertdbContext : DbContext
+public partial class AssertDbContext : DbContext
 {
-    public AssertdbContext()
+    public AssertDbContext()
     {
     }
 
-    public AssertdbContext(DbContextOptions<AssertdbContext> options)
+    public AssertDbContext(DbContextOptions<AssertDbContext> options)
         : base(options)
     {
     }
 
     public virtual DbSet<CitySearchTable> CitySearchTables { get; set; }
+
+    public virtual DbSet<PayCountryConfiguration> PayCountryConfigurations { get; set; }
+
+    public virtual DbSet<PayMethodOfPayment> PayMethodOfPayments { get; set; }
+
+    public virtual DbSet<PayPriceCalculation> PayPriceCalculations { get; set; }
+
+    public virtual DbSet<PayProvider> PayProviders { get; set; }
+
+    public virtual DbSet<PayTransaction> PayTransactions { get; set; }
 
     public virtual DbSet<TAdditionalSuggestion> TAdditionalSuggestions { get; set; }
 
@@ -243,7 +253,7 @@ public partial class AssertdbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=35.193.165.194;Database=assertdb;User Id=assertdb-user;Password=Fdgsh2025%;Trusted_Connection=False;TrustServerCertificate=True;");
+        => optionsBuilder.UseSqlServer("Server=34.58.179.9,1433;Database=AssertDB;uid=assertdb-user;pwd=Fdiah2025%$;Trusted_Connection=False;TrustServerCertificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -270,6 +280,229 @@ public partial class AssertdbContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("state_name");
+        });
+
+        modelBuilder.Entity<PayCountryConfiguration>(entity =>
+        {
+            entity.HasKey(e => e.PaymentConfigId);
+
+            entity.ToTable("Pay_CountryConfiguration");
+
+            entity.Property(e => e.PaymentConfigId).HasColumnName("paymentConfigId");
+            entity.Property(e => e.Active).HasColumnName("active");
+            entity.Property(e => e.ConfigurationJson)
+                .HasMaxLength(500)
+                .IsUnicode(false)
+                .HasColumnName("configurationJson");
+            entity.Property(e => e.CountryId).HasColumnName("countryId");
+            entity.Property(e => e.MethodOfPaymentId).HasColumnName("methodOfPaymentId");
+            entity.Property(e => e.Priority)
+                .HasDefaultValue(1)
+                .HasColumnName("priority");
+            entity.Property(e => e.ProviderId).HasColumnName("providerId");
+
+            entity.HasOne(d => d.Country).WithMany(p => p.PayCountryConfigurations)
+                .HasForeignKey(d => d.CountryId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Pay_CountryConfiguration_T_Country");
+
+            entity.HasOne(d => d.MethodOfPayment).WithMany(p => p.PayCountryConfigurations)
+                .HasForeignKey(d => d.MethodOfPaymentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Pay_CountryConfiguration_Pay_MethodOfPayment");
+
+            entity.HasOne(d => d.Provider).WithMany(p => p.PayCountryConfigurations)
+                .HasForeignKey(d => d.ProviderId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Pay_CountryConfiguration_Pay_Provider");
+        });
+
+        modelBuilder.Entity<PayMethodOfPayment>(entity =>
+        {
+            entity.HasKey(e => e.MethodOfPaymentId);
+
+            entity.ToTable("Pay_MethodOfPayment");
+
+            entity.Property(e => e.MethodOfPaymentId).HasColumnName("methodOfPaymentId");
+            entity.Property(e => e.Active).HasColumnName("active");
+            entity.Property(e => e.MopDescription)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("mopDescription");
+            entity.Property(e => e.MopCode)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("mopCode");
+            entity.Property(e => e.MopName)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("mopName");
+            entity.Property(e => e.UrlIcon)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("url_icon");
+        });
+
+        modelBuilder.Entity<PayPriceCalculation>(entity =>
+        {
+            entity.HasKey(e => e.PriceCalculationId).HasName("PK__Pay_Pric__8F352993EC496654");
+
+            entity.ToTable("Pay_PriceCalculation");
+
+            entity.HasIndex(e => e.CalculationCode, "IX_CodigoCotizacion");
+
+            entity.HasIndex(e => new { e.CalculationStatue, e.ExpirationDate }, "IX_Estado_FechaExpiracion");
+
+            entity.HasIndex(e => e.BookId, "IX_ReservaID");
+
+            entity.HasIndex(e => e.CalculationCode, "UQ_CodigoCotizacion").IsUnique();
+
+            entity.Property(e => e.PriceCalculationId).HasColumnName("priceCalculationId");
+            entity.Property(e => e.Amount)
+                .HasColumnType("decimal(10, 2)")
+                .HasColumnName("amount");
+            entity.Property(e => e.BookId).HasColumnName("bookId");
+            entity.Property(e => e.CalculationCode)
+                .HasDefaultValueSql("(newid())")
+                .HasColumnName("calculationCode");
+            entity.Property(e => e.CalculationDetails).HasColumnName("calculationDetails");
+            entity.Property(e => e.CalculationStatue)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("calculationStatue");
+            entity.Property(e => e.CreationDate)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime")
+                .HasColumnName("creationDate");
+            entity.Property(e => e.CurrencyCode)
+                .HasMaxLength(3)
+                .IsUnicode(false)
+                .HasColumnName("currencyCode");
+            entity.Property(e => e.ExpirationDate)
+                .HasColumnType("datetime")
+                .HasColumnName("expirationDate");
+            entity.Property(e => e.IpAddress)
+                .HasMaxLength(45)
+                .IsUnicode(false);
+            entity.Property(e => e.MethodOfPaymentId).HasColumnName("methodOfPaymentId");
+            entity.Property(e => e.PaymentProviderId).HasColumnName("paymentProviderId");
+            entity.Property(e => e.PaymentTransactionId).HasColumnName("paymentTransactionId");
+            entity.Property(e => e.UserAgent)
+                .HasMaxLength(256)
+                .HasColumnName("userAgent");
+
+            entity.HasOne(d => d.Book).WithMany(p => p.PayPriceCalculations)
+                .HasForeignKey(d => d.BookId)
+                .HasConstraintName("FK_Pay_PriceCalculation_TB_Book");
+
+            entity.HasOne(d => d.MethodOfPayment).WithMany(p => p.PayPriceCalculations)
+                .HasForeignKey(d => d.MethodOfPaymentId)
+                .HasConstraintName("FK_Pay_PriceCalculation_Pay_MethodOfPayment");
+
+            entity.HasOne(d => d.PaymentProvider).WithMany(p => p.PayPriceCalculations)
+                .HasForeignKey(d => d.PaymentProviderId)
+                .HasConstraintName("FK_Pay_PriceCalculation_Pay_Provider");
+
+            entity.HasOne(d => d.PaymentTransaction).WithMany(p => p.PayPriceCalculations)
+                .HasForeignKey(d => d.PaymentTransactionId)
+                .HasConstraintName("FK_Pay_PriceCalculation_Pay_Transaction");
+        });
+
+        modelBuilder.Entity<PayProvider>(entity =>
+        {
+            entity.HasKey(e => e.ProviderId);
+
+            entity.ToTable("Pay_Provider");
+
+            entity.Property(e => e.ProviderId).HasColumnName("providerId");
+            entity.Property(e => e.Active).HasColumnName("active");
+            entity.Property(e => e.ApiUrl)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("api_url");
+            entity.Property(e => e.IntegrationConfiguration)
+                .HasMaxLength(500)
+                .IsUnicode(false)
+                .HasColumnName("integrationConfiguration");
+            entity.Property(e => e.ResponseType)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("responseType");
+            entity.Property(e => e.ProviderCode)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("providerCode");
+            entity.Property(e => e.ProviderDescription)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("providerDescription");
+            entity.Property(e => e.ProviderName)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("providerName");
+        });
+
+        modelBuilder.Entity<PayTransaction>(entity =>
+        {
+            entity.ToTable("Pay_Transaction");
+
+            entity.Property(e => e.PayTransactionId).HasColumnName("Pay_TransactionId");
+            entity.Property(e => e.Amount)
+                .HasColumnType("decimal(12, 2)")
+                .HasColumnName("amount");
+            entity.Property(e => e.BookingId).HasColumnName("bookingId");
+            entity.Property(e => e.CountryId).HasColumnName("countryId");
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("createdAt");
+            entity.Property(e => e.CupdatedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("cupdatedAt");
+            entity.Property(e => e.CurrencyCode)
+                .HasMaxLength(3)
+                .IsUnicode(false)
+                .HasColumnName("currencyCode");
+            entity.Property(e => e.MethodOfPaymentId).HasColumnName("methodOfPaymentId");
+            entity.Property(e => e.OrderCode)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("orderCode");
+            entity.Property(e => e.PaymentData)
+                .HasMaxLength(3000)
+                .IsUnicode(false)
+                .HasColumnName("paymentData");
+            entity.Property(e => e.PaymentProviderId).HasColumnName("paymentProviderId");
+            entity.Property(e => e.Stan)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("stan");
+            entity.Property(e => e.TransactionData)
+                .HasMaxLength(5000)
+                .IsUnicode(false)
+                .HasColumnName("transactionData");
+            entity.Property(e => e.TransactionStatus)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("transactionStatus");
+            entity.Property(e => e.TransactionStatusCode)
+                .HasMaxLength(3)
+                .IsUnicode(false)
+                .HasColumnName("transactionStatusCode");
+
+            entity.HasOne(d => d.Country).WithMany(p => p.PayTransactions)
+                .HasForeignKey(d => d.CountryId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Pay_Transaction_T_Country");
+
+            entity.HasOne(d => d.MethodOfPayment).WithMany(p => p.PayTransactions)
+                .HasForeignKey(d => d.MethodOfPaymentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Pay_Transaction_Pay_MethodOfPayment");
+
+            entity.HasOne(d => d.PaymentProvider).WithMany(p => p.PayTransactions)
+                .HasForeignKey(d => d.PaymentProviderId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Pay_Transaction_Pay_Provider");
         });
 
         modelBuilder.Entity<TAdditionalSuggestion>(entity =>
@@ -417,8 +650,6 @@ public partial class AssertdbContext : DbContext
 
             entity.ToTable("T_City");
 
-            entity.HasIndex(e => e.Name, "IX_T_City_Name");
-
             entity.Property(e => e.CityId).HasColumnName("cityId");
             entity.Property(e => e.CountyId).HasColumnName("countyId");
             entity.Property(e => e.IsDisabled).HasColumnName("isDisabled");
@@ -438,8 +669,6 @@ public partial class AssertdbContext : DbContext
             entity.HasKey(e => e.CountryId);
 
             entity.ToTable("T_Country");
-
-            entity.HasIndex(e => e.Name, "IX_T_Country_Name");
 
             entity.Property(e => e.CountryId).HasColumnName("countryId");
             entity.Property(e => e.Description)
@@ -462,8 +691,6 @@ public partial class AssertdbContext : DbContext
             entity.HasKey(e => e.CountyId);
 
             entity.ToTable("T_County");
-
-            entity.HasIndex(e => e.Name, "IX_T_County_Name");
 
             entity.Property(e => e.IsDisabled).HasColumnName("isDisabled");
             entity.Property(e => e.Name)
@@ -656,7 +883,7 @@ public partial class AssertdbContext : DbContext
 
         modelBuilder.Entity<TLanguage>(entity =>
         {
-            entity.HasKey(e => e.LanguageId).HasName("PK__T_Langua__12696A625F093F0B");
+            entity.HasKey(e => e.LanguageId).HasName("PK__T_Langua__12696A624F5E20A7");
 
             entity.ToTable("T_Language");
 
@@ -877,10 +1104,6 @@ public partial class AssertdbContext : DbContext
 
             entity.ToTable("T_State");
 
-            entity.HasIndex(e => e.Name, "IX_T_State_Name");
-
-            entity.HasIndex(e => e.CountryId, "NonClusteredIndex-20250309-204945");
-
             entity.Property(e => e.StateId).HasColumnName("stateId");
             entity.Property(e => e.CountryId).HasColumnName("countryId");
             entity.Property(e => e.Description)
@@ -905,7 +1128,7 @@ public partial class AssertdbContext : DbContext
 
         modelBuilder.Entity<TStayPresenceType>(entity =>
         {
-            entity.HasKey(e => e.StayPrecenseTypeId).HasName("PK__T_StayPr__0464CCD1B7D460DF");
+            entity.HasKey(e => e.StayPrecenseTypeId).HasName("PK__T_StayPr__0464CCD1AE658FCB");
 
             entity.ToTable("T_StayPresenceType");
 
@@ -1112,7 +1335,7 @@ public partial class AssertdbContext : DbContext
 
         modelBuilder.Entity<TbBookInsuranceClaim>(entity =>
         {
-            entity.HasKey(e => e.ClaimId).HasName("PK__TB_BookI__01BDF9D352ABF84A");
+            entity.HasKey(e => e.ClaimId).HasName("PK__TB_BookI__01BDF9D35C796D7D");
 
             entity.ToTable("TB_BookInsuranceClaim");
 
@@ -1134,12 +1357,12 @@ public partial class AssertdbContext : DbContext
             entity.HasOne(d => d.Booking).WithMany(p => p.TbBookInsuranceClaims)
                 .HasForeignKey(d => d.BookingId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TB_BookIn__booki__00EA0E6F");
+                .HasConstraintName("FK__TB_BookIn__booki__19AACF41");
 
             entity.HasOne(d => d.User).WithMany(p => p.TbBookInsuranceClaims)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TB_BookIn__userI__01DE32A8");
+                .HasConstraintName("FK__TB_BookIn__userI__1A9EF37A");
         });
 
         modelBuilder.Entity<TbBookPayment>(entity =>
@@ -1348,7 +1571,7 @@ public partial class AssertdbContext : DbContext
 
         modelBuilder.Entity<TbBookingInsurance>(entity =>
         {
-            entity.HasKey(e => e.BookingInsuranceId).HasName("PK__TB_Booki__C2134D3F4CEA6EF0");
+            entity.HasKey(e => e.BookingInsuranceId).HasName("PK__TB_Booki__C2134D3F1AD8AD78");
 
             entity.ToTable("TB_BookingInsurance");
 
@@ -1362,12 +1585,12 @@ public partial class AssertdbContext : DbContext
             entity.HasOne(d => d.Booking).WithMany(p => p.TbBookingInsurances)
                 .HasForeignKey(d => d.BookingId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TB_Bookin__booki__7F01C5FD");
+                .HasConstraintName("FK__TB_Bookin__booki__17C286CF");
 
             entity.HasOne(d => d.Insurance).WithMany(p => p.TbBookingInsurances)
                 .HasForeignKey(d => d.InsuranceId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TB_Bookin__insur__7FF5EA36");
+                .HasConstraintName("FK__TB_Bookin__insur__18B6AB08");
         });
 
         modelBuilder.Entity<TbPaymentStatus>(entity =>
@@ -1388,7 +1611,7 @@ public partial class AssertdbContext : DbContext
 
         modelBuilder.Entity<TiIssue>(entity =>
         {
-            entity.HasKey(e => e.IssueId).HasName("PK__TI_Issue__749E806C3DE2B077");
+            entity.HasKey(e => e.IssueId).HasName("PK__TI_Issue__749E806C0907CC6B");
 
             entity.ToTable("TI_Issues");
 
@@ -1420,12 +1643,12 @@ public partial class AssertdbContext : DbContext
 
             entity.HasOne(d => d.RelatedUser).WithMany(p => p.TiIssueRelatedUsers)
                 .HasForeignKey(d => d.RelatedUserId)
-                .HasConstraintName("FK__TI_Issues__relat__097F5470");
+                .HasConstraintName("FK__TI_Issues__relat__22401542");
 
             entity.HasOne(d => d.ReportedByUser).WithMany(p => p.TiIssueReportedByUsers)
                 .HasForeignKey(d => d.ReportedByUserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TI_Issues__repor__0A7378A9");
+                .HasConstraintName("FK__TI_Issues__repor__2334397B");
 
             entity.HasOne(d => d.StatusIssue).WithMany(p => p.TiIssues)
                 .HasForeignKey(d => d.StatusIssueId)
@@ -1559,7 +1782,7 @@ public partial class AssertdbContext : DbContext
 
         modelBuilder.Entity<TlAccommodationType>(entity =>
         {
-            entity.HasKey(e => e.AccommodationTypeId).HasName("PK__TL_Accom__7380C37A0D6D6857");
+            entity.HasKey(e => e.AccommodationTypeId).HasName("PK__TL_Accom__7380C37AEACCEFD6");
 
             entity.ToTable("TL_AccommodationType");
 
@@ -1584,7 +1807,7 @@ public partial class AssertdbContext : DbContext
 
         modelBuilder.Entity<TlAdditionalFee>(entity =>
         {
-            entity.HasKey(e => e.AdditionalFeeId).HasName("PK__TL_Addit__C33EEAE5B3397D24");
+            entity.HasKey(e => e.AdditionalFeeId).HasName("PK__TL_Addit__C33EEAE5A4BC0F1A");
 
             entity.ToTable("TL_AdditionalFees");
 
@@ -1636,7 +1859,7 @@ public partial class AssertdbContext : DbContext
 
         modelBuilder.Entity<TlCheckInOutPolicy>(entity =>
         {
-            entity.HasKey(e => e.PolicyId).HasName("PK__TL_Check__78E3A922FD2A3B68");
+            entity.HasKey(e => e.PolicyId).HasName("PK__TL_Check__78E3A922013CDAC6");
 
             entity.ToTable("TL_CheckInOutPolicies");
 
@@ -1818,7 +2041,6 @@ public partial class AssertdbContext : DbContext
 
             entity.HasOne(d => d.BlockTypeNavigation).WithMany(p => p.TlListingCalendars)
                 .HasForeignKey(d => d.BlockType)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TL_ListingCalendar_T_CalendarBlockType");
 
             entity.HasOne(d => d.Book).WithMany(p => p.TlListingCalendars)
@@ -2331,7 +2553,7 @@ public partial class AssertdbContext : DbContext
 
         modelBuilder.Entity<TlStayPresence>(entity =>
         {
-            entity.HasKey(e => e.StayPresenceId).HasName("PK__TL_StayP__E0A2D287CA95D2B0");
+            entity.HasKey(e => e.StayPresenceId).HasName("PK__TL_StayP__E0A2D2872098B4DC");
 
             entity.ToTable("TL_StayPresence");
 
@@ -2347,7 +2569,7 @@ public partial class AssertdbContext : DbContext
             entity.HasOne(d => d.StayPrecenseType).WithMany(p => p.TlStayPresences)
                 .HasForeignKey(d => d.StayPrecenseTypeId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TL_StayPr__stayP__37461F20");
+                .HasConstraintName("FK__TL_StayPr__stayP__56B3DD81");
         });
 
         modelBuilder.Entity<TlStepsType>(entity =>
@@ -2456,12 +2678,6 @@ public partial class AssertdbContext : DbContext
 
             entity.ToTable("TM_Message");
 
-            entity.HasIndex(e => e.ConversationId, "IX_TM_Message_ConversationID");
-
-            entity.HasIndex(e => e.CreationDate, "IX_TM_Message_CreationDate");
-
-            entity.HasIndex(e => e.UserId, "IX_TM_Message_UserID");
-
             entity.Property(e => e.MessageId).HasColumnName("messageId");
             entity.Property(e => e.AdditionalData)
                 .HasMaxLength(500)
@@ -2519,7 +2735,7 @@ public partial class AssertdbContext : DbContext
 
         modelBuilder.Entity<TmNotification>(entity =>
         {
-            entity.HasKey(e => e.NotificationId).HasName("PK__TM_Notif__20CF2E3253BCCECF");
+            entity.HasKey(e => e.NotificationId).HasName("PK__TM_Notif__20CF2E32DA1D3DBF");
 
             entity.ToTable("TM_Notification");
 
@@ -2550,7 +2766,7 @@ public partial class AssertdbContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.TmNotifications)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TM_Notifi__UserI__3CFEF876");
+                .HasConstraintName("FK__TM_Notifi__UserI__5E54FF49");
         });
 
         modelBuilder.Entity<TmTypeMessage>(entity =>
@@ -2856,7 +3072,7 @@ public partial class AssertdbContext : DbContext
 
         modelBuilder.Entity<TsInsurance>(entity =>
         {
-            entity.HasKey(e => e.InsuranceId).HasName("PK__TS_Insur__79D82ED0E14AD0AC");
+            entity.HasKey(e => e.InsuranceId).HasName("PK__TS_Insur__79D82ED085DFB192");
 
             entity.ToTable("TS_Insurances");
 
@@ -3061,7 +3277,7 @@ public partial class AssertdbContext : DbContext
 
         modelBuilder.Entity<TuEmergencyContact>(entity =>
         {
-            entity.HasKey(e => e.EmergencyContactId).HasName("PK__TU_Emerg__7394A15DB7FEDEA4");
+            entity.HasKey(e => e.EmergencyContactId).HasName("PK__TU_Emerg__7394A15D5FD195B2");
 
             entity.ToTable("TU_EmergencyContact");
 
@@ -3091,10 +3307,15 @@ public partial class AssertdbContext : DbContext
                 .HasMaxLength(200)
                 .IsUnicode(false)
                 .HasColumnName("relationship");
+            entity.Property(e => e.UserId).HasColumnName("userId");
 
             entity.HasOne(d => d.Language).WithMany(p => p.TuEmergencyContacts)
                 .HasForeignKey(d => d.LanguageId)
                 .HasConstraintName("FK_EmergencyContact_Language");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TuEmergencyContacts)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_TU_EmergencyContact_TU_User");
         });
 
         modelBuilder.Entity<TuGenderType>(entity =>
