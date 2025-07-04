@@ -15,5 +15,6 @@ public interface IAppUserService
     Task<ReturnModelDTO> GetEmergencyContact();
     Task<ReturnModelDTO> GetPersonalInformation();
     Task<ReturnModelDTO> UpsertEmergencyContact(EmergencyContactRequest request);
+    Task<ReturnModelDTO> ChangePassword(ChangePasswordRequest pwd);
 
 }

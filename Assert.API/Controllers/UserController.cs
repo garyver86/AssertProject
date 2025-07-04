@@ -172,5 +172,18 @@ namespace Assert.API.Controllers
         [Authorize(Policy = "GuestOrHost")]
         public async Task<ReturnModelDTO> GetPersonalInformation()
         => await _userService.GetPersonalInformation();
+
+        /// <summary>
+        /// Servicio que modifica la contrasena del usuario.
+        /// </summary>
+        /// <returns>Confirmación de la actualizacion: UPDATED.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// Solo aplica a usuarios locales (Assert), no aplica a usuarios de: google - facebook - apple.
+        /// </remarks>
+        [HttpPost("ChangePassword")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> ChangePasswordToLocalUser([FromBody] ChangePasswordRequest pwd)
+        => await _userService.ChangePassword(pwd);
     }
 }
