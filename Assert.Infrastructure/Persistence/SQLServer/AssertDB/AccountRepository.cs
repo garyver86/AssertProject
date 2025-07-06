@@ -1,4 +1,5 @@
-﻿using Assert.Domain.Entities;
+﻿using Assert.Domain.Common.Metadata;
+using Assert.Domain.Entities;
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
@@ -6,15 +7,6 @@ using Assert.Infrastructure.Exceptions;
 using Assert.Infrastructure.Utils;
 using Assert.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
-using Microsoft.IdentityModel.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Assert.Shared.Extensions;
-using Assert.Domain.Common.Metadata;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 
@@ -23,6 +15,44 @@ public class AccountRepository
     RequestMetadata _metadata)
     : IAccountRepository
 {
+    public async Task<string> ChangePassword(string newPassword)
+    {
+        try
+        {
+            var userTypeLocal = await _dbContext.TuPlatforms
+            .FirstOrDefaultAsync(x => x.Code!.ToLower() == "local");
+
+            if (userTypeLocal is null) throw new NotFoundException("No existe tipo de cuenta LOCAL");
+
+            var currentUser = await _dbContext.TuUsers
+                .FirstOrDefaultAsync(x => x.UserId == _metadata.UserId);
+
+            if (currentUser is null) throw new NotFoundException("No existe usuario con sesion iniciada");
+
+            if (currentUser.PlatformId != userTypeLocal.PlatformId)
+                throw new UnauthorizedAccessException("El usuario no puede modificar su contrasena. Asocio cuenta desde una plataforma externa.");
+
+            string pass = UtilsMgr.GetHash512(newPassword);
+
+            var currentAccount = await _dbContext.TuAccounts
+                .FirstOrDefaultAsync(x => x.UserId == _metadata.UserId);
+
+            if (currentAccount is null) throw new NotFoundException("No existe cuenta para el usuario con sesion iniciada");
+
+            currentAccount.Password = pass;
+
+            await _dbContext.SaveChangesAsync();
+
+            return "UPDATED";
+        }
+        catch (Exception ex)
+        {
+            var (className, methodName) = this.GetCallerInfo();
+            _exceptionLoggerService.LogAsync(ex, methodName, className, new { _metadata.UserId });
+            throw new InfrastructureException(ex.Message);
+        }
+    }
+
     public async Task<int> Create(int userId, string password)
     {
         string pass = UtilsMgr.GetHash512(password);

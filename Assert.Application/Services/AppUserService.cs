@@ -134,6 +134,17 @@ public class AppUserService(
         }
     }
 
+    public async Task<ReturnModelDTO> ChangePassword(ChangePasswordRequest pwd)
+    {
+        var responseStr = await _accountRepository.ChangePassword(pwd.NewPassword);
+
+        return new ReturnModelDTO
+        {
+            StatusCode = ResultStatusCode.OK,
+            Data = responseStr
+        };
+    }
+
     public async Task<ReturnModelDTO> DisableHostRole(long userId, Dictionary<string, string> clientData, bool useTechnicalMessages)
     {
         try

@@ -9,4 +9,5 @@ public interface IAccountRepository
     Task<ReturnModel<TuAccount>> GetByUserId(int userId);
     Task<int> Create(int userId, string password);
     Task UpdateLastSessionInfo();
+    Task<string> ChangePassword(string newPassword);
 }

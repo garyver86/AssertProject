@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace Assert.Application.Validators;
 
-public class PersonalInformationBaseValidator<T>
+internal class PersonalInformationBaseValidator<T>
     : AbstractValidator<T>
     where T : PersonalInformationBase
 {
