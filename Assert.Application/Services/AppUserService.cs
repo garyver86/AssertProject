@@ -291,10 +291,18 @@ public class AppUserService(
     {
         var user = await _userRepository.GetPersonalInformationById(_metadata.UserId);
 
+        UserDTO userResult = _mapper.Map<UserDTO>(user);
+        if (user?.RegisterDate != null)
+        {
+            int[] registerDetails = AppUtils.GetTimeElapsed((DateTime)user.RegisterDate);
+            userResult.RegisterDateDays = registerDetails[0];
+            userResult.RegisterDateMonths = registerDetails[1];
+            userResult.RegisterDateYears = registerDetails[2];
+        }
         return new ReturnModelDTO
         {
             StatusCode = ResultStatusCode.OK,
-            Data = _mapper.Map<UserDTO>(user)
+            Data = userResult
         };
     }
 

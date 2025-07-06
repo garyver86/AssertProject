@@ -7,6 +7,7 @@ using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
+using Assert.Domain.ValueObjects;
 using Assert.Shared.Extensions;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
@@ -99,23 +100,19 @@ namespace Assert.Application.Services
                         }
                     };
                 }
-                //else if (listings.OwnerUserId != _userID)
-                //{
-                //    return new ReturnModelDTO<ListingRentDTO>
-                //    {
-                //        StatusCode = ResultStatusCode.NotFound,
-                //        ResultError = new ErrorCommonDTO
-                //        {
-                //            Code = ResultStatusCode.NotFound,
-                //            Message = "No tiene permisos sobre el listing rent solicitado."
-                //        }
-                //    };
-                //}
                 else if (!onlyActive || (onlyActive && listings.ListingStatusId == 3))
                 {
+                    ListingRentDTO listingRentReult = _mapper.Map<ListingRentDTO>(listings);
+                    if (listings.OwnerUser?.RegisterDate != null)
+                    {
+                        int[] registerDetails = AppUtils.GetTimeElapsed((DateTime)listings.OwnerUser.RegisterDate);
+                        listingRentReult.Owner.RegisterDateDays = registerDetails[0];
+                        listingRentReult.Owner.RegisterDateMonths = registerDetails[1];
+                        listingRentReult.Owner.RegisterDateYears = registerDetails[2];
+                    }
                     result = new ReturnModelDTO<ListingRentDTO>
                     {
-                        Data = _mapper.Map<ListingRentDTO>(listings),
+                        Data = listingRentReult,
                         HasError = false,
                         StatusCode = ResultStatusCode.OK
                     };
@@ -198,20 +195,25 @@ namespace Assert.Application.Services
             }
         }
 
-        public async Task<ReturnModelDTO<List<ListingRentDTO>>> GetFeaturedListings(int? countryId, int pageNumber, int pageSize, Dictionary<string, string> requestInfo)
+        public async Task<(ReturnModelDTO<List<ListingRentDTO>>, PaginationMetadataDTO)> GetFeaturedListings(int? countryId, int pageNumber, int pageSize, Dictionary<string, string> requestInfo)
         {
             ReturnModelDTO<List<ListingRentDTO>> result = new ReturnModelDTO<List<ListingRentDTO>>();
+            PaginationMetadataDTO paginatonResult = new PaginationMetadataDTO
+            {
+                CurrentPage = pageNumber,
+                PageSize = pageSize
+            };
             try
             {
-                List<TlListingRent> listings = await _listingRentRepository.GetFeatureds(pageNumber, pageSize, countryId);
-                //listings = listings.OrderByDescending(x => x.ListingRentId).ToList();
+                (List<TlListingRent> listings, PaginationMetadata paginaton) = await _listingRentRepository.GetFeatureds(pageNumber, pageSize, countryId);
+
                 result = new ReturnModelDTO<List<ListingRentDTO>>
                 {
                     Data = _mapper.Map<List<ListingRentDTO>>(listings),
                     HasError = false,
                     StatusCode = ResultStatusCode.OK
                 };
-
+                paginatonResult = _mapper.Map<PaginationMetadataDTO>(paginaton);
             }
             catch (Exception ex)
             {
@@ -219,7 +221,7 @@ namespace Assert.Application.Services
                 result.HasError = true;
                 result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.GetAllListingsRentsData", ex, new { countryId, pageNumber, pageSize }, UseTechnicalMessages));
             }
-            return result;
+            return (result, paginatonResult);
         }
 
         public async Task<ReturnModelDTO<List<ListingRentDTO>>> GetByOwner(Dictionary<string, string> clientData, bool userTechnicalMessages)

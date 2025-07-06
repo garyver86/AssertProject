@@ -50,10 +50,26 @@ namespace Assert.Application.Mappings
 
             CreateMap<Assert.Domain.Models.ListingProcessData_Parametrics, Assert.Application.DTOs.ListingProcessData_Parametrics>();
             CreateMap<Assert.Domain.Models.ListingProcessData_ListingData, Assert.Application.DTOs.ListingProcessData_ListingData>();
+            CreateMap<PaginationMetadata, Assert.Application.DTOs.Responses.PaginationMetadataDTO>();
 
 
 
             CreateMap<ErrorCommon, ErrorCommonDTO>();
+
+            CreateMap<TDiscountTypeForTypePrice, DiscountDTO>()
+                .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.Code))
+                .ForMember(dest => dest.PorcentageSuggest, opt => opt.MapFrom(src => src.PorcentageSuggest))
+                .ForMember(dest => dest.Porcentage, opt => opt.MapFrom(src => src.PorcentageSuggest))
+                .ForMember(dest => dest.DiscountTypeForTypePriceId, opt => opt.MapFrom(src => src.DiscountTypeForTypePriceId));
+
+
+            CreateMap<TlListingDiscountForRate, DiscountDTO>()
+                .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.DiscountTypeForTypePrice.Code))
+                .ForMember(dest => dest.PorcentageSuggest, opt => opt.MapFrom(src => src.DiscountTypeForTypePrice.PorcentageSuggest))
+                .ForMember(dest => dest.Days, opt => opt.MapFrom(src => src.DiscountTypeForTypePrice.Days))
+                .ForMember(dest => dest.Question, opt => opt.MapFrom(src => src.DiscountTypeForTypePrice.Question))
+                .ForMember(dest => dest.DiscountTypeForTypePriceId, opt => opt.MapFrom(src => src.DiscountTypeForTypePrice.DiscountTypeForTypePriceId));
+
             CreateMap<TlListingRent, ListingRentDTO>()
                 .ForMember(dest => dest.ApprovalPolicy, opt => opt.MapFrom(src => src.ApprovalPolicyType))
                 .ForMember(dest => dest.ApprovalPolicy, opt => opt.MapFrom(src => src.ApprovalPolicyType))
@@ -68,9 +84,10 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.SecurityItems, opt => opt.MapFrom(src => src.TlListingSecurityItems))
                 .ForMember(dest => dest.Reviews, opt => opt.MapFrom(src => src.TlListingReviews))
                 .ForMember(dest => dest.Spaces, opt => opt.MapFrom(src => src.TlListingSpaces))
-                .ForMember(dest => dest.StayPresences, opt => opt.MapFrom(src => src.TlStayPresences))
-                    //.ForMember(dest => dest.Valoration, opt => opt.MapFrom(src => src.TlListingReviews.Select(y=>y.Calification).Average()));
-                    .ForMember(dest => dest.Valoration, opt => opt.MapFrom(src => UtilsMgr.CalculateAverageCalification(src.TlListingReviews)));
+                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.TlListingPrices.FirstOrDefault() ?? new TlListingPrice()))
+                .ForPath(dest => dest.Price.TlListingDiscountForRates, opt => opt.MapFrom(src => src.TlListingDiscountForRates))
+                //.ForMember(dest => dest.Valoration, opt => opt.MapFrom(src => src.TlListingReviews.Select(y=>y.Calification).Average()));
+                .ForMember(dest => dest.Valoration, opt => opt.MapFrom(src => UtilsMgr.CalculateAverageCalification(src.TlListingReviews)));
 
 
 
@@ -87,7 +104,7 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.EmergencyContact, opt => opt.MapFrom(src => src.TuEmergencyContacts.FirstOrDefault()))
                 .ForMember(dest => dest.Documents, opt => opt.MapFrom(src => src.TuDocuments))
                 .ForMember(dest => dest.Phones, opt => opt.MapFrom(src => src.TuPhones))
-                .ForMember(dest => dest.ProfilePhotos, opt => opt.MapFrom(src => src.TuProfilePhotos));                
+                .ForMember(dest => dest.ProfilePhotos, opt => opt.MapFrom(src => src.TuProfilePhotos));
             CreateMap<TpProperty, PropertyDTO>()
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.TpPropertyAddresses.FirstOrDefault()))
                 .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.PropertySubtype));
@@ -150,11 +167,7 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.SubType, opt => opt.MapFrom(src => src.Name))
                 .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.PropertyType != null ? src.PropertyType.Name : null))
                 .ForMember(dest => dest.TypeCode, opt => opt.MapFrom(src => src.PropertyType != null ? src.PropertyType.Code : null));
-            CreateMap<TDiscountTypeForTypePrice, DiscountDTO>()
-                .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.Code))
-                .ForMember(dest => dest.PorcentageSuggest, opt => opt.MapFrom(src => src.PorcentageSuggest))
-                .ForMember(dest => dest.Porcentage, opt => opt.MapFrom(src => src.PorcentageSuggest))
-                .ForMember(dest => dest.DiscountTypeForTypePriceId, opt => opt.MapFrom(src => src.DiscountTypeForTypePriceId));
+
             CreateMap<TlListingSpecialDatePrice, ListingSpecialDatePriceDTO>();
             CreateMap<TCity, CityDTO>()
                 .ForMember(dest => dest.StateCode, opt => opt.MapFrom(src => src.County.State != null ? src.County.State.IataCode : null))
