@@ -1,12 +1,10 @@
-﻿namespace Assert.Application.DTOs.Responses
-{
-    public class ReviewDTO
-    {
+﻿namespace Assert.Application.DTOs.Responses;
 
-        public string User { get; set; }
-        public DateTime? DateTimeReview { get; set; }
-        public int Calification { get; set; }
-        public string? Comment { get; set; }
-        public string UserProfilePhoto { get; set; }
-    }
+public class ReviewDTO
+{
+    public string User { get; set; }
+    public DateTime? DateTimeReview { get; set; }
+    public int Calification { get; set; }
+    public string? Comment { get; set; }
+    public string UserProfilePhoto { get; set; }
 }
