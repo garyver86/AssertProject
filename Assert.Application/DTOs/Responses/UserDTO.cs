@@ -14,6 +14,9 @@
         public List<DocumentDTO>? Documents { get; set; }
         public List<PhoneDTO>? Phones { get; set; }
         public List<ProfilePhotoDTO>? ProfilePhotos { get; set; }
-
+        public DateTime? RegisterDate { get; set; }
+        public int? RegisterDateDays { get; set; }
+        public int? RegisterDateMonths { get; set; }
+        public int? RegisterDateYears { get; set; }
     }
 }

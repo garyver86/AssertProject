@@ -1,6 +1,7 @@
 ﻿using Assert.Domain.Entities;
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Repositories;
+using Assert.Domain.ValueObjects;
 using Assert.Infrastructure.Exceptions;
 using Assert.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -62,6 +63,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             listing.TlStayPresences = await LoadStayPresencesAsync(_context, id);
             listing.TlListingReviews = await LoadReviewsAsync(_context, id);
             listing.TlCheckInOutPolicies = await LoadCheckInOutPoliciesAsync(_context, id);
+            listing.TlListingDiscountForRates = await LoadDiscountsAsync(_context, id);
 
             // Asignar propiedades de navegación
             listing.ListingStatus = listingData.Status;
@@ -71,8 +73,6 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             listing.OwnerUser = listingData.Owner;
 
             return listing;
-
-            //return tlListingRent;
         }
 
         // Métodos auxiliares para cargar cada relación
@@ -217,6 +217,15 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .ToListAsync();
         }
 
+        private async Task<List<TlListingDiscountForRate>> LoadDiscountsAsync(InfraAssertDbContext _context, long listingId)
+        {
+            return await _context.TlListingDiscountForRates
+                .AsNoTracking()
+                .Where(c => c.ListingRentId == listingId)
+                .Include(x => x.DiscountTypeForTypePrice)
+                .ToListAsync();
+        }
+
         private async Task<List<TlCheckInOutPolicy>> LoadCheckInOutPoliciesAsync(InfraAssertDbContext _context, long listingId)
         {
             return await _context.TlCheckInOutPolicies
@@ -275,7 +284,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             return await Task.FromResult(result);
         }
 
-        public async Task<List<TlListingRent>> GetFeatureds(int pageNumber = 1, int pageSize = 10, int? countryId = null)
+        public async Task<(List<TlListingRent>, PaginationMetadata)> GetFeatureds(int pageNumber = 1, int pageSize = 10, int? countryId = null)
         {
             var skipAmount = (pageNumber - 1) * pageSize;
 
@@ -356,7 +365,16 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     }
                 }
             }
-            return result;
+
+            PaginationMetadata pagination = new PaginationMetadata
+            {
+                CurrentPage = pageNumber,
+                PageSize = pageSize,
+                TotalItemCount = await query.CountAsync(),
+                TotalPageCount = (int)Math.Ceiling((double)await query.CountAsync() / pageSize)
+            };
+
+            return (result, pagination);
         }
 
         public async Task<bool> HasStepInProcess(long listingRentId)

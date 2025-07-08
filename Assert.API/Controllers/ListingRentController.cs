@@ -153,13 +153,20 @@ namespace Assert.API.Controllers
         /// </remarks>
         [HttpGet("Featureds")]
         [Authorize(Policy = "Guest")]
-        public async Task<ReturnModelDTO> FeaturedListings([FromQuery] int? countryId, [FromQuery] int? pageNumber = 1, [FromQuery] int? pageSize = 10)
+        public async Task<ReturnModelDTO_Pagination> FeaturedListings([FromQuery] int? countryId, [FromQuery] int? pageNumber = 1, [FromQuery] int? pageSize = 10)
         {
             var requestInfo = HttpContext.GetRequestInfo();
             int userId = 0;
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);
-            ReturnModelDTO result = await _appListingRentService.GetFeaturedListings(countryId, pageNumber ?? 1, pageSize ?? 10, requestInfo);
-            return result;
+            (ReturnModelDTO<List<ListingRentDTO>> result, PaginationMetadataDTO pagination) = await _appListingRentService.GetFeaturedListings(countryId, pageNumber ?? 1, pageSize ?? 10, requestInfo);
+            return new ReturnModelDTO_Pagination
+            {
+                Data = result.Data,
+                pagination = pagination,
+                HasError = result.HasError,
+                ResultError = result.ResultError,
+                StatusCode = result.StatusCode
+            };
         }
     }
 }

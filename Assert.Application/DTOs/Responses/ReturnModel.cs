@@ -13,6 +13,11 @@
         public bool HasError { get; set; }
         public ErrorCommonDTO ResultError { get; set; }
     }
+
+    public class ReturnModelDTO_Pagination : ReturnModelDTO
+    {
+        public PaginationMetadataDTO pagination { get; set; }
+    }
     public class ReturnModelDTO<T> : ReturnModelDTO
     {
         public new T? Data { get; set; }
