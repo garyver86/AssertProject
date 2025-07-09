@@ -185,5 +185,66 @@ namespace Assert.API.Controllers
         [Authorize(Policy = "GuestOrHostOrAdmin")]
         public async Task<ReturnModelDTO> ChangePasswordToLocalUser([FromBody] ChangePasswordRequest pwd)
         => await _userService.ChangePassword(pwd);
+
+        /// <summary>
+        /// Servicio que retorna el perfil del usuario logeado contemplando resenas de huespedes y anfitriones.
+        /// </summary>
+        /// <returns>Confirmación de la actualizacion: UPDATED.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// 
+        /// </remarks>
+        [HttpPost("GetProfile")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> GetProfile()
+        => new ReturnModelDTO<ProfileDTO>() { HasError = false, StatusCode = "200",
+                                              Data = new ProfileDTO() 
+                                              { Name = "TEST", LastName = "PRUEBA", 
+                                                FavoriteName = "TEST PRUEBA", Roles = new List<string> { "guest","host" },
+                                                GuestHostingsTotal = 10, HostHostingsTotal = 5, GuestReviewCalification = 4.5,
+                                                HostReviewCalification = 3.2, YearsInAssert = 5, Avatar = "", 
+                                                CountReviewsGest = 20, CountReviewsHost = 8 }};
+
+        /// <summary>
+        /// Servicio que inserta/actualiza datos adicionales de perfil del usuario logeado.
+        /// </summary>
+        /// <returns>Confirmación de la actualizacion: UPDATED.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// 
+        /// </remarks>
+        [HttpPost("GetAdditionalProfileData")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> GetAdditionalProfileData()
+        => new ReturnModelDTO<AdditionalProfileDataDTO>()
+        {
+            HasError = false,
+            StatusCode = "200",
+            Data = new AdditionalProfileDataDTO { AdditionalProfileDataId = 1, UserId = 22, 
+                WhatIDo = "Sowftware Developer", WantedToGo = "Cancun", Pets = "Perritos",
+                Birthday =  new DateTime(1988,6,12), 
+                Languages = new List<LanguageDTO> { new LanguageDTO { LanguageId = 1, Code = "ES", Detail="Espanol" } },
+                LiveAt = new LiveAtDTO { CityId = 1, CityName = "Cochabamba", Location= "Dpto Cbba., Bolivia"},
+                IntroduceYourself = "Hola, soy un desarrollador de software con experiencia en .NET. Me encanta viajar y aprender sobre nuevas culturas."
+            }
+        };
+
+        /// <summary>
+        /// Servicio que inserta/actualiza datos adicionales de perfil del usuario logeado.
+        /// </summary>
+        /// <returns>Confirmación de la actualizacion: UPDATED.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// En caso de insert retorna el nuevo Id de datos adicionales de perfil, en caso de update retorna el Id existente.
+        /// </remarks>
+        [HttpPost("UpdateAdditionalProfileData")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> UpsertAdditionalProfileData([FromBody] AdditionalProfileDataDTO data)
+        => new ReturnModelDTO<int>()
+        {
+            HasError = false,
+            StatusCode = "200",
+            Data = 1
+        };
     }
 }
