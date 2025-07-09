@@ -16,7 +16,9 @@ public partial class PayProvider
     public bool Active { get; set; }
 
     public string? IntegrationConfiguration { get; set; }
+
     public string? ResponseType { get; set; }
+
     public string? ProviderCode { get; set; }
 
     public virtual ICollection<PayCountryConfiguration> PayCountryConfigurations { get; set; } = new List<PayCountryConfiguration>();

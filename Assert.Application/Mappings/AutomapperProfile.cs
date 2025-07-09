@@ -90,6 +90,8 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.Valoration, opt => opt.MapFrom(src => UtilsMgr.CalculateAverageCalification(src.TlListingReviews)));
 
 
+            CreateMap<TlListingFavorite, ListingFavoriteDTO>();
+            CreateMap<TlListingFavoriteGroup, ListingFavoriteGroupDTO>();
 
             CreateMap<TlAccommodationType, AccomodationTypeDTO>();
             CreateMap<PayPriceCalculation, PayPriceCalculationDTO>();

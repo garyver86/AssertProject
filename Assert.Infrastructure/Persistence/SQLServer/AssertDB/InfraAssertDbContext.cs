@@ -141,6 +141,8 @@ public partial class InfraAssertDbContext : DbContext
 
     public virtual DbSet<TlListingFavorite> TlListingFavorites { get; set; }
 
+    public virtual DbSet<TlListingFavoriteGroup> TlListingFavoriteGroups { get; set; }
+
     public virtual DbSet<TlListingFeaturedAspect> TlListingFeaturedAspects { get; set; }
 
     public virtual DbSet<TlListingPhoto> TlListingPhotos { get; set; }
@@ -168,6 +170,8 @@ public partial class InfraAssertDbContext : DbContext
     public virtual DbSet<TlListingStepsStatus> TlListingStepsStatuses { get; set; }
 
     public virtual DbSet<TlListingStepsView> TlListingStepsViews { get; set; }
+
+    public virtual DbSet<TlListingViewHistory> TlListingViewHistories { get; set; }
 
     public virtual DbSet<TlQuickTypeView> TlQuickTypeViews { get; set; }
 
@@ -321,14 +325,14 @@ public partial class InfraAssertDbContext : DbContext
 
             entity.Property(e => e.MethodOfPaymentId).HasColumnName("methodOfPaymentId");
             entity.Property(e => e.Active).HasColumnName("active");
-            entity.Property(e => e.MopDescription)
-                .HasMaxLength(200)
-                .IsUnicode(false)
-                .HasColumnName("mopDescription");
             entity.Property(e => e.MopCode)
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("mopCode");
+            entity.Property(e => e.MopDescription)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("mopDescription");
             entity.Property(e => e.MopName)
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -420,10 +424,6 @@ public partial class InfraAssertDbContext : DbContext
                 .HasMaxLength(500)
                 .IsUnicode(false)
                 .HasColumnName("integrationConfiguration");
-            entity.Property(e => e.ResponseType)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("responseType");
             entity.Property(e => e.ProviderCode)
                 .HasMaxLength(10)
                 .IsUnicode(false)
@@ -436,6 +436,10 @@ public partial class InfraAssertDbContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("providerName");
+            entity.Property(e => e.ResponseType)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("responseType");
         });
 
         modelBuilder.Entity<PayTransaction>(entity =>
@@ -2087,8 +2091,13 @@ public partial class InfraAssertDbContext : DbContext
             entity.Property(e => e.CreateAt)
                 .HasColumnType("datetime")
                 .HasColumnName("createAt");
+            entity.Property(e => e.FavoriteGroupId).HasColumnName("favoriteGroupId");
             entity.Property(e => e.ListingRentId).HasColumnName("listingRentId");
             entity.Property(e => e.UserId).HasColumnName("userId");
+
+            entity.HasOne(d => d.FavoriteGroup).WithMany(p => p.TlListingFavorites)
+                .HasForeignKey(d => d.FavoriteGroupId)
+                .HasConstraintName("FK_TL_ListingFavorite_TL_ListingFavoriteGroup");
 
             entity.HasOne(d => d.ListingRent).WithMany(p => p.TlListingFavorites)
                 .HasForeignKey(d => d.ListingRentId)
@@ -2099,6 +2108,29 @@ public partial class InfraAssertDbContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TL_ListingFavorite_TU_User");
+        });
+
+        modelBuilder.Entity<TlListingFavoriteGroup>(entity =>
+        {
+            entity.HasKey(e => e.FavoriteGroupListingId);
+
+            entity.ToTable("TL_ListingFavoriteGroup");
+
+            entity.Property(e => e.FavoriteGroupListingId).HasColumnName("favoriteGroupListingId");
+            entity.Property(e => e.CreationDate)
+                .HasColumnType("datetime")
+                .HasColumnName("creationDate");
+            entity.Property(e => e.FavoriteGroupName)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("favoriteGroupName");
+            entity.Property(e => e.GroupStatus).HasColumnName("groupStatus");
+            entity.Property(e => e.UserId).HasColumnName("userID");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TlListingFavoriteGroups)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TL_ListingFavoriteGroup_TU_User");
         });
 
         modelBuilder.Entity<TlListingFeaturedAspect>(entity =>
@@ -2523,6 +2555,33 @@ public partial class InfraAssertDbContext : DbContext
             entity.HasOne(d => d.ViewType).WithMany(p => p.TlListingStepsViews)
                 .HasForeignKey(d => d.ViewTypeId)
                 .HasConstraintName("FK_TL_ListingStepsView_TL_ViewType");
+        });
+
+        modelBuilder.Entity<TlListingViewHistory>(entity =>
+        {
+            entity.HasKey(e => e.ListingViewHitoryId);
+
+            entity.ToTable("TL_ListingViewHistory");
+
+            entity.HasIndex(e => e.ListingRentId, "NonClusteredIndex-ListingRentId-20250705-213930");
+
+            entity.HasIndex(e => e.UserId, "NonClusteredIndex-UserId-20250705-213858");
+
+            entity.Property(e => e.ListingRentId).HasColumnName("listingRentId");
+            entity.Property(e => e.UserId).HasColumnName("userId");
+            entity.Property(e => e.ViewDate)
+                .HasColumnType("datetime")
+                .HasColumnName("viewDate");
+
+            entity.HasOne(d => d.ListingRent).WithMany(p => p.TlListingViewHistories)
+                .HasForeignKey(d => d.ListingRentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TL_ListingViewHistory_TL_ListingRent");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TlListingViewHistories)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TL_ListingViewHistory_TU_User");
         });
 
         modelBuilder.Entity<TlQuickTypeView>(entity =>
@@ -3651,6 +3710,7 @@ public partial class InfraAssertDbContext : DbContext
             entity.ToTable("TU_UserReview");
 
             entity.Property(e => e.UserReviewId).HasColumnName("userReviewId");
+            entity.Property(e => e.BookId).HasColumnName("bookId");
             entity.Property(e => e.Calification).HasColumnName("calification");
             entity.Property(e => e.Comment)
                 .HasMaxLength(500)
@@ -3659,6 +3719,8 @@ public partial class InfraAssertDbContext : DbContext
             entity.Property(e => e.DateTimeReview)
                 .HasColumnType("datetime")
                 .HasColumnName("dateTimeReview");
+            entity.Property(e => e.ListingRentId).HasColumnName("listingRentId");
+            entity.Property(e => e.Status).HasColumnName("status");
             entity.Property(e => e.UserId).HasColumnName("userId");
             entity.Property(e => e.UserIdReviewer).HasColumnName("userId_reviewer");
 

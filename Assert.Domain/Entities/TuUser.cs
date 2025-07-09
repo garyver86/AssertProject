@@ -55,11 +55,15 @@ public partial class TuUser
 
     public virtual TuTitleType? TitleType { get; set; }
 
+    public virtual ICollection<TlListingFavoriteGroup> TlListingFavoriteGroups { get; set; } = new List<TlListingFavoriteGroup>();
+
     public virtual ICollection<TlListingFavorite> TlListingFavorites { get; set; } = new List<TlListingFavorite>();
 
     public virtual ICollection<TlListingRent> TlListingRents { get; set; } = new List<TlListingRent>();
 
     public virtual ICollection<TlListingReview> TlListingReviews { get; set; } = new List<TlListingReview>();
+
+    public virtual ICollection<TlListingViewHistory> TlListingViewHistories { get; set; } = new List<TlListingViewHistory>();
 
     public virtual ICollection<TmConversation> TmConversationUserIdOneNavigations { get; set; } = new List<TmConversation>();
 

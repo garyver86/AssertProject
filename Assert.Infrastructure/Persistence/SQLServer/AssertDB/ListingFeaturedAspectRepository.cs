@@ -1,5 +1,6 @@
 ﻿using Assert.Domain.Entities;
 using Assert.Domain.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
@@ -13,6 +14,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             _logRepository = logRepository;
         }
 
+        public async Task<List<TlListingFeaturedAspect>?> GetByListingRentId(long listingRentId)
+        {
+            var result = await _context.TlListingFeaturedAspects.Where(x => x.ListingRentId == listingRentId).ToListAsync();
+            return result;
+        }
         public async Task SetListingFeaturesAspects(long listingRentId, List<int> featuredAspects)
         {
             var actualAspects = _context.TlListingFeaturedAspects.Where(x => x.ListingRentId == listingRentId).ToList();

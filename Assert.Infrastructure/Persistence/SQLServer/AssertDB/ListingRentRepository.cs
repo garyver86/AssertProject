@@ -7,6 +7,7 @@ using Assert.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics.Metrics;
+using System.Globalization;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
@@ -14,6 +15,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         IListingLogRepository _logRepository,
         IListingStatusRepository _listingStatusRepository,
         IExceptionLoggerService _exceptionLoggerService,
+        IListingViewHistoryRepository _listingViewHistoryRepository,
         ILogger<ListingRentRepository> _logger) : IListingRentRepository
     {
         public async Task<TlListingRent> ChangeStatus(long id, int ownerID, int newStatus, Dictionary<string, string> userInfo)
@@ -29,7 +31,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             return listing;
         }
 
-        public async Task<TlListingRent> Get(long id, bool onlyActive)
+        public async Task<TlListingRent> Get(long id, int guestid, bool onlyActive)
         {
             // Paso 1: Obtener datos básicos del listing
             var listingData = await _context.TlListingRents
@@ -72,6 +74,10 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             listing.CancelationPolicyType = listingData.CancelationPolicy;
             listing.OwnerUser = listingData.Owner;
 
+            if (listing.OwnerUserId != guestid && guestid > 0)
+            {
+                _listingViewHistoryRepository.ToggleFromHistory(id, true, guestid);
+            }
             return listing;
         }
 
@@ -511,6 +517,70 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
                 throw new DatabaseUnavailableException(ex.Message);
             }
+        }
+
+        public async Task SetReservationTypeApprobation(long listingRentId, int approvalPolicyTypeId, int preparationDays, int minimumNotice)
+        {
+            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+            listing.ApprovalPolicyTypeId = approvalPolicyTypeId;
+            listing.PreparationDays = preparationDays;
+            listing.MinimumNotice = minimumNotice;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task SetCheckInPolicies(long listingRentId, string checkinTime, string checkoutTime, string instructions)
+        {
+            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+
+            var chkPolicies = listing.TlCheckInOutPolicies.FirstOrDefault();
+
+            TimeOnly? _checkin = null;
+            TimeOnly? _checkout = null;
+
+            if (TimeOnly.TryParseExact(checkinTime, "HH:mm", out TimeOnly hora))
+            {
+                _checkin = hora;
+            }
+            else
+            {
+                throw new FormatException("Formato de hora de entrada no válido");
+            }
+
+            if (TimeOnly.TryParseExact(checkoutTime, "HH:mm", out TimeOnly horaSalida))
+            {
+                _checkout = horaSalida;
+            }
+            else
+            {
+                throw new FormatException("Formato de hora de salida no válido");
+            }
+
+            if (chkPolicies != null)
+            {
+                chkPolicies.CheckOutTime = _checkout;
+                chkPolicies.CheckInTime = _checkin;
+                chkPolicies.Instructions = instructions;
+                chkPolicies.FlexibleCheckIn = true; // Asumiendo que siempre se permite check-in flexible
+                chkPolicies.FlexibleCheckOut = true; // Asumiendo que siempre se permite check-out flexible
+                chkPolicies.LateCheckInFee = 0; // Asumiendo que no hay cargo por check-in tardío
+                chkPolicies.LateCheckOutFee = 0; // Asumiendo que no hay cargo por check-out tardío
+            }
+            else
+            {
+                chkPolicies = new TlCheckInOutPolicy
+                {
+                    ListingRentid = listingRentId,
+                    CheckInTime = _checkin,
+                    CheckOutTime = _checkout,
+                    Instructions = instructions,
+                    FlexibleCheckIn = true, // Asumiendo que siempre se permite check-in flexible
+                    FlexibleCheckOut = true, // Asumiendo que siempre se permite check-out flexible
+                    LateCheckInFee = 0, // Asumiendo que no hay cargo por check-in tardío
+                    LateCheckOutFee = 0 // Asumiendo que no hay cargo por check-out tardío
+                };
+                _context.TlCheckInOutPolicies.Add(chkPolicies);
+            }
+            await _context.SaveChangesAsync();
         }
     }
 }

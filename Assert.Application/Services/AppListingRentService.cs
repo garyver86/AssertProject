@@ -87,7 +87,7 @@ namespace Assert.Application.Services
                 string userId = clientData["UserId"] ?? "-50";
                 int _userID = -1;
                 int.TryParse(userId, out _userID);
-                TlListingRent listings = await _listingRentRepository.Get(listingRentId, onlyActive);
+                TlListingRent listings = await _listingRentRepository.Get(listingRentId, _userID, onlyActive);
                 if (listings == null)
                 {
                     return new ReturnModelDTO<ListingRentDTO>

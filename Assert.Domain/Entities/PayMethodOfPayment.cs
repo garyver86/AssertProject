@@ -10,11 +10,12 @@ public partial class PayMethodOfPayment
     public string MopName { get; set; } = null!;
 
     public string? MopDescription { get; set; }
-    public string? MopCode { get; set; }
 
     public bool Active { get; set; }
 
     public string? UrlIcon { get; set; }
+
+    public string? MopCode { get; set; }
 
     public virtual ICollection<PayCountryConfiguration> PayCountryConfigurations { get; set; } = new List<PayCountryConfiguration>();
 

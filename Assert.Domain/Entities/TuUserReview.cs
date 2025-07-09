@@ -9,6 +9,10 @@ public partial class TuUserReview
 
     public int UserId { get; set; }
 
+    public int? ListingRentId { get; set; }
+
+    public int? BookId { get; set; }
+
     public DateTime? DateTimeReview { get; set; }
 
     public int UserIdReviewer { get; set; }
@@ -16,6 +20,8 @@ public partial class TuUserReview
     public int Calification { get; set; }
 
     public string? Comment { get; set; }
+
+    public int? Status { get; set; }
 
     public virtual TuUser User { get; set; } = null!;
 
