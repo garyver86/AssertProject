@@ -158,6 +158,45 @@ namespace Assert.API.Controllers
             return result;
         }
 
+
+        /// <summary>
+        /// Servicio que permite crear un grupo de favoritos.
+        /// </summary>
+        /// <param name="groupName">Nombre del grupo de favoritos.</param>
+        /// <returns>Confirmación de la creacion del grupo(StatusCode=200).</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// </remarks>
+        [Authorize(Policy = "GuestOnly")]
+        [HttpPost("/favorite")]
+        public async Task<ReturnModelDTO> CreateFavoriteGroup(string groupName)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+            ReturnModelDTO result = await _appListingFavoriteService.CreateFavoriteGroup(groupName, userId, requestInfo);
+            return result;
+        }
+
+        /// <summary>
+        /// Servicio que permite eliminar un grupo de favoritos.
+        /// </summary>
+        /// <param name="groupId">Id del grupo de favoritos a eliminar.</param>
+        /// <returns>Confirmación de la eliminación del grupo(StatusCode=200).</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// </remarks>
+        [Authorize(Policy = "GuestOnly")]
+        [HttpDelete("/favorite/{groupId}")]
+        public async Task<ReturnModelDTO> CreateFavoriteGroup(int groupId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+            ReturnModelDTO result = await _appListingFavoriteService.RemoveFavoriteGroup(groupId, userId, requestInfo);
+            return result;
+        }
+
         /// <summary>
         /// Servicio que permite eliminar una propiedad de los favorios de un usuario.
         /// </summary>
