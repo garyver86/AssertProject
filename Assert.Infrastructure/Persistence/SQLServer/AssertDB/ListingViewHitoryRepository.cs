@@ -17,23 +17,23 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         {
             var skipAmount = (pageNumber - 1) * pageSize;
 
-            var query = _context.TlListingViewHistories.Where(x=>x.UserId == userId)
-                .OrderByDescending(x => x.ViewDate)
-                .Select(x => x.ListingRent)
-                .Include(x => x.ListingStatus)
-                .Include(x => x.AccomodationType)
-                .Include(x => x.OwnerUser)
-                .Include(x => x.TpProperties)
-                .Include(x => x.TpProperties)
+            var query = _context.TlListingViewHistories.Where(x => x.UserId == userId)
+                .Include(x => x.ListingRent)
+                    .ThenInclude(x => x.ListingStatus)
+                .Include(x => x.ListingRent.AccomodationType)
+                .Include(x => x.ListingRent.OwnerUser)
+                .Include(x => x.ListingRent.TpProperties)
+                .Include(x => x.ListingRent.TpProperties)
                     .ThenInclude(y => y.PropertySubtype)
                         .ThenInclude(y => y.PropertyType)
-                .Include(x => x.TlListingPhotos)
-                .Include(x => x.TlListingPrices)
-                .Include(x => x.TlListingSpecialDatePrices)
-                .Include(x => x.TlListingReviews)
+                .Include(x => x.ListingRent.TlListingPhotos)
+                .Include(x => x.ListingRent.TlListingPrices)
+                .Include(x => x.ListingRent.TlListingSpecialDatePrices)
+                .Include(x => x.ListingRent.TlListingReviews)
+                .OrderByDescending(x => x.ViewDate)
                 .AsNoTracking()
-                .Where(x => x.ListingStatusId == 3 && (countryId == null || countryId == 0 || x.TpProperties.FirstOrDefault().CountryId == countryId))
-                ;
+                .Select(x => x.ListingRent)
+                .Where(x => x.ListingStatusId == 3 && (countryId == null || countryId == 0 || x.TpProperties.FirstOrDefault().CountryId == countryId));
 
             var result = await query
                 .Skip(skipAmount)
