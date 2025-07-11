@@ -197,13 +197,7 @@ namespace Assert.API.Controllers
         [HttpPost("GetProfile")]
         [Authorize(Policy = "GuestOrHostOrAdmin")]
         public async Task<ReturnModelDTO> GetProfile()
-        => new ReturnModelDTO<ProfileDTO>() { HasError = false, StatusCode = "200",
-                                              Data = new ProfileDTO() 
-                                              { Name = "TEST", LastName = "PRUEBA", 
-                                                FavoriteName = "TEST PRUEBA", Roles = new List<string> { "guest","host" },
-                                                GuestHostingsTotal = 10, HostHostingsTotal = 5, GuestReviewCalification = 4.5,
-                                                HostReviewCalification = 3.2, YearsInAssert = 5, Avatar = "", 
-                                                CountReviewsGest = 20, CountReviewsHost = 8 }};
+        => await _userService.GetUserProfile();
 
         /// <summary>
         /// Servicio que inserta/actualiza datos adicionales de perfil del usuario logeado.
@@ -216,18 +210,7 @@ namespace Assert.API.Controllers
         [HttpPost("GetAdditionalProfileData")]
         [Authorize(Policy = "GuestOrHostOrAdmin")]
         public async Task<ReturnModelDTO> GetAdditionalProfileData()
-        => new ReturnModelDTO<AdditionalProfileDataDTO>()
-        {
-            HasError = false,
-            StatusCode = "200",
-            Data = new AdditionalProfileDataDTO { AdditionalProfileDataId = 1, UserId = 22, 
-                WhatIDo = "Sowftware Developer", WantedToGo = "Cancun", Pets = "Perritos",
-                Birthday =  new DateTime(1988,6,12), 
-                Languages = new List<LanguageDTO> { new LanguageDTO { LanguageId = 1, Code = "ES", Detail="Espanol" } },
-                LiveAt = new LiveAtDTO { CityId = 1, CityName = "Cochabamba", Location= "Dpto Cbba., Bolivia"},
-                IntroduceYourself = "Hola, soy un desarrollador de software con experiencia en .NET. Me encanta viajar y aprender sobre nuevas culturas."
-            }
-        };
+        => await _userService.GetAdditionalProfile();
 
         /// <summary>
         /// Servicio que inserta/actualiza datos adicionales de perfil del usuario logeado.
@@ -237,7 +220,7 @@ namespace Assert.API.Controllers
         /// <remarks>
         /// En caso de insert retorna el nuevo Id de datos adicionales de perfil, en caso de update retorna el Id existente.
         /// </remarks>
-        [HttpPost("UpdateAdditionalProfileData")]
+        [HttpPost("UpsertAdditionalProfileData")]
         [Authorize(Policy = "GuestOrHostOrAdmin")]
         public async Task<ReturnModelDTO> UpsertAdditionalProfileData([FromBody] AdditionalProfileDataDTO data)
         => new ReturnModelDTO<int>()

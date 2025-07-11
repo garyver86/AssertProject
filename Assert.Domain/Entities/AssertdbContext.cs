@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿
 using Microsoft.EntityFrameworkCore;
 
 namespace Assert.Domain.Entities;
@@ -217,6 +216,12 @@ public partial class AssertdbContext : DbContext
 
     public virtual DbSet<TuAccountType> TuAccountTypes { get; set; }
 
+    public virtual DbSet<TuAdditionalProfile> TuAdditionalProfiles { get; set; }
+
+    public virtual DbSet<TuAdditionalProfileLanguage> TuAdditionalProfileLanguages { get; set; }
+
+    public virtual DbSet<TuAdditionalProfileLiveAt> TuAdditionalProfileLiveAts { get; set; }
+
     public virtual DbSet<TuAddress> TuAddresses { get; set; }
 
     public virtual DbSet<TuCard> TuCards { get; set; }
@@ -257,7 +262,7 @@ public partial class AssertdbContext : DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=34.58.179.9;Database=assertdb;User Id=assertdb-user;Password=Fdiah2025%$;Trusted_Connection=False;TrustServerCertificate=True;");
+        => optionsBuilder.UseSqlServer("Server=34.58.179.9;Database=assertDB;uid=assertdb-user;pwd=Fdiah2025%$;Trusted_Connection=False;TrustServerCertificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -1295,6 +1300,11 @@ public partial class AssertdbContext : DbContext
                 .HasForeignKey(d => d.ListingRentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TB_Book_TL_ListingRent");
+
+            entity.HasOne(d => d.UserIdRenterNavigation).WithMany(p => p.TbBooks)
+                .HasForeignKey(d => d.UserIdRenter)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TB_Book_TU_User");
         });
 
         modelBuilder.Entity<TbBookChange>(entity =>
@@ -3207,6 +3217,82 @@ public partial class AssertdbContext : DbContext
                 .HasColumnName("accountTypeCode");
         });
 
+        modelBuilder.Entity<TuAdditionalProfile>(entity =>
+        {
+            entity.HasKey(e => e.AdditionalProfileId);
+
+            entity.ToTable("TU_AdditionalProfile");
+
+            entity.Property(e => e.AdditionalProfileId).HasColumnName("additionalProfileId");
+            entity.Property(e => e.Additional)
+                .HasMaxLength(10)
+                .IsFixedLength()
+                .HasColumnName("additional");
+            entity.Property(e => e.Pets)
+                .HasMaxLength(500)
+                .IsUnicode(false)
+                .HasColumnName("pets");
+            entity.Property(e => e.UserId).HasColumnName("userId");
+            entity.Property(e => e.WantedToGo)
+                .HasMaxLength(500)
+                .IsUnicode(false)
+                .HasColumnName("wantedToGo");
+            entity.Property(e => e.WhatIdo)
+                .HasMaxLength(500)
+                .IsUnicode(false)
+                .HasColumnName("whatIdo");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TuAdditionalProfiles)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_TU_AdditionalProfile_TU_User");
+        });
+
+        modelBuilder.Entity<TuAdditionalProfileLanguage>(entity =>
+        {
+            entity.HasKey(e => e.AdditionalProfileLanguageId).HasName("PK_TU_AddtionalProfileLanguage");
+
+            entity.ToTable("TU_AdditionalProfileLanguage");
+
+            entity.Property(e => e.AdditionalProfileLanguageId).HasColumnName("additionalProfileLanguageId");
+            entity.Property(e => e.AdditionalProfileId).HasColumnName("additionalProfileId");
+            entity.Property(e => e.LanguageId).HasColumnName("languageId");
+            entity.Property(e => e.UserId).HasColumnName("userId");
+
+            entity.HasOne(d => d.AdditionalProfile).WithMany(p => p.TuAdditionalProfileLanguages)
+                .HasForeignKey(d => d.AdditionalProfileId)
+                .HasConstraintName("FK_TU_AddtionalProfileLanguage_TU_AdditionalProfile");
+
+            entity.HasOne(d => d.Language).WithMany(p => p.TuAdditionalProfileLanguages)
+                .HasForeignKey(d => d.LanguageId)
+                .HasConstraintName("FK_TU_AddtionalProfileLanguage_T_Language");
+        });
+
+        modelBuilder.Entity<TuAdditionalProfileLiveAt>(entity =>
+        {
+            entity.HasKey(e => e.AdditionalProfileLiveAtId);
+
+            entity.ToTable("TU_AdditionalProfileLiveAt");
+
+            entity.Property(e => e.AdditionalProfileLiveAtId).HasColumnName("additionalProfileLiveAtId");
+            entity.Property(e => e.AdditionalProfileId).HasColumnName("additionalProfileId");
+            entity.Property(e => e.CityId).HasColumnName("cityId");
+            entity.Property(e => e.CityName)
+                .HasMaxLength(500)
+                .IsUnicode(false)
+                .HasColumnName("cityName");
+            entity.Property(e => e.Location)
+                .HasMaxLength(500)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.AdditionalProfile).WithMany(p => p.TuAdditionalProfileLiveAts)
+                .HasForeignKey(d => d.AdditionalProfileId)
+                .HasConstraintName("FK_TU_AdditionalProfileLiveAt_TU_AdditionalProfile");
+
+            entity.HasOne(d => d.City).WithMany(p => p.TuAdditionalProfileLiveAts)
+                .HasForeignKey(d => d.CityId)
+                .HasConstraintName("FK_TU_AdditionalProfileLiveAt_T_City");
+        });
+
         modelBuilder.Entity<TuAddress>(entity =>
         {
             entity.HasKey(e => e.AddressId);
@@ -3727,6 +3813,14 @@ public partial class AssertdbContext : DbContext
             entity.Property(e => e.Status).HasColumnName("status");
             entity.Property(e => e.UserId).HasColumnName("userId");
             entity.Property(e => e.UserIdReviewer).HasColumnName("userId_reviewer");
+
+            entity.HasOne(d => d.Book).WithMany(p => p.TuUserReviews)
+                .HasForeignKey(d => d.BookId)
+                .HasConstraintName("FK_TU_UserReview_TB_Book");
+
+            entity.HasOne(d => d.ListingRent).WithMany(p => p.TuUserReviews)
+                .HasForeignKey(d => d.ListingRentId)
+                .HasConstraintName("FK_TU_UserReview_TL_ListingRent");
 
             entity.HasOne(d => d.User).WithMany(p => p.TuUserReviewUsers)
                 .HasForeignKey(d => d.UserId)

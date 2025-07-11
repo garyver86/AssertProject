@@ -1,6 +1,6 @@
-﻿namespace Assert.Application.DTOs.Responses;
+﻿namespace Assert.Domain.Models.Review;
 
-public class CommonReviewDTO
+public class CommonReview
 {
     public long ReviewId { get; set; }
     public long ListingRentId { get; set; }

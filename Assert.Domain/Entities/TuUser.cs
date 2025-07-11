@@ -49,6 +49,8 @@ public partial class TuUser
 
     public virtual ICollection<TbBookInsuranceClaim> TbBookInsuranceClaims { get; set; } = new List<TbBookInsuranceClaim>();
 
+    public virtual ICollection<TbBook> TbBooks { get; set; } = new List<TbBook>();
+
     public virtual ICollection<TiIssue> TiIssueRelatedUsers { get; set; } = new List<TiIssue>();
 
     public virtual ICollection<TiIssue> TiIssueReportedByUsers { get; set; } = new List<TiIssue>();
@@ -72,6 +74,8 @@ public partial class TuUser
     public virtual ICollection<TmNotification> TmNotifications { get; set; } = new List<TmNotification>();
 
     public virtual ICollection<TuAccount> TuAccounts { get; set; } = new List<TuAccount>();
+
+    public virtual ICollection<TuAdditionalProfile> TuAdditionalProfiles { get; set; } = new List<TuAdditionalProfile>();
 
     public virtual ICollection<TuAddress> TuAddresses { get; set; } = new List<TuAddress>();
 

@@ -1,6 +1,7 @@
 ﻿using Assert.Application.DTOs.Requests;
 using Assert.Application.DTOs.Responses;
 using Assert.Application.Exceptions;
+using Assert.Application.Mappings;
 using Assert.Domain.Common.Metadata;
 using Assert.Domain.Entities;
 using Assert.Domain.Enums;
@@ -25,7 +26,8 @@ public class AppUserService(
         IEmergencyContactRepository _userEmergencyContactRepository,
         Func<Platform, IAuthProviderValidator> _authValidatorFactory, IUserService _userService,
         IValidator<UpdatePersonalInformationRequest> _validator,
-        IErrorHandler _errorHandler, ILogger<AppUserService> _logger)
+        IErrorHandler _errorHandler, ILogger<AppUserService> _logger,
+        CustomProfileMapper _customMapper)
         : IAppUserService
 {
     public async Task<ReturnModelDTO> LoginAndEnrollment(string platform, string token,
@@ -389,7 +391,65 @@ public class AppUserService(
 
     }
 
-    //private funcs
+    #region profile & reviews
+    public async Task<ReturnModelDTO> GetUserProfile()
+    {
+        var userProfile = await _userRepository.GetAllProfile();
+        if (userProfile == null)
+        {
+            return new ReturnModelDTO
+            {
+                StatusCode = ResultStatusCode.NotFound,
+                HasError = true,
+                ResultError = new ErrorCommonDTO
+                {
+                    Title = "Perfil de usuario no encontrado",
+                    Message = "No se encontró el perfil del usuario.",
+                    Code = ResultStatusCode.NotFound.ToString()
+                }
+            };
+        }
+
+        var response = _mapper.Map<ProfileDTO>(userProfile);
+
+        return new ReturnModelDTO
+        {
+            StatusCode = ResultStatusCode.OK,
+            Data = response
+        };
+    }
+
+    public async Task<ReturnModelDTO> GetAdditionalProfile()
+    {
+        var additionalProfile = await _userRepository.GetAdditionalProfile();
+        if(additionalProfile == null)
+        {
+            return new ReturnModelDTO
+            {
+                StatusCode = ResultStatusCode.NotFound,
+                HasError = true,
+                ResultError = new ErrorCommonDTO
+                {
+                    Title = "Datos adicionales del perfil no encontrados",
+                    Message = "No se encontraron datos adicionales del perfil del usuario.",
+                    Code = ResultStatusCode.NotFound.ToString()
+                }
+            };
+        }
+
+        var response = _customMapper.MapUserToAdditionalProfile(additionalProfile);
+
+        return new ReturnModelDTO
+        {
+            StatusCode = ResultStatusCode.OK,
+            Data = response
+        };
+    }
+
+
+    #endregion
+
+    #region private funcs
     private ReturnModelDTO<T> HandleException<T>(string action, Exception ex, object data, bool useTechnicalMessages)
     {
         var error = _errorHandler.GetErrorException(action, ex, data, useTechnicalMessages);
@@ -400,5 +460,5 @@ public class AppUserService(
             ResultError = _mapper.Map<ErrorCommonDTO>(error)
         };
     }
-
+    #endregion
 }

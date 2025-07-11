@@ -11,5 +11,7 @@ public partial class TLanguage
 
     public string? Detail { get; set; }
 
+    public virtual ICollection<TuAdditionalProfileLanguage> TuAdditionalProfileLanguages { get; set; } = new List<TuAdditionalProfileLanguage>();
+
     public virtual ICollection<TuEmergencyContact> TuEmergencyContacts { get; set; } = new List<TuEmergencyContact>();
 }

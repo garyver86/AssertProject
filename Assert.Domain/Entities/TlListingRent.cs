@@ -116,4 +116,6 @@ public partial class TlListingRent
     public virtual ICollection<TpProperty> TpProperties { get; set; } = new List<TpProperty>();
 
     public virtual ICollection<TuUserListingRent> TuUserListingRents { get; set; } = new List<TuUserListingRent>();
+
+    public virtual ICollection<TuUserReview> TuUserReviews { get; set; } = new List<TuUserReview>();
 }
