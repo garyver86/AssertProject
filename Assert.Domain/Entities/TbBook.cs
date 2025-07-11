@@ -84,4 +84,8 @@ public partial class TbBook
     public virtual ICollection<TlListingCalendar> TlListingCalendars { get; set; } = new List<TlListingCalendar>();
 
     public virtual ICollection<TlListingReview> TlListingReviews { get; set; } = new List<TlListingReview>();
+
+    public virtual ICollection<TuUserReview> TuUserReviews { get; set; } = new List<TuUserReview>();
+
+    public virtual TuUser UserIdRenterNavigation { get; set; } = null!;
 }

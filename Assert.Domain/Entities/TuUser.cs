@@ -49,17 +49,23 @@ public partial class TuUser
 
     public virtual ICollection<TbBookInsuranceClaim> TbBookInsuranceClaims { get; set; } = new List<TbBookInsuranceClaim>();
 
+    public virtual ICollection<TbBook> TbBooks { get; set; } = new List<TbBook>();
+
     public virtual ICollection<TiIssue> TiIssueRelatedUsers { get; set; } = new List<TiIssue>();
 
     public virtual ICollection<TiIssue> TiIssueReportedByUsers { get; set; } = new List<TiIssue>();
 
     public virtual TuTitleType? TitleType { get; set; }
 
+    public virtual ICollection<TlListingFavoriteGroup> TlListingFavoriteGroups { get; set; } = new List<TlListingFavoriteGroup>();
+
     public virtual ICollection<TlListingFavorite> TlListingFavorites { get; set; } = new List<TlListingFavorite>();
 
     public virtual ICollection<TlListingRent> TlListingRents { get; set; } = new List<TlListingRent>();
 
     public virtual ICollection<TlListingReview> TlListingReviews { get; set; } = new List<TlListingReview>();
+
+    public virtual ICollection<TlListingViewHistory> TlListingViewHistories { get; set; } = new List<TlListingViewHistory>();
 
     public virtual ICollection<TmConversation> TmConversationUserIdOneNavigations { get; set; } = new List<TmConversation>();
 
@@ -68,6 +74,8 @@ public partial class TuUser
     public virtual ICollection<TmNotification> TmNotifications { get; set; } = new List<TmNotification>();
 
     public virtual ICollection<TuAccount> TuAccounts { get; set; } = new List<TuAccount>();
+
+    public virtual ICollection<TuAdditionalProfile> TuAdditionalProfiles { get; set; } = new List<TuAdditionalProfile>();
 
     public virtual ICollection<TuAddress> TuAddresses { get; set; } = new List<TuAddress>();
 

@@ -3,6 +3,8 @@ using Assert.Domain.Entities;
 using Assert.Domain.Enums;
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
+using Assert.Domain.Models.Profile;
+using Assert.Domain.Models.Review;
 using Assert.Domain.Repositories;
 using Assert.Infrastructure.Exceptions;
 using Assert.Infrastructure.Utils;
@@ -11,11 +13,14 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Data;
+using System.Net.Http.Headers;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
     public class UserRepository(IExceptionLoggerService _exceptionLoggerService,
-        RequestMetadata _metadata, InfraAssertDbContext _dbContext, ILogger<UserRepository> _logger)
+        RequestMetadata _metadata,
+        InfraAssertDbContext _dbContext,
+        ILogger<UserRepository> _logger)
         : IUserRepository
     {
 
@@ -335,11 +340,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         });
                     }
                 }
-                if(!string.IsNullOrEmpty(phone))
+                if (!string.IsNullOrEmpty(phone))
                 {
                     var phoneParts = phone.SplitCountryCode();
                     var userPhone = user.TuPhones.FirstOrDefault();
-                    if(userPhone != null)
+                    if (userPhone != null)
                     {
                         userPhone.CountryCode = phoneParts.CountryCode.Replace("+", "");
                         userPhone.AreaCode = "";
@@ -384,7 +389,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Include(x => x.TuEmergencyContacts)
                     .FirstOrDefaultAsync();
 
-            return user ?? 
+            return user ??
                 throw new NotFoundException("El usuario no fue encontrado. No es posible obtener informacion personal.");
         }
 
@@ -416,5 +421,150 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 return new ReturnModel<List<TuUserRole>> { StatusCode = ResultStatusCode.NotFound };
             }
         }
+
+        #region profile & reviews
+        public async Task<Profile> GetAllProfile()
+        {
+            var userWithData = await _dbContext.TuUsers
+                .AsNoTracking()
+                .Where(u => u.UserId == _metadata.UserId)
+                .Select(u => new
+                {
+                    User = u,
+                    Roles = u.TuUserRoles.Select(ur => ur.UserType.Name).ToList(),
+                    GuestBooksCount = u.TbBooks
+                        .Count(b => b.UserIdRenter == _metadata.UserId 
+                        && (b.BookStatus.Code == "approved" || b.BookStatus.Code == "completed")),
+                    HostRentalCount = u.TlListingRents
+                        .SelectMany(l => l.TbBooks) 
+                        .Count(b => b.BookStatus.Code == "approved" || b.BookStatus.Code == "completed"),
+                    HostReviewCalification = u.TlListingRents
+                        .SelectMany(b => b.TlListingReviews)  
+                        .Where(r => r.Calification != null)   
+                        .Average(r => (double)r.Calification!),
+                    GuestReviewCalification = u.TuUserReviewUsers
+                        .Where(r => r.Calification != null)
+                        .Average(r => (double)r.Calification!),
+                    GuestReviews = u.TuUserReviewUsers
+                        .OrderByDescending(r => r.DateTimeReview)
+                        .Take(2),
+                    HostReviews = u.TlListingRents
+                        .SelectMany(l => l.TlListingReviews)
+                        .OrderByDescending(r => r.DateTimeReview)
+                        .Take(2)
+
+                }).FirstOrDefaultAsync();
+
+            if (userWithData is null)
+            {
+                _logger.LogError($"There is not user with ID: {_metadata.User} and name: {_metadata.User}");
+                throw new NotFoundException($"No existe usuario con ID: {_metadata.UserId}");
+            }
+
+            var profile = new Profile
+            {
+                UserId = userWithData.User.UserId,
+                Name = userWithData.User.Name ?? string.Empty,
+                LastName = userWithData.User.LastName ?? string.Empty,
+                FavoriteName = userWithData.User.FavoriteName ?? string.Empty,
+                Roles = userWithData.Roles ?? new List<string>(),
+                GuestHostingsTotal = userWithData.GuestBooksCount,
+                HostHostingsTotal = userWithData.HostRentalCount,
+                HostReviewCalification = userWithData.HostReviewCalification,
+                GuestReviewCalification = userWithData.GuestReviewCalification,
+                YearsInAssert = (DateTime.UtcNow - userWithData.User.RegisterDate).Value.Days / 365,
+                TimeInAssert = FormatTimeInCompany(userWithData.User.RegisterDate),
+                Avatar = userWithData.User.PhotoLink ?? string.Empty,
+                CountReviewsGuest = userWithData.User.TuUserReviewUsers.Count(),
+                CountReviewsHost = userWithData.User.TlListingRents.SelectMany(l => l.TlListingReviews).Count(),
+                GuestReviews = userWithData.GuestReviews
+                    .Select(r => new CommonReview
+                    {
+                        ReviewId = r.UserReviewId,
+                        ListingRentId = r.ListingRentId ?? 0,
+                        BookId = r.BookId ?? 0,
+                        UserIdReviewer = r.UserIdReviewer,
+                        DateTimeReview = r.DateTimeReview ?? DateTime.Now,
+                        ReviewerName = FormatReviewerName(r.UserIdReviewerNavigation),
+                        ReviewerLocation = string.Empty,
+                        ReviewDateName = r.DateTimeReview?.ToString("dd/MM/yyyy") ?? string.Empty,
+                        StayDuration = (r.Book?.EndDate - r.Book?.StartDate)?.Days ?? 0,
+                        Rating = r.Calification,
+                        ReviewText = r.Comment ?? string.Empty,
+                        Avatar = r.UserIdReviewerNavigation.PhotoLink ?? string.Empty
+                    }).ToList(),
+                HostReviews = userWithData.HostReviews
+                    .Select(r => new CommonReview
+                    {
+                        ReviewId = r.ListingReviewId,
+                        ListingRentId = r.ListingReviewId,
+                        BookId = r.BookId ?? 0,
+                        UserIdReviewer = _metadata.UserId,
+                        DateTimeReview = r.DateTimeReview ?? DateTime.Now,
+                        ReviewerName = FormatReviewerName(r.User),
+                        ReviewerLocation = string.Empty,
+                        ReviewDateName = r.DateTimeReview?.ToString("dd/MM/yyyy") ?? string.Empty,
+                        StayDuration = (r.Book?.EndDate - r.Book?.StartDate)?.Days ?? 0,
+                        Rating = r.Calification,
+                        ReviewText = r.Comment ?? string.Empty,
+                        Avatar = r.User.PhotoLink ?? string.Empty
+                    }).ToList(),
+            };
+
+            return profile;
+        }
+
+        public async Task<TuUser> GetAdditionalProfile()
+        {
+            var additionalProfile = await _dbContext.TuUsers
+                .Include(u => u.TuAdditionalProfiles)
+                .FirstOrDefaultAsync(ap => ap.UserId == _metadata.UserId);
+
+            if (additionalProfile == null)
+            {
+                _logger.LogError($"There is not additional profile for user with ID: {_metadata.UserId} and name: {_metadata.User}");
+                throw new NotFoundException($"No existe informacion de perfil adicional para usuario con ID: {_metadata.UserId}");
+            }
+
+            return additionalProfile;
+        }
+        #endregion
+
+        #region private funcs
+        private string FormatReviewerName(TuUser user)
+            => $"{user.Name} {user.LastName}".Trim();
+
+        private string FormatReviewDate(DateTime? date)
+            => date?.ToString("dd/MM/yyyy") ?? string.Empty;
+        private static string FormatTimeInCompany(DateTime? registerDate)
+        {
+            if (!registerDate.HasValue)
+                return "Nuevo miembro";
+
+            var timeSpan = DateTime.UtcNow - registerDate.Value;
+
+            int years = timeSpan.Days / 365;
+            int months = (timeSpan.Days % 365) / 30;
+            int days = timeSpan.Days % 30;
+            int totalMonths = (int)(timeSpan.TotalDays / 30);
+
+            if (years > 0)
+            {
+                return months > 0
+                    ? $"{years} año{(years > 1 ? "s" : "")} y {months} mes{(months > 1 ? "es" : "")}"
+                    : $"{years} año{(years > 1 ? "s" : "")}";
+            }
+            else if (totalMonths > 0)
+            {
+                return $"{totalMonths} mes{(totalMonths > 1 ? "es" : "")}";
+            }
+            else
+            {
+                return days > 1
+                    ? $"{days} días"
+                    : "1 día";
+            }
+        }
+        #endregion
     }
 }

@@ -21,10 +21,13 @@ namespace Assert.Application
         public static IServiceCollection AddApplicationInjections(
             this IServiceCollection services, IConfiguration configuration)
         {
-
-
             //services.AddSingleton<IUrlBaseService, UrlBaseService>();
+
+            // AutoMapper
             services.AddAutoMapper(typeof(AutomapperProfile));
+
+            // Mapeador personalizado
+            services.AddScoped<CustomProfileMapper>();
 
             //Validator
             //services.AddFluentValidationAutoValidation();

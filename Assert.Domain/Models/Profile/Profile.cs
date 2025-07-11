@@ -1,6 +1,8 @@
-﻿namespace Assert.Application.DTOs.Responses;
+﻿using Assert.Domain.Models.Review;
 
-public class ProfileDTO
+namespace Assert.Domain.Models.Profile;
+
+public class Profile
 {
     public int UserId { get; set; }
     public string Name { get; set; } = string.Empty;
@@ -15,7 +17,7 @@ public class ProfileDTO
     public string TimeInAssert { get; set; } = string.Empty;
     public string Avatar { get; set; } = string.Empty;
     public int CountReviewsGuest { get; set; }
-    public int CountReviewsHost{ get; set; }
-    public List<CommonReviewDTO> GuestReviews { get; set; }
-    public List<CommonReviewDTO> HostReviews { get; set; }
+    public int CountReviewsHost { get; set; }
+    public List<CommonReview> GuestReviews { get; set; }
+    public List<CommonReview> HostReviews { get; set; }
 }

@@ -4,9 +4,11 @@ using Assert.Application.DTOs.Responses;
 using Assert.Domain.Entities;
 using Assert.Domain.Enums;
 using Assert.Domain.Models;
+using Assert.Domain.Models.Review;
 using Assert.Domain.ValueObjects;
 using Assert.Infrastructure.Utils;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 
 namespace Assert.Application.Mappings
 
@@ -38,6 +40,29 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.StatusCode, opt => opt.MapFrom(_ => "200"))
                 .ForMember(dest => dest.HasError, opt => opt.MapFrom(_ => false));
 
+            CreateMap<CommonReview, CommonReviewDTO>();
+            CreateMap<Profile, ProfileDTO>();
+            CreateMap<TuUser, AdditionalProfileDataDTO>()
+            .ForMember(dest => dest.AdditionalProfileDataId,
+                opt => opt.MapFrom(src => src.TuAdditionalProfiles.First().AdditionalProfileId))
+            .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
+            .ForMember(dest => dest.WhatIDo,
+                opt => opt.MapFrom(src => src.TuAdditionalProfiles.FirstOrDefault() != null
+                    ? src.TuAdditionalProfiles.First().WhatIdo
+                    : string.Empty))
+            .ForMember(dest => dest.WantedToGo,
+                opt => opt.MapFrom(src => src.TuAdditionalProfiles.FirstOrDefault() != null
+                    ? src.TuAdditionalProfiles.First().WantedToGo
+                    : string.Empty))
+            .ForMember(dest => dest.Pets,
+                opt => opt.MapFrom(src => src.TuAdditionalProfiles.FirstOrDefault() != null
+                    ? src.TuAdditionalProfiles.First().Pets
+                    : string.Empty))
+            .ForMember(dest => dest.Birthday, opt => opt.MapFrom(src => src.DateOfBirth))
+            .ForMember(dest => dest.IntroduceYourself,
+                opt => opt.MapFrom(src => src.TuAdditionalProfiles.FirstOrDefault() != null
+                    ? src.TuAdditionalProfiles.First().Additional
+                    : string.Empty));
 
             CreateMap<ReturnModel<TlListingRent>, ReturnModelDTO<ListingRentDTO>>()
             .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src.Data));

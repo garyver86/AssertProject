@@ -13,6 +13,10 @@ public partial class TlListingFavorite
 
     public DateTime? CreateAt { get; set; }
 
+    public long? FavoriteGroupId { get; set; }
+
+    public virtual TlListingFavoriteGroup? FavoriteGroup { get; set; }
+
     public virtual TlListingRent ListingRent { get; set; } = null!;
 
     public virtual TuUser User { get; set; } = null!;

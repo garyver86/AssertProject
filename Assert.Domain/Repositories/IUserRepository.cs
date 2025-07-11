@@ -1,6 +1,7 @@
 ﻿using Assert.Domain.Entities;
 using Assert.Domain.Enums;
 using Assert.Domain.Models;
+using Assert.Domain.Models.Profile;
 
 namespace Assert.Domain.Repositories
 {
@@ -23,5 +24,9 @@ namespace Assert.Domain.Repositories
             string email, string phone);
 
         Task<TuUser> GetPersonalInformationById(int userId);
+
+        Task<Profile> GetAllProfile();
+
+        Task<TuUser> GetAdditionalProfile();
     }
 }

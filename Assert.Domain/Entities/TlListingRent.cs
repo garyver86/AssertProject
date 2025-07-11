@@ -109,9 +109,13 @@ public partial class TlListingRent
 
     public virtual ICollection<TlListingStep> TlListingSteps { get; set; } = new List<TlListingStep>();
 
+    public virtual ICollection<TlListingViewHistory> TlListingViewHistories { get; set; } = new List<TlListingViewHistory>();
+
     public virtual ICollection<TlStayPresence> TlStayPresences { get; set; } = new List<TlStayPresence>();
 
     public virtual ICollection<TpProperty> TpProperties { get; set; } = new List<TpProperty>();
 
     public virtual ICollection<TuUserListingRent> TuUserListingRents { get; set; } = new List<TuUserListingRent>();
+
+    public virtual ICollection<TuUserReview> TuUserReviews { get; set; } = new List<TuUserReview>();
 }
