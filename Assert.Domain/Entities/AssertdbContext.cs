@@ -3,13 +3,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Assert.Domain.Entities;
 
-public partial class AssertDbContext : DbContext
+public partial class AssertdbContext : DbContext
 {
-    public AssertDbContext()
+    public AssertdbContext()
     {
     }
 
-    public AssertDbContext(DbContextOptions<AssertDbContext> options)
+    public AssertdbContext(DbContextOptions<AssertdbContext> options)
         : base(options)
     {
     }

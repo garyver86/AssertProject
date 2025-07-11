@@ -87,6 +87,7 @@ public static class InfrastructureInjectionDependences
         services.AddScoped<IPropertyAddressRepository, PropertyAddressRepository>();
         services.AddScoped<ISystemConfigurationRepository, SystemConfigurationRepository>();
         services.AddScoped<IListingFavoriteRepository, ListingFavoriteRepository>();
+        services.AddScoped<IListingViewHistoryRepository, ListingViewHistoryRepository>();
         services.AddScoped<IAmenitiesRepository, AmenitiesRepository>();
         services.AddScoped<IFeaturesAspectsRepository, FeaturedAspectsRepository>();
         services.AddScoped<IDiscountTypeRepository, DiscountTypeRepository>();
@@ -105,6 +106,11 @@ public static class InfrastructureInjectionDependences
         services.AddScoped<IEmergencyContactRepository, EmergencyContactRepository>();
         services.AddScoped<IPayPriceCalculationRepository, PayPriceCalculationRepository>();
         services.AddScoped<IMethodOfPaymentRepository, MethodOfPaymentRepository>();
+        services.AddScoped<ISecurityItemsRepository, SecurityItemsRepository>();
+        services.AddScoped<IApprovalPolityTypeRepository, ApprovalPolityTypeRepository>();
+        services.AddScoped<IRulesTypeRepository, RuleTypesRepository>();
+        services.AddScoped<IListingSecurityItemsRepository, ListingSecurityItemsRepository>();
+        services.AddScoped<ICancelationPoliciesTypesRepository, CancelationPoliciesTypesRepository>();
         #endregion
 
         return services;

@@ -3,6 +3,7 @@ using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Assert.Domain.Utils;
+using Azure.Core;
 using Microsoft.IdentityModel.Tokens;
 using System.Net;
 
@@ -21,17 +22,26 @@ namespace Assert.Domain.Implementation
         private readonly IListingAmenitiesRepository _listingAmenitiesRepository;
         private readonly IListingFeaturedAspectRepository _listingFeaturedAspectRepository;
         private readonly IListingPhotoRepository _listingPhotoRepository;
+        private readonly IListingSecurityItemsRepository _listingSecurityItemsRepository;
         private readonly IViewTypeRepository _viewTypeRepository;
         private readonly IAmenitiesRepository _amenitiesRepository;
         private readonly IFeaturesAspectsRepository _featuresAspectsRepository;
         private readonly IDiscountTypeRepository _discountTypeRepository;
+        private readonly IListingRentRulesRepository _listingRentRulesRepository;
+        private readonly ISecurityItemsRepository _securityItemsRepository;
+        private readonly IApprovalPolityTypeRepository _approvalPolicyTypeRepository;
+        private readonly IRulesTypeRepository _rulesTypeRepository;
+        private readonly ICancelationPoliciesTypesRepository _cancelationPoliciesTypesRepository;
         public ListingRent_StepViewService(IErrorHandler errorHandler, IPropertySubTypeRepository propertySubtypeRepository,
             IListingRentRepository listingRentRepository, IPropertyRepository propertyRepository, IAccommodationTypeRepository accommodationTypeRepository,
             IPropertyAddressRepository propertyAddressRepository, IListingAmenitiesRepository listingAmenitiesRepository,
             IListingPhotoRepository listingPhotoRepository, IViewTypeRepository viewTypeRepository, IAmenitiesRepository amenitiesRepository,
             IFeaturesAspectsRepository featuresAspectsRepository, IDiscountTypeRepository discountTypeRepository,
             IListingFeaturedAspectRepository listingFeaturedAspectRepository, IListingPricingRepository listingPricingRepository,
-            IListingDiscountRepository listingDiscountRepository)
+            IListingDiscountRepository listingDiscountRepository, IListingSecurityItemsRepository listingSecurityItemsRepository,
+            IListingRentRulesRepository listingRentRulesRepository, ISecurityItemsRepository securityItemsRepository,
+            IApprovalPolityTypeRepository approvalPolicyTypeRepository, IRulesTypeRepository rulesTypeRepository,
+            ICancelationPoliciesTypesRepository cancelationPoliciesTypesRepository)
         {
             _errorHandler = errorHandler;
             _propertySubtypeRepository = propertySubtypeRepository;
@@ -48,6 +58,12 @@ namespace Assert.Domain.Implementation
             _listingFeaturedAspectRepository = listingFeaturedAspectRepository;
             _listingPriceRepository = listingPricingRepository;
             _listingDiscountRepository = listingDiscountRepository;
+            _listingSecurityItemsRepository = listingSecurityItemsRepository;
+            _listingRentRulesRepository = listingRentRulesRepository;
+            _securityItemsRepository = securityItemsRepository;
+            _approvalPolicyTypeRepository = approvalPolicyTypeRepository;
+            _rulesTypeRepository = rulesTypeRepository;
+            _cancelationPoliciesTypesRepository = cancelationPoliciesTypesRepository;
         }
         public async Task<ReturnModel<ListingProcessDataResultModel>> GetNextListingStepViewData(int? nextViewTypeId, TlListingRent? data, bool useTechnicalMessages)
         {
@@ -70,15 +86,22 @@ namespace Assert.Domain.Implementation
             {
                 case "LV001":
                     result.Data.Parametrics.PropertySubTypes = await _propertySubtypeRepository.GetActives();
+                    result.Data.Parametrics.AccomodationTypes = await _accommodationTypeRepository.GetActives();
                     result.Data.ListingData.PropertySubTypeId = data.TpProperties.FirstOrDefault()?.PropertySubtypeId;
+                    result.Data.ListingData.AccomodationTypeId = data.AccomodationTypeId;
                     return result;
                 case "LV002":
-                    result.Data.Parametrics.AccomodationTypes = await _accommodationTypeRepository.GetActives();
-                    result.Data.ListingData.AccomodationTypeId = data.AccomodationTypeId;
+                    result.Data.ListingData.MaxGuests = data.MaxGuests;
+                    result.Data.ListingData.Bathrooms = data.Bathrooms;
+                    result.Data.ListingData.Bedrooms = data.Bedrooms;
+                    result.Data.ListingData.Beds = data.Beds;
                     return result;
                 case "LV003":
                     //result.Data.ListingData.Address = data.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault();
                     var property = data.TpProperties.FirstOrDefault();
+
+                    result.Data.ListingData.Latitude = data.TpProperties.FirstOrDefault()?.Latitude;
+                    result.Data.ListingData.Longitude = data.TpProperties.FirstOrDefault()?.Longitude;
                     result.Data.ListingData.Address = new TpPropertyAddress
                     {
                         Address1 = property?.Address1,
@@ -111,37 +134,47 @@ namespace Assert.Domain.Implementation
                     };
                     return result;
                 case "LV004":
-                    result.Data.ListingData.Latitude = data.TpProperties.FirstOrDefault()?.Latitude;
-                    result.Data.ListingData.Longitude = data.TpProperties.FirstOrDefault()?.Longitude;
+                    result.Data.Parametrics.AmenitiesTypes = await _amenitiesRepository.GetActives();
+                    result.Data.Parametrics.FeaturedAspects = await _featuresAspectsRepository.GetActives();
+                    result.Data.Parametrics.SecurityItems = await _securityItemsRepository.GetActives();
+                    result.Data.ListingData.Amenities = await _listingAmenitiesRepository.GetByListingRentId(data.ListingRentId);
+                    result.Data.ListingData.FeaturedAspects = await _listingFeaturedAspectRepository.GetByListingRentId(data.ListingRentId);
+                    result.Data.ListingData.SecurityItems = await _listingSecurityItemsRepository.GetByListingRentId(data.ListingRentId);
                     return result;
                 case "LV005":
-                    result.Data.ListingData.MaxGuests = data.MaxGuests;
-                    result.Data.ListingData.Bathrooms = data.Bathrooms;
-                    result.Data.ListingData.Bedrooms = data.Bedrooms;
-                    result.Data.ListingData.Beds = data.Beds;
+                    result.Data.ListingData.ListingPhotos = await _listingPhotoRepository.GetByListingRentId(data.ListingRentId);
                     return result;
                 case "LV006":
-                    result.Data.Parametrics.AmenitiesTypes = await _amenitiesRepository.GetActives();
-                    result.Data.ListingData.Amenities = await _listingAmenitiesRepository.GetByListingRentId(data.ListingRentId);
+                    result.Data.ListingData.ListingPhotos = await _listingPhotoRepository.GetByListingRentId(data.ListingRentId);
                     return result;
                 case "LV007":
-                    result.Data.Parametrics.FeaturedAspects = await _featuresAspectsRepository.GetActives();
                     result.Data.ListingData.Title = data.Name;
                     result.Data.ListingData.Description = data.Description;
-                    result.Data.ListingData.FeaturedAspects = data.TlListingFeaturedAspects;
                     return result;
                 case "LV008":
                     result.Data.Parametrics.DiscountTypes = await _discountTypeRepository.GetActives();
-                    //result.Data.ListingData.Discounts = data.Dis.TlListingDiscountForRates;
+                    result.Data.ListingData.Discounts = data.TlListingDiscountForRates;
                     result.Data.ListingData.PriceNightly = data.TlListingPrices.FirstOrDefault()?.PriceNightly;
                     result.Data.ListingData.CurrencyId = data.TlListingPrices.FirstOrDefault()?.CurrencyId;
                     result.Data.ListingData.WeekendNightlyPrice = data.TlListingPrices.FirstOrDefault()?.WeekendNightlyPrice;
                     return result;
-                //case "LV009":
-                //    result.Data.ListingData.ListingPhotos = await _listingPhotoRepository.GetByListingRentId(data.ListingRentId);
-                //    return result;
-                //case "LV010":
-                //    return result;
+
+                case "LV009":
+                    result.Data.Parametrics.ApprovalPolicyType = await _approvalPolicyTypeRepository.GetActives();
+                    result.Data.ListingData.ApprovalPolicyTypeId = data.ApprovalPolicyTypeId;
+                    result.Data.ListingData.MinimunNoticeDays = data.MinimumNotice;
+                    result.Data.ListingData.PreparationDays = data.PreparationDays;
+                    return result;
+                case "LV010":
+                    result.Data.Parametrics.RuleTypes = await _rulesTypeRepository.GetActives();
+                    result.Data.ListingData.TlCheckInOutPolicy = data.TlCheckInOutPolicies.FirstOrDefault();
+                    result.Data.ListingData.Rules = await _listingRentRulesRepository.GetByListingRentId(data.ListingRentId);
+                    return result;
+                case "LV011":
+                    //Devolver información de las políticas de cancelación
+                    result.Data.Parametrics.CancelationPolicyTypes = _cancelationPoliciesTypesRepository.GetActives();
+                    result.Data.ListingData.CancelationPolicyTypeId = data.CancelationPolicyTypeId;
+                    return result;
                 default:
                     return new ReturnModel<ListingProcessDataResultModel>
                     {
@@ -156,50 +189,60 @@ namespace Assert.Domain.Implementation
         {
             switch (viewType.Code)
             {
-                #region Paso 1
+                #region Paso 1: Information
                 case "LV001":
-                    ReturnModel propertypeResult = await SetPropertyType(listing, request_, useTechnicalMessages, clientData);
+                    //Vista 1: Definir el tipo de propiedad y el tipo de alojamiento.
+                    ReturnModel propertypeResult = await SetPropertyTypeAndAccomodationType(listing, request_, useTechnicalMessages, clientData);
                     return propertypeResult;
                 case "LV002":
-                    ReturnModel accomodationResult = await SetAccomodationType(listing, request_, useTechnicalMessages, clientData);
-                    return accomodationResult;
-                case "LV003":
-                    ReturnModel addressResult = await SetPropertyAddress(listing, request_, useTechnicalMessages, clientData);
-                    return addressResult;
-                case "LV004":
-                    ReturnModel locationResult = await SetPropertyLocation(listing, request_, useTechnicalMessages, clientData);
-                    return locationResult;
-                case "LV005":
+                    //Vista 2: Definir la capacidad.
                     ReturnModel capacityResult = await SetListingCapacity(listing, request_, useTechnicalMessages, clientData);
                     return capacityResult;
+                case "LV003":
+                    //Vista 3: Definir la dirección de la propiedad.
+                    ReturnModel addressResult = await SetPropertyAddressAndLocation(listing, request_, useTechnicalMessages, clientData);
+                    return addressResult;
                 #endregion
-                #region Paso 2
-                case "LV006":
-                    ReturnModel amenitiesResult = await SetAmenities(listing, request_, useTechnicalMessages, clientData);
+                #region Paso 2: Description
+                case "LV004":
+                    //Vista 4: Definir los servicios basicos, destacados y de seguridad.
+                    ReturnModel amenitiesResult = await SetServices(listing, request_, useTechnicalMessages, clientData);
                     return amenitiesResult;
+                case "LV005":
+                    //Vista 5: Validar la cantidad de fotos activas.
+                    ReturnModel photosResult = await ValidatePhothos(listing, useTechnicalMessages, clientData);
+                    return photosResult;
+                case "LV006":
+                    //Vista 6: Validar la cantidad de fotos activas. (Luego de una eliminación)
+                    ReturnModel photosResult2 = await ValidatePhothos(listing, useTechnicalMessages, clientData);
+                    return photosResult2;
                 case "LV007":
+                    //Vista 7: Definir el título y la descripción de la propiedad.
                     ReturnModel titleResult = await SetAttibutes(listing, request_, useTechnicalMessages, clientData);
                     return titleResult;
                 #endregion
-                #region Paso 3
+                #region Paso 3: Configuration
                 case "LV008":
+                    //Vista 8: Definir precios y descuentos.
                     ReturnModel pricingResult = await SetPricingAndDiscount(listing, request_, useTechnicalMessages, clientData);
-                    //return pricingResult;
-                    if (pricingResult.StatusCode == ResultStatusCode.OK)
-                    {
-                        request_.ListingConfirmation = true;
-                        request_.ReviewConfirmatin = true;
-                        ReturnModel reviewConfirmationResult = await SetReviewConfirmation(listing, request_, useTechnicalMessages, clientData);
-                        return reviewConfirmationResult;
-                    }
                     return pricingResult;
+                case "LV009":
+                    //Vista 9: Definir tipo de reservacion.
+                    ReturnModel reservationTypeResult = await SetReservationType(listing, request_, useTechnicalMessages, clientData);
+                    return reservationTypeResult;
+                case "LV010":
+                    //Vista 10: Definir reglas y check-in.
+                    ReturnModel rulesResult = await SetCheckInAndRules(listing, request_, useTechnicalMessages, clientData);
+                    return rulesResult;
+                case "LV011":
+                    //Vista 11: Definir las políticas.
+                    ReturnModel politicsResult = await SetPolitics(listing, request_, useTechnicalMessages, clientData);
+                    return politicsResult;
+                case "LV012":
+                    //Vista 12: confirmación de la creación
+                    ReturnModel reviewConfirmationResult = await SetReviewConfirmation(listing, request_, useTechnicalMessages, clientData);
+                    return reviewConfirmationResult;
                 #endregion
-                //case "LV009":
-                //    ReturnModel photosResult = await SetPhotos(listing, request_, useTechnicalMessages, clientData);
-                //    return photosResult;
-                //case "LV010":
-                //    ReturnModel reviewConfirmationResult = await SetReviewConfirmation(listing, request_, useTechnicalMessages, clientData);
-                //    return reviewConfirmationResult;
                 default:
                     return new ReturnModel
                     {
@@ -209,6 +252,95 @@ namespace Assert.Domain.Implementation
                     };
             }
             return null;
+        }
+
+        private async Task<ReturnModel> SetPolitics(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        {
+            return new ReturnModel
+            {
+                StatusCode = ResultStatusCode.OK,
+                HasError = false
+            };
+        }
+
+        private async Task<ReturnModel> SetCheckInAndRules(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        {
+            if ((request_.CheckInPolicies?.CheckInTime.IsNullOrEmpty() ?? true) || (request_.CheckInPolicies?.CheckOutTime.IsNullOrEmpty() ?? true))
+            {
+                return new ReturnModel
+                {
+                    HasError = true,
+                    StatusCode = ResultStatusCode.BadRequest,
+                    ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe definir las horas de Checin y checkout.", useTechnicalMessages)
+                };
+            }
+            await _listingRentRepository.SetCheckInPolicies(listing.ListingRentId, request_.CheckInPolicies?.CheckInTime, request_.CheckInPolicies?.CheckOutTime, request_.CheckInPolicies?.Instructions);
+            await _listingRentRulesRepository.Set(listing.ListingRentId, request_.Rules);
+
+            return new ReturnModel
+            {
+                StatusCode = ResultStatusCode.OK,
+                HasError = false
+            };
+        }
+
+        private async Task<ReturnModel> SetReservationType(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        {
+            if (request_.ApprovalPolicyTypeId == null || (request_.ApprovalPolicyTypeId != 1 && request_.ApprovalPolicyTypeId != 2))
+            {
+                return new ReturnModel
+                {
+                    HasError = true,
+                    StatusCode = ResultStatusCode.BadRequest,
+                    ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe definir el tipo de política de aprobación para la propiedad.", useTechnicalMessages)
+                };
+            }
+            if (request_.MinimunNoticeDays == null || request_.MinimunNoticeDays <= 0)
+            {
+                return new ReturnModel
+                {
+                    HasError = true,
+                    StatusCode = ResultStatusCode.BadRequest,
+                    ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe definir el tiempo mínimo de preaviso.", useTechnicalMessages)
+                };
+            }
+            if (request_.PreparationDays == null || request_.PreparationDays <= 0)
+            {
+                return new ReturnModel
+                {
+                    HasError = true,
+                    StatusCode = ResultStatusCode.BadRequest,
+                    ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe definir el tiempo de prepareación para que la propiedad esté disponible para el siguiente alquiler.", useTechnicalMessages)
+                };
+            }
+            await _listingRentRepository.SetReservationTypeApprobation(listing.ListingRentId, request_.ApprovalPolicyTypeId.Value, request_.MinimunNoticeDays.Value, request_.PreparationDays.Value);
+            return new ReturnModel
+            {
+                StatusCode = ResultStatusCode.OK,
+                HasError = false
+            };
+        }
+
+        private async Task<ReturnModel> ValidatePhothos(TlListingRent listing, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        {
+            var result = await _listingPhotoRepository.GetByListingRentId(listing.ListingRentId);
+            if (result.Count < 5)
+            {
+                return new ReturnModel
+                {
+                    StatusCode = ResultStatusCode.BadRequest,
+                    HasError = true,
+                    ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe subir al menos 5 fotos de la propiedad.", useTechnicalMessages)
+                };
+            }
+            else
+            {
+                return new ReturnModel
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    HasError = false
+                };
+            }
         }
 
         private async Task<ReturnModel> SetPricingAndDiscount(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
@@ -271,7 +403,7 @@ namespace Assert.Domain.Implementation
                     ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar una descripción para la propiedad.", useTechnicalMessages)
                 };
             }
-            if (request_.Description.Length > 500)
+            if (request_.Description?.Length > 500)
             {
                 return new ReturnModel
                 {
@@ -284,8 +416,6 @@ namespace Assert.Domain.Implementation
             {
                 await _listingRentRepository.SetNameAndDescription(listing.ListingRentId, request_.Title, request_.Description);
             }
-            await _listingFeaturedAspectRepository.SetListingFeaturesAspects(listing.ListingRentId, request_.FeaturedAspects); ;
-
             return new ReturnModel
             {
                 HasError = false,
@@ -478,6 +608,17 @@ namespace Assert.Domain.Implementation
             };
         }
 
+        private async Task<ReturnModel> SetServices(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        {
+            await _listingAmenitiesRepository.SetListingAmmenities(listing.ListingRentId, request_.Amenities, clientData, useTechnicalMessages);
+            await _listingFeaturedAspectRepository.SetListingFeaturesAspects(listing.ListingRentId, request_.FeaturedAspects);
+            await _listingSecurityItemsRepository.SetListingSecurityItems(listing.ListingRentId, request_.Amenities);
+            return new ReturnModel
+            {
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
+        }
         private async Task<ReturnModel> SetAmenities(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
         {
             await _listingAmenitiesRepository.SetListingAmmenities(listing.ListingRentId, request_.Amenities, clientData, useTechnicalMessages);
@@ -546,7 +687,7 @@ namespace Assert.Domain.Implementation
             };
         }
 
-        private async Task<ReturnModel> SetPropertyAddress(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        private async Task<ReturnModel> SetPropertyAddressAndLocation(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
         {
             if (request_.Address == null)
             {
@@ -566,7 +707,24 @@ namespace Assert.Domain.Implementation
                 StateId = request_.Address.StateId,
                 CountyId = request_.Address.CountyId
             };
+            if (request_.Address.Latitude != null && request_.Address.Longitude != null)
+            {
+                if (!GeoUtils.ValidateLatitudLongitude(request_.Address.Latitude, request_.Address.Longitude))
+                {
+                    return new ReturnModel
+                    {
+                        HasError = true,
+                        StatusCode = ResultStatusCode.BadRequest,
+                        ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "La Latitud o Longitud ingresada no es válida, verifica los datos e intenta de nuevo.", useTechnicalMessages)
+                    };
+                }
+            }
+
             TpPropertyAddress addressResult = await _propertyAddressRepository.Set(addresInput, listing.TpProperties.First().PropertyId);
+            if (request_.Address.Latitude != null && request_.Address.Longitude != null)
+            {
+                await _propertyRepository.SetLocation(listing.TpProperties.First().PropertyId, request_.Address.Latitude, request_.Address.Longitude);
+            }
             return new ReturnModel
             {
                 HasError = false,
@@ -614,7 +772,7 @@ namespace Assert.Domain.Implementation
             };
         }
 
-        private async Task<ReturnModel> SetPropertyType(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        private async Task<ReturnModel> SetPropertyTypeAndAccomodationType(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
         {
             TpPropertySubtype propertyType = await _propertySubtypeRepository.GetActive(request_.SubtypeId);
             if (propertyType == null)
@@ -626,7 +784,19 @@ namespace Assert.Domain.Implementation
                     ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "El tipo de propiedad ingresado es incorrecto.", useTechnicalMessages)
                 };
             }
+            TlAccommodationType accomodationType = await _accommodationTypeRepository.GetActive(request_.AccomodationId);
+            if (accomodationType == null)
+            {
+                return new ReturnModel
+                {
+                    HasError = true,
+                    StatusCode = ResultStatusCode.BadRequest,
+                    ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "El tipo de alojamiento ingresado es incorrecto.", useTechnicalMessages)
+                };
+            }
             TpProperty setSubtyperesult = await _propertyRepository.SetPropertySubType(listing.TpProperties.First().PropertyId, request_.SubtypeId);
+            TlListingRent accomodationTypeResult = await _listingRentRepository.SetAccomodationType(listing.ListingRentId, request_.AccomodationId);
+
             return new ReturnModel
             {
                 HasError = false,

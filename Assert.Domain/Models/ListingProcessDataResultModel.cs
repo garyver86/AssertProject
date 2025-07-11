@@ -14,12 +14,16 @@ namespace Assert.Domain.Models
         public List<TpAmenitiesType> AmenitiesTypes { get; set; }
         public List<TFeaturedAspectType> FeaturedAspects { get; set; }
         public List<TDiscountTypeForTypePrice> DiscountTypes { get; set; }
+        public List<TpSecurityItemType> SecurityItems { get; set; }
+        public List<TApprovalPolicyType> ApprovalPolicyType { get; set; }
+        public List<TpRuleType> RuleTypes { get; set; }
+        public Task<List<TCancelationPolicyType>> CancelationPolicyTypes { get; set; }
     }
     public class ListingProcessData_ListingData
     {
         internal int? PropertySubTypeId;
 
-        public List<TlListingPhoto> ListingPhotos { get; set; }
+        public List<TlListingPhoto>? ListingPhotos { get; set; }
         public int? MaxGuests { get; set; }
         public int? Bathrooms { get; set; }
         public int? Bedrooms { get; set; }
@@ -31,13 +35,20 @@ namespace Assert.Domain.Models
         public double? Longitude { get; set; }
         public string? Title { get; set; }
         public string? Description { get; set; }
-        public ICollection<TlListingFeaturedAspect> FeaturedAspects { get; set; }
-        public ICollection<TlListingDiscountForRate> Discounts { get; set; }
+        public ICollection<TlListingFeaturedAspect>? FeaturedAspects { get; set; }
+        public ICollection<TlListingDiscountForRate>? Discounts { get; set; }
         public long ListingRentId { get; set; }
         public string? nextViewCode { get; set; }
         public string? actualViewCode { get; set; }
-        public decimal? PriceNightly { get; internal set; }
-        public int? CurrencyId { get; internal set; }
-        public decimal? WeekendNightlyPrice { get; internal set; }
+        public decimal? PriceNightly { get; set; }
+        public int? CurrencyId { get; set; }
+        public decimal? WeekendNightlyPrice { get; set; }
+        public List<TlListingSecurityItem>? SecurityItems { get; set; }
+        public int? ApprovalPolicyTypeId { get; set; }
+        public int? MinimunNoticeDays { get; set; }
+        public int? PreparationDays { get; set; }
+        public List<TlListingRentRule>? Rules { get; set; }
+        public TlCheckInOutPolicy? TlCheckInOutPolicy { get; set; }
+        public int? CancelationPolicyTypeId { get; set; }
     }
 }

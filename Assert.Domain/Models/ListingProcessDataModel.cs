@@ -38,6 +38,16 @@
         public int? CurrencyId { get; set; }
         public int? Bathrooms { get; set; }
         public decimal? WeekendPrice { get; set; }
+        public int? MinimunNoticeDays { get; set; }
+        public int? PreparationDays { get; set; }
+        public CheckInPoliciesModel? CheckInPolicies { get; set; }
+        public List<int> Rules { get; set; }
+    }
+    public class CheckInPoliciesModel
+    {
+        public string? CheckInTime { get; set; }
+        public string? CheckOutTime { get; set; }
+        public string? Instructions { get; set; }
     }
     public class ProcessData_AddressModel
     {

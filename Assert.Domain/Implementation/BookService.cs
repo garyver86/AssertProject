@@ -66,7 +66,7 @@ namespace Assert.Domain.Implementation
             var result = new ReturnModel<PayPriceCalculation>();
 
             // 1. Validar existencia y estado de la propiedad
-            var listing = await _listingRentRepository.Get(listingRentId, onlyActive: true);
+            var listing = await _listingRentRepository.Get(listingRentId, 0, onlyActive: true);
             if (listing == null)
             {
                 result.HasError = true;

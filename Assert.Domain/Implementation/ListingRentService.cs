@@ -290,42 +290,15 @@ namespace Assert.Domain.Implementation
                                 ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe seleccionar el tipo de propiedad que desea registrar.", useTechnicalMessages)
                             };
                         }
-                        //if (request_.Bedrooms < 0 || request_.Bedrooms == null)
-                        //{
-                        //    return new ReturnModel<ListingProcessDataResultModel>
-                        //    {
-                        //        HasError = true,
-                        //        StatusCode = ResultStatusCode.BadRequest,
-                        //        ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar la cantidad de habitaciones disponibles en la propiedad.", useTechnicalMessages)
-                        //    };
-                        //}
-                        //if (request_.Beds < 0 || request_.Beds == null)
-                        //{
-                        //    return new ReturnModel<ListingProcessDataResultModel>
-                        //    {
-                        //        HasError = true,
-                        //        StatusCode = ResultStatusCode.BadRequest,
-                        //        ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar la cantidad de camas disponibles en la propiedad.", useTechnicalMessages)
-                        //    };
-                        //}
-                        //if (request_.MaxGuests <= 0 || request_.MaxGuests == null)
-                        //{
-                        //    return new ReturnModel<ListingProcessDataResultModel>
-                        //    {
-                        //        HasError = true,
-                        //        StatusCode = ResultStatusCode.BadRequest,
-                        //        ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar la cantidad máxima de huespedes permitidos en la propiedad.", useTechnicalMessages)
-                        //    };
-                        //}
-                        //if (request_.Bathrooms < 0 || request_.Bathrooms == null)
-                        //{
-                        //    return new ReturnModel<ListingProcessDataResultModel>
-                        //    {
-                        //        HasError = true,
-                        //        StatusCode = ResultStatusCode.BadRequest,
-                        //        ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar la cantidad de baños que existen en la propiedad.", useTechnicalMessages)
-                        //    };
-                        //}
+                        if (!(request_.AccomodationId > 0))
+                        {
+                            return new ReturnModel<ListingProcessDataResultModel>
+                            {
+                                HasError = true,
+                                StatusCode = ResultStatusCode.BadRequest,
+                                ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe seleccionar el tipo de alojamiento que desea registrar.", useTechnicalMessages)
+                            };
+                        }
                         ReturnModel<TlListingRent> newListing = await InitializeListingRent(viewType, request_, userId, clientData, useTechnicalMessages);
                         if (newListing.StatusCode == ResultStatusCode.OK)
                         {
@@ -516,7 +489,7 @@ namespace Assert.Domain.Implementation
         public Task<bool> ValidateListingRentOwner(long listingRentId, int userId)
         {
             var listing = _listingRentRepository.Get(listingRentId, userId);
-            if(listing != null)
+            if (listing != null)
             {
                 return Task.FromResult(true);
             }
