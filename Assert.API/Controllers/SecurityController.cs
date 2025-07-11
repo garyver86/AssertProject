@@ -28,7 +28,7 @@ namespace Assert.API.Controllers
 
 
         [HttpPost("Login")]
-        [EnableCors("AllowedOriginsPolicy")]
+        //[EnableCors("AllowedOriginsPolicy")]
         public async Task<ReturnModelDTO> Login([FromBody] LoginModel user)
         {
             var requestInfo = HttpContext.GetRequestInfo();

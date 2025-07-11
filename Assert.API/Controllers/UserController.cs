@@ -28,7 +28,7 @@ namespace Assert.API.Controllers
         /// En caso de usuarios de redes sociales si el token es valido y no existe en BD Assert, estos seran registrados con rol Guest por defecto
         /// </remarks>
         [HttpPost("Login")]
-        [EnableCors("AllowedOriginsPolicy")]
+        //[EnableCors("AllowedOriginsPolicy")]
         public async Task<ReturnModelDTO> Login([FromBody] LoginRequest loginRequest)
         {
             return await _userService.LoginAndEnrollment(loginRequest.Platform, loginRequest.Token,
@@ -44,7 +44,7 @@ namespace Assert.API.Controllers
         /// En caso de existir usuario en cualquier otra plataforma lanza error
         /// </remarks>
         [HttpPost("EnrollmentLocalUserAndLogin")]
-        [EnableCors("AllowedOriginsPolicy")]
+        //[EnableCors("AllowedOriginsPolicy")]
         public async Task<ReturnModelDTO> EnrollmentLocalUserAndLogin([FromBody] LocalUserRequest userRequest)
         {
             return await _userService.LocalUserEnrollment(userRequest);

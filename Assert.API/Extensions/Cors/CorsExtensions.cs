@@ -17,25 +17,23 @@ public static class CorsExtensions
                 }
                 else
                 {
-                    builder.WithOrigins(allowedOrigins)
+                    // Asegúrate que los orígenes no sean null
+                    var origins = allowedOrigins ?? Array.Empty<string>();
+                    builder.WithOrigins(origins)
                            .AllowAnyHeader()
-                           .AllowAnyMethod();
+                           .AllowAnyMethod()
+                           .SetIsOriginAllowedToAllowWildcardSubdomains();
                 }
-            });
-            options.AddPolicy("DefaultPolicy", builder =>
-            {
-                builder.DisallowCredentials()
-                       .WithMethods("GET", "POST", "PUT", "DELETE")
-                       .AllowAnyHeader();
-                //.SetIsOriginAllowed(origin => false);
+
+                // Si necesitas credenciales (cookies, tokens)
+                // .AllowCredentials();
             });
         });
 
-        services.AddScoped(provider =>
+        if (configuration.GetValue<bool>("EnableOriginFilter", false))
         {
-            var logger = provider.GetRequiredService<ILogger<RestrictAllowOriginFilter>>();
-            return new RestrictAllowOriginFilter(allowedOrigins, logger);
-        });
+            services.AddScoped<RestrictAllowOriginFilter>();
+        }
 
         return services;
     }

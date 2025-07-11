@@ -55,7 +55,7 @@ namespace Assert.Application.Mappings
 
 
             CreateMap<ErrorCommon, ErrorCommonDTO>();
-
+            CreateMap<TpSecurityItemType, SecurityItemDTO>();
             CreateMap<TDiscountTypeForTypePrice, DiscountDTO>()
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.Code))
                 .ForMember(dest => dest.PorcentageSuggest, opt => opt.MapFrom(src => src.PorcentageSuggest))
