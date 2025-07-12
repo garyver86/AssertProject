@@ -8,7 +8,6 @@ using Assert.Domain.Models.Review;
 using Assert.Domain.ValueObjects;
 using Assert.Infrastructure.Utils;
 using AutoMapper;
-using AutoMapper.QueryableExtensions;
 
 namespace Assert.Application.Mappings
 
@@ -41,7 +40,7 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.HasError, opt => opt.MapFrom(_ => false));
 
             CreateMap<CommonReview, CommonReviewDTO>();
-            CreateMap<Profile, ProfileDTO>();
+            CreateMap<Domain.Models.Profile.Profile, ProfileDTO>();
             CreateMap<TuUser, AdditionalProfileDataDTO>()
             .ForMember(dest => dest.AdditionalProfileDataId,
                 opt => opt.MapFrom(src => src.TuAdditionalProfiles.First().AdditionalProfileId))

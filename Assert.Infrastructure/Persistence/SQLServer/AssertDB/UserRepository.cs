@@ -425,93 +425,134 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         #region profile & reviews
         public async Task<Profile> GetAllProfile()
         {
-            var userWithData = await _dbContext.TuUsers
-                .AsNoTracking()
-                .Where(u => u.UserId == _metadata.UserId)
-                .Select(u => new
+            try
+            {
+                var emptyUserReviews = new List<TuUserReview>();
+                var emptyListingReviews = new List<TlListingReview>();
+
+                var userWithData = await _dbContext.TuUsers
+                    .AsNoTracking()
+                    .Where(u => u.UserId == _metadata.UserId)
+                    .Select(u => new
+                    {
+                        User = u,
+                        Roles = u.TuUserRoles != null ?
+                            u.TuUserRoles.Select(ur => ur.UserType != null ? ur.UserType.Name : null)
+                                        .Where(name => name != null)
+                                        .ToList() :
+                            new List<string>(),
+
+                        GuestBooksCount = u.TbBooks != null ?
+                            u.TbBooks.Count(b => b.UserIdRenter == u.UserId &&
+                                               b.BookStatus != null &&
+                                               (b.BookStatus.Code == "approved" || b.BookStatus.Code == "completed")) :
+                            0,
+
+                        HostRentalCount = u.TlListingRents != null ?
+                            u.TlListingRents
+                                .Where(l => l.TbBooks != null)
+                                .SelectMany(l => l.TbBooks)
+                                .Count(b => b.BookStatus != null &&
+                                          (b.BookStatus.Code == "approved" || b.BookStatus.Code == "completed")) :
+                            0,
+
+                        HostReviewCalification = u.TlListingRents != null ?
+                            (double?)u.TlListingRents
+                                .Where(l => l.TlListingReviews != null)
+                                .SelectMany(l => l.TlListingReviews)
+                                .Where(r => r.Calification != null)
+                                .Average(r => r.Calification) ?? 0 :
+                            0,
+
+                        GuestReviewCalification = u.TuUserReviewUsers != null ?
+                            (double?)u.TuUserReviewUsers
+                                .Where(r => r.Calification != null)
+                                .Average(r => r.Calification) ?? 0 :
+                            0,
+
+                        GuestReviews = u.TuUserReviewUsers != null ?
+                            u.TuUserReviewUsers
+                                .Where(r => r != null)
+                                .OrderByDescending(r => r.DateTimeReview)
+                                .Take(2)
+                                .ToList() :
+                            emptyUserReviews,
+
+                        HostReviews = u.TlListingRents != null ?
+                            u.TlListingRents
+                                .Where(l => l.TlListingReviews != null)
+                                .SelectMany(l => l.TlListingReviews)
+                                .Where(r => r != null)
+                                .OrderByDescending(r => r.DateTimeReview)
+                                .Take(2)
+                                .ToList() :
+                            emptyListingReviews
+                    })
+                    .FirstOrDefaultAsync();
+
+                if (userWithData is null)
                 {
-                    User = u,
-                    Roles = u.TuUserRoles.Select(ur => ur.UserType.Name).ToList(),
-                    GuestBooksCount = u.TbBooks
-                        .Count(b => b.UserIdRenter == _metadata.UserId 
-                        && (b.BookStatus.Code == "approved" || b.BookStatus.Code == "completed")),
-                    HostRentalCount = u.TlListingRents
-                        .SelectMany(l => l.TbBooks) 
-                        .Count(b => b.BookStatus.Code == "approved" || b.BookStatus.Code == "completed"),
-                    HostReviewCalification = u.TlListingRents
-                        .SelectMany(b => b.TlListingReviews)  
-                        .Where(r => r.Calification != null)   
-                        .Average(r => (double)r.Calification!),
-                    GuestReviewCalification = u.TuUserReviewUsers
-                        .Where(r => r.Calification != null)
-                        .Average(r => (double)r.Calification!),
-                    GuestReviews = u.TuUserReviewUsers
-                        .OrderByDescending(r => r.DateTimeReview)
-                        .Take(2),
-                    HostReviews = u.TlListingRents
-                        .SelectMany(l => l.TlListingReviews)
-                        .OrderByDescending(r => r.DateTimeReview)
-                        .Take(2)
+                    _logger.LogError($"There is not user with ID: {_metadata.User} and name: {_metadata.User}");
+                    throw new NotFoundException($"No existe usuario con ID: {_metadata.UserId}");
+                }
 
-                }).FirstOrDefaultAsync();
+                var profile = new Profile
+                {
+                    UserId = userWithData.User.UserId,
+                    Name = userWithData.User.Name ?? string.Empty,
+                    LastName = userWithData.User.LastName ?? string.Empty,
+                    FavoriteName = userWithData.User.FavoriteName ?? string.Empty,
+                    Roles = userWithData.Roles ?? new List<string>(),
+                    GuestHostingsTotal = userWithData.GuestBooksCount,
+                    HostHostingsTotal = userWithData.HostRentalCount,
+                    HostReviewCalification = userWithData.HostReviewCalification,
+                    GuestReviewCalification = userWithData.GuestReviewCalification,
+                    YearsInAssert = (DateTime.UtcNow - userWithData.User.RegisterDate).Value.Days / 365,
+                    TimeInAssert = FormatTimeInCompany(userWithData.User.RegisterDate),
+                    Avatar = userWithData.User.PhotoLink ?? string.Empty,
+                    CountReviewsGuest = userWithData.User.TuUserReviewUsers.Count(),
+                    CountReviewsHost = userWithData.User.TlListingRents.SelectMany(l => l.TlListingReviews).Count(),
+                    GuestReviews = userWithData.GuestReviews
+                        .Select(r => new CommonReview
+                        {
+                            ReviewId = r.UserReviewId,
+                            ListingRentId = r.ListingRentId ?? 0,
+                            BookId = r.BookId ?? 0,
+                            UserIdReviewer = r.UserIdReviewer,
+                            DateTimeReview = r.DateTimeReview ?? DateTime.Now,
+                            ReviewerName = FormatReviewerName(r.UserIdReviewerNavigation),
+                            ReviewerLocation = string.Empty,
+                            ReviewDateName = r.DateTimeReview?.ToString("dd/MM/yyyy") ?? string.Empty,
+                            StayDuration = (r.Book?.EndDate - r.Book?.StartDate)?.Days ?? 0,
+                            Rating = r.Calification,
+                            ReviewText = r.Comment ?? string.Empty,
+                            Avatar = r.UserIdReviewerNavigation.PhotoLink ?? string.Empty
+                        }).ToList(),
+                    HostReviews = userWithData.HostReviews
+                        .Select(r => new CommonReview
+                        {
+                            ReviewId = r.ListingReviewId,
+                            ListingRentId = r.ListingReviewId,
+                            BookId = r.BookId ?? 0,
+                            UserIdReviewer = _metadata.UserId,
+                            DateTimeReview = r.DateTimeReview ?? DateTime.Now,
+                            ReviewerName = FormatReviewerName(r.User),
+                            ReviewerLocation = string.Empty,
+                            ReviewDateName = r.DateTimeReview?.ToString("dd/MM/yyyy") ?? string.Empty,
+                            StayDuration = (r.Book?.EndDate - r.Book?.StartDate)?.Days ?? 0,
+                            Rating = r.Calification,
+                            ReviewText = r.Comment ?? string.Empty,
+                            Avatar = r.User.PhotoLink ?? string.Empty
+                        }).ToList(),
+                };
 
-            if (userWithData is null)
-            {
-                _logger.LogError($"There is not user with ID: {_metadata.User} and name: {_metadata.User}");
-                throw new NotFoundException($"No existe usuario con ID: {_metadata.UserId}");
+                return profile;
             }
-
-            var profile = new Profile
+            catch(Exception ex)
             {
-                UserId = userWithData.User.UserId,
-                Name = userWithData.User.Name ?? string.Empty,
-                LastName = userWithData.User.LastName ?? string.Empty,
-                FavoriteName = userWithData.User.FavoriteName ?? string.Empty,
-                Roles = userWithData.Roles ?? new List<string>(),
-                GuestHostingsTotal = userWithData.GuestBooksCount,
-                HostHostingsTotal = userWithData.HostRentalCount,
-                HostReviewCalification = userWithData.HostReviewCalification,
-                GuestReviewCalification = userWithData.GuestReviewCalification,
-                YearsInAssert = (DateTime.UtcNow - userWithData.User.RegisterDate).Value.Days / 365,
-                TimeInAssert = FormatTimeInCompany(userWithData.User.RegisterDate),
-                Avatar = userWithData.User.PhotoLink ?? string.Empty,
-                CountReviewsGuest = userWithData.User.TuUserReviewUsers.Count(),
-                CountReviewsHost = userWithData.User.TlListingRents.SelectMany(l => l.TlListingReviews).Count(),
-                GuestReviews = userWithData.GuestReviews
-                    .Select(r => new CommonReview
-                    {
-                        ReviewId = r.UserReviewId,
-                        ListingRentId = r.ListingRentId ?? 0,
-                        BookId = r.BookId ?? 0,
-                        UserIdReviewer = r.UserIdReviewer,
-                        DateTimeReview = r.DateTimeReview ?? DateTime.Now,
-                        ReviewerName = FormatReviewerName(r.UserIdReviewerNavigation),
-                        ReviewerLocation = string.Empty,
-                        ReviewDateName = r.DateTimeReview?.ToString("dd/MM/yyyy") ?? string.Empty,
-                        StayDuration = (r.Book?.EndDate - r.Book?.StartDate)?.Days ?? 0,
-                        Rating = r.Calification,
-                        ReviewText = r.Comment ?? string.Empty,
-                        Avatar = r.UserIdReviewerNavigation.PhotoLink ?? string.Empty
-                    }).ToList(),
-                HostReviews = userWithData.HostReviews
-                    .Select(r => new CommonReview
-                    {
-                        ReviewId = r.ListingReviewId,
-                        ListingRentId = r.ListingReviewId,
-                        BookId = r.BookId ?? 0,
-                        UserIdReviewer = _metadata.UserId,
-                        DateTimeReview = r.DateTimeReview ?? DateTime.Now,
-                        ReviewerName = FormatReviewerName(r.User),
-                        ReviewerLocation = string.Empty,
-                        ReviewDateName = r.DateTimeReview?.ToString("dd/MM/yyyy") ?? string.Empty,
-                        StayDuration = (r.Book?.EndDate - r.Book?.StartDate)?.Days ?? 0,
-                        Rating = r.Calification,
-                        ReviewText = r.Comment ?? string.Empty,
-                        Avatar = r.User.PhotoLink ?? string.Empty
-                    }).ToList(),
-            };
-
-            return profile;
+                _logger.LogError(ex, $"Exception when get all profile from user login: {_metadata.User}");
+                throw new InfrastructureException(ex.Message);
+            }
         }
 
         public async Task<TuUser> GetAdditionalProfile()
