@@ -95,6 +95,7 @@ namespace Assert.Domain.Implementation
                             UserId = userId,
                             ListingRent = x
                         }).ToList(),
+                        UserId = history.Item2.TotalItemCount
                     };
                     resultList.Add(historyGroup);
                 }
