@@ -23,7 +23,9 @@ namespace Assert.Application.Services
         IImageService _imageService,
         IMapper _mapper,
         IErrorHandler _errorHandler,
-        IExceptionLoggerService _exceptionLoggerService)
+        IExceptionLoggerService _exceptionLoggerService,
+        ISystemConfigurationRepository _systemConfigurationRepository,
+        IHttpContextAccessor requestContext)
         : IAppListingRentService
     {
         private bool UseTechnicalMessages { get; set; } = false;
@@ -60,6 +62,21 @@ namespace Assert.Application.Services
             try
             {
                 List<TlListingRent> listings = await _listingRentRepository.GetAll(ownerUserId);
+                if (listings?.Count > 0)
+                {
+                    string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+                    _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+                    foreach (var list in listings)
+                    {
+                        if (list?.TlListingPhotos?.Count > 0)
+                        {
+                            foreach (var item in list.TlListingPhotos)
+                            {
+                                item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                            }
+                        }
+                    }
+                }
                 listings = listings.OrderByDescending(x => x.ListingRentId).ToList();
                 result = new ReturnModelDTO<List<ListingRentDTO>>
                 {
@@ -102,6 +119,15 @@ namespace Assert.Application.Services
                 }
                 else if (!onlyActive || (onlyActive && listings.ListingStatusId == 3))
                 {
+                    if (listings?.TlListingPhotos?.Count > 0)
+                    {
+                        string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+                        _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+                        foreach (var item in listings.TlListingPhotos)
+                        {
+                            item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                        }
+                    }
                     ListingRentDTO listingRentReult = _mapper.Map<ListingRentDTO>(listings);
                     if (listings.OwnerUser?.RegisterDate != null)
                     {
@@ -154,6 +180,17 @@ namespace Assert.Application.Services
 
                 if (changeResult.StatusCode == ResultStatusCode.OK)
                 {
+                    if (changeResult.Data?.ListingData?.ListingPhotos?.Count > 0)
+                    {
+                        string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+                        _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+                        foreach (var item in changeResult.Data.ListingData.ListingPhotos)
+                        {
+                            item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                        }
+
+                    }
+
                     result = _mapper.Map<ReturnModelDTO<ProcessDataResult>>(changeResult);
                 }
                 else
@@ -207,6 +244,22 @@ namespace Assert.Application.Services
             {
                 (List<TlListingRent> listings, PaginationMetadata paginaton) = await _listingRentRepository.GetFeatureds(pageNumber, pageSize, countryId);
 
+                if (listings?.Count > 0)
+                {
+                    string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+                    _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+                    foreach (var list in listings)
+                    {
+                        if (list?.TlListingPhotos?.Count > 0)
+                        {
+                            foreach (var item in list.TlListingPhotos)
+                            {
+                                item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                            }
+                        }
+                    }
+                }
+
                 result = new ReturnModelDTO<List<ListingRentDTO>>
                 {
                     Data = _mapper.Map<List<ListingRentDTO>>(listings),
@@ -234,6 +287,21 @@ namespace Assert.Application.Services
             try
             {
                 List<TlListingRent> listings = await _listingRentRepository.GetAll(_userID);
+                if (listings?.Count > 0)
+                {
+                    string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+                    _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+                    foreach (var list in listings)
+                    {
+                        if (list?.TlListingPhotos?.Count > 0)
+                        {
+                            foreach (var item in list.TlListingPhotos)
+                            {
+                                item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                            }
+                        }
+                    }
+                }
                 result = new ReturnModelDTO<List<ListingRentDTO>>
                 {
                     Data = _mapper.Map<List<ListingRentDTO>>(listings),
@@ -262,12 +330,12 @@ namespace Assert.Application.Services
             {
                 List<TlListingPhoto> listings = await _listingPhotoRepository.GetByListingRentId(listinRentId, _userID);
 
-                //string _basePath = await _SystemConfigurationRepository.GetListingResourceUrl();
-
-                //foreach (var item in listings)
-                //{
-                //    item.PhotoLink = _basePath + item.Name;
-                //}
+                string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+                _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+                foreach (var item in listings)
+                {
+                    item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                }
 
                 result = new ReturnModelDTO<List<PhotoDTO>>
                 {

@@ -610,9 +610,9 @@ namespace Assert.Domain.Implementation
 
         private async Task<ReturnModel> SetServices(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
         {
-            await _listingAmenitiesRepository.SetListingAmmenities(listing.ListingRentId, request_.Amenities, clientData, useTechnicalMessages);
+            await _listingAmenitiesRepository.SetListingAmmenities(listing.ListingRentId, request_.FeaturedAmenities, clientData, useTechnicalMessages);
             await _listingFeaturedAspectRepository.SetListingFeaturesAspects(listing.ListingRentId, request_.FeaturedAspects);
-            await _listingSecurityItemsRepository.SetListingSecurityItems(listing.ListingRentId, request_.Amenities);
+            await _listingSecurityItemsRepository.SetListingSecurityItems(listing.ListingRentId, request_.SecurityItems);
             return new ReturnModel
             {
                 HasError = false,

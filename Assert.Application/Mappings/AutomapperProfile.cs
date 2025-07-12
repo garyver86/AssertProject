@@ -170,6 +170,7 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.SecurityItemType != null ? src.SecurityItemType.Code : null))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.SecurityItemType != null ? src.SecurityItemType.Name : null))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.SecurityItemType != null ? src.SecurityItemType.Description : null))
+                .ForMember(dest => dest.SecurityItemTypeId, opt => opt.MapFrom(src => src.SecurityItemTypeId))
                 .ForMember(dest => dest.IconLink, opt => opt.MapFrom(src => src.SecurityItemType != null ? src.SecurityItemType.IconLink : null));
             CreateMap<TlListingSpace, SpaceDTO>()
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.SpaceType != null ? src.SpaceType.Code : null))

@@ -3,6 +3,7 @@ using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
 
 namespace Assert.Infrastructure.InternalServices
 {
@@ -16,14 +17,16 @@ namespace Assert.Infrastructure.InternalServices
         private readonly IListingRentService _listingRentService;
         private readonly IListingPhotoRepository _listingPhotoRepository;
         private readonly IErrorHandler _errorHandler;
+        private readonly IHostEnvironment _hostEnvironment;
 
         public ImageService(ISystemConfigurationRepository systemConfigurationRepository, IErrorHandler errorHandler, IListingRentService listingRentService,
-            IListingPhotoRepository listingPhotoRepository)
+            IListingPhotoRepository listingPhotoRepository, IHostEnvironment hostEnvironment)
         {
             _SystemConfigurationRepository = systemConfigurationRepository;
             _errorHandler = errorHandler;
             _listingRentService = listingRentService;
             _listingPhotoRepository = listingPhotoRepository;
+            _hostEnvironment = hostEnvironment;
         }
 
         private void EnsureDirectoryExists(string _basePath)
@@ -39,12 +42,15 @@ namespace Assert.Infrastructure.InternalServices
             List<ReturnModel> savedFiles = new List<ReturnModel>();
 
             string _basePath = await _SystemConfigurationRepository.GetListingResourcePath();
-            EnsureDirectoryExists(_basePath);
+
+            var uploadsFolder = Path.Combine(_hostEnvironment.ContentRootPath, _basePath);
+
+            EnsureDirectoryExists(uploadsFolder);
             foreach (var imageFile in imageFiles)
             {
                 try
                 {
-                    var fileName = await SaveSingleImageAsync(imageFile, useTechnicalMessages, _basePath);
+                    var fileName = await SaveSingleImageAsync(imageFile, useTechnicalMessages, uploadsFolder);
                     savedFiles.Add(fileName);
                 }
                 catch (Exception ex)
@@ -61,7 +67,7 @@ namespace Assert.Infrastructure.InternalServices
             return savedFiles;
         }
 
-        private async Task<ReturnModel> SaveSingleImageAsync(IFormFile imageFile, bool useTechnicalMessages, string _basePath)
+        private async Task<ReturnModel> SaveSingleImageAsync(IFormFile imageFile, bool useTechnicalMessages, string uploadFolder)
         {
             if (imageFile == null || imageFile.Length == 0)
             {
@@ -97,7 +103,7 @@ namespace Assert.Infrastructure.InternalServices
             }
 
             var fileName = $"{Guid.NewGuid()}{fileExtension}";
-            var filePath = Path.Combine(_basePath, fileName);
+            var filePath = Path.Combine(uploadFolder, fileName);
 
             await using var fileStream = new FileStream(
                 filePath,
@@ -123,8 +129,13 @@ namespace Assert.Infrastructure.InternalServices
             {
                 return;
             }
+
+            // Obtener el directorio base del proyecto (ContentRootPath)
+            var contentRootPath = _hostEnvironment.ContentRootPath;
             string _basePath = await _SystemConfigurationRepository.GetListingResourcePath();
-            var imagePath = Path.Combine(_basePath, imageName);
+            // Ruta donde se almacenan las imágenes (ej: /uploads)
+            var uploadsFolder = Path.Combine(contentRootPath, _basePath);
+            var imagePath = Path.Combine(uploadsFolder, imageName);
             int attempt = 0;
 
             while (attempt < 3)
@@ -140,7 +151,7 @@ namespace Assert.Infrastructure.InternalServices
 
                     if (attempt < 3)
                     {
-                        Thread.Sleep(1000);
+                        await Task.Delay(1000);
                     }
                 }
                 catch (Exception ex)
@@ -207,6 +218,7 @@ namespace Assert.Infrastructure.InternalServices
                     if (ifExist)
                     {
                         var fileResult = await _listingPhotoRepository.UploadPhoto(listingRentId, imageFile.FileName, imageFile.Description, imageFile.SpaceTypeId, imageFile.IsMain);
+                        Thread.Sleep(500);
                         savedFiles.Add(fileResult);
                     }
                     else

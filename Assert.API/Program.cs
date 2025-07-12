@@ -63,6 +63,13 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/resources/icons" 
 });
 
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.WebRootPath, "Assert", "Resources", "Listings")),
+    RequestPath = "/Resources/Listings"
+});
+
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {

@@ -78,6 +78,43 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 _listingViewHistoryRepository.ToggleFromHistory(id, true, guestid);
             }
+
+
+            listing.TpProperties.FirstOrDefault().TpPropertyAddresses = new List<TpPropertyAddress>
+            {
+                new TpPropertyAddress
+                {
+                    Address1 = listing.TpProperties.FirstOrDefault().Address1,
+                    Address2 = listing.TpProperties.FirstOrDefault().Address2,
+                    CityId = listing.TpProperties.FirstOrDefault().CityId,
+                    CountyId = listing.TpProperties.FirstOrDefault().CountyId,
+                    ZipCode = listing.TpProperties.FirstOrDefault().ZipCode,
+                    StateId = listing.TpProperties.FirstOrDefault().StateId,
+                    City = new TCity
+                    {
+                        CityId = listing.TpProperties.FirstOrDefault().CityId??0,
+                        Name = listing.TpProperties.FirstOrDefault().CityName,
+                        CountyId = listing.TpProperties.FirstOrDefault().CountyId??0,
+                        County = new TCounty
+                        {
+                            CountyId = listing.TpProperties.FirstOrDefault().CountyId ?? 0,
+                            Name = listing.TpProperties.FirstOrDefault().CountyName,
+                            StateId = listing.TpProperties.FirstOrDefault().StateId??0,
+                            State = new TState
+                            {
+                                Name = listing.TpProperties.FirstOrDefault().StateName,
+                                StateId = listing.TpProperties.FirstOrDefault().StateId ?? 0,
+                                Country = new TCountry
+                                {
+                                    Name = listing.TpProperties.FirstOrDefault().CountryName,
+                                    CountryId = listing.TpProperties.FirstOrDefault().CountryId ?? 0
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
             return listing;
         }
 
@@ -286,8 +323,86 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task<List<TlListingRent>> GetAll(int ownerID)
         {
-            var result = _context.TlListingRents.Where(x => x.OwnerUserId == ownerID && x.ListingStatusId != 5).ToList();
-            return await Task.FromResult(result);
+            //var result = _context.TlListingRents.Where(x => x.OwnerUserId == ownerID && x.ListingStatusId != 5).ToList();
+            //return await Task.FromResult(result);
+            var query = _context.TlListingRents
+                .Include(x => x.ListingStatus)
+                .Include(x => x.AccomodationType)
+                .Include(x => x.OwnerUser)
+                //.Include(x => x.TpProperties)
+                //    .ThenInclude(y => y.TpPropertyAddresses)
+                //    .ThenInclude(y => y.City)
+                //    .ThenInclude(y => y.County)
+                //    .ThenInclude(y => y.State)
+                //    .ThenInclude(y => y.Country)
+                //.Include(x => x.TpProperties)
+                //    .ThenInclude(y => y.TpPropertyAddresses)
+                //    .ThenInclude(y => y.County)
+                //    .ThenInclude(y => y.State)
+                //    .ThenInclude(y => y.Country)
+                //.Include(x => x.TpProperties)
+                //    .ThenInclude(y => y.TpPropertyAddresses)
+                //    .ThenInclude(y => y.State)
+                //    .ThenInclude(y => y.Country)
+                .Include(x => x.TpProperties)
+                    .ThenInclude(y => y.PropertySubtype)
+                        .ThenInclude(y => y.PropertyType)
+                .Include(x => x.TlListingPhotos)
+                .Include(x => x.TlListingPrices)
+                .Include(x => x.TlListingSpecialDatePrices)
+                .Include(x => x.TlListingReviews)
+                .AsNoTracking()
+                .Where(x => x.ListingStatusId != 5 && x.OwnerUserId == ownerID)
+                .OrderByDescending(x => x.TlListingReviews.Average(y => y.Calification));
+
+            var result = await query
+                //.Skip(skipAmount)
+                //.Take(pageSize)
+                .ToListAsync();
+            if (result != null)
+            {
+                foreach (var listing in result)
+                {
+                    foreach (var prop in listing.TpProperties)
+                    {
+                        prop.TpPropertyAddresses = new List<TpPropertyAddress>
+                        {
+                            new TpPropertyAddress
+                            {
+                                Address1 = prop.Address1,
+                                Address2 = prop.Address2,
+                                CityId = prop.CityId,
+                                CountyId = prop.CountyId,
+                                ZipCode = prop.ZipCode,
+                                StateId = prop.StateId,
+                                City = new TCity
+                                {
+                                    CityId = prop.CityId??0,
+                                    Name = prop.CityName,
+                                    CountyId = prop.CountyId??0,
+                                    County = new TCounty
+                                    {
+                                        CountyId = prop.CountyId ?? 0,
+                                        Name = prop.CountyName,
+                                        StateId = prop.StateId??0,
+                                        State = new TState
+                                        {
+                                            Name = prop.StateName,
+                                            StateId = prop.StateId ?? 0,
+                                            Country = new TCountry
+                                            {
+                                                Name = prop.CountryName,
+                                                CountryId = prop.CountryId ?? 0
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        };
+                    }
+                }
+            }
+            return result;
         }
 
         public async Task<(List<TlListingRent>, PaginationMetadata)> GetFeatureds(int pageNumber = 1, int pageSize = 10, int? countryId = null)
@@ -298,7 +413,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .Include(x => x.ListingStatus)
                 .Include(x => x.AccomodationType)
                 .Include(x => x.OwnerUser)
-                .Include(x => x.TpProperties)
+                //.Include(x => x.TpProperties)
                 //    .ThenInclude(y => y.TpPropertyAddresses)
                 //    .ThenInclude(y => y.City)
                 //    .ThenInclude(y => y.County)
