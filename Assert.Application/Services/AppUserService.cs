@@ -445,8 +445,6 @@ public class AppUserService(
             Data = response
         };
     }
-
-
     #endregion
 
     #region private funcs
