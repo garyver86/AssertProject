@@ -427,66 +427,38 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         {
             try
             {
-                var emptyUserReviews = new List<TuUserReview>();
-                var emptyListingReviews = new List<TlListingReview>();
-
                 var userWithData = await _dbContext.TuUsers
                     .AsNoTracking()
                     .Where(u => u.UserId == _metadata.UserId)
                     .Select(u => new
                     {
                         User = u,
-                        Roles = u.TuUserRoles != null ?
-                            u.TuUserRoles.Select(ur => ur.UserType != null ? ur.UserType.Name : null)
-                                        .Where(name => name != null)
-                                        .ToList() :
-                            new List<string>(),
+                        Roles = u.TuUserRoles
+                            .Select(ur => ur.UserType != null ? ur.UserType.Name : null)
+                            .Where(name => name != null)
+                            .ToList(),
 
-                        GuestBooksCount = u.TbBooks != null ?
-                            u.TbBooks.Count(b => b.UserIdRenter == u.UserId &&
-                                               b.BookStatus != null &&
-                                               (b.BookStatus.Code == "approved" || b.BookStatus.Code == "completed")) :
-                            0,
+                        GuestBooksCount = u.TbBooks
+                            .Count(b => b.UserIdRenter == u.UserId &&
+                                      b.BookStatus != null &&
+                                      (b.BookStatus.Code == "approved" || b.BookStatus.Code == "completed")),
 
-                        HostRentalCount = u.TlListingRents != null ?
-                            u.TlListingRents
-                                .Where(l => l.TbBooks != null)
-                                .SelectMany(l => l.TbBooks)
-                                .Count(b => b.BookStatus != null &&
-                                          (b.BookStatus.Code == "approved" || b.BookStatus.Code == "completed")) :
-                            0,
+                        HostRentalCount = u.TlListingRents
+                            .SelectMany(l => l.TbBooks)
+                            .Count(b => b.BookStatus != null &&
+                                      (b.BookStatus.Code == "approved" || b.BookStatus.Code == "completed")),
 
-                        HostReviewCalification = u.TlListingRents != null ?
-                            (double?)u.TlListingRents
-                                .Where(l => l.TlListingReviews != null)
-                                .SelectMany(l => l.TlListingReviews)
-                                .Where(r => r.Calification != null)
-                                .Average(r => r.Calification) ?? 0 :
-                            0,
+                        HostReviewCalification = u.TlListingRents
+                            .SelectMany(l => l.TlListingReviews)
+                            .Where(r => r.Calification != null)
+                            .Average(r => (double?)r.Calification) ?? 0,
 
-                        GuestReviewCalification = u.TuUserReviewUsers != null ?
-                            (double?)u.TuUserReviewUsers
-                                .Where(r => r.Calification != null)
-                                .Average(r => r.Calification) ?? 0 :
-                            0,
+                        GuestReviewCalification = u.TuUserReviewUsers
+                            .Where(r => r.Calification != null)
+                            .Average(r => (double?)r.Calification) ?? 0,
 
-                        GuestReviews = u.TuUserReviewUsers != null ?
-                            u.TuUserReviewUsers
-                                .Where(r => r != null)
-                                .OrderByDescending(r => r.DateTimeReview)
-                                .Take(2)
-                                .ToList() :
-                            emptyUserReviews,
-
-                        HostReviews = u.TlListingRents != null ?
-                            u.TlListingRents
-                                .Where(l => l.TlListingReviews != null)
-                                .SelectMany(l => l.TlListingReviews)
-                                .Where(r => r != null)
-                                .OrderByDescending(r => r.DateTimeReview)
-                                .Take(2)
-                                .ToList() :
-                            emptyListingReviews
+                        HasGuestReviews = u.TuUserReviewUsers.Any(),
+                        HasHostReviews = u.TlListingRents.Any(l => l.TlListingReviews.Any())
                     })
                     .FirstOrDefaultAsync();
 
@@ -495,6 +467,20 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     _logger.LogError($"There is not user with ID: {_metadata.User} and name: {_metadata.User}");
                     throw new NotFoundException($"No existe usuario con ID: {_metadata.UserId}");
                 }
+
+                var guestReviews = userWithData.HasGuestReviews ?
+                    await _dbContext.TuUserReviews
+                        .Where(r => r.UserId == _metadata.UserId) 
+                        .OrderByDescending(r => r.DateTimeReview)
+                        .Take(2)
+                        .ToListAsync() : new List<TuUserReview>();
+
+                var hostReviews = userWithData.HasHostReviews ?
+                    await _dbContext.TlListingReviews
+                        .Where(r => r.ListingRent.OwnerUserId == _metadata.UserId) 
+                        .OrderByDescending(r => r.DateTimeReview)
+                        .Take(2)
+                        .ToListAsync() : new List<TlListingReview>();
 
                 var profile = new Profile
                 {
@@ -512,7 +498,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     Avatar = userWithData.User.PhotoLink ?? string.Empty,
                     CountReviewsGuest = userWithData.User.TuUserReviewUsers.Count(),
                     CountReviewsHost = userWithData.User.TlListingRents.SelectMany(l => l.TlListingReviews).Count(),
-                    GuestReviews = userWithData.GuestReviews
+                    GuestReviews = guestReviews
                         .Select(r => new CommonReview
                         {
                             ReviewId = r.UserReviewId,
@@ -528,21 +514,21 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                             ReviewText = r.Comment ?? string.Empty,
                             Avatar = r.UserIdReviewerNavigation.PhotoLink ?? string.Empty
                         }).ToList(),
-                    HostReviews = userWithData.HostReviews
+                    HostReviews = hostReviews
                         .Select(r => new CommonReview
                         {
                             ReviewId = r.ListingReviewId,
                             ListingRentId = r.ListingReviewId,
-                            BookId = r.BookId ?? 0,
+                            BookId = r.BookId ?? null,
                             UserIdReviewer = _metadata.UserId,
                             DateTimeReview = r.DateTimeReview ?? DateTime.Now,
                             ReviewerName = FormatReviewerName(r.User),
                             ReviewerLocation = string.Empty,
                             ReviewDateName = r.DateTimeReview?.ToString("dd/MM/yyyy") ?? string.Empty,
-                            StayDuration = (r.Book?.EndDate - r.Book?.StartDate)?.Days ?? 0,
+                            StayDuration = r.BookId is null ? 0 : (r.Book?.EndDate - r.Book?.StartDate)?.Days ?? 0,
                             Rating = r.Calification,
                             ReviewText = r.Comment ?? string.Empty,
-                            Avatar = r.User.PhotoLink ?? string.Empty
+                            Avatar = r.User?.PhotoLink ?? string.Empty
                         }).ToList(),
                 };
 
@@ -572,8 +558,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         #endregion
 
         #region private funcs
-        private string FormatReviewerName(TuUser user)
-            => $"{user.Name} {user.LastName}".Trim();
+        private string FormatReviewerName(TuUser? user)
+            => user is null ? "" : $"{user.Name} {user.LastName}".Trim();
 
         private string FormatReviewDate(DateTime? date)
             => date?.ToString("dd/MM/yyyy") ?? string.Empty;

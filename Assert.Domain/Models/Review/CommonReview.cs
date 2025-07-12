@@ -4,7 +4,7 @@ public class CommonReview
 {
     public long ReviewId { get; set; }
     public long ListingRentId { get; set; }
-    public long BookId { get; set; }
+    public long? BookId { get; set; }
     public int UserIdReviewer { get; set; }
     public DateTime DateTimeReview { get; set; }
 
