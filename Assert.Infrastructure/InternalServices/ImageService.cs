@@ -218,7 +218,6 @@ namespace Assert.Infrastructure.InternalServices
                     if (ifExist)
                     {
                         var fileResult = await _listingPhotoRepository.UploadPhoto(listingRentId, imageFile.FileName, imageFile.Description, imageFile.SpaceTypeId, imageFile.IsMain);
-                        Thread.Sleep(500);
                         savedFiles.Add(fileResult);
                     }
                     else
