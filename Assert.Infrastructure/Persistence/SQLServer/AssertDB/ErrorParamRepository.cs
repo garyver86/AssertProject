@@ -1,31 +1,45 @@
 ﻿using Assert.Domain.Entities;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
     public class ErrorParamRepository : ITErrorParamRepository
     {
         private readonly InfraAssertDbContext _context;
-        public ErrorParamRepository(InfraAssertDbContext infraAssertDbContext)
+        private readonly DbContextOptions<InfraAssertDbContext> dbOptions;
+        public ErrorParamRepository(InfraAssertDbContext infraAssertDbContext,
+            IServiceProvider serviceProvider)
         {
             _context = infraAssertDbContext;
+            dbOptions = serviceProvider.GetRequiredService<DbContextOptions<InfraAssertDbContext>>();
         }
 
         public TErrorParam GetErrorByCode(string code)
         {
-            return _context.TErrorParams.FirstOrDefault(x => x.Code == code);
+            using (var dbContedt = new InfraAssertDbContext(dbOptions))
+            {
+                return dbContedt.TErrorParams.FirstOrDefault(x => x.Code == code);
+            }
         }
 
         public TErrorParam GetDefaultError()
         {
-            return _context.TErrorParams.FirstOrDefault(x => x.Code == ConstantsHelp.DEFAULT);
+            using (var dbContedt = new InfraAssertDbContext(dbOptions))
+            {
+                return dbContedt.TErrorParams.FirstOrDefault(x => x.Code == ConstantsHelp.DEFAULT);
+            }
         }
 
         public void LogException(TExceptionLog exceptionLog)
         {
-            _context.TExceptionLogs.Add(exceptionLog);
-            _context.SaveChanges();
+            using (var dbContedt = new InfraAssertDbContext(dbOptions))
+            {
+                dbContedt.TExceptionLogs.Add(exceptionLog);
+                dbContedt.SaveChanges();
+            }
         }
     }
 }

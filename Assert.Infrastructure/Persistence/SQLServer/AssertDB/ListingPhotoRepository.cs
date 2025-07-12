@@ -23,20 +23,23 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task<ReturnModel> DeleteListingRentImage(long listingRentId, int photoId)
         {
-            var result = await _context.TlListingPhotos.Where(x => x.ListingPhotoId == photoId).FirstOrDefaultAsync();
-            if (result == null)
+            using (var dbContedt = new InfraAssertDbContext(dbOptions))
             {
-                throw new InvalidOperationException($"la imagen no puede ser encontrada.");
-            }
-            else if (result.ListingRentId != listingRentId)
-            {
-                throw new InvalidOperationException($"la imagen no corresponde al listing rent.");
-            }
-            else
-            {
-                _context.TlListingPhotos.Remove(result);
-                await _context.SaveChangesAsync();
-                return new ReturnModel { StatusCode = ResultStatusCode.OK, HasError = false };
+                var result = await dbContedt.TlListingPhotos.Where(x => x.ListingPhotoId == photoId).FirstOrDefaultAsync();
+                if (result == null)
+                {
+                    throw new InvalidOperationException($"la imagen no puede ser encontrada.");
+                }
+                else if (result.ListingRentId != listingRentId)
+                {
+                    throw new InvalidOperationException($"la imagen no corresponde al listing rent.");
+                }
+                else
+                {
+                    dbContedt.TlListingPhotos.Remove(result);
+                    await dbContedt.SaveChangesAsync();
+                    return new ReturnModel { StatusCode = ResultStatusCode.OK, HasError = false };
+                }
             }
         }
 
@@ -64,7 +67,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     if (result != null)
                     {
                         result.IsPrincipal = false;
-                        dbContedt.SaveChanges();
+                        //dbContedt.SaveChanges();
                     }
                 }
                 var photo = await dbContedt.TlListingPhotos.Where(x => x.ListingRentId == listingRentId && x.Name == fileName).FirstOrDefaultAsync();
@@ -85,7 +88,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         IsPrincipal = isMain,
                         Description = description,
                         SpaceTypeId = spaceType,
-                        PhotoLink = _systemConfigurationRepository.GetListingResourceUrl() + fileName
+                        //PhotoLink = _systemConfigurationRepository.GetListingResourceUrl() + fileName
+                        PhotoLink = fileName
                     };
                     dbContedt.TlListingPhotos.Add(newPhoto);
                     dbContedt.SaveChanges();
@@ -96,32 +100,35 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task<TlListingPhoto> UpdatePhoto(long listingRentId, ProcessData_PhotoModel photo)
         {
-            TlListingPhoto photoDb = await _context.TlListingPhotos.Where(x => x.ListingPhotoId == photo.PhotoId).FirstOrDefaultAsync();
+            using (var dbContedt = new InfraAssertDbContext(dbOptions))
+            {
+                TlListingPhoto photoDb = await dbContedt.TlListingPhotos.Where(x => x.ListingPhotoId == photo.PhotoId).FirstOrDefaultAsync();
 
-            if (photoDb == null)
-            {
-                throw new InvalidOperationException($"la imagen no puede ser encontrada.");
-            }
-            else if (photoDb.ListingRentId != listingRentId)
-            {
-                throw new InvalidOperationException($"la imagen no corresponde al listing rent.");
-            }
-            else
-            {
-                photoDb.Description = photo.Description ?? photoDb.Description;
-                photoDb.IsPrincipal = photo.IsPrincipal;
-                if (photo.IsPrincipal ?? false)
+                if (photoDb == null)
                 {
-                    var result = _context.TlListingPhotos.Where(x => x.ListingRentId == listingRentId && x.IsPrincipal == true).FirstOrDefault();
-                    if (result != null)
-                    {
-                        result.IsPrincipal = false;
-                        await _context.SaveChangesAsync();
-                    }
+                    throw new InvalidOperationException($"la imagen no puede ser encontrada.");
                 }
-                photoDb.SpaceTypeId = photo.SpaceTypeId ?? photoDb.SpaceTypeId;
-                await _context.SaveChangesAsync();
-                return photoDb;
+                else if (photoDb.ListingRentId != listingRentId)
+                {
+                    throw new InvalidOperationException($"la imagen no corresponde al listing rent.");
+                }
+                else
+                {
+                    photoDb.Description = photo.Description ?? photoDb.Description;
+                    photoDb.IsPrincipal = photo.IsPrincipal;
+                    if (photo.IsPrincipal ?? false)
+                    {
+                        var result = dbContedt.TlListingPhotos.Where(x => x.ListingRentId == listingRentId && x.IsPrincipal == true).FirstOrDefault();
+                        if (result != null)
+                        {
+                            result.IsPrincipal = false;
+                            //await dbContedt.SaveChangesAsync();
+                        }
+                    }
+                    photoDb.SpaceTypeId = photo.SpaceTypeId ?? photoDb.SpaceTypeId;
+                    await dbContedt.SaveChangesAsync();
+                    return photoDb;
+                }
             }
         }
     }
