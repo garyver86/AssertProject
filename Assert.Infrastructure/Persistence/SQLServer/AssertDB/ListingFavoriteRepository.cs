@@ -94,7 +94,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task ToggleFavorite(long listingRentId, long groupId, bool setAsFavorite, int userId)
         {
-            TlListingFavoriteGroup group = _context.TlListingFavoriteGroups.Where(x => x.FavoriteGroupListingId == groupId && x.GroupStatus == 1).FirstOrDefault();
+            TlListingFavoriteGroup group = _context.TlListingFavoriteGroups.Where(x => x.FavoriteGroupListingId == groupId && x.GroupStatus == 1)
+                .Include(x=>x.TlListingFavorites).FirstOrDefault();
 
             if (group.UserId != userId)
             {

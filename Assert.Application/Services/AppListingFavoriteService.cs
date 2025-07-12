@@ -2,9 +2,13 @@
 using Assert.Application.Interfaces;
 using Assert.Domain.Entities;
 using Assert.Domain.Models;
+using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Assert.Domain.ValueObjects;
+using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 using AutoMapper;
+using Azure;
+using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
@@ -16,17 +20,22 @@ namespace Assert.Application.Services
         private readonly IImageService _imageService;
         private readonly IMapper _mapper;
         private readonly IErrorHandler _errorHandler;
+        private readonly ISystemConfigurationRepository _systemConfigurationRepository;
+        private readonly IHttpContextAccessor requestContext;
 
         public AppListingFavoriteService(
             IListingFavoriteService listingFavoriteService,
             IImageService imageService,
             IMapper mapper,
-            IErrorHandler errorHandler)
+            IErrorHandler errorHandler, ISystemConfigurationRepository systemConfigurationRepository,
+            IHttpContextAccessor contextAccessor)
         {
             _listingFavoriteService = listingFavoriteService;
             _imageService = imageService;
             _mapper = mapper;
             _errorHandler = errorHandler;
+            _systemConfigurationRepository = systemConfigurationRepository;
+            requestContext = contextAccessor;
         }
 
         public async Task<ReturnModelDTO<ListingFavoriteGroupDTO>> CreateFavoriteGroup(string groupName, int userId, Dictionary<string, string> requestInfo)
@@ -59,6 +68,22 @@ namespace Assert.Application.Services
             try
             {
                 ReturnModel<TlListingFavoriteGroup> listings = await _listingFavoriteService.GetFavoriteContent(favoriteGroupId, userId, requestInfo);
+
+                if (listings.Data.TlListingFavorites?.Count > 0)
+                {
+                    string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+                    _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+                    foreach (var list in listings.Data.TlListingFavorites)
+                    {
+                        if (list.ListingRent?.TlListingPhotos?.Count > 0)
+                        {
+                            foreach (var item in list.ListingRent.TlListingPhotos)
+                            {
+                                item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                            }
+                        }
+                    }
+                }
 
                 result = new ReturnModelDTO<ListingFavoriteGroupDTO>
                 {
@@ -107,6 +132,22 @@ namespace Assert.Application.Services
             try
             {
                 ReturnModel<(List<TlListingRent> data, PaginationMetadata pagination)> listings = await _listingFavoriteService.GetViewsHistory(userId, pageNumber, pageSize, requestInfo);
+
+                if (listings.Data.data?.Count > 0)
+                {
+                    string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+                    _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+                    foreach (var list in listings.Data.data)
+                    {
+                        if (list?.TlListingPhotos?.Count > 0)
+                        {
+                            foreach (var item in list.TlListingPhotos)
+                            {
+                                item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                            }
+                        }
+                    }
+                }
 
                 result = new ReturnModelDTO<(List<ListingRentDTO> data, PaginationMetadataDTO pagination)>
                 {

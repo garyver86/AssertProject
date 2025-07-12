@@ -57,12 +57,21 @@ namespace Assert.API.Controllers
         /// </remarks>
         [HttpGet("Search")]
         [Authorize(Policy = "Guest")]
-        public async Task<ReturnModelDTO<List<ListingRentDTO>>> Search([FromQuery] SearchFilters filters, [FromQuery] int? pageNumber = 1, [FromQuery] int? pageSize = 10)
+        //public async Task<ReturnModelDTO<List<ListingRentDTO>>> Search([FromQuery] SearchFilters filters, [FromQuery] int? pageNumber = 1, [FromQuery] int? pageSize = 10)
+        public async Task<ReturnModelDTO_Pagination> Search([FromQuery] SearchFilters filters, [FromQuery] int? pageNumber = 1, [FromQuery] int? pageSize = 10)
         {
             var requestInfo = HttpContext.GetRequestInfo();
             var properties = await _searchService.SearchProperties(filters, pageNumber ?? 1, pageSize ?? 10, requestInfo, true);
 
-            return properties;
+            //return properties;
+            return new ReturnModelDTO_Pagination
+            {
+                Data = properties.Data.data,
+                pagination = properties.Data.pagination,
+                HasError = properties.HasError,
+                ResultError = properties.ResultError,
+                StatusCode = properties.StatusCode
+            };
         }
 
         /// <summary>

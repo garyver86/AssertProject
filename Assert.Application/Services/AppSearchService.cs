@@ -2,9 +2,14 @@
 using Assert.Application.Interfaces;
 using Assert.Domain.Entities;
 using Assert.Domain.Models;
+using Assert.Domain.Repositories;
 using Assert.Domain.Services;
+using Assert.Domain.ValueObjects;
 using AutoMapper;
+using Azure;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Assert.Application.Services
 {
@@ -14,31 +19,61 @@ namespace Assert.Application.Services
         private readonly ILocationSugestionService _locationService;
         private readonly IMapper _mapper;
         private readonly IErrorHandler _errorHandler;
-        public AppSearchService(ISearchService searchService, IMapper mapper, IErrorHandler errorHandler, ILocationSugestionService locationService)
+        private readonly ISystemConfigurationRepository _systemConfigurationRepository;
+        private readonly IHttpContextAccessor requestContext;
+        public AppSearchService(ISearchService searchService, IMapper mapper, IErrorHandler errorHandler, 
+            ILocationSugestionService locationService, ISystemConfigurationRepository systemConfigurationRepository,
+            IHttpContextAccessor contextAccessor)
         {
             _searchService = searchService;
             _mapper = mapper;
             _errorHandler = errorHandler;
             _locationService = locationService;
+            _systemConfigurationRepository = systemConfigurationRepository;
+            requestContext = contextAccessor;
         }
 
-        public async Task<ReturnModelDTO<List<ListingRentDTO>>> SearchProperties(SearchFilters filters, int pageNumber, int pageSize, Dictionary<string, string> clientData, bool useTechnicalMessages)
+        public async Task<ReturnModelDTO<(List<ListingRentDTO> data, PaginationMetadataDTO pagination)>> SearchProperties(SearchFilters filters, int pageNumber, int pageSize, Dictionary<string, string> clientData, bool useTechnicalMessages)
         {
             try
             {
-                var listings = await _searchService.SearchPropertiesAsync(filters, pageNumber, pageSize);
-                var dataResult = _mapper.Map<List<ListingRentDTO>>(listings.Data);
+                ReturnModel<(List<TlListingRent> data, PaginationMetadata pagination)> listings = await _searchService.SearchPropertiesAsync(filters, pageNumber, pageSize);
+                //var dataResult = _mapper.Map<List<ListingRentDTO>>(listings.Data);
 
-                return new ReturnModelDTO<List<ListingRentDTO>>
+                //return new ReturnModelDTO<List<ListingRentDTO>>
+                //{
+                //    Data = dataResult,
+                //    HasError = false,
+                //    StatusCode = ResultStatusCode.OK
+                //};
+
+                if (listings.Data.data?.Count > 0)
                 {
-                    Data = dataResult,
-                    HasError = false,
-                    StatusCode = ResultStatusCode.OK
+                    string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+                    _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+                    foreach (var list in listings.Data.data)
+                    {
+                        if (list?.TlListingPhotos?.Count > 0)
+                        {
+                            foreach (var item in list.TlListingPhotos)
+                            {
+                                item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                            }
+                        }
+                    }
+                }
+
+                return new ReturnModelDTO<(List<ListingRentDTO> data, PaginationMetadataDTO pagination)>
+                {
+                    HasError = listings.HasError,
+                    StatusCode = listings.StatusCode,
+                    ResultError = _mapper.Map<ErrorCommonDTO>(listings.ResultError),
+                    Data = (_mapper.Map<List<ListingRentDTO>>(listings.Data.data), _mapper.Map<PaginationMetadataDTO>(listings.Data.pagination))
                 };
             }
             catch (Exception ex)
             {
-                return HandleException<List<ListingRentDTO>>("AppSearchProperties.SearchProperties", ex, new { filters }, useTechnicalMessages);
+                return HandleException<(List<ListingRentDTO> data, PaginationMetadataDTO pagination)>("AppSearchProperties.SearchProperties", ex, new { filters }, useTechnicalMessages);
             }
         }
 

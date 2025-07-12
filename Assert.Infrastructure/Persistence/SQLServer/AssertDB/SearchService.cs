@@ -3,6 +3,7 @@ using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Assert.Domain.Utils;
+using Assert.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
@@ -27,7 +28,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             };
         }
 
-        public async Task<ReturnModel<List<TlListingRent>>> SearchPropertiesAsync(SearchFilters filters, int pageNumber, int pageSize)
+        public async Task<ReturnModel<(List<TlListingRent>, PaginationMetadata)>> SearchPropertiesAsync(SearchFilters filters, int pageNumber, int pageSize)
         {
             var skipAmount = (pageNumber - 1) * pageSize;
             var query = _context.TlListingRents.AsQueryable();
@@ -147,7 +148,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     //    .ThenInclude(y => y.TpPropertyAddresses)
                     //    .ThenInclude(y => y.State)
                     //    .ThenInclude(y => y.Country)
-                    .Include(x => x.TpProperties)
+                    //.Include(x => x.TpProperties)
                         .ThenInclude(y => y.PropertySubtype)
                             .ThenInclude(y => y.PropertyType)
                     .Include(x => x.TlListingPhotos)
@@ -228,11 +229,18 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     }
                 }
             }
+            PaginationMetadata pagination = new PaginationMetadata
+            {
+                CurrentPage = pageNumber,
+                PageSize = pageSize,
+                TotalItemCount = await query.CountAsync(),
+                TotalPageCount = (int)Math.Ceiling((double)await query.CountAsync() / pageSize)
+            };
 
-            return new ReturnModel<List<TlListingRent>>
+            return new ReturnModel<(List<TlListingRent>, PaginationMetadata)>
             {
                 StatusCode = ResultStatusCode.OK,
-                Data = result
+                Data = (result, pagination)
             };
         }
     }

@@ -2,6 +2,7 @@
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
@@ -9,12 +10,15 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
     {
         private readonly InfraAssertDbContext _context;
         private readonly ISystemConfigurationRepository _systemConfigurationRepository;
+        private readonly DbContextOptions<InfraAssertDbContext> dbOptions;
 
 
-        public ListingPhotoRepository(InfraAssertDbContext infraAssertDbContext, ISystemConfigurationRepository systemConfigurationRepository)
+        public ListingPhotoRepository(InfraAssertDbContext infraAssertDbContext, ISystemConfigurationRepository systemConfigurationRepository,
+            IServiceProvider serviceProvider)
         {
             _context = infraAssertDbContext;
             _systemConfigurationRepository = systemConfigurationRepository;
+            dbOptions = serviceProvider.GetRequiredService<DbContextOptions<InfraAssertDbContext>>();
         }
 
         public async Task<ReturnModel> DeleteListingRentImage(long listingRentId, int photoId)
@@ -46,40 +50,47 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         public async Task<List<TlListingPhoto>> GetByListingRentId(long listingRentId, int userID)
         {
             var result = await _context.TlListingPhotos.Where(x => x.ListingRentId == listingRentId && x.ListingRent.OwnerUserId == userID)
-                .Include(x => x.SpaceType).ToListAsync(); ;
+                .Include(x => x.SpaceType).ToListAsync();
             return result;
         }
 
         public async Task<ReturnModel> UploadPhoto(long listingRentId, string fileName, string description, int? spaceType, bool isMain)
         {
-            if (isMain)
+            using (var dbContedt = new InfraAssertDbContext(dbOptions))
             {
-                var result = _context.TlListingPhotos.Where(x => x.ListingRentId == listingRentId && x.IsPrincipal == true).FirstOrDefault();
-                if (result != null)
+                if (isMain)
                 {
-                    result.IsPrincipal = false;
-                    _context.SaveChanges();
+                    var result = dbContedt.TlListingPhotos.Where(x => x.ListingRentId == listingRentId && x.IsPrincipal == true).FirstOrDefault();
+                    if (result != null)
+                    {
+                        result.IsPrincipal = false;
+                        dbContedt.SaveChanges();
+                    }
                 }
-            }
-            var photo = await _context.TlListingPhotos.Where(x => x.ListingRentId == listingRentId && x.Name == fileName).FirstOrDefaultAsync();
-            if (photo != null)
-            {
-                throw new InvalidOperationException($"Ya existe la imagen {fileName}.");
-            }
-            else
-            {
-                var newPhoto = new TlListingPhoto
+                var photo = await dbContedt.TlListingPhotos.Where(x => x.ListingRentId == listingRentId && x.Name == fileName).FirstOrDefaultAsync();
+                if (photo != null)
                 {
-                    ListingRentId = listingRentId,
-                    Name = fileName,
-                    IsPrincipal = isMain,
-                    Description = description,
-                    SpaceTypeId = spaceType,
-                    PhotoLink = _systemConfigurationRepository.GetListingResourcePath() + fileName
-                };
-                _context.TlListingPhotos.Add(newPhoto);
-                await _context.SaveChangesAsync();
-                return new ReturnModel { StatusCode = ResultStatusCode.OK, HasError = false };
+                    throw new InvalidOperationException($"Ya existe la imagen {fileName}.");
+                }
+                else
+                {
+                    if (spaceType == 0)
+                    {
+                        spaceType = null;
+                    }
+                    var newPhoto = new TlListingPhoto
+                    {
+                        ListingRentId = listingRentId,
+                        Name = fileName,
+                        IsPrincipal = isMain,
+                        Description = description,
+                        SpaceTypeId = spaceType,
+                        PhotoLink = _systemConfigurationRepository.GetListingResourceUrl() + fileName
+                    };
+                    dbContedt.TlListingPhotos.Add(newPhoto);
+                    dbContedt.SaveChanges();
+                    return new ReturnModel { StatusCode = ResultStatusCode.OK, HasError = false };
+                }
             }
         }
 
