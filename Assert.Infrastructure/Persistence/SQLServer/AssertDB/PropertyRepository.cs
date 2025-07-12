@@ -6,7 +6,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
     public class PropertyRepository : IPropertyRepository
     {
-        private readonly InfraAssertDbContext _context;
+        private InfraAssertDbContext _context;
         private readonly IListingLogRepository _listingLogrepository;
         public PropertyRepository(InfraAssertDbContext infraAssertDbContext, IListingLogRepository listingLogrepository)
         {

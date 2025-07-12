@@ -15,7 +15,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         public async Task<List<TlListingFavoriteGroup>> GetFavoriteGroups(int userId)
         {
             List<TlListingFavoriteGroup> groups = await _context.TlListingFavoriteGroups
-                .Where(x => x.UserId == userId)
+                .Where(x => x.UserId == userId && x.GroupStatus == 1)
                 .Include(x => x.TlListingFavorites)
                 .AsNoTracking()
                 .ToListAsync();
@@ -26,20 +26,23 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                                         .Where(x => x.FavoriteGroupId == group.FavoriteGroupListingId && x.UserId == userId)
                                         .OrderByDescending(x => x.CreateAt)
                                         .FirstOrDefaultAsync();
-                var ListingRent = await _context.TlListingRents.Where(x => x.ListingRentId == last.ListingRentId)
-                                            .Include(x => x.ListingStatus)
-                                            .Include(x => x.AccomodationType)
-                                            .Include(x => x.OwnerUser)
-                                            .Include(x => x.TpProperties)
-                                            .Include(x => x.TpProperties)
-                                                .ThenInclude(y => y.PropertySubtype)
-                                                    .ThenInclude(y => y.PropertyType)
-                                            .Include(x => x.TlListingPhotos)
-                                            .Include(x => x.TlListingPrices)
-                                            .Include(x => x.TlListingSpecialDatePrices)
-                                            .Include(x => x.TlListingReviews)
-                                            .AsNoTracking().FirstOrDefaultAsync();
-                last.ListingRent = ListingRent;
+                if (last != null)
+                {
+                    var ListingRent = await _context.TlListingRents.Where(x => x.ListingRentId == last.ListingRentId)
+                                                .Include(x => x.ListingStatus)
+                                                .Include(x => x.AccomodationType)
+                                                .Include(x => x.OwnerUser)
+                                                .Include(x => x.TpProperties)
+                                                .Include(x => x.TpProperties)
+                                                    .ThenInclude(y => y.PropertySubtype)
+                                                        .ThenInclude(y => y.PropertyType)
+                                                .Include(x => x.TlListingPhotos)
+                                                .Include(x => x.TlListingPrices)
+                                                .Include(x => x.TlListingSpecialDatePrices)
+                                                .Include(x => x.TlListingReviews)
+                                                .AsNoTracking().FirstOrDefaultAsync();
+                    last.ListingRent = ListingRent;
+                }
                 group.TlListingFavorites = new TlListingFavorite[]
                 {
                     last ?? new TlListingFavorite

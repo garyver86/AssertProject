@@ -702,12 +702,35 @@ namespace Assert.Domain.Implementation
             {
                 Address1 = request_.Address.Address1,
                 Address2 = request_.Address.Address2,
-                CityId = request_.Address.CityId,
                 ZipCode = request_.Address.ZipCode,
-                StateId = request_.Address.StateId,
-                CountyId = request_.Address.CountyId
             };
-            if (request_.Address.Latitude != null && request_.Address.Longitude != null)
+
+            if (request_.Address.CityId > 0)
+            {
+                addresInput.CityId = request_.Address.CityId;
+                addresInput.CountyId = null;
+                addresInput.StateId = null;
+            }
+            else
+            {
+                if (request_.Address.CountyId > 0)
+                {
+                    addresInput.CityId = null;
+                    addresInput.CountyId = request_.Address.CountyId;
+                    addresInput.StateId = null;
+                }
+                else
+                {
+                    if (request_.Address.StateId > 0)
+                    {
+                        addresInput.CityId = null;
+                        addresInput.CountyId = null;
+                        addresInput.StateId = request_.Address.StateId;
+                    }
+                }
+            }
+
+            if (request_.Address.Latitude != null && request_.Address.Longitude != null && request_.Address.Latitude != 0 && request_.Address.Longitude != 0)
             {
                 if (!GeoUtils.ValidateLatitudLongitude(request_.Address.Latitude, request_.Address.Longitude))
                 {
@@ -719,10 +742,16 @@ namespace Assert.Domain.Implementation
                     };
                 }
             }
-
-            TpPropertyAddress addressResult = await _propertyAddressRepository.Set(addresInput, listing.TpProperties.First().PropertyId);
-            if (request_.Address.Latitude != null && request_.Address.Longitude != null)
+            else
             {
+                request_.Address.Latitude = null;
+                request_.Address.Longitude = null;
+            }
+
+                TpPropertyAddress addressResult = await _propertyAddressRepository.Set(addresInput, listing.TpProperties.First().PropertyId);
+            if (request_.Address.Latitude != 0 && request_.Address.Longitude != 0)
+            {
+                Thread.Sleep(1000);
                 await _propertyRepository.SetLocation(listing.TpProperties.First().PropertyId, request_.Address.Latitude, request_.Address.Longitude);
             }
             return new ReturnModel

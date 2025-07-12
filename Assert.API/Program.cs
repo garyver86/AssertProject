@@ -48,16 +48,6 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
 
 var app = builder.Build();
 
-//if (app.Environment.IsDevelopment())
-//{
-//    app.UseSwagger();
-//    app.UseSwaggerUI();
-//    app.UseSwaggerUI(c =>
-//    {
-//        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Assert.API"); // Reemplaza "Tu API v1" con el nombre de tu API
-//    });
-//}
-
 app.UseStaticFiles(new StaticFileOptions
 {
     FileProvider = new PhysicalFileProvider(
@@ -73,16 +63,6 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/resources/icons" 
 });
 
-// Expone los iconos de las comodidades
-//app.UseStaticFiles(new StaticFileOptions
-//{
-//    FileProvider = new PhysicalFileProvider(
-//        Path.Combine(builder.Environment.ContentRootPath, "Resources", "Icons", "Amenities")),
-//    RequestPath = "/icons/amenities" // Las URLs comenzarán con /icons/amenities
-//});
-
-
-
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
@@ -91,9 +71,10 @@ app.UseSwaggerUI(c =>
 
 app.UseHttpsRedirection();
 app.UseMiddleware<RequestInfoMiddleware>();
+app.UseRouting();
+app.UseCors("AllowedOriginsPolicy");
 app.UseAuthorization();
 app.UseMiddleware<ExceptionMiddleware>();
-app.UseCors("AllowedOriginsPolicy");
 app.MapControllers();
 
 app.Run();
