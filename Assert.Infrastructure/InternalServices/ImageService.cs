@@ -240,6 +240,25 @@ namespace Assert.Infrastructure.InternalServices
                     });
                 }
             }
+
+            if (savedFiles == null)
+            {
+                savedFiles = new List<ReturnModel>();
+            }
+            var activesPhotos = await _listingPhotoRepository.GetByListingRentId(listingRentId);
+            List<string> savedFilesIds = savedFiles.Select(x => x.ResultError?.Code).ToList();
+            activesPhotos = activesPhotos.Where(x => !savedFilesIds.Contains(x.ListingPhotoId.ToString())).ToList();
+
+            if (activesPhotos.Count > 0)
+            {
+                savedFiles.AddRange(activesPhotos.Select(x => new ReturnModel
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    Data = x.Name.ToString(),
+                    HasError = false,
+                    ResultError = new ErrorCommon { Code = x.ListingPhotoId.ToString() }
+                }));
+            }
             return savedFiles;
         }
 

@@ -93,7 +93,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     };
                     dbContedt.TlListingPhotos.Add(newPhoto);
                     dbContedt.SaveChanges();
-                    return new ReturnModel { StatusCode = ResultStatusCode.OK, HasError = false };
+                    return new ReturnModel { StatusCode = ResultStatusCode.OK, HasError = false, Data = fileName, ResultError = new ErrorCommon { Code = newPhoto.ListingPhotoId.ToString() } };
                 }
             }
         }

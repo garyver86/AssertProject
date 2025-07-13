@@ -82,98 +82,100 @@ namespace Assert.Domain.Implementation
                 StatusCode = ResultStatusCode.OK,
                 HasError = false
             };
+            result.Data.ListingData.PropertySubTypeId = data.TpProperties.FirstOrDefault()?.PropertySubtypeId;
+            result.Data.ListingData.AccomodationTypeId = data.AccomodationTypeId;
+            result.Data.ListingData.MaxGuests = data.MaxGuests;
+            result.Data.ListingData.Bathrooms = data.Bathrooms;
+            result.Data.ListingData.Bedrooms = data.Bedrooms;
+            result.Data.ListingData.Beds = data.Beds;
+            var property = data.TpProperties.FirstOrDefault();
+            result.Data.ListingData.Latitude = data.TpProperties.FirstOrDefault()?.Latitude;
+            result.Data.ListingData.Longitude = data.TpProperties.FirstOrDefault()?.Longitude;
+            if (property != null)
+            {
+                result.Data.ListingData.Address = new TpPropertyAddress
+                {
+                    Address1 = property?.Address1,
+                    Address2 = property?.Address2,
+                    CityId = property?.CityId,
+                    CountyId = property?.CountyId,
+                    City = new TCity
+                    {
+                        CountyId = property?.CountyId ?? 0,
+                        CityId = property?.CityId ?? 0,
+                        Name = property?.CityName,
+                        County = new TCounty
+                        {
+                            CountyId = property.CountyId ?? 0,
+                            Name = property.CountyName,
+                            StateId = property.StateId,
+                            State = new TState
+                            {
+                                StateId = property.StateId ?? 0,
+                                Name = property.StateName,
+                                CountryId = property.CountryId ?? 0,
+                                Country = new TCountry
+                                {
+                                    CountryId = property.CountryId ?? 0,
+                                    Name = property.CountryName
+                                }
+                            }
+                        }
+                    }
+                };
+            }
+            result.Data.ListingData.Amenities = await _listingAmenitiesRepository.GetByListingRentId(data.ListingRentId);
+            result.Data.ListingData.FeaturedAspects = await _listingFeaturedAspectRepository.GetByListingRentId(data.ListingRentId);
+            result.Data.ListingData.SecurityItems = await _listingSecurityItemsRepository.GetByListingRentId(data.ListingRentId);
+            result.Data.ListingData.ListingPhotos = await _listingPhotoRepository.GetByListingRentId(data.ListingRentId);
+            result.Data.ListingData.Title = data.Name;
+            result.Data.ListingData.Description = data.Description;
+            result.Data.ListingData.Discounts = data.TlListingDiscountForRates;
+            result.Data.ListingData.PriceNightly = data.TlListingPrices.FirstOrDefault()?.PriceNightly;
+            result.Data.ListingData.CurrencyId = data.TlListingPrices.FirstOrDefault()?.CurrencyId;
+            result.Data.ListingData.CurrencyCode = data.TlListingPrices.FirstOrDefault()?.Currency?.Code;
+            result.Data.ListingData.WeekendNightlyPrice = data.TlListingPrices.FirstOrDefault()?.WeekendNightlyPrice;
+            result.Data.ListingData.ApprovalPolicyTypeId = data.ApprovalPolicyTypeId;
+            result.Data.ListingData.MinimunNoticeDays = data.MinimumNotice;
+            result.Data.ListingData.PreparationDays = data.PreparationDays;
+            result.Data.ListingData.TlCheckInOutPolicy = data.TlCheckInOutPolicies.FirstOrDefault();
+            result.Data.ListingData.Rules = await _listingRentRulesRepository.GetByListingRentId(data.ListingRentId);
+            result.Data.ListingData.CancelationPolicyTypeId = data.CancelationPolicyTypeId;
             switch (view.Code)
             {
                 case "LV001":
                     result.Data.Parametrics.PropertySubTypes = await _propertySubtypeRepository.GetActives();
                     result.Data.Parametrics.AccomodationTypes = await _accommodationTypeRepository.GetActives();
-                    result.Data.ListingData.PropertySubTypeId = data.TpProperties.FirstOrDefault()?.PropertySubtypeId;
-                    result.Data.ListingData.AccomodationTypeId = data.AccomodationTypeId;
                     return result;
                 case "LV002":
-                    result.Data.ListingData.MaxGuests = data.MaxGuests;
-                    result.Data.ListingData.Bathrooms = data.Bathrooms;
-                    result.Data.ListingData.Bedrooms = data.Bedrooms;
-                    result.Data.ListingData.Beds = data.Beds;
                     return result;
                 case "LV003":
-                    //result.Data.ListingData.Address = data.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault();
-                    var property = data.TpProperties.FirstOrDefault();
-
-                    result.Data.ListingData.Latitude = data.TpProperties.FirstOrDefault()?.Latitude;
-                    result.Data.ListingData.Longitude = data.TpProperties.FirstOrDefault()?.Longitude;
-                    result.Data.ListingData.Address = new TpPropertyAddress
-                    {
-                        Address1 = property?.Address1,
-                        Address2 = property?.Address2,
-                        CityId = property?.CityId,
-                        CountyId = property?.CountyId,
-                        City = new TCity
-                        {
-                            CountyId = property?.CountyId ?? 0,
-                            CityId = property?.CityId ?? 0,
-                            Name = property?.CityName,
-                            County = new TCounty
-                            {
-                                CountyId = property.CountyId ?? 0,
-                                Name = property.CountyName,
-                                StateId = property.StateId,
-                                State = new TState
-                                {
-                                    StateId = property.StateId ?? 0,
-                                    Name = property.StateName,
-                                    CountryId = property.CountryId ?? 0,
-                                    Country = new TCountry
-                                    {
-                                        CountryId = property.CountryId ?? 0,
-                                        Name = property.CountryName
-                                    }
-                                }
-                            }
-                        }
-                    };
+                    //result.Data.ListingData.Address = data.TpProperties.FirstOrDefault()?.TpPropertyAddresses.FirstOrDefault();                    
                     return result;
                 case "LV004":
                     result.Data.Parametrics.AmenitiesTypes = await _amenitiesRepository.GetActives();
                     result.Data.Parametrics.FeaturedAspects = await _featuresAspectsRepository.GetActives();
                     result.Data.Parametrics.SecurityItems = await _securityItemsRepository.GetActives();
-                    result.Data.ListingData.Amenities = await _listingAmenitiesRepository.GetByListingRentId(data.ListingRentId);
-                    result.Data.ListingData.FeaturedAspects = await _listingFeaturedAspectRepository.GetByListingRentId(data.ListingRentId);
-                    result.Data.ListingData.SecurityItems = await _listingSecurityItemsRepository.GetByListingRentId(data.ListingRentId);
                     return result;
                 case "LV005":
-                    result.Data.ListingData.ListingPhotos = await _listingPhotoRepository.GetByListingRentId(data.ListingRentId);
                     return result;
                 //case "LV006":
                 //    result.Data.ListingData.ListingPhotos = await _listingPhotoRepository.GetByListingRentId(data.ListingRentId);
                 //    return result;
                 case "LV006":
-                    result.Data.ListingData.Title = data.Name;
-                    result.Data.ListingData.Description = data.Description;
                     return result;
                 case "LV007":
                     result.Data.Parametrics.DiscountTypes = await _discountTypeRepository.GetActives();
-                    result.Data.ListingData.Discounts = data.TlListingDiscountForRates;
-                    result.Data.ListingData.PriceNightly = data.TlListingPrices.FirstOrDefault()?.PriceNightly;
-                    result.Data.ListingData.CurrencyId = data.TlListingPrices.FirstOrDefault()?.CurrencyId;
-                    result.Data.ListingData.WeekendNightlyPrice = data.TlListingPrices.FirstOrDefault()?.WeekendNightlyPrice;
                     return result;
-
                 case "LV008":
                     result.Data.Parametrics.ApprovalPolicyType = await _approvalPolicyTypeRepository.GetActives();
-                    result.Data.ListingData.ApprovalPolicyTypeId = data.ApprovalPolicyTypeId;
-                    result.Data.ListingData.MinimunNoticeDays = data.MinimumNotice;
-                    result.Data.ListingData.PreparationDays = data.PreparationDays;
                     return result;
                 case "LV009":
                     result.Data.Parametrics.RuleTypes = await _rulesTypeRepository.GetActives();
-                    result.Data.ListingData.TlCheckInOutPolicy = data.TlCheckInOutPolicies.FirstOrDefault();
-                    result.Data.ListingData.Rules = await _listingRentRulesRepository.GetByListingRentId(data.ListingRentId);
                     return result;
                 case "LV010":
                     //Devolver información de las políticas de cancelación
                     result.Data.Parametrics.CancelationPolicyTypes = _cancelationPoliciesTypesRepository.GetActives();
-                    result.Data.ListingData.CancelationPolicyTypeId = data.CancelationPolicyTypeId;
                     return result;
                 default:
                     return new ReturnModel<ListingProcessDataResultModel>
@@ -748,7 +750,7 @@ namespace Assert.Domain.Implementation
                 request_.Address.Longitude = null;
             }
 
-                TpPropertyAddress addressResult = await _propertyAddressRepository.Set(addresInput, listing.TpProperties.First().PropertyId);
+            TpPropertyAddress addressResult = await _propertyAddressRepository.Set(addresInput, listing.TpProperties.First().PropertyId);
             if (request_.Address.Latitude != 0 && request_.Address.Longitude != 0)
             {
                 Thread.Sleep(1000);

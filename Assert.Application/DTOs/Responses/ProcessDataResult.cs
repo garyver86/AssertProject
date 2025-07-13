@@ -43,6 +43,7 @@ namespace Assert.Application.DTOs
         public string? actualViewCode { get; set; }
         public decimal? PriceNightly { get; set; }
         public int? CurrencyId { get; set; }
+        public string CurrencyCode { get; set; }
         public decimal? WeekendNightlyPrice { get; set; }
         public List<SecurityItemDTO>? SecurityItems { get; set; }
         public int? ApprovalPolicyTypeId { get; set; }

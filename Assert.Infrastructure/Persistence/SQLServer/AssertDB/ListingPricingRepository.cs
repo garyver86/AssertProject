@@ -22,6 +22,10 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task SetPricing(long listingRentId, decimal? pricing, decimal? weekendPrice, int? currencyId)
         {
+            if(currencyId == 0)
+            {
+                currencyId = 2;
+            }
             var price = await _context.TlListingPrices.Where(x => x.ListingRentId == listingRentId).FirstOrDefaultAsync();
             if (price != null)
             {
