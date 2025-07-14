@@ -5,5 +5,6 @@
         public string AccommodationName { get; set; }
         public string? AccommodationDescription { get; set; }
         public int AccommodationTypeId { get; set; }
+        public string? AccomodationCode { get; set; }
     }
 }

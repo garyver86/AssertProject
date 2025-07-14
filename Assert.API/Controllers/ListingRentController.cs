@@ -61,7 +61,9 @@ namespace Assert.API.Controllers
         public async Task<ReturnModelDTO_Pagination> Search([FromQuery] SearchFilters filters, [FromQuery] int? pageNumber = 1, [FromQuery] int? pageSize = 10)
         {
             var requestInfo = HttpContext.GetRequestInfo();
-            var properties = await _searchService.SearchProperties(filters, pageNumber ?? 1, pageSize ?? 10, requestInfo, true);
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+            var properties = await _searchService.SearchProperties(filters, pageNumber ?? 1, pageSize ?? 10, userId, requestInfo, true);
 
             //return properties;
             return new ReturnModelDTO_Pagination
@@ -281,7 +283,7 @@ namespace Assert.API.Controllers
             var requestInfo = HttpContext.GetRequestInfo();
             int userId = 0;
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);
-            (ReturnModelDTO<List<ListingRentDTO>> result, PaginationMetadataDTO pagination) = await _appListingRentService.GetFeaturedListings(countryId, pageNumber ?? 1, pageSize ?? 10, requestInfo);
+            (ReturnModelDTO<List<ListingRentDTO>> result, PaginationMetadataDTO pagination) = await _appListingRentService.GetFeaturedListings(userId, countryId, pageNumber ?? 1, pageSize ?? 10, requestInfo);
             return new ReturnModelDTO_Pagination
             {
                 Data = result.Data,

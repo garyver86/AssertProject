@@ -19,5 +19,6 @@
         public int? WithinDays { get; set; }
 
         public bool? Status { get; set; }
+        public int CancelationPolicyTypeId { get; set; }
     }
 }

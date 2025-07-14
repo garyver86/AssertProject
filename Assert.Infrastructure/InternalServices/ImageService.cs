@@ -288,7 +288,7 @@ namespace Assert.Infrastructure.InternalServices
 
                 ReturnModel result = await _listingPhotoRepository.DeleteListingRentImage(listingRentId, photoId);
 
-                if (result.StatusCode == ResultStatusCode.OK)
+                if (result.StatusCode == ResultStatusCode.OK && result.Data != null)
                 {
                     RemoveListingRentImage(result.Data.ToString());
                 }

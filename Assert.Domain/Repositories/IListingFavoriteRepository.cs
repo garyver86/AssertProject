@@ -11,5 +11,6 @@ namespace Assert.Domain.Repositories
         Task<TlListingFavoriteGroup?> GetFavoriteGroupById(long groupId, int userId);
         Task<TlListingFavoriteGroup> CreateFavoriteGroup(string groupName, int userId);
         Task RemoveFavoriteGroup(long groupId, int userId);
+        Task<List<long>> GetAllFavoritesList(long userId);
     }
 }

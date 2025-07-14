@@ -39,5 +39,7 @@
         public List<SpaceDTO> Spaces { get; set; }
         public List<StayPresenceDTO> StayPresences { get; set; }
         public object Valoration { get; set; }
+        public DateTime? historyDate { get; set; }
+        public bool? isFavorite { get; set; }
     }
 }

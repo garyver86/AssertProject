@@ -38,7 +38,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 {
                     dbContedt.TlListingPhotos.Remove(result);
                     await dbContedt.SaveChangesAsync();
-                    return new ReturnModel { StatusCode = ResultStatusCode.OK, HasError = false };
+                    return new ReturnModel { StatusCode = ResultStatusCode.OK, HasError = false, Data = result.Name };
                 }
             }
         }

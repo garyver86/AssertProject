@@ -33,11 +33,11 @@ namespace Assert.Application.Services
             requestContext = contextAccessor;
         }
 
-        public async Task<ReturnModelDTO<(List<ListingRentDTO> data, PaginationMetadataDTO pagination)>> SearchProperties(SearchFilters filters, int pageNumber, int pageSize, Dictionary<string, string> clientData, bool useTechnicalMessages)
+        public async Task<ReturnModelDTO<(List<ListingRentDTO> data, PaginationMetadataDTO pagination)>> SearchProperties(SearchFilters filters, int pageNumber, int pageSize, long userId, Dictionary<string, string> clientData, bool useTechnicalMessages)
         {
             try
             {
-                ReturnModel<(List<TlListingRent> data, PaginationMetadata pagination)> listings = await _searchService.SearchPropertiesAsync(filters, pageNumber, pageSize);
+                ReturnModel<(List<TlListingRent> data, PaginationMetadata pagination)> listings = await _searchService.SearchPropertiesAsync(filters, pageNumber, pageSize, userId);
                 //var dataResult = _mapper.Map<List<ListingRentDTO>>(listings.Data);
 
                 //return new ReturnModelDTO<List<ListingRentDTO>>

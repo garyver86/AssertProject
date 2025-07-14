@@ -12,10 +12,12 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
     {
         private readonly InfraAssertDbContext _context;
         private readonly ICityRepository _cityRepository;
-        public SearchService(InfraAssertDbContext dbContext, ICityRepository cityRepository)
+        private readonly IListingFavoriteRepository _favoritesRepository;
+        public SearchService(InfraAssertDbContext dbContext, ICityRepository cityRepository, IListingFavoriteRepository listingFavoriteRepository)
         {
             _context = dbContext;
             _cityRepository = cityRepository;
+            _favoritesRepository = listingFavoriteRepository;
         }
 
         public async Task<ReturnModel<List<TCity>>> SearchCities(string filter, int filterType)
@@ -28,8 +30,10 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             };
         }
 
-        public async Task<ReturnModel<(List<TlListingRent>, PaginationMetadata)>> SearchPropertiesAsync(SearchFilters filters, int pageNumber, int pageSize)
+        public async Task<ReturnModel<(List<TlListingRent>, PaginationMetadata)>> SearchPropertiesAsync(SearchFilters filters, int pageNumber, int pageSize, long userId)
         {
+            List<long> favoritesList = await _favoritesRepository.GetAllFavoritesList(userId);
+
             var skipAmount = (pageNumber - 1) * pageSize;
             var query = _context.TlListingRents.AsQueryable();
 
@@ -134,21 +138,21 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Include(x => x.TlListingFeaturedAspects)
                         .ThenInclude(y => y.FeaturesAspectType)
                     .Include(x => x.TpProperties)
-                    //    .ThenInclude(y => y.TpPropertyAddresses)
-                    //    .ThenInclude(y => y.City)
-                    //    .ThenInclude(y => y.County)
-                    //    .ThenInclude(y => y.State)
-                    //    .ThenInclude(y => y.Country)
-                    //.Include(x => x.TpProperties)
-                    //    .ThenInclude(y => y.TpPropertyAddresses)
-                    //    .ThenInclude(y => y.County)
-                    //    .ThenInclude(y => y.State)
-                    //    .ThenInclude(y => y.Country)
-                    //.Include(x => x.TpProperties)
-                    //    .ThenInclude(y => y.TpPropertyAddresses)
-                    //    .ThenInclude(y => y.State)
-                    //    .ThenInclude(y => y.Country)
-                    //.Include(x => x.TpProperties)
+                        //    .ThenInclude(y => y.TpPropertyAddresses)
+                        //    .ThenInclude(y => y.City)
+                        //    .ThenInclude(y => y.County)
+                        //    .ThenInclude(y => y.State)
+                        //    .ThenInclude(y => y.Country)
+                        //.Include(x => x.TpProperties)
+                        //    .ThenInclude(y => y.TpPropertyAddresses)
+                        //    .ThenInclude(y => y.County)
+                        //    .ThenInclude(y => y.State)
+                        //    .ThenInclude(y => y.Country)
+                        //.Include(x => x.TpProperties)
+                        //    .ThenInclude(y => y.TpPropertyAddresses)
+                        //    .ThenInclude(y => y.State)
+                        //    .ThenInclude(y => y.Country)
+                        //.Include(x => x.TpProperties)
                         .ThenInclude(y => y.PropertySubtype)
                             .ThenInclude(y => y.PropertyType)
                     .Include(x => x.TlListingPhotos)
@@ -190,6 +194,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 foreach (var listing in result)
                 {
+                    listing.isFavorite = favoritesList.Contains(listing.ListingRentId);
                     foreach (var prop in listing.TpProperties)
                     {
                         prop.TpPropertyAddresses = new List<TpPropertyAddress>

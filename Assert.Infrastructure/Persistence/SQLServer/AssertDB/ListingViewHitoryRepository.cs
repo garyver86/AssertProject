@@ -32,8 +32,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .Include(x => x.ListingRent.TlListingReviews)
                 .OrderByDescending(x => x.ViewDate)
                 .AsNoTracking()
-                .Select(x => x.ListingRent)
-                .Where(x => x.ListingStatusId == 3 && (countryId == null || countryId == 0 || x.TpProperties.FirstOrDefault().CountryId == countryId));
+                //.Select(x => x.ListingRent)
+                .Where(x => x.ListingRent.ListingStatusId == 3 && (countryId == null || countryId == 0 || x.ListingRent.TpProperties.FirstOrDefault().CountryId == countryId));
 
             var result = await query
                 .Skip(skipAmount)
@@ -43,7 +43,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 foreach (var listing in result)
                 {
-                    foreach (var prop in listing.TpProperties)
+                    listing.ListingRent.historyDate = listing.ViewDate;
+                    foreach (var prop in listing.ListingRent.TpProperties)
                     {
                         prop.TpPropertyAddresses = new List<TpPropertyAddress>
                         {
@@ -90,8 +91,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 TotalItemCount = await query.CountAsync(),
                 TotalPageCount = (int)Math.Ceiling((double)await query.CountAsync() / pageSize)
             };
-
-            return (result, pagination);
+            var _result = result?.Select(x => x.ListingRent).ToList();
+            return (_result, pagination);
         }
 
         public async Task ToggleFromHistory(long listingRentId, bool setAsFavorite, int userId)

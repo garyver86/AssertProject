@@ -132,5 +132,14 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
             await _context.SaveChangesAsync();
         }
+
+        public async Task<List<long>> GetAllFavoritesList(long userId)
+        {
+            List<long> favoriresList = await _context.TlListingFavorites
+               .Where(x => x.UserId == userId && x.FavoriteGroup.GroupStatus == 1)
+               .AsNoTracking()
+               .Select(x => x.ListingRentId).ToListAsync();
+            return favoriresList;
+        }
     }
 }

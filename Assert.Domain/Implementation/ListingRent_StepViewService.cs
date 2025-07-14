@@ -67,7 +67,7 @@ namespace Assert.Domain.Implementation
         }
         public async Task<ReturnModel<ListingProcessDataResultModel>> GetNextListingStepViewData(int? nextViewTypeId, TlListingRent? data, bool useTechnicalMessages)
         {
-            TlViewType view = await _viewTypeRepository.Get(nextViewTypeId ?? 0);
+            TlViewType view = await _viewTypeRepository.Get(nextViewTypeId ?? 1);
             ReturnModel<ListingProcessDataResultModel> result = new ReturnModel<ListingProcessDataResultModel>
             {
                 Data = new ListingProcessDataResultModel
@@ -130,7 +130,7 @@ namespace Assert.Domain.Implementation
             result.Data.ListingData.ListingPhotos = await _listingPhotoRepository.GetByListingRentId(data.ListingRentId);
             result.Data.ListingData.Title = data.Name;
             result.Data.ListingData.Description = data.Description;
-            result.Data.ListingData.Discounts = data.TlListingDiscountForRates;
+            result.Data.ListingData.Discounts = await _listingDiscountRepository.Get(data.ListingRentId); //data.TlListingDiscountForRates;
             result.Data.ListingData.PriceNightly = data.TlListingPrices.FirstOrDefault()?.PriceNightly;
             result.Data.ListingData.CurrencyId = data.TlListingPrices.FirstOrDefault()?.CurrencyId;
             result.Data.ListingData.CurrencyCode = data.TlListingPrices.FirstOrDefault()?.Currency?.Code;

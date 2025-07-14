@@ -232,7 +232,7 @@ namespace Assert.Application.Services
             }
         }
 
-        public async Task<(ReturnModelDTO<List<ListingRentDTO>>, PaginationMetadataDTO)> GetFeaturedListings(int? countryId, int pageNumber, int pageSize, Dictionary<string, string> requestInfo)
+        public async Task<(ReturnModelDTO<List<ListingRentDTO>>, PaginationMetadataDTO)> GetFeaturedListings(long userId, int? countryId, int pageNumber, int pageSize, Dictionary<string, string> requestInfo)
         {
             ReturnModelDTO<List<ListingRentDTO>> result = new ReturnModelDTO<List<ListingRentDTO>>();
             PaginationMetadataDTO paginatonResult = new PaginationMetadataDTO
@@ -242,7 +242,7 @@ namespace Assert.Application.Services
             };
             try
             {
-                (List<TlListingRent> listings, PaginationMetadata paginaton) = await _listingRentRepository.GetFeatureds(pageNumber, pageSize, countryId);
+                (List<TlListingRent> listings, PaginationMetadata paginaton) = await _listingRentRepository.GetFeatureds(userId, pageNumber, pageSize, countryId);
 
                 if (listings?.Count > 0)
                 {
