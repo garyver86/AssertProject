@@ -364,17 +364,16 @@ namespace Assert.Domain.Implementation
                                             };
                                         }
 
+                                        ReturnModel<ListingProcessDataResultModel> NextStepResult = await _StepViewService.GetNextListingStepViewData(viewType.NextViewTypeId, listing, useTechnicalMessages);
+                                        if (NextStepResult.StatusCode == ResultStatusCode.OK)
+                                        {
+                                            NextStepResult.Data.ListingData.actualViewCode = viewType.Code;
+                                        }
                                         return new ReturnModel<ListingProcessDataResultModel>
                                         {
                                             HasError = false,
                                             StatusCode = ResultStatusCode.OK,
-                                            Data = new ListingProcessDataResultModel
-                                            {
-                                                ListingData = new ListingProcessData_ListingData
-                                                {
-                                                    ListingRentId = listingRentId ?? 0
-                                                }
-                                            }
+                                            Data = NextStepResult.Data
                                         };
                                     }
                                     else

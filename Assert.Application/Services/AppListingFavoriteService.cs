@@ -116,6 +116,15 @@ namespace Assert.Application.Services
                     ResultError = _mapper.Map<ErrorCommonDTO>(listings.ResultError),
                     Data = _mapper.Map<List<ListingFavoriteGroupDTO>>(listings.Data)
                 };
+
+                if (result.Data?.Count > 0)
+                {
+                    foreach (var group in result.Data)
+                    {
+                        group.totalRegisters = group.UserId;
+                        group.UserId = 0;
+                    }
+                }
             }
             catch (Exception ex)
             {

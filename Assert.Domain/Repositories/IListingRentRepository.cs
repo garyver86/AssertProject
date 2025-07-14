@@ -20,7 +20,7 @@ namespace Assert.Domain.Repositories
         Task SetDescription(long listingRentId, string description);
         Task SetName(long listingRentId, string title);
         Task SetNameAndDescription(long listingRentId, string title, string description);
-        Task<(List<TlListingRent>, PaginationMetadata)> GetFeatureds(int pageNumber = 1, int pageSize = 10, int? countryId = null);
+        Task<(List<TlListingRent>, PaginationMetadata)> GetFeatureds(long userId, int pageNumber = 1, int pageSize = 10, int? countryId = null);
         
         Task<string> UpdateBasicData(long listingRentId, string title, string description, List<int> aspectTypeIdList);
         Task SetReservationTypeApprobation(long listingRentId, int value1, int value2, int value3);

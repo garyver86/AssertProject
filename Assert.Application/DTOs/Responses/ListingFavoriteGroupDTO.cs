@@ -20,6 +20,7 @@ namespace Assert.Application.DTOs.Responses
         public short GroupStatus { get; set; }
 
         public virtual ICollection<ListingFavoriteDTO> TlListingFavorites { get; set; } = new List<ListingFavoriteDTO>();
+        public int totalRegisters { get; set; }
 
     }
     public partial class ListingFavoriteDTO

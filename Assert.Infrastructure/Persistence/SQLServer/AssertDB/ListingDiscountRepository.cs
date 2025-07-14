@@ -17,6 +17,12 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             _priceRepository = listingPriceRepository;
         }
 
+        public async Task<List<TlListingDiscountForRate>?> Get(long listingRentId)
+        {
+            List<TlListingDiscountForRate> activeDiscounts = await _context.TlListingDiscountForRates.Where(x => x.ListingRentId == listingRentId).ToListAsync();
+            return activeDiscounts;
+        }
+
         public async Task SetDiscounts(long listingRentId, List<(int, decimal)> discountList)
         {
             List<TlListingDiscountForRate> activeDiscounts = await _context.TlListingDiscountForRates.Where(x => x.ListingRentId == listingRentId).ToListAsync();

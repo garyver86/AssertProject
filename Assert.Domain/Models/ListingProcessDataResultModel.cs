@@ -50,5 +50,6 @@ namespace Assert.Domain.Models
         public List<TlListingRentRule>? Rules { get; set; }
         public TlCheckInOutPolicy? TlCheckInOutPolicy { get; set; }
         public int? CancelationPolicyTypeId { get; set; }
+        public string? CurrencyCode { get; internal set; }
     }
 }

@@ -16,6 +16,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         IListingStatusRepository _listingStatusRepository,
         IExceptionLoggerService _exceptionLoggerService,
         IListingViewHistoryRepository _listingViewHistoryRepository,
+        IListingFavoriteRepository _favoritesRepository,
         ILogger<ListingRentRepository> _logger) : IListingRentRepository
     {
         public async Task<TlListingRent> ChangeStatus(long id, int ownerID, int newStatus, Dictionary<string, string> userInfo)
@@ -405,8 +406,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             return result;
         }
 
-        public async Task<(List<TlListingRent>, PaginationMetadata)> GetFeatureds(int pageNumber = 1, int pageSize = 10, int? countryId = null)
+        public async Task<(List<TlListingRent>, PaginationMetadata)> GetFeatureds(long userId, int pageNumber = 1, int pageSize = 10, int? countryId = null)
         {
+            List<long> favoritesList = await _favoritesRepository.GetAllFavoritesList(userId);
             var skipAmount = (pageNumber - 1) * pageSize;
 
             var query = _context.TlListingRents
@@ -447,6 +449,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 foreach (var listing in result)
                 {
+                    listing.isFavorite = favoritesList.Contains(listing.ListingRentId);
                     foreach (var prop in listing.TpProperties)
                     {
                         prop.TpPropertyAddresses = new List<TpPropertyAddress>

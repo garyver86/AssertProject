@@ -1,4 +1,6 @@
-﻿namespace Assert.Application.DTOs.Responses
+﻿using Assert.Domain.Models;
+
+namespace Assert.Application.DTOs.Responses
 {
     public class ProcessDataRequest
     {
@@ -39,6 +41,10 @@
         public int? CurrencyId { get; set; }
         public int? Bathrooms { get; set; }
         public decimal? WeekendPrice { get; set; }
+        public int? MinimunNoticeDays { get; set; }
+        public int? PreparationDays { get; set; }
+        public CheckInPoliciesModel? CheckInPolicies { get; set; }
+        public List<int> Rules { get; set; }
     }
     public class ProcessData_Address : AddressDTO
     {

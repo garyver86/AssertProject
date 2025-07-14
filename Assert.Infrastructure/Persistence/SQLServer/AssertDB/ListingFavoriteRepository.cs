@@ -16,18 +16,19 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         {
             List<TlListingFavoriteGroup> groups = await _context.TlListingFavoriteGroups
                 .Where(x => x.UserId == userId && x.GroupStatus == 1)
-                .Include(x => x.TlListingFavorites)
+                //.Include(x => x.TlListingFavorites)
                 .AsNoTracking()
                 .ToListAsync();
 
             foreach (var group in groups)
             {
-                var last = await _context.TlListingFavorites
+                var _favorites = await _context.TlListingFavorites
                                         .Where(x => x.FavoriteGroupId == group.FavoriteGroupListingId && x.UserId == userId)
-                                        .OrderByDescending(x => x.CreateAt)
-                                        .FirstOrDefaultAsync();
-                if (last != null)
+                                        .OrderByDescending(x => x.CreateAt).ToListAsync();
+                group.UserId = _favorites.Count(); // Set the userId to the count of favorites in the group
+                if (_favorites?.FirstOrDefault() != null)
                 {
+                    var last = _favorites.First();
                     var ListingRent = await _context.TlListingRents.Where(x => x.ListingRentId == last.ListingRentId)
                                                 .Include(x => x.ListingStatus)
                                                 .Include(x => x.AccomodationType)
@@ -42,15 +43,20 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                                                 .Include(x => x.TlListingReviews)
                                                 .AsNoTracking().FirstOrDefaultAsync();
                     last.ListingRent = ListingRent;
+                    group.TlListingFavorites = new TlListingFavorite[] { last };
                 }
-                group.TlListingFavorites = new TlListingFavorite[]
+                else
                 {
-                    last ?? new TlListingFavorite
+                    group.TlListingFavorites = new TlListingFavorite[]
                     {
-                        ListingRentId = 0, // Default value if no favorites exist
-                        CreateAt = DateTime.UtcNow // Set to current time if no favorites exist
-                    }
-                };
+                        new TlListingFavorite
+                        {
+                            ListingRentId = 0, // Default value if no favorites exist
+                            CreateAt = DateTime.UtcNow // Set to current time if no favorites exist
+                        }
+                    };
+
+                }
             }
             return groups;
         }
@@ -95,7 +101,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         public async Task ToggleFavorite(long listingRentId, long groupId, bool setAsFavorite, int userId)
         {
             TlListingFavoriteGroup group = _context.TlListingFavoriteGroups.Where(x => x.FavoriteGroupListingId == groupId && x.GroupStatus == 1)
-                .Include(x=>x.TlListingFavorites).FirstOrDefault();
+                .Include(x => x.TlListingFavorites).FirstOrDefault();
 
             if (group.UserId != userId)
             {
@@ -125,6 +131,15 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 }
             }
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<long>> GetAllFavoritesList(long userId)
+        {
+            List<long> favoriresList = await _context.TlListingFavorites
+               .Where(x => x.UserId == userId && x.FavoriteGroup.GroupStatus == 1)
+               .AsNoTracking()
+               .Select(x => x.ListingRentId).ToListAsync();
+            return favoriresList;
         }
     }
 }
