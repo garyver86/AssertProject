@@ -43,7 +43,9 @@ namespace Assert.Application.Mappings
             CreateMap<Domain.Models.Profile.Profile, ProfileDTO>();
             CreateMap<TuUser, AdditionalProfileDataDTO>()
             .ForMember(dest => dest.AdditionalProfileDataId,
-                opt => opt.MapFrom(src => src.TuAdditionalProfiles.First().AdditionalProfileId))
+                opt => opt.MapFrom(src => src.TuAdditionalProfiles.FirstOrDefault() != null
+                    ? src.TuAdditionalProfiles.First().AdditionalProfileId
+                    : 0))
             .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
             .ForMember(dest => dest.WhatIDo,
                 opt => opt.MapFrom(src => src.TuAdditionalProfiles.FirstOrDefault() != null
