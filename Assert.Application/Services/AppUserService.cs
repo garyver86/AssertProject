@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using ApplicationException = Assert.Application.Exceptions.ApplicationException;
+using ValidationException = Assert.Application.Exceptions.ValidationException;
 
 namespace Assert.Application.Services;
 
@@ -438,6 +439,26 @@ public class AppUserService(
         }
 
         var response = _customMapper.MapUserToAdditionalProfile(additionalProfile);
+
+        return new ReturnModelDTO
+        {
+            StatusCode = ResultStatusCode.OK,
+            Data = response
+        };
+    }
+
+    public async Task<ReturnModelDTO> UpsertAdditionalProfile(AdditionalProfileDataDTO additionalProfileData)
+    {
+        if (additionalProfileData is null)
+            throw new ApplicationException("Los datos adicionales de perfil no pueden ser nulos.");
+
+        var languajes = _mapper.Map<List<TLanguage>>(additionalProfileData.Languages);
+
+        var response = await _userRepository.UpsertAdditionalProfile(additionalProfileData.AdditionalProfileDataId,
+            additionalProfileData.WhatIDo ?? "", additionalProfileData.WantedToGo ?? "", additionalProfileData.Pets ?? "",
+            additionalProfileData.Birthday ?? null, languajes ?? null, additionalProfileData.IntroduceYourself ?? "",
+            additionalProfileData.LiveAt?.CityId ?? 0, additionalProfileData.LiveAt?.CityName ?? "",
+            additionalProfileData.LiveAt?.Location ?? "");
 
         return new ReturnModelDTO
         {

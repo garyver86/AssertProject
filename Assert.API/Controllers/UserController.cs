@@ -117,7 +117,6 @@ namespace Assert.API.Controllers
             //}
         }
 
-
         /// <summary>
         /// Servicio que actualiza la información personal del usuario.
         /// </summary>
@@ -223,11 +222,6 @@ namespace Assert.API.Controllers
         [HttpPost("UpsertAdditionalProfileData")]
         [Authorize(Policy = "GuestOrHostOrAdmin")]
         public async Task<ReturnModelDTO> UpsertAdditionalProfileData([FromBody] AdditionalProfileDataDTO data)
-        => new ReturnModelDTO<int>()
-        {
-            HasError = false,
-            StatusCode = "200",
-            Data = 1
-        };
+        =>  await _userService.UpsertAdditionalProfile(data);
     }
 }

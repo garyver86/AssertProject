@@ -3221,7 +3221,7 @@ public partial class InfraAssertDbContext : DbContext
 
             entity.Property(e => e.AdditionalProfileId).HasColumnName("additionalProfileId");
             entity.Property(e => e.Additional)
-                .HasMaxLength(10)
+                .HasMaxLength(500)
                 .IsFixedLength()
                 .HasColumnName("additional");
             entity.Property(e => e.Pets)

@@ -470,14 +470,14 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
                 var guestReviews = userWithData.HasGuestReviews ?
                     await _dbContext.TuUserReviews
-                        .Where(r => r.UserId == _metadata.UserId) 
+                        .Where(r => r.UserId == _metadata.UserId)
                         .OrderByDescending(r => r.DateTimeReview)
                         .Take(2)
                         .ToListAsync() : new List<TuUserReview>();
 
                 var hostReviews = userWithData.HasHostReviews ?
                     await _dbContext.TlListingReviews
-                        .Where(r => r.ListingRent.OwnerUserId == _metadata.UserId) 
+                        .Where(r => r.ListingRent.OwnerUserId == _metadata.UserId)
                         .OrderByDescending(r => r.DateTimeReview)
                         .Take(2)
                         .ToListAsync() : new List<TlListingReview>();
@@ -534,7 +534,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
                 return profile;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, $"Exception when get all profile from user login: {_metadata.User}");
                 throw new InfrastructureException(ex.Message);
@@ -545,6 +545,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         {
             var additionalProfile = await _dbContext.TuUsers
                 .Include(u => u.TuAdditionalProfiles)
+                    .ThenInclude(ap => ap.TuAdditionalProfileLanguages)
+                        .ThenInclude(ad => ad.Language)
                 .FirstOrDefaultAsync(ap => ap.UserId == _metadata.UserId);
 
             if (additionalProfile == null)
@@ -555,14 +557,93 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
             return additionalProfile;
         }
+
+        public async Task<int> UpsertAdditionalProfile(int objectId, string whatIDo,
+            string wantedToGo, string pets, DateTime? birthday, List<TLanguage>? languages,
+            string introduceYourself, int cityId, string cityName, string location)
+        {
+            TuAdditionalProfile additionalProfile;
+
+            if (objectId > 0) // Update
+            {
+                additionalProfile = await _dbContext.TuAdditionalProfiles
+                    .Include(x => x.TuAdditionalProfileLanguages)
+                    .Include(l => l.TuAdditionalProfileLiveAts)
+                    .FirstOrDefaultAsync(ap => ap.AdditionalProfileId == objectId);
+
+                if (additionalProfile == null)
+                {
+                    _logger.LogError($"No additional profile found for user ID: {_metadata.UserId}");
+                    throw new NotFoundException($"No existe información de perfil adicional para el usuario con ID: {_metadata.UserId}");
+                }
+            }
+            else // Create
+            {
+                additionalProfile = new TuAdditionalProfile { UserId = _metadata.UserId };
+                await _dbContext.TuAdditionalProfiles.AddAsync(additionalProfile);
+            }
+
+            if (!string.IsNullOrWhiteSpace(whatIDo)) additionalProfile.WhatIdo = whatIDo;
+            if (!string.IsNullOrWhiteSpace(wantedToGo)) additionalProfile.WantedToGo = wantedToGo;
+            if (!string.IsNullOrWhiteSpace(pets)) additionalProfile.Pets = pets;
+            if (!string.IsNullOrWhiteSpace(introduceYourself)) additionalProfile.Additional = introduceYourself;
+
+            if (birthday is not null && birthday.Value != DateTime.MinValue)
+            {
+                await _dbContext.Entry(additionalProfile)
+                    .Reference(ap => ap.User)
+                    .LoadAsync();
+                additionalProfile.User!.DateOfBirth = DateOnly.FromDateTime(birthday.Value);
+            }
+
+            if (languages is { Count: > 0 })
+            {
+                additionalProfile.TuAdditionalProfileLanguages ??= new List<TuAdditionalProfileLanguage>();
+                additionalProfile.TuAdditionalProfileLanguages.Clear();
+
+                foreach (var lang in languages)
+                {
+                    additionalProfile.TuAdditionalProfileLanguages.Add(new TuAdditionalProfileLanguage
+                    {
+                        LanguageId = lang.LanguageId,
+                        AdditionalProfileId = additionalProfile.AdditionalProfileId,
+                        UserId = _metadata.UserId
+                    });
+                }
+            }
+
+            var liveAt = additionalProfile.TuAdditionalProfileLiveAts.FirstOrDefault();
+            if (liveAt != null) // Update
+            {
+                if (cityId != 0) liveAt.CityId = cityId;
+                if (!string.IsNullOrWhiteSpace(cityName)) liveAt.CityName = cityName;
+                if (!string.IsNullOrWhiteSpace(location)) liveAt.Location = location;
+            }
+            else // Create
+            {
+                if (cityId != 0)
+                {
+                    additionalProfile.TuAdditionalProfileLiveAts.Add(new TuAdditionalProfileLiveAt
+                    {
+                        CityId = cityId,
+                        CityName = cityName ?? "",
+                        Location = location ?? ""
+                    });
+                }
+            }
+
+            await _dbContext.SaveChangesAsync();
+            return additionalProfile.AdditionalProfileId;
+        }
         #endregion
 
         #region private funcs
-        private string FormatReviewerName(TuUser? user)
+        private static string FormatReviewerName(TuUser? user)
             => user is null ? "" : $"{user.Name} {user.LastName}".Trim();
 
-        private string FormatReviewDate(DateTime? date)
+        private static string FormatReviewDate(DateTime? date)
             => date?.ToString("dd/MM/yyyy") ?? string.Empty;
+
         private static string FormatTimeInCompany(DateTime? registerDate)
         {
             if (!registerDate.HasValue)

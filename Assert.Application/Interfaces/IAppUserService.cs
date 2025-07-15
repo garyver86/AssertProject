@@ -18,5 +18,6 @@ public interface IAppUserService
     Task<ReturnModelDTO> ChangePassword(ChangePasswordRequest pwd);
     Task<ReturnModelDTO> GetUserProfile();
     Task<ReturnModelDTO> GetAdditionalProfile();
+    Task<ReturnModelDTO> UpsertAdditionalProfile(AdditionalProfileDataDTO additionalProfileData);
 
 }

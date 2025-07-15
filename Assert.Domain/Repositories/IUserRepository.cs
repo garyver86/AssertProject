@@ -28,5 +28,9 @@ namespace Assert.Domain.Repositories
         Task<Profile> GetAllProfile();
 
         Task<TuUser> GetAdditionalProfile();
+
+        Task<int> UpsertAdditionalProfile(int objectId, string whatIDo,
+            string wantedToGo, string pets, DateTime? birthday, List<TLanguage>? languages,
+            string introduceYourself, int cityId, string cityName, string location);
     }
 }
