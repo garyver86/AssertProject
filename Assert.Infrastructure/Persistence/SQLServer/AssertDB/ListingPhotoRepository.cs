@@ -45,16 +45,22 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task<List<TlListingPhoto>> GetByListingRentId(long listingRentId)
         {
-            var result = await _context.TlListingPhotos.Where(x => x.ListingRentId == listingRentId)
+            using (var dbContedt = new InfraAssertDbContext(dbOptions))
+            {
+                var result = await dbContedt.TlListingPhotos.Where(x => x.ListingRentId == listingRentId)
                 .Include(x => x.SpaceType).ToListAsync();
-            return result;
+                return result;
+            }
         }
 
         public async Task<List<TlListingPhoto>> GetByListingRentId(long listingRentId, int userID)
         {
-            var result = await _context.TlListingPhotos.Where(x => x.ListingRentId == listingRentId && x.ListingRent.OwnerUserId == userID)
+            using (var dbContedt = new InfraAssertDbContext(dbOptions))
+            {
+                var result = await dbContedt.TlListingPhotos.Where(x => x.ListingRentId == listingRentId && x.ListingRent.OwnerUserId == userID)
                 .Include(x => x.SpaceType).ToListAsync();
-            return result;
+                return result;
+            }
         }
 
         public async Task<ReturnModel> UploadPhoto(long listingRentId, string fileName, string description, int? spaceType, bool isMain)

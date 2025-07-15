@@ -124,6 +124,7 @@ namespace Assert.Application.Mappings
             CreateMap<PayMethodOfPayment, PayMethodOfPaymentDTO>();
             CreateMap<TApprovalPolicyType, ApprovalPolicyDTO>();
             CreateMap<TCancelationPolicyType, CancelationPolicyDTO>();
+            CreateMap<TpRuleType, RentRuleDTO>();
             CreateMap<TuEmergencyContact, EmergencyContactDTO>().ReverseMap();
             CreateMap<TuUser, UserDTO>().
                 ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.TuEmails.ToList().FirstOrDefault(email => email.IsPrincipal ?? true) != null ? src.TuEmails.ToList().First(email => email.IsPrincipal ?? true).Email : null))

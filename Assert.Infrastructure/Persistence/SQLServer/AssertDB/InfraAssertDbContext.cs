@@ -5,9 +5,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 
 public partial class InfraAssertDbContext : DbContext
 {
-    public InfraAssertDbContext()
-    {
-    }
+    //public InfraAssertDbContext()
+    //{
+    //}
 
     public InfraAssertDbContext(DbContextOptions<InfraAssertDbContext> options)
         : base(options)
@@ -2235,6 +2235,10 @@ public partial class InfraAssertDbContext : DbContext
 
             entity.ToTable("TL_ListingRent");
 
+            entity.HasIndex(e => e.OwnerUserId, "IX_TL_ListingRent_ownerUserId");
+
+            entity.HasIndex(e => e.OwnerUserId, "IX_TlListingRents_OwnerUserId");
+
             entity.Property(e => e.ListingRentId).HasColumnName("listingRentId");
             entity.Property(e => e.AccomodationTypeId).HasColumnName("accomodationTypeId");
             entity.Property(e => e.AllDoorsLocked).HasColumnName("allDoorsLocked");
@@ -2278,6 +2282,9 @@ public partial class InfraAssertDbContext : DbContext
             entity.Property(e => e.OwnerUserId).HasColumnName("ownerUserId");
             entity.Property(e => e.PreparationDays).HasColumnName("preparationDays");
             entity.Property(e => e.PresenceOfWeapons).HasColumnName("presenceOfWeapons");
+            entity.Property(e => e.PrivateBathroom).HasColumnName("privateBathroom");
+            entity.Property(e => e.PrivateBathroomLodging).HasColumnName("privateBathroomLodging");
+            entity.Property(e => e.SharedBathroom).HasColumnName("sharedBathroom");
             entity.Property(e => e.StepsCount).HasColumnName("stepsCount");
 
             entity.HasOne(d => d.AccomodationType).WithMany(p => p.TlListingRents)
@@ -2361,6 +2368,8 @@ public partial class InfraAssertDbContext : DbContext
             entity.HasKey(e => e.ListingReviewId);
 
             entity.ToTable("TL_ListingReview");
+
+            entity.HasIndex(e => e.ListingRentId, "IX_TL_ListingReview_listingRentId");
 
             entity.Property(e => e.ListingReviewId).HasColumnName("listingReviewId");
             entity.Property(e => e.BookId).HasColumnName("bookId");
@@ -3585,6 +3594,8 @@ public partial class InfraAssertDbContext : DbContext
 
             entity.ToTable("TU_User");
 
+            entity.HasIndex(e => e.UserId, "IX_TuUsers_UserId");
+
             entity.Property(e => e.UserId).HasColumnName("userId");
             entity.Property(e => e.AccountType).HasColumnName("accountType");
             entity.Property(e => e.DateOfBirth).HasColumnName("dateOfBirth");
@@ -3794,6 +3805,10 @@ public partial class InfraAssertDbContext : DbContext
             entity.HasKey(e => e.UserReviewId);
 
             entity.ToTable("TU_UserReview");
+
+            entity.HasIndex(e => e.UserId, "IX_TU_UserReview_userId");
+
+            entity.HasIndex(e => e.UserId, "IX_TuUserReviewUsers_UserId");
 
             entity.Property(e => e.UserReviewId).HasColumnName("userReviewId");
             entity.Property(e => e.BookId).HasColumnName("bookId");

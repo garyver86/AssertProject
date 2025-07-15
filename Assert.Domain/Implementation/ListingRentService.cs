@@ -5,6 +5,7 @@ using Assert.Domain.Services;
 using Assert.Domain.ValueObjects;
 using Microsoft.Extensions.Configuration;
 using System.Data;
+using System.Reflection;
 
 namespace Assert.Domain.Implementation
 {
@@ -303,7 +304,7 @@ namespace Assert.Domain.Implementation
                         if (newListing.StatusCode == ResultStatusCode.OK)
                         {
                             await _listingViewStepRepository.SetEnded(newListing.Data?.ListingRentId ?? 0, viewType.ViewTypeId, true);
-
+                            newListing.Data = await _listingRentRepository.Get(newListing.Data?.ListingRentId ?? 0, userId);
                             ReturnModel<ListingProcessDataResultModel> NextStepResult = await _StepViewService.GetNextListingStepViewData(viewType.NextViewTypeId, newListing.Data, useTechnicalMessages);
                             if (NextStepResult.StatusCode == ResultStatusCode.OK)
                             {
@@ -363,7 +364,7 @@ namespace Assert.Domain.Implementation
                                                 ResultError = newStatus.ResultError
                                             };
                                         }
-
+                                        listing = await _listingRentRepository.Get(listingRentId ?? 0, userId);
                                         ReturnModel<ListingProcessDataResultModel> NextStepResult = await _StepViewService.GetNextListingStepViewData(viewType.NextViewTypeId, listing, useTechnicalMessages);
                                         if (NextStepResult.StatusCode == ResultStatusCode.OK)
                                         {
@@ -388,7 +389,7 @@ namespace Assert.Domain.Implementation
                                 }
                                 else
                                 {
-
+                                    listing = await _listingRentRepository.Get(listingRentId ?? 0, userId);
                                     ReturnModel<ListingProcessDataResultModel> NextStepResult = await _StepViewService.GetNextListingStepViewData(viewType.NextViewTypeId, listing, useTechnicalMessages);
                                     if (NextStepResult.StatusCode == ResultStatusCode.OK)
                                     {

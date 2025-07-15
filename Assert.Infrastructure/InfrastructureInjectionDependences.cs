@@ -21,14 +21,22 @@ public static class InfrastructureInjectionDependences
     {
         var connectionString = configuration.GetConnectionString("AssertDB");
 
-        services.AddDbContext<InfraAssertDbContext>(options =>
-        options.UseSqlServer(connectionString,
-            sqlServerOptions => sqlServerOptions.EnableRetryOnFailure(
-                maxRetryCount: 3,
-                maxRetryDelay: TimeSpan.FromSeconds(20),
-                errorNumbersToAdd: null
-            )),
-        ServiceLifetime.Scoped);
+        //services.AddDbContext<InfraAssertDbContext>(options =>
+        //options.UseSqlServer(connectionString,
+        //    sqlServerOptions => sqlServerOptions.EnableRetryOnFailure(
+        //        maxRetryCount: 3,
+        //        maxRetryDelay: TimeSpan.FromSeconds(20),
+        //        errorNumbersToAdd: null
+        //    )),
+        //ServiceLifetime.Scoped);
+        services.AddDbContextPool<InfraAssertDbContext>(options =>
+            options.UseSqlServer(connectionString, sqlServerOptions =>
+            {
+                sqlServerOptions.EnableRetryOnFailure(
+                    maxRetryCount: 3,
+                    maxRetryDelay: TimeSpan.FromSeconds(20),
+                    errorNumbersToAdd: null);
+            }));
 
         services.AddScoped<IJWTSecurity, JWTSecurityService>();
         services.AddScoped<IAuthentication, AuthenticationService>();

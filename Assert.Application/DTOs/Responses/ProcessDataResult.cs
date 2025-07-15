@@ -22,7 +22,7 @@ namespace Assert.Application.DTOs
     }
     public class ListingProcessData_ListingData
     {
-        internal int? PropertySubTypeId;
+        public int? PropertySubTypeId { get; set; }
 
         public List<PhotoDTO> ListingPhotos { get; set; }
         public int? MaxGuests { get; set; }
@@ -50,6 +50,10 @@ namespace Assert.Application.DTOs
         public int? MinimunNoticeDays { get; set; }
         public int? PreparationDays { get; set; }
         public List<RentRuleDTO>? Rules { get; set; }
-        public CheckInOutPolicyDTO? TlCheckInOutPolicy { get; set; }   
+        public CheckInOutPolicyDTO? TlCheckInOutPolicy { get; set; }
+        public int? CancelationPolicyTypeId { get; set; }
+        public int? privateBathroom { get; set; }
+        public int? privateBathroomLodging { get; set; }
+        public int? sharedBathroom { get; set; }
     }
 }
