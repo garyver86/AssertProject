@@ -5,7 +5,6 @@
         public long? ListingRentId { get; set; }
         public int Step { get; set; }
         public string ViewCode { get; set; }
-
         public int? SubtypeId { get; set; }
         public int? AccomodationId { get; set; }
         public ProcessData_AddressModel Address { get; set; }
@@ -42,6 +41,9 @@
         public int? PreparationDays { get; set; }
         public CheckInPoliciesModel? CheckInPolicies { get; set; }
         public List<int> Rules { get; set; }
+        public int? privateBathroom { get; set; }
+        public int? privateBathroomLodging { get; set; }
+        public int? sharedBathroom { get; set; }
     }
     public class CheckInPoliciesModel
     {

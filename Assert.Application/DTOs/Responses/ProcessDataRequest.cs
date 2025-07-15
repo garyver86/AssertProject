@@ -45,6 +45,9 @@ namespace Assert.Application.DTOs.Responses
         public int? PreparationDays { get; set; }
         public CheckInPoliciesModel? CheckInPolicies { get; set; }
         public List<int> Rules { get; set; }
+        public int? privateBathroom { get; set; }
+        public int? privateBathroomLodging { get; set; }
+        public int? sharedBathroom { get; set; }
     }
     public class ProcessData_Address : AddressDTO
     {

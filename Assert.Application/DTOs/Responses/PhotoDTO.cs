@@ -14,5 +14,6 @@
         public object SpaceType { get; set; }
         public object SpaceTypeCode { get; set; }
         public int? SpaceTypeId { get; set; }
+        public long ListingPhotoId { get; set; }
     }
 }

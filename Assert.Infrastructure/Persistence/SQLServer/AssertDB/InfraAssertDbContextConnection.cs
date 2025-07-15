@@ -7,11 +7,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
     {
         private readonly IConfiguration _configuration;
 
-        public InfraAssertDbContext(DbContextOptions<InfraAssertDbContext> options, IConfiguration configuration)
-            : base(options)
-        {
-            _configuration = configuration;
-        }
+        //public InfraAssertDbContext(DbContextOptions<InfraAssertDbContext> options, IConfiguration configuration)
+        //    : base(options)
+        //{
+        //    _configuration = configuration;
+        //}
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

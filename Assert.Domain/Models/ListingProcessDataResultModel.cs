@@ -17,11 +17,11 @@ namespace Assert.Domain.Models
         public List<TpSecurityItemType> SecurityItems { get; set; }
         public List<TApprovalPolicyType> ApprovalPolicyType { get; set; }
         public List<TpRuleType> RuleTypes { get; set; }
-        public Task<List<TCancelationPolicyType>> CancelationPolicyTypes { get; set; }
+        public List<TCancelationPolicyType> CancelationPolicyTypes { get; set; }
     }
     public class ListingProcessData_ListingData
     {
-        internal int? PropertySubTypeId;
+        public int? PropertySubTypeId { get; set; }
 
         public List<TlListingPhoto>? ListingPhotos { get; set; }
         public int? MaxGuests { get; set; }
@@ -50,6 +50,9 @@ namespace Assert.Domain.Models
         public List<TlListingRentRule>? Rules { get; set; }
         public TlCheckInOutPolicy? TlCheckInOutPolicy { get; set; }
         public int? CancelationPolicyTypeId { get; set; }
-        public string? CurrencyCode { get; internal set; }
+        public string? CurrencyCode { get; set; }
+        public int? privateBathroom { get; set; }
+        public int? privateBathroomLodging { get; set; }
+        public int? sharedBathroom { get; set; }
     }
 }

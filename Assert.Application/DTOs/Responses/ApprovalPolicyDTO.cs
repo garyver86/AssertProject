@@ -12,5 +12,6 @@
         public bool? IsRecommended { get; set; }
 
         public bool? Status { get; set; }
+        public int ApprovalPolicyTypeId { get; set; }
     }
 }

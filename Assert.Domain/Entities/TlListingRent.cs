@@ -61,6 +61,12 @@ public partial class TlListingRent
 
     public string? CheckOutDays { get; set; }
 
+    public int? PrivateBathroom { get; set; }
+
+    public int? PrivateBathroomLodging { get; set; }
+
+    public int? SharedBathroom { get; set; }
+
     public virtual TlAccommodationType? AccomodationType { get; set; }
 
     public virtual TApprovalPolicyType? ApprovalPolicyType { get; set; }

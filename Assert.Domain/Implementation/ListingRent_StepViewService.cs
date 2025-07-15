@@ -88,6 +88,9 @@ namespace Assert.Domain.Implementation
             result.Data.ListingData.Bathrooms = data.Bathrooms;
             result.Data.ListingData.Bedrooms = data.Bedrooms;
             result.Data.ListingData.Beds = data.Beds;
+            result.Data.ListingData.privateBathroom = data.PrivateBathroom;
+            result.Data.ListingData.privateBathroomLodging = data.PrivateBathroomLodging;
+            result.Data.ListingData.sharedBathroom = data.SharedBathroom;
             var property = data.TpProperties.FirstOrDefault();
             result.Data.ListingData.Latitude = data.TpProperties.FirstOrDefault()?.Latitude;
             result.Data.ListingData.Longitude = data.TpProperties.FirstOrDefault()?.Longitude;
@@ -175,7 +178,7 @@ namespace Assert.Domain.Implementation
                     return result;
                 case "LV010":
                     //Devolver información de las políticas de cancelación
-                    result.Data.Parametrics.CancelationPolicyTypes = _cancelationPoliciesTypesRepository.GetActives();
+                    result.Data.Parametrics.CancelationPolicyTypes = await _cancelationPoliciesTypesRepository.GetActives();
                     return result;
                 default:
                     return new ReturnModel<ListingProcessDataResultModel>
@@ -678,9 +681,10 @@ namespace Assert.Domain.Implementation
             //        ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe definir si todas las puertas tienen seguro en la propiedad.", useTechnicalMessages)
             //    };
             //}
-            if (listing.Beds != request_.Beds || listing.Bedrooms != request_.Bedrooms || listing.AllDoorsLocked != request_.AllDoorsLooked || listing.MaxGuests != request_.MaxGuests)
+            if (listing.Beds != request_.Beds || listing.Bedrooms != request_.Bedrooms || listing.AllDoorsLocked != request_.AllDoorsLooked || listing.MaxGuests != request_.MaxGuests
+                || listing.PrivateBathroom != request_.privateBathroom || listing.PrivateBathroomLodging != request_.privateBathroomLodging || listing.SharedBathroom != request_.sharedBathroom)
             {
-                await _listingRentRepository.SetCapacity(listing.ListingRentId, request_.Beds, request_.Bedrooms, request_.Bathrooms, request_.MaxGuests);
+                await _listingRentRepository.SetCapacity(listing.ListingRentId, request_.Beds, request_.Bedrooms, request_.Bathrooms, request_.MaxGuests, request_.privateBathroom, request_.privateBathroomLodging, request_.sharedBathroom);
             }
             return new ReturnModel
             {

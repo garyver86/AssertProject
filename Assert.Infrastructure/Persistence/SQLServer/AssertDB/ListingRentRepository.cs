@@ -532,23 +532,49 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             await _context.SaveChangesAsync();
         }
 
-        public async Task SetCapacity(long listingRentId, int? beds, int? bedrooms, bool? allDoorsLocked, int? maxGuests)
+        public async Task SetCapacity(long listingRentId, int? beds, int? bedrooms, bool? allDoorsLocked, int? maxGuests, int? privateBathroom, int? privateBathroomLodging, int? sharedBathroom)
         {
             TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
             listing.Beds = beds;
             listing.Bedrooms = bedrooms;
             listing.AllDoorsLocked = allDoorsLocked;
             listing.MaxGuests = maxGuests;
+
+            if (privateBathroom >= 0)
+            {
+                listing.PrivateBathroom = privateBathroom;
+            }
+            if (privateBathroomLodging >= 0)
+            {
+                listing.PrivateBathroomLodging = privateBathroomLodging;
+            }
+            if (sharedBathroom >= 0)
+            {
+                listing.SharedBathroom = sharedBathroom;
+            }
             await _context.SaveChangesAsync();
         }
 
-        public async Task SetCapacity(long listingRentId, int? beds, int? bedrooms, int? bathrooms, int? maxGuests)
+        public async Task SetCapacity(long listingRentId, int? beds, int? bedrooms, int? bathrooms, int? maxGuests, int? privateBathroom, int? privateBathroomLodging, int? sharedBathroom)
         {
             TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
             listing.Beds = beds;
             listing.Bedrooms = bedrooms;
             listing.Bathrooms = bathrooms;
             listing.MaxGuests = maxGuests;
+
+            if(privateBathroom>=0)
+            {
+                listing.PrivateBathroom = privateBathroom;
+            }
+            if(privateBathroomLodging>=0)
+            {
+                listing.PrivateBathroomLodging = privateBathroomLodging;
+            }
+            if(sharedBathroom>=0)
+            {
+                listing.SharedBathroom = sharedBathroom;
+            }
             await _context.SaveChangesAsync();
         }
 
@@ -661,7 +687,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
             else
             {
-                throw new FormatException("Formato de hora de entrada no válido");
+                throw new FormatException("Formato de hora de entrada no válido (HH:mm)");
             }
 
             if (TimeOnly.TryParseExact(checkoutTime, "HH:mm", out TimeOnly horaSalida))
@@ -670,7 +696,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
             else
             {
-                throw new FormatException("Formato de hora de salida no válido");
+                throw new FormatException("Formato de hora de salida no válido (HH:mm)");
             }
 
             if (chkPolicies != null)
