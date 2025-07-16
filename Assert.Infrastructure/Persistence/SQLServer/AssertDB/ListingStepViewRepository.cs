@@ -3,6 +3,7 @@ using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
@@ -10,10 +11,13 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
     {
         private readonly InfraAssertDbContext _context;
         private readonly IErrorHandler _errorHandler;
-        public ListingStepViewRepository(InfraAssertDbContext infraAssertDbContext, IErrorHandler errorHandler)
+        private readonly DbContextOptions<InfraAssertDbContext> dbOptions;
+
+        public ListingStepViewRepository(InfraAssertDbContext infraAssertDbContext, IErrorHandler errorHandler, IServiceProvider serviceProvider)
         {
             _context = infraAssertDbContext;
             _errorHandler = errorHandler;
+            dbOptions = serviceProvider.GetRequiredService<DbContextOptions<InfraAssertDbContext>>();
         }
         public async Task<TlListingStepsView> Get(List<long> listingSteps, int viewTypeId)
         {
@@ -55,17 +59,23 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task SetEnded(int listngStepsViewId, bool isEnded)
         {
-            var result = await _context.TlListingStepsViews.FirstOrDefaultAsync(x => x.ListngStepsViewId == listngStepsViewId);
-            result.IsEnded = isEnded;
-            await _context.SaveChangesAsync();
+            using (var dbcontext = new InfraAssertDbContext(dbOptions))
+            {
+                var result = await dbcontext.TlListingStepsViews.FirstOrDefaultAsync(x => x.ListngStepsViewId == listngStepsViewId);
+                result.IsEnded = isEnded;
+                await _context.SaveChangesAsync();
+            }
         }
         public async Task SetEnded(long listingRentId, int viewTypeId, bool isEnded)
         {
-            var result = await _context.TlListingStepsViews.FirstOrDefaultAsync(x => x.ViewTypeId == viewTypeId && x.ListingSteps.ListingRentId == listingRentId);
-            if (result != null)
+            using (var dbcontext = new InfraAssertDbContext(dbOptions))
             {
-                result.IsEnded = isEnded;
-                await _context.SaveChangesAsync();
+                var result = await dbcontext.TlListingStepsViews.FirstOrDefaultAsync(x => x.ViewTypeId == viewTypeId && x.ListingSteps.ListingRentId == listingRentId);
+                if (result != null)
+                {
+                    result.IsEnded = isEnded;
+                    await _context.SaveChangesAsync();
+                }
             }
         }
     }

@@ -436,7 +436,7 @@ namespace Assert.Domain.Implementation
                 if (listing.ListingRentConfirmationDate == null)
                 {
                     await _listingRentRepository.SetAsConfirmed(listing.ListingRentId);
-                    await _listingRentRepository.ChangeStatus(listing.ListingRentId, userId, 3, clientData);
+                    //await _listingRentRepository.ChangeStatus(listing.ListingRentId, userId, 3, clientData);
                 }
                 return new ReturnModel
                 {
