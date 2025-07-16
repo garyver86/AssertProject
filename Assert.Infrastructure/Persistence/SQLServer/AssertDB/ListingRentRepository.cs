@@ -5,7 +5,9 @@ using Assert.Domain.ValueObjects;
 using Assert.Infrastructure.Exceptions;
 using Assert.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Diagnostics.Metrics;
 using System.Globalization;
 
@@ -17,8 +19,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         IExceptionLoggerService _exceptionLoggerService,
         IListingViewHistoryRepository _listingViewHistoryRepository,
         IListingFavoriteRepository _favoritesRepository,
-        ILogger<ListingRentRepository> _logger) : IListingRentRepository
+        ILogger<ListingRentRepository> _logger, IServiceProvider serviceProvider) : IListingRentRepository
     {
+
+        private readonly DbContextOptions<InfraAssertDbContext> dbOptions = serviceProvider.GetRequiredService<DbContextOptions<InfraAssertDbContext>>();
+
         public async Task<TlListingRent> ChangeStatus(long id, int ownerID, int newStatus, Dictionary<string, string> userInfo)
         {
             var listing = _context.TlListingRents.Where(x => x.ListingRentId == id).FirstOrDefault();
@@ -280,20 +285,23 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task<TlListingRent> Get(long id, int ownerID)
         {
-            var listingData = await _context.TlListingRents
-            .AsNoTracking()
-            .Where(x => x.ListingRentId == id && x.OwnerUserId == ownerID && x.ListingStatusId != 5)
-            .Select(x => new
+            dynamic listingData = null;
+            using (var context = new InfraAssertDbContext(dbOptions))
             {
-                Listing = x,
-                Status = x.ListingStatus,
-                AccomodationType = x.AccomodationType,
-                ApprovalPolicy = x.ApprovalPolicyType,
-                CancelationPolicy = x.CancelationPolicyType,
-                Owner = x.OwnerUser
-            })
-            .FirstOrDefaultAsync();
-
+                listingData = await context.TlListingRents
+                .AsNoTracking()
+                .Where(x => x.ListingRentId == id && x.OwnerUserId == ownerID && x.ListingStatusId != 5)
+                .Select(x => new
+                {
+                    Listing = x,
+                    Status = x.ListingStatus,
+                    AccomodationType = x.AccomodationType,
+                    ApprovalPolicy = x.ApprovalPolicyType,
+                    CancelationPolicy = x.CancelationPolicyType,
+                    Owner = x.OwnerUser
+                })
+                .FirstOrDefaultAsync();
+            }
             if (listingData == null) return null;
 
             var listing = listingData.Listing;
@@ -563,15 +571,15 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             listing.Bathrooms = bathrooms;
             listing.MaxGuests = maxGuests;
 
-            if(privateBathroom>=0)
+            if (privateBathroom >= 0)
             {
                 listing.PrivateBathroom = privateBathroom;
             }
-            if(privateBathroomLodging>=0)
+            if (privateBathroomLodging >= 0)
             {
                 listing.PrivateBathroomLodging = privateBathroomLodging;
             }
-            if(sharedBathroom>=0)
+            if (sharedBathroom >= 0)
             {
                 listing.SharedBathroom = sharedBathroom;
             }
