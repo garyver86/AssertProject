@@ -5,7 +5,9 @@ using Assert.Domain.ValueObjects;
 using Assert.Infrastructure.Exceptions;
 using Assert.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Diagnostics.Metrics;
 using System.Globalization;
 
@@ -17,37 +19,47 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         IExceptionLoggerService _exceptionLoggerService,
         IListingViewHistoryRepository _listingViewHistoryRepository,
         IListingFavoriteRepository _favoritesRepository,
-        ILogger<ListingRentRepository> _logger) : IListingRentRepository
+        ILogger<ListingRentRepository> _logger, IServiceProvider serviceProvider) : IListingRentRepository
     {
+
+        private readonly DbContextOptions<InfraAssertDbContext> dbOptions = serviceProvider.GetRequiredService<DbContextOptions<InfraAssertDbContext>>();
+
         public async Task<TlListingRent> ChangeStatus(long id, int ownerID, int newStatus, Dictionary<string, string> userInfo)
         {
-            var listing = _context.TlListingRents.Where(x => x.ListingRentId == id).FirstOrDefault();
-            listing.ListingStatusId = newStatus;
-            var result = await _context.SaveChangesAsync();
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                var listing = context.TlListingRents.Where(x => x.ListingRentId == id).FirstOrDefault();
+                listing.ListingStatusId = newStatus;
+                var result = await context.SaveChangesAsync();
 
-            var statusListing = await _listingStatusRepository.Get(newStatus);
+                var statusListing = await _listingStatusRepository.Get(newStatus);
 
-            _logRepository.RegisterLog(id, "Update Status " + statusListing.Code + " (StatusId:" + statusListing.ListingStatusId.ToString() + ")", userInfo["BrowserInfo"], userInfo["IsMobile"] == "True", userInfo["IpAddress"], null, userInfo["ApplicationCode"]);
+                _logRepository.RegisterLog(id, "Update Status " + statusListing.Code + " (StatusId:" + statusListing.ListingStatusId.ToString() + ")", userInfo["BrowserInfo"], userInfo["IsMobile"] == "True", userInfo["IpAddress"], null, userInfo["ApplicationCode"]);
 
-            return listing;
+                return listing;
+            }
         }
 
         public async Task<TlListingRent> Get(long id, int guestid, bool onlyActive)
         {
+            dynamic listingData = null;
             // Paso 1: Obtener datos básicos del listing
-            var listingData = await _context.TlListingRents
-         .AsNoTracking()
-         .Where(x => x.ListingRentId == id && x.ListingStatusId != 5)
-         .Select(x => new
-         {
-             Listing = x,
-             Status = x.ListingStatus,
-             AccomodationType = x.AccomodationType,
-             ApprovalPolicy = x.ApprovalPolicyType,
-             CancelationPolicy = x.CancelationPolicyType,
-             Owner = x.OwnerUser
-         })
-         .FirstOrDefaultAsync();
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                listingData = await context.TlListingRents
+                 .AsNoTracking()
+                 .Where(x => x.ListingRentId == id && x.ListingStatusId != 5)
+                 .Select(x => new
+                 {
+                     Listing = x,
+                     Status = x.ListingStatus,
+                     AccomodationType = x.AccomodationType,
+                     ApprovalPolicy = x.ApprovalPolicyType,
+                     CancelationPolicy = x.CancelationPolicyType,
+                     Owner = x.OwnerUser
+                 })
+                 .FirstOrDefaultAsync();
+            }
 
             if (listingData == null) return null;
 
@@ -122,25 +134,34 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         // Métodos auxiliares para cargar cada relación
         private async Task<List<TlListingAmenity>> LoadAmenitiesAsync(InfraAssertDbContext _context, long listingId)
         {
-            return await _context.TlListingAmenities
-                .AsNoTracking()
-                .Where(a => a.ListingRentId == listingId)
-                .Include(a => a.AmenitiesType)
-                .ToListAsync();
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlListingAmenities
+                    .AsNoTracking()
+                    .Where(a => a.ListingRentId == listingId)
+                    .Include(a => a.AmenitiesType)
+                    .ToListAsync();
+            }
         }
 
         private async Task<List<TlListingFeaturedAspect>> LoadFeaturesAsync(InfraAssertDbContext _context, long listingId)
         {
-            return await _context.TlListingFeaturedAspects
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlListingFeaturedAspects
                 .AsNoTracking()
                 .Where(f => f.ListingRentId == listingId)
                 .Include(f => f.FeaturesAspectType)
                 .ToListAsync();
+            }
         }
 
         private async Task<List<TpProperty>> LoadPropertiesAsync(InfraAssertDbContext _context, long listingId)
         {
-            var result = await _context.TpProperties
+            List<TpProperty> result = new List<TpProperty>();
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                result = await context.TpProperties
                 .AsNoTracking()
                 .Where(p => p.ListingRentId == listingId)
                 //.Include(p => p.TpPropertyAddresses)
@@ -151,6 +172,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .Include(p => p.PropertySubtype)
                     .ThenInclude(ps => ps.PropertyType)
                 .ToListAsync();
+            }
 
             foreach (var prop in result)
             {
@@ -195,105 +217,138 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         private async Task<List<TlListingPhoto>> LoadPhotosAsync(InfraAssertDbContext _context, long listingId)
         {
-            return await _context.TlListingPhotos
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlListingPhotos
                 .AsNoTracking()
                 .Where(p => p.ListingRentId == listingId)
                 .ToListAsync();
+            }
         }
 
         private async Task<List<TlListingPrice>> LoadPricesAsync(InfraAssertDbContext _context, long listingId)
         {
-            return await _context.TlListingPrices
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlListingPrices
                 .AsNoTracking()
                 .Where(p => p.ListingRentId == listingId)
                 .ToListAsync();
+            }
         }
 
         private async Task<List<TlListingRentRule>> LoadRulesAsync(InfraAssertDbContext _context, long listingId)
         {
-            return await _context.TlListingRentRules
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlListingRentRules
                 .AsNoTracking()
                 .Where(r => r.ListingId == listingId)
                 .Include(r => r.RuleType)
                 .ToListAsync();
+            }
         }
 
         private async Task<List<TlListingSecurityItem>> LoadSecurityItemsAsync(InfraAssertDbContext _context, long listingId)
         {
-            return await _context.TlListingSecurityItems
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlListingSecurityItems
                 .AsNoTracking()
                 .Where(s => s.ListingRentId == listingId)
                 .Include(s => s.SecurityItemType)
                 .ToListAsync();
+            }
         }
 
         private async Task<List<TlListingSpace>> LoadSpacesAsync(InfraAssertDbContext _context, long listingId)
         {
-            return await _context.TlListingSpaces
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlListingSpaces
                 .AsNoTracking()
                 .Where(s => s.ListingId == listingId)
                 .Include(s => s.SpaceType)
                 .ToListAsync();
+            }
         }
 
         private async Task<List<TlListingSpecialDatePrice>> LoadSpecialDatesAsync(InfraAssertDbContext _context, long listingId)
         {
-            return await _context.TlListingSpecialDatePrices
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlListingSpecialDatePrices
                 .AsNoTracking()
                 .Where(s => s.ListingRentId == listingId)
                 .ToListAsync();
+            }
         }
 
         private async Task<List<TlStayPresence>> LoadStayPresencesAsync(InfraAssertDbContext _context, long listingId)
         {
-            return await _context.TlStayPresences
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlStayPresences
                 .AsNoTracking()
                 .Where(s => s.ListingRentId == listingId)
                 .Include(s => s.StayPrecenseType)
                 .ToListAsync();
+            }
         }
 
         private async Task<List<TlListingReview>> LoadReviewsAsync(InfraAssertDbContext _context, long listingId)
         {
-            return await _context.TlListingReviews
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlListingReviews
                 .AsNoTracking()
                 .Where(r => r.ListingRentId == listingId)
                 .ToListAsync();
+            }
         }
 
         private async Task<List<TlListingDiscountForRate>> LoadDiscountsAsync(InfraAssertDbContext _context, long listingId)
         {
-            return await _context.TlListingDiscountForRates
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlListingDiscountForRates
                 .AsNoTracking()
                 .Where(c => c.ListingRentId == listingId)
                 .Include(x => x.DiscountTypeForTypePrice)
                 .ToListAsync();
+            }
         }
 
         private async Task<List<TlCheckInOutPolicy>> LoadCheckInOutPoliciesAsync(InfraAssertDbContext _context, long listingId)
         {
-            return await _context.TlCheckInOutPolicies
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlCheckInOutPolicies
                 .AsNoTracking()
                 .Where(c => c.ListingRentid == listingId)
                 .ToListAsync();
+            }
         }
 
         public async Task<TlListingRent> Get(long id, int ownerID)
         {
-            var listingData = await _context.TlListingRents
-            .AsNoTracking()
-            .Where(x => x.ListingRentId == id && x.OwnerUserId == ownerID && x.ListingStatusId != 5)
-            .Select(x => new
+            dynamic listingData = null;
+            using (var context = new InfraAssertDbContext(dbOptions))
             {
-                Listing = x,
-                Status = x.ListingStatus,
-                AccomodationType = x.AccomodationType,
-                ApprovalPolicy = x.ApprovalPolicyType,
-                CancelationPolicy = x.CancelationPolicyType,
-                Owner = x.OwnerUser
-            })
-            .FirstOrDefaultAsync();
-
+                listingData = await context.TlListingRents
+                .AsNoTracking()
+                .Where(x => x.ListingRentId == id && x.OwnerUserId == ownerID && x.ListingStatusId != 5)
+                .Select(x => new
+                {
+                    Listing = x,
+                    Status = x.ListingStatus,
+                    AccomodationType = x.AccomodationType,
+                    ApprovalPolicy = x.ApprovalPolicyType,
+                    CancelationPolicy = x.CancelationPolicyType,
+                    Owner = x.OwnerUser
+                })
+                .FirstOrDefaultAsync();
+            }
             if (listingData == null) return null;
 
             var listing = listingData.Listing;
@@ -324,9 +379,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task<List<TlListingRent>> GetAll(int ownerID)
         {
-            //var result = _context.TlListingRents.Where(x => x.OwnerUserId == ownerID && x.ListingStatusId != 5).ToList();
-            //return await Task.FromResult(result);
-            var query = _context.TlListingRents
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                var query = context.TlListingRents
                 .Include(x => x.ListingStatus)
                 .Include(x => x.AccomodationType)
                 .Include(x => x.OwnerUser)
@@ -356,17 +411,17 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .Where(x => x.ListingStatusId != 5 && x.OwnerUserId == ownerID)
                 .OrderByDescending(x => x.TlListingReviews.Average(y => y.Calification));
 
-            var result = await query
-                //.Skip(skipAmount)
-                //.Take(pageSize)
-                .ToListAsync();
-            if (result != null)
-            {
-                foreach (var listing in result)
+                var result = await query
+                    //.Skip(skipAmount)
+                    //.Take(pageSize)
+                    .ToListAsync();
+                if (result != null)
                 {
-                    foreach (var prop in listing.TpProperties)
+                    foreach (var listing in result)
                     {
-                        prop.TpPropertyAddresses = new List<TpPropertyAddress>
+                        foreach (var prop in listing.TpProperties)
+                        {
+                            prop.TpPropertyAddresses = new List<TpPropertyAddress>
                         {
                             new TpPropertyAddress
                             {
@@ -400,59 +455,62 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                                 }
                             }
                         };
+                        }
                     }
                 }
+                return result;
             }
-            return result;
         }
 
         public async Task<(List<TlListingRent>, PaginationMetadata)> GetFeatureds(long userId, int pageNumber = 1, int pageSize = 10, int? countryId = null)
         {
-            List<long> favoritesList = await _favoritesRepository.GetAllFavoritesList(userId);
-            var skipAmount = (pageNumber - 1) * pageSize;
-
-            var query = _context.TlListingRents
-                .Include(x => x.ListingStatus)
-                .Include(x => x.AccomodationType)
-                .Include(x => x.OwnerUser)
-                //.Include(x => x.TpProperties)
-                //    .ThenInclude(y => y.TpPropertyAddresses)
-                //    .ThenInclude(y => y.City)
-                //    .ThenInclude(y => y.County)
-                //    .ThenInclude(y => y.State)
-                //    .ThenInclude(y => y.Country)
-                //.Include(x => x.TpProperties)
-                //    .ThenInclude(y => y.TpPropertyAddresses)
-                //    .ThenInclude(y => y.County)
-                //    .ThenInclude(y => y.State)
-                //    .ThenInclude(y => y.Country)
-                //.Include(x => x.TpProperties)
-                //    .ThenInclude(y => y.TpPropertyAddresses)
-                //    .ThenInclude(y => y.State)
-                //    .ThenInclude(y => y.Country)
-                .Include(x => x.TpProperties)
-                    .ThenInclude(y => y.PropertySubtype)
-                        .ThenInclude(y => y.PropertyType)
-                .Include(x => x.TlListingPhotos)
-                .Include(x => x.TlListingPrices)
-                .Include(x => x.TlListingSpecialDatePrices)
-                .Include(x => x.TlListingReviews)
-                .AsNoTracking()
-                .Where(x => x.ListingStatusId == 3 && (countryId == null || countryId == 0 || x.TpProperties.FirstOrDefault().CountryId == countryId))
-                .OrderByDescending(x => x.TlListingReviews.Average(y => y.Calification));
-
-            var result = await query
-                .Skip(skipAmount)
-                .Take(pageSize)
-                .ToListAsync();
-            if (result != null)
+            using (var context = new InfraAssertDbContext(dbOptions))
             {
-                foreach (var listing in result)
+                List<long> favoritesList = await _favoritesRepository.GetAllFavoritesList(userId);
+                var skipAmount = (pageNumber - 1) * pageSize;
+
+                var query = context.TlListingRents
+                    .Include(x => x.ListingStatus)
+                    .Include(x => x.AccomodationType)
+                    .Include(x => x.OwnerUser)
+                    //.Include(x => x.TpProperties)
+                    //    .ThenInclude(y => y.TpPropertyAddresses)
+                    //    .ThenInclude(y => y.City)
+                    //    .ThenInclude(y => y.County)
+                    //    .ThenInclude(y => y.State)
+                    //    .ThenInclude(y => y.Country)
+                    //.Include(x => x.TpProperties)
+                    //    .ThenInclude(y => y.TpPropertyAddresses)
+                    //    .ThenInclude(y => y.County)
+                    //    .ThenInclude(y => y.State)
+                    //    .ThenInclude(y => y.Country)
+                    //.Include(x => x.TpProperties)
+                    //    .ThenInclude(y => y.TpPropertyAddresses)
+                    //    .ThenInclude(y => y.State)
+                    //    .ThenInclude(y => y.Country)
+                    .Include(x => x.TpProperties)
+                        .ThenInclude(y => y.PropertySubtype)
+                            .ThenInclude(y => y.PropertyType)
+                    .Include(x => x.TlListingPhotos)
+                    .Include(x => x.TlListingPrices)
+                    .Include(x => x.TlListingSpecialDatePrices)
+                    .Include(x => x.TlListingReviews)
+                    .AsNoTracking()
+                    .Where(x => x.ListingStatusId == 3 && (countryId == null || countryId == 0 || x.TpProperties.FirstOrDefault().CountryId == countryId))
+                    .OrderByDescending(x => x.TlListingReviews.Average(y => y.Calification));
+
+                var result = await query
+                    .Skip(skipAmount)
+                    .Take(pageSize)
+                    .ToListAsync();
+                if (result != null)
                 {
-                    listing.isFavorite = favoritesList.Contains(listing.ListingRentId);
-                    foreach (var prop in listing.TpProperties)
+                    foreach (var listing in result)
                     {
-                        prop.TpPropertyAddresses = new List<TpPropertyAddress>
+                        listing.isFavorite = favoritesList.Contains(listing.ListingRentId);
+                        foreach (var prop in listing.TpProperties)
+                        {
+                            prop.TpPropertyAddresses = new List<TpPropertyAddress>
                         {
                             new TpPropertyAddress
                             {
@@ -486,172 +544,209 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                                 }
                             }
                         };
+                        }
                     }
                 }
+
+                PaginationMetadata pagination = new PaginationMetadata
+                {
+                    CurrentPage = pageNumber,
+                    PageSize = pageSize,
+                    TotalItemCount = await query.CountAsync(),
+                    TotalPageCount = (int)Math.Ceiling((double)await query.CountAsync() / pageSize)
+                };
+
+                return (result, pagination);
             }
-
-            PaginationMetadata pagination = new PaginationMetadata
-            {
-                CurrentPage = pageNumber,
-                PageSize = pageSize,
-                TotalItemCount = await query.CountAsync(),
-                TotalPageCount = (int)Math.Ceiling((double)await query.CountAsync() / pageSize)
-            };
-
-            return (result, pagination);
         }
 
         public async Task<bool> HasStepInProcess(long listingRentId)
         {
-            var result = await _context.TlListingSteps.Where(x => x.ListingRentId == listingRentId && x.ListingStepsStatusId == 1).FirstOrDefaultAsync() != null;
-            return result;
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                var result = await context.TlListingSteps.Where(x => x.ListingRentId == listingRentId && x.ListingStepsStatusId == 1).FirstOrDefaultAsync() != null;
+                return result;
+            }
         }
 
         public async Task<TlListingRent> Register(TlListingRent listingRent, Dictionary<string, string> clientData)
         {
-            _context.TlListingRents.Add(listingRent);
-            await _context.SaveChangesAsync();
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                context.TlListingRents.Add(listingRent);
+                await context.SaveChangesAsync();
 
-            await _logRepository.RegisterLog(listingRent.ListingRentId, "Create Listing Rent " + listingRent.ListingRentId, clientData["BrowserInfo"], clientData["IsMobile"] == "True", clientData["IpAddress"], null, clientData["ApplicationCode"]);
+                await _logRepository.RegisterLog(listingRent.ListingRentId, "Create Listing Rent " + listingRent.ListingRentId, clientData["BrowserInfo"], clientData["IsMobile"] == "True", clientData["IpAddress"], null, clientData["ApplicationCode"]);
 
-            return listingRent;
+                return listingRent;
+            }
         }
 
         public async Task<TlListingRent> SetAccomodationType(long listingRentId, int? accomodationTypeId)
         {
-            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
-            listing.AccomodationTypeId = accomodationTypeId;
-            await _context.SaveChangesAsync();
-            return listing;
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                listing.AccomodationTypeId = accomodationTypeId;
+                await context.SaveChangesAsync();
+                return listing;
+            }
         }
 
         public async Task SetApprovalPolicy(long listingRentId, int? approvalPolicyTypeId)
         {
-            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
-            listing.ApprovalPolicyTypeId = approvalPolicyTypeId;
-            await _context.SaveChangesAsync();
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                listing.ApprovalPolicyTypeId = approvalPolicyTypeId;
+                await context.SaveChangesAsync();
+            }
         }
 
         public async Task SetCapacity(long listingRentId, int? beds, int? bedrooms, bool? allDoorsLocked, int? maxGuests, int? privateBathroom, int? privateBathroomLodging, int? sharedBathroom)
         {
-            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
-            listing.Beds = beds;
-            listing.Bedrooms = bedrooms;
-            listing.AllDoorsLocked = allDoorsLocked;
-            listing.MaxGuests = maxGuests;
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                listing.Beds = beds;
+                listing.Bedrooms = bedrooms;
+                listing.AllDoorsLocked = allDoorsLocked;
+                listing.MaxGuests = maxGuests;
 
-            if (privateBathroom >= 0)
-            {
-                listing.PrivateBathroom = privateBathroom;
+                if (privateBathroom >= 0)
+                {
+                    listing.PrivateBathroom = privateBathroom;
+                }
+                if (privateBathroomLodging >= 0)
+                {
+                    listing.PrivateBathroomLodging = privateBathroomLodging;
+                }
+                if (sharedBathroom >= 0)
+                {
+                    listing.SharedBathroom = sharedBathroom;
+                }
+                await context.SaveChangesAsync();
             }
-            if (privateBathroomLodging >= 0)
-            {
-                listing.PrivateBathroomLodging = privateBathroomLodging;
-            }
-            if (sharedBathroom >= 0)
-            {
-                listing.SharedBathroom = sharedBathroom;
-            }
-            await _context.SaveChangesAsync();
         }
 
         public async Task SetCapacity(long listingRentId, int? beds, int? bedrooms, int? bathrooms, int? maxGuests, int? privateBathroom, int? privateBathroomLodging, int? sharedBathroom)
         {
-            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
-            listing.Beds = beds;
-            listing.Bedrooms = bedrooms;
-            listing.Bathrooms = bathrooms;
-            listing.MaxGuests = maxGuests;
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                listing.Beds = beds;
+                listing.Bedrooms = bedrooms;
+                listing.Bathrooms = bathrooms;
+                listing.MaxGuests = maxGuests;
 
-            if(privateBathroom>=0)
-            {
-                listing.PrivateBathroom = privateBathroom;
+                if (privateBathroom >= 0)
+                {
+                    listing.PrivateBathroom = privateBathroom;
+                }
+                if (privateBathroomLodging >= 0)
+                {
+                    listing.PrivateBathroomLodging = privateBathroomLodging;
+                }
+                if (sharedBathroom >= 0)
+                {
+                    listing.SharedBathroom = sharedBathroom;
+                }
+                await context.SaveChangesAsync();
             }
-            if(privateBathroomLodging>=0)
-            {
-                listing.PrivateBathroomLodging = privateBathroomLodging;
-            }
-            if(sharedBathroom>=0)
-            {
-                listing.SharedBathroom = sharedBathroom;
-            }
-            await _context.SaveChangesAsync();
         }
 
         public async Task SetDescription(long listingRentId, string description)
         {
-            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
-            listing.Description = description;
-            await _context.SaveChangesAsync();
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                listing.Description = description;
+                await context.SaveChangesAsync();
+            }
         }
 
         public async Task SetName(long listingRentId, string title)
         {
-            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
-            listing.Name = title;
-            await _context.SaveChangesAsync();
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                listing.Name = title;
+                await context.SaveChangesAsync();
+            }
         }
 
         public async Task SetNameAndDescription(long listingRentId, string title, string description)
         {
-            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
-            listing.Description = description;
-            listing.Name = title;
-            await _context.SaveChangesAsync();
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                listing.Description = description;
+                listing.Name = title;
+                await context.SaveChangesAsync();
+            }
         }
 
         public async Task SetSecurityConfirmationData(long listingRentId, bool? presenceOfWeapons, bool? noiseDesibelesMonitor, bool? externalCameras)
         {
-            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
-            listing.PresenceOfWeapons = presenceOfWeapons;
-            listing.NoiseDesibelesMonitor = noiseDesibelesMonitor;
-            listing.ExternalCameras = externalCameras;
-            await _context.SaveChangesAsync();
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                listing.PresenceOfWeapons = presenceOfWeapons;
+                listing.NoiseDesibelesMonitor = noiseDesibelesMonitor;
+                listing.ExternalCameras = externalCameras;
+                await context.SaveChangesAsync();
+            }
         }
 
         public async Task SetAsConfirmed(long listingRentId)
         {
-            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
-            listing.ListingRentConfirmationDate = DateTime.UtcNow;
-            await _context.SaveChangesAsync();
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                listing.ListingRentConfirmationDate = DateTime.UtcNow;
+                await context.SaveChangesAsync();
+            }
         }
 
         public async Task<string> UpdateBasicData(long listingRentId, string title, string description, List<int> aspectTypeIdList)
         {
             try
             {
-                var listing = await _context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefaultAsync();
-                if (listing != null)
+                using (var context = new InfraAssertDbContext(dbOptions))
                 {
-                    listing.Name = string.IsNullOrEmpty(title) ? listing.Name : title;
-                    listing.Description = string.IsNullOrEmpty(description) ? listing.Description : description;
-
-                    if (aspectTypeIdList?.Count > 0)
+                    var listing = await context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefaultAsync();
+                    if (listing != null)
                     {
-                        var currentAspects = await _context.TlListingFeaturedAspects
-                            .Where(l => l.ListingRentId == listingRentId).ToListAsync();
+                        listing.Name = string.IsNullOrEmpty(title) ? listing.Name : title;
+                        listing.Description = string.IsNullOrEmpty(description) ? listing.Description : description;
 
-                        _context.TlListingFeaturedAspects.RemoveRange(currentAspects);
+                        if (aspectTypeIdList?.Count > 0)
+                        {
+                            var currentAspects = await context.TlListingFeaturedAspects
+                                .Where(l => l.ListingRentId == listingRentId).ToListAsync();
 
-                        var newAspects = aspectTypeIdList
-                            .Select(id => new TlListingFeaturedAspect
-                            {
-                                ListingRentId = listingRentId,
-                                FeaturesAspectTypeId = id,
-                                FeaturedAspectValue = ""
-                            }).ToList();
+                            context.TlListingFeaturedAspects.RemoveRange(currentAspects);
 
-                        await _context.TlListingFeaturedAspects.AddRangeAsync(newAspects);
+                            var newAspects = aspectTypeIdList
+                                .Select(id => new TlListingFeaturedAspect
+                                {
+                                    ListingRentId = listingRentId,
+                                    FeaturesAspectTypeId = id,
+                                    FeaturedAspectValue = ""
+                                }).ToList();
+
+                            await context.TlListingFeaturedAspects.AddRangeAsync(newAspects);
+                        }
+
+                        await context.SaveChangesAsync();
+                        return "UPDATED";
                     }
-
-                    await _context.SaveChangesAsync();
-                    return "UPDATED";
-                }
-                else
-                {
-                    var errorMsg = $"El identificador de la actual renta no existe: {listingRentId}";
-                    _logger.LogWarning(errorMsg);
-                    throw new DatabaseUnavailableException(errorMsg);
+                    else
+                    {
+                        var errorMsg = $"El identificador de la actual renta no existe: {listingRentId}";
+                        _logger.LogWarning(errorMsg);
+                        throw new DatabaseUnavailableException(errorMsg);
+                    }
                 }
             }
             catch (Exception ex)
@@ -665,66 +760,72 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task SetReservationTypeApprobation(long listingRentId, int approvalPolicyTypeId, int preparationDays, int minimumNotice)
         {
-            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
-            listing.ApprovalPolicyTypeId = approvalPolicyTypeId;
-            listing.PreparationDays = preparationDays;
-            listing.MinimumNotice = minimumNotice;
-            await _context.SaveChangesAsync();
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                listing.ApprovalPolicyTypeId = approvalPolicyTypeId;
+                listing.PreparationDays = preparationDays;
+                listing.MinimumNotice = minimumNotice;
+                await context.SaveChangesAsync();
+            }
         }
 
         public async Task SetCheckInPolicies(long listingRentId, string checkinTime, string checkoutTime, string instructions)
         {
-            TlListingRent listing = _context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
 
-            var chkPolicies = listing.TlCheckInOutPolicies.FirstOrDefault();
+                var chkPolicies = listing.TlCheckInOutPolicies.FirstOrDefault();
 
-            TimeOnly? _checkin = null;
-            TimeOnly? _checkout = null;
+                TimeOnly? _checkin = null;
+                TimeOnly? _checkout = null;
 
-            if (TimeOnly.TryParseExact(checkinTime, "HH:mm", out TimeOnly hora))
-            {
-                _checkin = hora;
-            }
-            else
-            {
-                throw new FormatException("Formato de hora de entrada no válido (HH:mm)");
-            }
-
-            if (TimeOnly.TryParseExact(checkoutTime, "HH:mm", out TimeOnly horaSalida))
-            {
-                _checkout = horaSalida;
-            }
-            else
-            {
-                throw new FormatException("Formato de hora de salida no válido (HH:mm)");
-            }
-
-            if (chkPolicies != null)
-            {
-                chkPolicies.CheckOutTime = _checkout;
-                chkPolicies.CheckInTime = _checkin;
-                chkPolicies.Instructions = instructions;
-                chkPolicies.FlexibleCheckIn = true; // Asumiendo que siempre se permite check-in flexible
-                chkPolicies.FlexibleCheckOut = true; // Asumiendo que siempre se permite check-out flexible
-                chkPolicies.LateCheckInFee = 0; // Asumiendo que no hay cargo por check-in tardío
-                chkPolicies.LateCheckOutFee = 0; // Asumiendo que no hay cargo por check-out tardío
-            }
-            else
-            {
-                chkPolicies = new TlCheckInOutPolicy
+                if (TimeOnly.TryParseExact(checkinTime, "HH:mm", out TimeOnly hora))
                 {
-                    ListingRentid = listingRentId,
-                    CheckInTime = _checkin,
-                    CheckOutTime = _checkout,
-                    Instructions = instructions,
-                    FlexibleCheckIn = true, // Asumiendo que siempre se permite check-in flexible
-                    FlexibleCheckOut = true, // Asumiendo que siempre se permite check-out flexible
-                    LateCheckInFee = 0, // Asumiendo que no hay cargo por check-in tardío
-                    LateCheckOutFee = 0 // Asumiendo que no hay cargo por check-out tardío
-                };
-                _context.TlCheckInOutPolicies.Add(chkPolicies);
+                    _checkin = hora;
+                }
+                else
+                {
+                    throw new FormatException("Formato de hora de entrada no válido (HH:mm)");
+                }
+
+                if (TimeOnly.TryParseExact(checkoutTime, "HH:mm", out TimeOnly horaSalida))
+                {
+                    _checkout = horaSalida;
+                }
+                else
+                {
+                    throw new FormatException("Formato de hora de salida no válido (HH:mm)");
+                }
+
+                if (chkPolicies != null)
+                {
+                    chkPolicies.CheckOutTime = _checkout;
+                    chkPolicies.CheckInTime = _checkin;
+                    chkPolicies.Instructions = instructions;
+                    chkPolicies.FlexibleCheckIn = true; // Asumiendo que siempre se permite check-in flexible
+                    chkPolicies.FlexibleCheckOut = true; // Asumiendo que siempre se permite check-out flexible
+                    chkPolicies.LateCheckInFee = 0; // Asumiendo que no hay cargo por check-in tardío
+                    chkPolicies.LateCheckOutFee = 0; // Asumiendo que no hay cargo por check-out tardío
+                }
+                else
+                {
+                    chkPolicies = new TlCheckInOutPolicy
+                    {
+                        ListingRentid = listingRentId,
+                        CheckInTime = _checkin,
+                        CheckOutTime = _checkout,
+                        Instructions = instructions,
+                        FlexibleCheckIn = true, // Asumiendo que siempre se permite check-in flexible
+                        FlexibleCheckOut = true, // Asumiendo que siempre se permite check-out flexible
+                        LateCheckInFee = 0, // Asumiendo que no hay cargo por check-in tardío
+                        LateCheckOutFee = 0 // Asumiendo que no hay cargo por check-out tardío
+                    };
+                    context.TlCheckInOutPolicies.Add(chkPolicies);
+                }
+                await context.SaveChangesAsync();
             }
-            await _context.SaveChangesAsync();
         }
     }
 }

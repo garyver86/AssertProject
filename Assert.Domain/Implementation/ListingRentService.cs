@@ -123,7 +123,7 @@ namespace Assert.Domain.Implementation
                                     }
                                     break;
                                 case 3:
-                                    if (listingRent.ListingStatusId == 4)
+                                    if (listingRent.ListingStatusId == 4 || listingRent.ListingStatusId == 2 || listingRent.ListingStatusId == 1)
                                     {
                                         var changeResult2 = await _listingRentRepository.ChangeStatus(listingRentId, ownerUserId, status.ListingStatusId, clientData);
 
@@ -354,7 +354,8 @@ namespace Assert.Domain.Implementation
                                     ReturnModel resultStatuses = await _listingViewStepRepository.IsAllViewsEndeds(listingRentId ?? 0);
                                     if (resultStatuses.StatusCode == ResultStatusCode.OK)
                                     {
-                                        var newStatus = await ChangeStatus(listingRentId ?? 0, userId, "COMPLETED", clientData, useTechnicalMessages);
+                                        //var newStatus = await ChangeStatus(listingRentId ?? 0, userId, "COMPLETED", clientData, useTechnicalMessages);
+                                        var newStatus = await ChangeStatus(listingRentId ?? 0, userId, "PUBLISH", clientData, useTechnicalMessages);
                                         if (newStatus.StatusCode != ResultStatusCode.OK)
                                         {
                                             return new ReturnModel<ListingProcessDataResultModel>

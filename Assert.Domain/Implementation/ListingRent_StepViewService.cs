@@ -181,12 +181,13 @@ namespace Assert.Domain.Implementation
                     result.Data.Parametrics.CancelationPolicyTypes = await _cancelationPoliciesTypesRepository.GetActives();
                     return result;
                 default:
-                    return new ReturnModel<ListingProcessDataResultModel>
-                    {
-                        HasError = true,
-                        StatusCode = ResultStatusCode.BadRequest,
-                        ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "El código de Vista ingresado es inexistente.", useTechnicalMessages)
-                    };
+                    return result;
+                    //return new ReturnModel<ListingProcessDataResultModel>
+                    //{
+                    //    HasError = true,
+                    //    StatusCode = ResultStatusCode.BadRequest,
+                    //    ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "El código de Vista ingresado es inexistente.", useTechnicalMessages)
+                    //};
             }
         }
 
@@ -245,7 +246,7 @@ namespace Assert.Domain.Implementation
                     return politicsResult;
                 case "LV011":
                     //Vista 11: confirmación de la creación
-                    ReturnModel reviewConfirmationResult = await SetReviewConfirmation(listing, request_, useTechnicalMessages, clientData);
+                    ReturnModel reviewConfirmationResult = await SetReviewConfirmation(listing, userId, request_, useTechnicalMessages, clientData);
                     return reviewConfirmationResult;
                 #endregion
                 default:
@@ -428,13 +429,14 @@ namespace Assert.Domain.Implementation
             };
         }
 
-        private async Task<ReturnModel> SetReviewConfirmation(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        private async Task<ReturnModel> SetReviewConfirmation(TlListingRent listing, int userId, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
         {
             if (request_.ListingConfirmation ?? false)
             {
                 if (listing.ListingRentConfirmationDate == null)
                 {
                     await _listingRentRepository.SetAsConfirmed(listing.ListingRentId);
+                    //await _listingRentRepository.ChangeStatus(listing.ListingRentId, userId, 3, clientData);
                 }
                 return new ReturnModel
                 {
