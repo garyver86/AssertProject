@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Linq;
 using System.Diagnostics.Metrics;
 using System.Globalization;
 
@@ -92,43 +93,45 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 _listingViewHistoryRepository.ToggleFromHistory(id, true, guestid);
             }
 
-
-            listing.TpProperties.FirstOrDefault().TpPropertyAddresses = new List<TpPropertyAddress>
+            if (listing.TpProperties?.Count > 0)
             {
-                new TpPropertyAddress
+                TpProperty prop = ((List<TpProperty>)listing.TpProperties).FirstOrDefault();
+                ((List<TpProperty>)listing.TpProperties).FirstOrDefault().TpPropertyAddresses = new List<TpPropertyAddress>
                 {
-                    Address1 = listing.TpProperties.FirstOrDefault().Address1,
-                    Address2 = listing.TpProperties.FirstOrDefault().Address2,
-                    CityId = listing.TpProperties.FirstOrDefault().CityId,
-                    CountyId = listing.TpProperties.FirstOrDefault().CountyId,
-                    ZipCode = listing.TpProperties.FirstOrDefault().ZipCode,
-                    StateId = listing.TpProperties.FirstOrDefault().StateId,
-                    City = new TCity
+                    new TpPropertyAddress
                     {
-                        CityId = listing.TpProperties.FirstOrDefault().CityId??0,
-                        Name = listing.TpProperties.FirstOrDefault().CityName,
-                        CountyId = listing.TpProperties.FirstOrDefault().CountyId??0,
-                        County = new TCounty
+                        Address1 = prop.Address1,
+                        Address2 = prop.Address2,
+                        CityId = prop.CityId,
+                        CountyId = prop.CountyId,
+                        ZipCode = prop.ZipCode,
+                        StateId = prop.StateId,
+                        City = new TCity
                         {
-                            CountyId = listing.TpProperties.FirstOrDefault().CountyId ?? 0,
-                            Name = listing.TpProperties.FirstOrDefault().CountyName,
-                            StateId = listing.TpProperties.FirstOrDefault().StateId??0,
-                            State = new TState
+                            CityId = prop.CityId??0,
+                            Name = prop.CityName,
+                            CountyId = prop.CountyId??0,
+                            County = new TCounty
                             {
-                                Name = listing.TpProperties.FirstOrDefault().StateName,
-                                StateId = listing.TpProperties.FirstOrDefault().StateId ?? 0,
-                                Country = new TCountry
+                                CountyId = prop.CountyId ?? 0,
+                                Name = prop.CountyName,
+                                StateId = prop.StateId??0,
+                                State = new TState
                                 {
-                                    Name = listing.TpProperties.FirstOrDefault().CountryName,
-                                    CountryId = listing.TpProperties.FirstOrDefault().CountryId ?? 0
+                                    Name = prop.StateName,
+                                    StateId = prop.StateId ?? 0,
+                                    Country = new TCountry
+                                    {
+                                        Name = prop.CountryName,
+                                        CountryId = prop.CountryId ?? 0
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            };
-
-            return listing;
+                };
+            }
+            return (TlListingRent)listing;
         }
 
         // Métodos auxiliares para cargar cada relación
@@ -374,7 +377,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             listing.CancelationPolicyType = listingData.CancelationPolicy;
             listing.OwnerUser = listingData.Owner;
 
-            return listing;
+            return (TlListingRent)listing;
         }
 
         public async Task<List<TlListingRent>> GetAll(int ownerID)

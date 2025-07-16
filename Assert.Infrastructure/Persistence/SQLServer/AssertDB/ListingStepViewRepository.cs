@@ -47,7 +47,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 {
                     StatusCode = ResultStatusCode.Conflict,
                     HasError = true,
-                    ResultError = _errorHandler.GetError(ResultStatusCode.Conflict, $"Las vistas {string.Join(", ", result.Select(x => x.ViewType.Code))} no se encuentran finalizadas.", false)
+                    ResultError = _errorHandler.GetError(ResultStatusCode.Conflict, $"Las vistas {string.Join(", ", result.Select(x => x.ViewType.Code))} no se encuentran finalizadas.", true)
                 };
             }
             return new ReturnModel
@@ -63,7 +63,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 var result = await dbcontext.TlListingStepsViews.FirstOrDefaultAsync(x => x.ListngStepsViewId == listngStepsViewId);
                 result.IsEnded = isEnded;
-                await _context.SaveChangesAsync();
+                await dbcontext.SaveChangesAsync();
             }
         }
         public async Task SetEnded(long listingRentId, int viewTypeId, bool isEnded)
@@ -74,7 +74,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 if (result != null)
                 {
                     result.IsEnded = isEnded;
-                    await _context.SaveChangesAsync();
+                    await dbcontext.SaveChangesAsync();
                 }
             }
         }
