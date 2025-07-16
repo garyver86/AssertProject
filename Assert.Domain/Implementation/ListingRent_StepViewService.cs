@@ -181,12 +181,13 @@ namespace Assert.Domain.Implementation
                     result.Data.Parametrics.CancelationPolicyTypes = await _cancelationPoliciesTypesRepository.GetActives();
                     return result;
                 default:
-                    return new ReturnModel<ListingProcessDataResultModel>
-                    {
-                        HasError = true,
-                        StatusCode = ResultStatusCode.BadRequest,
-                        ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "El código de Vista ingresado es inexistente.", useTechnicalMessages)
-                    };
+                    return result;
+                    //return new ReturnModel<ListingProcessDataResultModel>
+                    //{
+                    //    HasError = true,
+                    //    StatusCode = ResultStatusCode.BadRequest,
+                    //    ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "El código de Vista ingresado es inexistente.", useTechnicalMessages)
+                    //};
             }
         }
 
