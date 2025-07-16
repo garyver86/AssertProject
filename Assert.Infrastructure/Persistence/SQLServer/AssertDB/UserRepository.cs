@@ -545,6 +545,10 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         {
             var additionalProfile = await _dbContext.TuUsers
                 .Include(u => u.TuAdditionalProfiles)
+                    .ThenInclude(us => us.TuAdditionalProfileLiveAts)
+                        .ThenInclude(s => s.State)
+                            .ThenInclude(c => c.Country)
+                .Include(u => u.TuAdditionalProfiles)
                     .ThenInclude(ap => ap.TuAdditionalProfileLanguages)
                         .ThenInclude(ad => ad.Language)
                 .FirstOrDefaultAsync(ap => ap.UserId == _metadata.UserId);
@@ -615,7 +619,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             var liveAt = additionalProfile.TuAdditionalProfileLiveAts.FirstOrDefault();
             if (liveAt != null) // Update
             {
-                if (cityId != 0) liveAt.CityId = cityId;
+                if (cityId != 0) liveAt.StateId = cityId;
                 if (!string.IsNullOrWhiteSpace(cityName)) liveAt.CityName = cityName;
                 if (!string.IsNullOrWhiteSpace(location)) liveAt.Location = location;
             }
@@ -625,7 +629,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 {
                     additionalProfile.TuAdditionalProfileLiveAts.Add(new TuAdditionalProfileLiveAt
                     {
-                        CityId = cityId,
+                        StateId = cityId,
                         CityName = cityName ?? "",
                         Location = location ?? ""
                     });

@@ -25,5 +25,7 @@ public partial class TState
 
     public virtual ICollection<TpPropertyAddress> TpPropertyAddresses { get; set; } = new List<TpPropertyAddress>();
 
+    public virtual ICollection<TuAdditionalProfileLiveAt> TuAdditionalProfileLiveAts { get; set; } = new List<TuAdditionalProfileLiveAt>();
+
     public virtual ICollection<TuAddress> TuAddresses { get; set; } = new List<TuAddress>();
 }
