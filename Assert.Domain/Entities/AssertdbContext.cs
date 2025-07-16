@@ -131,11 +131,15 @@ public partial class AssertDbContext : DbContext
 
     public virtual DbSet<TlGenerateRate> TlGenerateRates { get; set; }
 
+    public virtual DbSet<TlListingAdditionalFee> TlListingAdditionalFees { get; set; }
+
     public virtual DbSet<TlListingAmenity> TlListingAmenities { get; set; }
 
     public virtual DbSet<TlListingAvailability> TlListingAvailabilities { get; set; }
 
     public virtual DbSet<TlListingCalendar> TlListingCalendars { get; set; }
+
+    public virtual DbSet<TlListingCalendarAdditionalFee> TlListingCalendarAdditionalFees { get; set; }
 
     public virtual DbSet<TlListingDiscountForRate> TlListingDiscountForRates { get; set; }
 
@@ -260,10 +264,6 @@ public partial class AssertDbContext : DbContext
     public virtual DbSet<TuUserStatusType> TuUserStatusTypes { get; set; }
 
     public virtual DbSet<TuUserType> TuUserTypes { get; set; }
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=34.58.179.9;Database=assertDB;uid=assertdb-user;pwd=Fdiah2025%$;Trusted_Connection=False;TrustServerCertificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -1956,6 +1956,31 @@ public partial class AssertDbContext : DbContext
                 .HasConstraintName("FK_TL_GenerateRate_T_SuggestGenerate");
         });
 
+        modelBuilder.Entity<TlListingAdditionalFee>(entity =>
+        {
+            entity.HasKey(e => e.ListingAdditionalFeeId);
+
+            entity.ToTable("TL_ListingAdditionalFee");
+
+            entity.Property(e => e.ListingAdditionalFeeId).HasColumnName("listingAdditionalFeeId");
+            entity.Property(e => e.AdditionalFeeId).HasColumnName("additionalFeeId");
+            entity.Property(e => e.AmountFee)
+                .HasColumnType("decimal(8, 2)")
+                .HasColumnName("amountFee");
+            entity.Property(e => e.IsPercent).HasColumnName("isPercent");
+            entity.Property(e => e.ListingRentId).HasColumnName("listingRentId");
+
+            entity.HasOne(d => d.AdditionalFee).WithMany(p => p.TlListingAdditionalFees)
+                .HasForeignKey(d => d.AdditionalFeeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TL_ListingAdditionalFee_TL_AdditionalFees");
+
+            entity.HasOne(d => d.ListingRent).WithMany(p => p.TlListingAdditionalFees)
+                .HasForeignKey(d => d.ListingRentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TL_ListingAdditionalFee_TL_ListingRent");
+        });
+
         modelBuilder.Entity<TlListingAmenity>(entity =>
         {
             entity.HasKey(e => e.ListingAmenitiesId);
@@ -2066,6 +2091,31 @@ public partial class AssertDbContext : DbContext
                 .HasForeignKey(d => d.ListingrentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TL_ListingCalendar_TL_ListingRent");
+        });
+
+        modelBuilder.Entity<TlListingCalendarAdditionalFee>(entity =>
+        {
+            entity.HasKey(e => e.ListingCalendarAdditionalFeeId);
+
+            entity.ToTable("TL_ListingCalendarAdditionalFee");
+
+            entity.Property(e => e.ListingCalendarAdditionalFeeId).HasColumnName("listingCalendarAdditionalFeeId");
+            entity.Property(e => e.AdditionalFeeId).HasColumnName("additionalFeeId");
+            entity.Property(e => e.AmountFee)
+                .HasColumnType("decimal(8, 2)")
+                .HasColumnName("amountFee");
+            entity.Property(e => e.CalendarId).HasColumnName("calendarId");
+            entity.Property(e => e.IsPercent).HasColumnName("isPercent");
+
+            entity.HasOne(d => d.AdditionalFee).WithMany(p => p.TlListingCalendarAdditionalFees)
+                .HasForeignKey(d => d.AdditionalFeeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TL_ListingCalendarAdditionalFee_TL_AdditionalFees");
+
+            entity.HasOne(d => d.Calendar).WithMany(p => p.TlListingCalendarAdditionalFees)
+                .HasForeignKey(d => d.CalendarId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TL_ListingCalendarAdditionalFee_TL_ListingCalendar");
         });
 
         modelBuilder.Entity<TlListingDiscountForRate>(entity =>
@@ -2240,10 +2290,6 @@ public partial class AssertDbContext : DbContext
 
             entity.ToTable("TL_ListingRent");
 
-            entity.HasIndex(e => e.OwnerUserId, "IX_TL_ListingRent_ownerUserId");
-
-            entity.HasIndex(e => e.OwnerUserId, "IX_TlListingRents_OwnerUserId");
-
             entity.Property(e => e.ListingRentId).HasColumnName("listingRentId");
             entity.Property(e => e.AccomodationTypeId).HasColumnName("accomodationTypeId");
             entity.Property(e => e.AllDoorsLocked).HasColumnName("allDoorsLocked");
@@ -2373,8 +2419,6 @@ public partial class AssertDbContext : DbContext
             entity.HasKey(e => e.ListingReviewId);
 
             entity.ToTable("TL_ListingReview");
-
-            entity.HasIndex(e => e.ListingRentId, "IX_TL_ListingReview_listingRentId");
 
             entity.Property(e => e.ListingReviewId).HasColumnName("listingReviewId");
             entity.Property(e => e.BookId).HasColumnName("bookId");
@@ -3235,8 +3279,8 @@ public partial class AssertDbContext : DbContext
 
             entity.Property(e => e.AdditionalProfileId).HasColumnName("additionalProfileId");
             entity.Property(e => e.Additional)
-                .HasMaxLength(10)
-                .IsFixedLength()
+                .HasMaxLength(500)
+                .IsUnicode(false)
                 .HasColumnName("additional");
             entity.Property(e => e.Pets)
                 .HasMaxLength(500)
@@ -3285,7 +3329,6 @@ public partial class AssertDbContext : DbContext
 
             entity.Property(e => e.AdditionalProfileLiveAtId).HasColumnName("additionalProfileLiveAtId");
             entity.Property(e => e.AdditionalProfileId).HasColumnName("additionalProfileId");
-            entity.Property(e => e.CityId).HasColumnName("cityId");
             entity.Property(e => e.CityName)
                 .HasMaxLength(500)
                 .IsUnicode(false)
@@ -3293,14 +3336,15 @@ public partial class AssertDbContext : DbContext
             entity.Property(e => e.Location)
                 .HasMaxLength(500)
                 .IsUnicode(false);
+            entity.Property(e => e.StateId).HasColumnName("stateId");
 
             entity.HasOne(d => d.AdditionalProfile).WithMany(p => p.TuAdditionalProfileLiveAts)
                 .HasForeignKey(d => d.AdditionalProfileId)
                 .HasConstraintName("FK_TU_AdditionalProfileLiveAt_TU_AdditionalProfile");
 
-            entity.HasOne(d => d.City).WithMany(p => p.TuAdditionalProfileLiveAts)
-                .HasForeignKey(d => d.CityId)
-                .HasConstraintName("FK_TU_AdditionalProfileLiveAt_T_City");
+            entity.HasOne(d => d.State).WithMany(p => p.TuAdditionalProfileLiveAts)
+                .HasForeignKey(d => d.StateId)
+                .HasConstraintName("FK_TU_AdditionalProfileLiveAt_T_State");
         });
 
         modelBuilder.Entity<TuAddress>(entity =>
@@ -3599,8 +3643,6 @@ public partial class AssertDbContext : DbContext
 
             entity.ToTable("TU_User");
 
-            entity.HasIndex(e => e.UserId, "IX_TuUsers_UserId");
-
             entity.Property(e => e.UserId).HasColumnName("userId");
             entity.Property(e => e.AccountType).HasColumnName("accountType");
             entity.Property(e => e.DateOfBirth).HasColumnName("dateOfBirth");
@@ -3810,10 +3852,6 @@ public partial class AssertDbContext : DbContext
             entity.HasKey(e => e.UserReviewId);
 
             entity.ToTable("TU_UserReview");
-
-            entity.HasIndex(e => e.UserId, "IX_TU_UserReview_userId");
-
-            entity.HasIndex(e => e.UserId, "IX_TuUserReviewUsers_UserId");
 
             entity.Property(e => e.UserReviewId).HasColumnName("userReviewId");
             entity.Property(e => e.BookId).HasColumnName("bookId");

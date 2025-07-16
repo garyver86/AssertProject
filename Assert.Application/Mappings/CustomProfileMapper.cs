@@ -14,13 +14,28 @@ public class CustomProfileMapper(IMapper _mapper)
 
         dto.AdditionalProfileDataId = additionalProfile?.AdditionalProfileId ?? 0;
         dto.Languages = MapLanguages(additionalProfile?.TuAdditionalProfileLanguages);
-        
+        dto.LiveAt = MapLiveAt(additionalProfile?.TuAdditionalProfileLiveAts.FirstOrDefault());
         return dto;
     }
 
-    private List<LanguageDTO> MapLanguages(ICollection<TuAdditionalProfileLanguage> profileLanguages)
+    private LiveAtDTO MapLiveAt(TuAdditionalProfileLiveAt? liveAt)
     {
-        if (profileLanguages == null) return new List<LanguageDTO>();
+        if(liveAt is null) 
+            return new LiveAtDTO();
+
+        return new LiveAtDTO
+        {
+            CityId = liveAt.StateId!.Value,
+            CityName = liveAt.CityName ?? "",
+            Location = liveAt.Location ?? "",
+            LiveAtShow = liveAt.State?.Name is not null ?
+                $"{liveAt.State.Name} - {liveAt.State?.Country?.Name ?? ""}" : "---",
+        };
+    }
+
+    private List<LanguageDTO> MapLanguages(ICollection<TuAdditionalProfileLanguage>? profileLanguages)
+    {
+        if (profileLanguages is null) return new List<LanguageDTO>();
 
         return profileLanguages
             .Where(pl => pl.Language != null)

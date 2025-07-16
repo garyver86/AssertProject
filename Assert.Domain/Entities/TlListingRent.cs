@@ -85,6 +85,8 @@ public partial class TlListingRent
 
     public virtual ICollection<TlGenerateRate> TlGenerateRates { get; set; } = new List<TlGenerateRate>();
 
+    public virtual ICollection<TlListingAdditionalFee> TlListingAdditionalFees { get; set; } = new List<TlListingAdditionalFee>();
+
     public virtual ICollection<TlListingAmenity> TlListingAmenities { get; set; } = new List<TlListingAmenity>();
 
     public virtual ICollection<TlListingAvailability> TlListingAvailabilities { get; set; } = new List<TlListingAvailability>();

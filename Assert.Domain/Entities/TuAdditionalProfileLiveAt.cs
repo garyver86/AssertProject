@@ -9,7 +9,7 @@ public partial class TuAdditionalProfileLiveAt
 
     public int? AdditionalProfileId { get; set; }
 
-    public int? CityId { get; set; }
+    public int? StateId { get; set; }
 
     public string? CityName { get; set; }
 
@@ -17,5 +17,5 @@ public partial class TuAdditionalProfileLiveAt
 
     public virtual TuAdditionalProfile? AdditionalProfile { get; set; }
 
-    public virtual TCity? City { get; set; }
+    public virtual TState? State { get; set; }
 }

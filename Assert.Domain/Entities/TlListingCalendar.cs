@@ -42,4 +42,6 @@ public partial class TlListingCalendar
     public virtual TlListingRent Listingrent { get; set; } = null!;
 
     public virtual ICollection<TlCalendarDiscount> TlCalendarDiscounts { get; set; } = new List<TlCalendarDiscount>();
+
+    public virtual ICollection<TlListingCalendarAdditionalFee> TlListingCalendarAdditionalFees { get; set; } = new List<TlListingCalendarAdditionalFee>();
 }
