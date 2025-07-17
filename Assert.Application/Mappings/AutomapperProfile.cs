@@ -152,7 +152,8 @@ namespace Assert.Application.Mappings
             CreateMap<TlListingFeaturedAspect, FeaturedAspectDTO>()
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.FeaturesAspectType != null ? src.FeaturesAspectType.FeaturedAspectCode : null))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.FeaturesAspectType != null ? src.FeaturesAspectType.FeaturedAspectName : null))
-                .ForMember(dest => dest.Value, opt => opt.MapFrom(src => src.FeaturesAspectType != null ? src.FeaturedAspectValue : null));
+                .ForMember(dest => dest.Value, opt => opt.MapFrom(src => src.FeaturedAspectValue))
+                .ForMember(dest => dest.FeaturedAspectTypeId, opt => opt.MapFrom(src => src.FeaturesAspectTypeId));
             CreateMap<TFeaturedAspectType, FeaturedAspectDTO>()
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.FeaturedAspectCode))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.FeaturedAspectName))

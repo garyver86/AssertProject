@@ -1,15 +1,20 @@
 ﻿using Assert.Domain.Entities;
 using Assert.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
     public class ListingFavoriteRepository : IListingFavoriteRepository
     {
         private readonly InfraAssertDbContext _context;
-        public ListingFavoriteRepository(InfraAssertDbContext infraAssertDbContext)
+        private readonly DbContextOptions<InfraAssertDbContext> dbOptions;
+
+        public ListingFavoriteRepository(InfraAssertDbContext infraAssertDbContext, IServiceProvider serviceProvider)
         {
             _context = infraAssertDbContext;
+            dbOptions = serviceProvider.GetRequiredService<DbContextOptions<InfraAssertDbContext>>();
         }
 
         public async Task<List<TlListingFavoriteGroup>> GetFavoriteGroups(int userId)
@@ -98,39 +103,66 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             await _context.SaveChangesAsync();
         }
 
-        public async Task ToggleFavorite(long listingRentId, long groupId, bool setAsFavorite, int userId)
+        public async Task ToggleFavorite(long listingRentId, long? groupId, bool setAsFavorite, int userId)
         {
-            TlListingFavoriteGroup group = _context.TlListingFavoriteGroups.Where(x => x.FavoriteGroupListingId == groupId && x.GroupStatus == 1)
-                .Include(x => x.TlListingFavorites).FirstOrDefault();
-
-            if (group.UserId != userId)
+            TlListingFavoriteGroup group = null;
+            using (var dbContext = new InfraAssertDbContext(dbOptions))
             {
-                throw new UnauthorizedAccessException("You do not have permission to modify this favorite group.");
-            }
-
-            TlListingFavorite listing = group.TlListingFavorites.Where(x => x.ListingRentId == listingRentId).FirstOrDefault();
-            if (setAsFavorite)
-            {
-                if (listing == null)
+                if (groupId > 0)
                 {
-                    listing = new TlListingFavorite
+                    group = dbContext.TlListingFavoriteGroups.Where(x => x.FavoriteGroupListingId == groupId && x.GroupStatus == 1)
+                        .Include(x => x.TlListingFavorites).FirstOrDefault();
+                }
+                else
+                {
+                    group = dbContext.TlListingFavorites.Include(x => x.FavoriteGroup).Where(x => x.ListingRentId == listingRentId && x.UserId == userId && x.FavoriteGroup.GroupStatus == 1).ToList().OrderByDescending(x => x.FavoriteGroupId).FirstOrDefault()?.FavoriteGroup;
+                    if (group == null)
                     {
-                        ListingRentId = listingRentId,
-                        UserId = userId,
-                        CreateAt = DateTime.UtcNow,
-                        FavoriteGroupId = groupId
-                    };
-                    await _context.TlListingFavorites.AddAsync(listing);
+                        group = dbContext.TlListingFavoriteGroups.Where(x => x.UserId == userId && x.GroupStatus == 1).OrderByDescending(x => x.CreationDate).ToList().FirstOrDefault();
+                    }
                 }
-            }
-            else
-            {
-                if (listing != null)
+
+                if (group == null)
                 {
-                    _context.TlListingFavorites.Remove(listing);
+                    if (setAsFavorite)
+                    {
+                        throw new Exceptions.NotFoundException("No cuenta con una lista de favoritos para asignar la propiedad.");
+                    }
+                    else
+                    {
+                        return;
+                    }
                 }
+
+                if (group.UserId != userId)
+                {
+                    throw new UnauthorizedAccessException("You do not have permission to modify this favorite group.");
+                }
+
+                TlListingFavorite listing = group.TlListingFavorites.Where(x => x.ListingRentId == listingRentId).FirstOrDefault();
+                if (setAsFavorite)
+                {
+                    if (listing == null)
+                    {
+                        listing = new TlListingFavorite
+                        {
+                            ListingRentId = listingRentId,
+                            UserId = userId,
+                            CreateAt = DateTime.UtcNow,
+                            FavoriteGroupId = groupId?? group.FavoriteGroupListingId
+                        };
+                        await dbContext.TlListingFavorites.AddAsync(listing);
+                    }
+                }
+                else
+                {
+                    if (listing != null)
+                    {
+                        dbContext.TlListingFavorites.Remove(listing);
+                    }
+                }
+                await dbContext.SaveChangesAsync();
             }
-            await _context.SaveChangesAsync();
         }
 
         public async Task<List<long>> GetAllFavoritesList(long userId)

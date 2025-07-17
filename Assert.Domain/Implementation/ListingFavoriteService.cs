@@ -164,7 +164,7 @@ namespace Assert.Domain.Implementation
             return result;
         }
 
-        public async Task<ReturnModel> ToggleFavorite(long listingRentId, long groupId, bool setAsFavorite, int userId, Dictionary<string, string> requestInfo)
+        public async Task<ReturnModel> ToggleFavorite(long listingRentId, long? groupId, bool setAsFavorite, int userId, Dictionary<string, string> requestInfo)
         {
             ReturnModel result = new ReturnModel();
             try

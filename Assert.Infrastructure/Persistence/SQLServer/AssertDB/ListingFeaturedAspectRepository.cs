@@ -16,7 +16,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task<List<TlListingFeaturedAspect>?> GetByListingRentId(long listingRentId)
         {
-            var result = await _context.TlListingFeaturedAspects.Where(x => x.ListingRentId == listingRentId).ToListAsync();
+            var result = await _context.TlListingFeaturedAspects.Where(x => x.ListingRentId == listingRentId).Include(x => x.FeaturesAspectType).ToListAsync();
             return result;
         }
         public async Task SetListingFeaturesAspects(long listingRentId, List<int> featuredAspects)

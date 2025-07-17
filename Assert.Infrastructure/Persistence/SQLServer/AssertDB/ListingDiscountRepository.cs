@@ -48,8 +48,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         {
                             DiscountTypeForTypePriceId = discountTypeId.Item1,
                             ListingRentId = listingRentId,
-                            DiscountCalculated = discountTypeId.Item2,
-                            Porcentage = 0,
+                            DiscountCalculated = 0,
+                            Porcentage = discountTypeId.Item2,
                             IsDiscount = true
                         };
                         _context.Add(newDiscount);
