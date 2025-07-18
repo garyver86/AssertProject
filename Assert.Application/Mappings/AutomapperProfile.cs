@@ -71,6 +71,9 @@ namespace Assert.Application.Mappings
             CreateMap<ReturnModel<List<TlListingRent>>, ReturnModelDTO<List<ListingRentDTO>>>()
             .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src.Data));
 
+            CreateMap<ReturnModel<List<TlListingPhoto>>, ReturnModelDTO<List<PhotoDTO>>>()
+            .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src.Data));
+
             CreateMap<ReturnModel<ListingProcessDataResultModel>, ReturnModelDTO<ProcessDataResult>>()
             .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src.Data));
 

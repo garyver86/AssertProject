@@ -466,7 +466,13 @@ namespace Assert.Application.Services
                 int _userID = -1;
                 int.TryParse(userId, out _userID);
                 ReturnModel<TlListingPhoto> savingResult = await _imageService.UpdatePhoto(listingRentId, photoId, request, _userID, true);
-                result = _mapper.Map<ReturnModelDTO<PhotoDTO>>(savingResult);
+                result = new ReturnModelDTO<PhotoDTO>
+                {
+                    Data = _mapper.Map<PhotoDTO>(savingResult.Data),
+                    HasError = savingResult.HasError,
+                    ResultError = _mapper.Map<ErrorCommonDTO>(savingResult.ResultError),
+                    StatusCode = savingResult.StatusCode
+                };
                 return result;
             }
             catch (Exception ex)
