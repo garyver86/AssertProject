@@ -265,6 +265,10 @@ public partial class AssertDbContext : DbContext
 
     public virtual DbSet<TuUserType> TuUserTypes { get; set; }
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Server=34.58.179.9;Database=assertDB;uid=assertdb-user;pwd=Fdiah2025%$;Trusted_Connection=False;TrustServerCertificate=True");
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<CitySearchTable>(entity =>
@@ -644,6 +648,12 @@ public partial class AssertDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("detail2");
             entity.Property(e => e.DiscountPercentage).HasColumnName("discountPercentage");
+            entity.Property(e => e.HoursAfetrBooking)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("hoursAfetrBooking");
+            entity.Property(e => e.HoursBeforeCheckIn)
+                .HasColumnType("decimal(5, 2)")
+                .HasColumnName("hoursBeforeCheckIn");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .IsUnicode(false)
@@ -1899,6 +1909,7 @@ public partial class AssertDbContext : DbContext
                 .HasColumnType("decimal(10, 2)")
                 .HasColumnName("lateCheckOutFee");
             entity.Property(e => e.ListingRentid).HasColumnName("listingRentid");
+            entity.Property(e => e.MaxCheckInTime).HasColumnName("maxCheckInTime");
 
             entity.HasOne(d => d.ListingRent).WithMany(p => p.TlCheckInOutPolicies)
                 .HasForeignKey(d => d.ListingRentid)
@@ -2234,6 +2245,7 @@ public partial class AssertDbContext : DbContext
                 .HasMaxLength(500)
                 .IsUnicode(false)
                 .HasColumnName("description");
+            entity.Property(e => e.IsOutstanding).HasColumnName("isOutstanding");
             entity.Property(e => e.IsPrincipal).HasColumnName("isPrincipal");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)

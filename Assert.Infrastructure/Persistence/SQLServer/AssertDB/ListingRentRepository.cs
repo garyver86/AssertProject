@@ -821,15 +821,16 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task SetCheckInPolicies(long listingRentId, string checkinTime, string checkoutTime, string instructions)
+        public async Task SetCheckInPolicies(long listingRentId, string checkinTime, string checkoutTime, string maxCheckinTime, string instructions)
         {
             using (var context = new InfraAssertDbContext(dbOptions))
             {
-                TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                //TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId).Include(x => x.).FirstOrDefault();
 
-                var chkPolicies = listing.TlCheckInOutPolicies.FirstOrDefault();
+                var chkPolicies = context.TlCheckInOutPolicies.Where(x => x.ListingRentid == listingRentId).FirstOrDefault();
 
                 TimeOnly? _checkin = null;
+                TimeOnly? _maxCheckin = null;
                 TimeOnly? _checkout = null;
 
                 if (TimeOnly.TryParseExact(checkinTime, "HH:mm", out TimeOnly hora))
@@ -850,15 +851,25 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     throw new FormatException("Formato de hora de salida no válido (HH:mm)");
                 }
 
+                if (TimeOnly.TryParseExact(checkoutTime, "HH:mm", out TimeOnly maxHora))
+                {
+                    _maxCheckin = maxHora;
+                }
+                else
+                {
+                    throw new FormatException("Formato de hora de la maxima hora de entrada no es válido (HH:mm)");
+                }
+
                 if (chkPolicies != null)
                 {
                     chkPolicies.CheckOutTime = _checkout;
                     chkPolicies.CheckInTime = _checkin;
-                    chkPolicies.Instructions = instructions;
+                    chkPolicies.Instructions = instructions ?? chkPolicies.Instructions;
                     chkPolicies.FlexibleCheckIn = true; // Asumiendo que siempre se permite check-in flexible
                     chkPolicies.FlexibleCheckOut = true; // Asumiendo que siempre se permite check-out flexible
                     chkPolicies.LateCheckInFee = 0; // Asumiendo que no hay cargo por check-in tardío
                     chkPolicies.LateCheckOutFee = 0; // Asumiendo que no hay cargo por check-out tardío
+                    chkPolicies.MaxCheckInTime = _maxCheckin;
                 }
                 else
                 {
@@ -868,6 +879,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         CheckInTime = _checkin,
                         CheckOutTime = _checkout,
                         Instructions = instructions,
+                        MaxCheckInTime = _maxCheckin,
                         FlexibleCheckIn = true, // Asumiendo que siempre se permite check-in flexible
                         FlexibleCheckOut = true, // Asumiendo que siempre se permite check-out flexible
                         LateCheckInFee = 0, // Asumiendo que no hay cargo por check-in tardío
@@ -875,6 +887,16 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     };
                     context.TlCheckInOutPolicies.Add(chkPolicies);
                 }
+                await context.SaveChangesAsync();
+            }
+        }
+
+        public async Task SetCancellationPolicy(long listingRentId, int? cancellationPolicyTypeId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                listing.CancelationPolicyTypeId = cancellationPolicyTypeId;
                 await context.SaveChangesAsync();
             }
         }

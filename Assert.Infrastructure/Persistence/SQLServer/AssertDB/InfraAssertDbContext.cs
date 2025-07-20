@@ -644,6 +644,12 @@ public partial class InfraAssertDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("detail2");
             entity.Property(e => e.DiscountPercentage).HasColumnName("discountPercentage");
+            entity.Property(e => e.HoursAfetrBooking)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("hoursAfetrBooking");
+            entity.Property(e => e.HoursBeforeCheckIn)
+                .HasColumnType("decimal(5, 2)")
+                .HasColumnName("hoursBeforeCheckIn");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .IsUnicode(false)
@@ -1899,6 +1905,7 @@ public partial class InfraAssertDbContext : DbContext
                 .HasColumnType("decimal(10, 2)")
                 .HasColumnName("lateCheckOutFee");
             entity.Property(e => e.ListingRentid).HasColumnName("listingRentid");
+            entity.Property(e => e.MaxCheckInTime).HasColumnName("maxCheckInTime");
 
             entity.HasOne(d => d.ListingRent).WithMany(p => p.TlCheckInOutPolicies)
                 .HasForeignKey(d => d.ListingRentid)
@@ -2234,6 +2241,7 @@ public partial class InfraAssertDbContext : DbContext
                 .HasMaxLength(500)
                 .IsUnicode(false)
                 .HasColumnName("description");
+            entity.Property(e => e.IsOutstanding).HasColumnName("isOutstanding");
             entity.Property(e => e.IsPrincipal).HasColumnName("isPrincipal");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)

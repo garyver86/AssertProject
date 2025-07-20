@@ -126,7 +126,7 @@ namespace Assert.Application.Mappings
             CreateMap<PayPriceCalculation, PayPriceCalculationDTO>();
             CreateMap<PayMethodOfPayment, PayMethodOfPaymentDTO>();
             CreateMap<TApprovalPolicyType, ApprovalPolicyDTO>();
-            CreateMap<TCancelationPolicyType, CancelationPolicyDTO>();
+            CreateMap<TCancelationPolicyType, CancellationPolicyDTO>();
             CreateMap<TpRuleType, RentRuleDTO>();
             CreateMap<TuEmergencyContact, EmergencyContactDTO>().ReverseMap();
             CreateMap<TuUser, UserDTO>().

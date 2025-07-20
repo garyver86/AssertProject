@@ -55,7 +55,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
            .AsNoTracking()
            .ToListAsync();
         }
-        
+
         public async Task<List<TCity>> FindByFilter(string filter, int filterType)
         {
             IQueryable<TCity> query = _context.TCities;
@@ -81,7 +81,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 query = query.Where(c => c.County.Name.Contains(filter));
             }
-            else if (filterType == 0) 
+            else if (filterType == 0)
             {
                 query = query.Where(c => c.County.State.Country.Name.Contains(filter) || c.County.State.Name.Contains(filter) ||
                 c.County.Name.Contains(filter) || c.Name.Contains(filter));
@@ -89,9 +89,43 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             return await query.AsNoTracking().ToListAsync();
         }
 
-        public TCity GetById(int cityId)
+        public async Task<TCity> GetById(int cityId)
         {
-            throw new NotImplementedException();
+            var result = await ApplyBaseFiltersAndIncludes(_context.TCities)
+               .Where(c => c.CityId == cityId)
+               .Include(c => c.County)
+                   .ThenInclude(co => co.State)
+                       .ThenInclude(s => s.Country)
+               .AsNoTracking()
+               .FirstOrDefaultAsync();
+            return result;
+        }
+        public async Task<TCounty> GetCountyById(int countyId)
+        {
+            var result = await ApplyBaseFiltersAndIncludes(_context.TCounties)
+               .Where(c => c.CountyId == countyId)
+                   .Include(co => co.State)
+                       .ThenInclude(s => s.Country)
+               .AsNoTracking()
+               .FirstOrDefaultAsync();
+            return result;
+        }
+        public async Task<TState> GetStateById(int stateId)
+        {
+            var result = await ApplyBaseFiltersAndIncludes(_context.TStates)
+               .Where(c => c.StateId == stateId)
+                       .Include(s => s.Country)
+               .AsNoTracking()
+               .FirstOrDefaultAsync();
+            return result;
+        }
+        public async Task<TCountry> GetCountryById(int countryId)
+        {
+            var result = await ApplyBaseFiltersAndIncludes(_context.TCountries)
+               .Where(c => c.CountryId == countryId)
+               .AsNoTracking()
+               .FirstOrDefaultAsync();
+            return result;
         }
 
         public async Task<TCity> GetByListingRentId(long listingRentId)
@@ -103,7 +137,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task<List<TCountry>> SearchCountries(string filter)
         {
-            var result  = await ApplyBaseFiltersAndIncludes(_context.TCountries)
+            var result = await ApplyBaseFiltersAndIncludes(_context.TCountries)
                 .Where(c => c.Name.Contains(filter))
                 .AsNoTracking()
                 .ToListAsync();

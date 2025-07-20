@@ -54,5 +54,6 @@ namespace Assert.Domain.Models
         public int? privateBathroom { get; set; }
         public int? privateBathroomLodging { get; set; }
         public int? sharedBathroom { get; set; }
+        public TCancelationPolicyType CancelationPolicyType { get; set; }
     }
 }

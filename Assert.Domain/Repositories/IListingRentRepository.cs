@@ -24,6 +24,7 @@ namespace Assert.Domain.Repositories
         
         Task<string> UpdateBasicData(long listingRentId, string title, string description, List<int> aspectTypeIdList);
         Task SetReservationTypeApprobation(long listingRentId, int value1, int value2, int value3);
-        Task SetCheckInPolicies(long listingRentId, string checkinTime, string checkoutTime, string instructions);
+        Task SetCheckInPolicies(long listingRentId, string checkinTime, string checkoutTime, string instructions, string maxCheckinTime);
+        Task SetCancellationPolicy(long listingRentId, int? cancellationPolicyTypeId);
     }
 }

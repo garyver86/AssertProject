@@ -21,6 +21,8 @@ public partial class TlListingPhoto
 
     public int? SpaceTypeId { get; set; }
 
+    public bool? IsOutstanding { get; set; }
+
     public virtual TlListingRent? ListingRent { get; set; }
 
     public virtual TSpaceType? SpaceType { get; set; }

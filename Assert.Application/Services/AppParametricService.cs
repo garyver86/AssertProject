@@ -198,5 +198,49 @@ namespace Assert.Application.Services
                 ResultError = _mapper.Map<ErrorCommonDTO>(error)
             };
         }
+
+        public async Task<ReturnModelDTO<List<CancellationPolicyDTO>>> GetCancellationPolicies(Dictionary<string, string> requestInfo, bool useTechnicalMessages)
+        {
+            try
+            {
+                ReturnModel<List<TCancelationPolicyType>> result = await _parametricService.GetCancellationPolicies(useTechnicalMessages);
+                if (result.HasError)
+                {
+                    return CreateErrorResult<List<CancellationPolicyDTO>>(result.StatusCode, result.ResultError, useTechnicalMessages);
+                }
+                return new ReturnModelDTO<List<CancellationPolicyDTO>>
+                {
+                    Data = _mapper.Map<List<CancellationPolicyDTO>>(result.Data),
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            catch (Exception ex)
+            {
+                return HandleException<List<CancellationPolicyDTO>>("AppParametricService.GetCancellationPolicies", ex, null, useTechnicalMessages);
+            }
+        }
+
+        public async Task<ReturnModelDTO<List<RentRuleDTO>>> GetRentRules(Dictionary<string, string> requestInfo, bool useTechnicalMessages)
+        {
+            try
+            {
+                ReturnModel<List<TpRuleType>> result = await _parametricService.GetRentRuleTypes(useTechnicalMessages);
+                if (result.HasError)
+                {
+                    return CreateErrorResult<List<RentRuleDTO>>(result.StatusCode, result.ResultError, useTechnicalMessages);
+                }
+                return new ReturnModelDTO<List<RentRuleDTO>>
+                {
+                    Data = _mapper.Map<List<RentRuleDTO>>(result.Data),
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            catch (Exception ex)
+            {
+                return HandleException<List<RentRuleDTO>>("AppParametricService.GetCancellationPolicies", ex, null, useTechnicalMessages);
+            }
+        }
     }
 }

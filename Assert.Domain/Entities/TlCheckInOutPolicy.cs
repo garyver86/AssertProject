@@ -23,5 +23,7 @@ public partial class TlCheckInOutPolicy
 
     public string? Instructions { get; set; }
 
+    public TimeOnly? MaxCheckInTime { get; set; }
+
     public virtual TlListingRent ListingRent { get; set; } = null!;
 }

@@ -44,12 +44,14 @@
         public int? privateBathroom { get; set; }
         public int? privateBathroomLodging { get; set; }
         public int? sharedBathroom { get; set; }
+        public int? cancelPolicyTypeId { get; set; }
     }
     public class CheckInPoliciesModel
     {
         public string? CheckInTime { get; set; }
         public string? CheckOutTime { get; set; }
         public string? Instructions { get; set; }
+        public string MaxCheckInTime { get; set; }
     }
     public class ProcessData_AddressModel
     {

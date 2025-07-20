@@ -228,5 +228,41 @@ namespace Assert.API.Controllers
         [Authorize(Policy = "GuestOrHostOrAdmin")]
         public async Task<ReturnModelDTO<List<LanguageDTO>>> GetLanguageTypes()
         => await _parametricService.GetLanguageTypes();
+
+        /// <summary>
+        /// Servicio que devuelve la lista de políticas de cancelación.
+        /// </summary>
+        /// <returns>Listado de políticas de cancelación.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// Solo se consideraran las políticas habilitadas.
+        /// </remarks>
+        [HttpGet("CancellationPolicies")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO<List<CancellationPolicyDTO>>> GetCancellationPolicies()
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            var discountTypesResult = await _parametricService.GetCancellationPolicies(requestInfo, true);
+
+            return discountTypesResult;
+        }
+
+        /// <summary>
+        /// Servicio que devuelve la lista de tipos de reglas.
+        /// </summary>
+        /// <returns>Listado de reglas aplicables al alquiler de una propiedad.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// Solo se consideraran las reglas habilitadas.
+        /// </remarks>
+        [HttpGet("RentRules")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO<List<RentRuleDTO>>> GetRentRules()
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            var discountTypesResult = await _parametricService.GetRentRules(requestInfo, true);
+
+            return discountTypesResult;
+        }
     }
 }

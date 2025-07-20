@@ -9,6 +9,7 @@ namespace Assert.Application.DTOs.Responses
         public string ViewCode { get; set; }
 
         public int? SubtypeId { get; set; }
+        public int? cancelPolicyTypeId { get; set; }
 
         public int? AccomodationId { get; set; }
         public ProcessData_Address Address { get; set; }
