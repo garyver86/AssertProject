@@ -131,6 +131,13 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     }
                 };
             }
+
+            if (listing != null)
+            {
+                List<long> favorites = await _favoritesRepository.GetAllFavoritesList(guestid);
+                listing.isFavorite = favorites?.Contains(listing.ListingRentId);
+            }
+
             return (TlListingRent)listing;
         }
 
@@ -333,25 +340,27 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task<TlListingRent> Get(long id, int ownerID)
+        public async Task<TlListingRent> Get(long id, long ownerID)
         {
             dynamic listingData = null;
+            // Paso 1: Obtener datos básicos del listing
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 listingData = await context.TlListingRents
-                .AsNoTracking()
-                .Where(x => x.ListingRentId == id && x.OwnerUserId == ownerID && x.ListingStatusId != 5)
-                .Select(x => new
-                {
-                    Listing = x,
-                    Status = x.ListingStatus,
-                    AccomodationType = x.AccomodationType,
-                    ApprovalPolicy = x.ApprovalPolicyType,
-                    CancelationPolicy = x.CancelationPolicyType,
-                    Owner = x.OwnerUser
-                })
-                .FirstOrDefaultAsync();
+                 .AsNoTracking()
+                 .Where(x => x.ListingRentId == id && x.ListingStatusId != 5 && x.OwnerUserId == ownerID)
+                 .Select(x => new
+                 {
+                     Listing = x,
+                     Status = x.ListingStatus,
+                     AccomodationType = x.AccomodationType,
+                     ApprovalPolicy = x.ApprovalPolicyType,
+                     CancelationPolicy = x.CancelationPolicyType,
+                     Owner = x.OwnerUser
+                 })
+                 .FirstOrDefaultAsync();
             }
+
             if (listingData == null) return null;
 
             var listing = listingData.Listing;
@@ -369,6 +378,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             listing.TlStayPresences = await LoadStayPresencesAsync(_context, id);
             listing.TlListingReviews = await LoadReviewsAsync(_context, id);
             listing.TlCheckInOutPolicies = await LoadCheckInOutPoliciesAsync(_context, id);
+            listing.TlListingDiscountForRates = await LoadDiscountsAsync(_context, id);
 
             // Asignar propiedades de navegación
             listing.ListingStatus = listingData.Status;
@@ -377,6 +387,44 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             listing.CancelationPolicyType = listingData.CancelationPolicy;
             listing.OwnerUser = listingData.Owner;
 
+            if (listing.TpProperties?.Count > 0)
+            {
+                TpProperty prop = ((List<TpProperty>)listing.TpProperties).FirstOrDefault();
+                ((List<TpProperty>)listing.TpProperties).FirstOrDefault().TpPropertyAddresses = new List<TpPropertyAddress>
+                {
+                    new TpPropertyAddress
+                    {
+                        Address1 = prop.Address1,
+                        Address2 = prop.Address2,
+                        CityId = prop.CityId,
+                        CountyId = prop.CountyId,
+                        ZipCode = prop.ZipCode,
+                        StateId = prop.StateId,
+                        City = new TCity
+                        {
+                            CityId = prop.CityId??0,
+                            Name = prop.CityName,
+                            CountyId = prop.CountyId??0,
+                            County = new TCounty
+                            {
+                                CountyId = prop.CountyId ?? 0,
+                                Name = prop.CountyName,
+                                StateId = prop.StateId??0,
+                                State = new TState
+                                {
+                                    Name = prop.StateName,
+                                    StateId = prop.StateId ?? 0,
+                                    Country = new TCountry
+                                    {
+                                        Name = prop.CountryName,
+                                        CountryId = prop.CountryId ?? 0
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+            }
             return (TlListingRent)listing;
         }
 

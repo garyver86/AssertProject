@@ -235,5 +235,26 @@ namespace Assert.API.Controllers
             var result = await _appListingRentService.UpdatePhoto(listingRentId, photoId, request, requestInfo);
             return result;
         }
+
+        /// <summary>
+        /// Servicio que devuelve el detalle de un Listing Rent
+        /// </summary>
+        /// <param name="listinRentId">Id del linsting rent a recuperar.</param>
+        /// <returns>Detalle de un listing rent.</returns>
+        /// <response code="200">Detalle del Listing Rent</response>
+        /// <remarks>
+        /// Este servicio devuelve el detalle de un listing rent en base a su id, al tratarse de un servicio para Host, valida que el dueño este accediendo al listing y se lo devuelve en cualquier estado.
+        /// </remarks>
+        [HttpGet("{listinRentId}")]
+        [Authorize(Policy = "GuestOrHost")]
+        public async Task<ReturnModelDTO> Get(long listinRentId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+
+            var result = await _appListingRentService.Get(listinRentId, userId, requestInfo, true);
+            return result;
+        }
     }
 }

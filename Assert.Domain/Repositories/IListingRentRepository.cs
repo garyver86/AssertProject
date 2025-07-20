@@ -6,7 +6,7 @@ namespace Assert.Domain.Repositories
     public interface IListingRentRepository
     {
         Task<TlListingRent> Get(long id, int guestId, bool onlyActive);
-        Task<TlListingRent> Get(long id, int ownerID);
+        Task<TlListingRent> Get(long id, long ownerID);
         Task<TlListingRent> ChangeStatus(long id, int ownerID, int newStatus, Dictionary<string, string> userInfo);
         Task<List<TlListingRent>> GetAll(int ownerUserId);
         Task<TlListingRent> Register(TlListingRent listingRent, Dictionary<string, string> clientData);
