@@ -55,6 +55,15 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         _context.Add(newDiscount);
                         alreadyExist.Add(discountTypeId.Item1);
                     }
+                    else
+                    {
+                        var existingDiscount = activeDiscounts.FirstOrDefault(x => x.DiscountTypeForTypePriceId == discountTypeId.Item1);
+                        if (existingDiscount != null)
+                        {
+                            existingDiscount.Porcentage = discountTypeId.Item2;
+                            _context.Update(existingDiscount);
+                        }
+                    }
                 }
             }
             await _context.SaveChangesAsync();
