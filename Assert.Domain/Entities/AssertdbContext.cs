@@ -2308,6 +2308,9 @@ public partial class AssertDbContext : DbContext
             entity.Property(e => e.ApprovalPolicyTypeId).HasColumnName("approvalPolicyTypeId");
             entity.Property(e => e.ApprovalRequestDays).HasColumnName("approvalRequestDays");
             entity.Property(e => e.AvailabilityWindowMonth).HasColumnName("availabilityWindowMonth");
+            entity.Property(e => e.AvgReviews)
+                .HasColumnType("decimal(5, 2)")
+                .HasColumnName("avgReviews");
             entity.Property(e => e.Bathrooms).HasColumnName("bathrooms");
             entity.Property(e => e.Bedrooms).HasColumnName("bedrooms");
             entity.Property(e => e.Beds).HasColumnName("beds");
@@ -2321,7 +2324,7 @@ public partial class AssertDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("checkOutDays");
             entity.Property(e => e.Description)
-                .HasMaxLength(500)
+                .HasMaxLength(1000)
                 .IsUnicode(false)
                 .HasColumnName("description");
             entity.Property(e => e.ExternalCameras).HasColumnName("externalCameras");

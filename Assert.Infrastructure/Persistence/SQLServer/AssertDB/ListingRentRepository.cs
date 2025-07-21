@@ -461,7 +461,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .Include(x => x.TlListingReviews)
                 .AsNoTracking()
                 .Where(x => x.ListingStatusId != 5 && x.OwnerUserId == ownerID)
-                .OrderByDescending(x => x.TlListingReviews.Average(y => y.Calification));
+                //.OrderByDescending(x => x.TlListingReviews.Average(y => y.Calification));
+                .OrderByDescending(x => x.AvgReviews);
 
                 var result = await query
                     //.Skip(skipAmount)
@@ -549,7 +550,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Include(x => x.TlListingReviews)
                     .AsNoTracking()
                     .Where(x => x.ListingStatusId == 3 && (countryId == null || countryId == 0 || x.TpProperties.FirstOrDefault().CountryId == countryId))
-                    .OrderByDescending(x => x.TlListingReviews.Average(y => y.Calification));
+                    //.OrderByDescending(x => x.TlListingReviews.Average(y => y.Calification));
+                    .OrderByDescending(x => x.AvgReviews);
 
                 var result = await query
                     .Skip(skipAmount)

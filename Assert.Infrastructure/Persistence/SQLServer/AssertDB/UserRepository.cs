@@ -11,6 +11,7 @@ using Assert.Infrastructure.Utils;
 using Assert.Shared.Extensions;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System.Data;
 using System.Net.Http.Headers;
@@ -20,9 +21,10 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
     public class UserRepository(IExceptionLoggerService _exceptionLoggerService,
         RequestMetadata _metadata,
         InfraAssertDbContext _dbContext,
-        ILogger<UserRepository> _logger)
+        ILogger<UserRepository> _logger, IServiceProvider serviceProvider)
         : IUserRepository
     {
+        private readonly DbContextOptions<InfraAssertDbContext> dbOptions = serviceProvider.GetRequiredService<DbContextOptions<InfraAssertDbContext>>();
 
         public async Task<ReturnModel> Login(string username, string password)
         {
@@ -297,6 +299,37 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 var (className, methodName) = this.GetCallerInfo();
                 _exceptionLoggerService.LogAsync(ex, methodName, className, new { newUser });
+                throw new InfrastructureException(ex.Message);
+            }
+        }
+
+
+        public async Task EnableHostRol(int userId)
+        {
+            try
+            {
+                using (var context = new InfraAssertDbContext(dbOptions))
+                {
+                    TuUserRole userRole = await context.TuUserRoles
+                        .FirstOrDefaultAsync(ur => ur.UserId == userId && ur.UserTypeId == 2);
+                    if (userRole == null)
+                    {
+                        context.TuUserRoles.Add(new TuUserRole
+                        {
+                            UserId = userId,
+                            UserTypeId = 2, // Host role
+                            IsActive = true
+                        });
+                        await context.SaveChangesAsync();
+                    }
+
+                }
+
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { userId });
                 throw new InfrastructureException(ex.Message);
             }
         }

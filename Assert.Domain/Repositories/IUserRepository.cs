@@ -28,6 +28,7 @@ namespace Assert.Domain.Repositories
         Task<Profile> GetAllProfile();
 
         Task<TuUser> GetAdditionalProfile();
+        Task EnableHostRol(int userId);
 
         Task<int> UpsertAdditionalProfile(int objectId, string whatIDo,
             string wantedToGo, string pets, DateTime? birthday, List<TLanguage>? languages,

@@ -2,15 +2,19 @@
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
     internal class ListingRentReviewRepository : IListingRentReviewRepository
     {
         private readonly InfraAssertDbContext _context;
-        public ListingRentReviewRepository(InfraAssertDbContext infraAssertDbContext)
+        private readonly DbContextOptions<InfraAssertDbContext> dbOptions;
+        public ListingRentReviewRepository(InfraAssertDbContext infraAssertDbContext, IServiceProvider serviceProvider)
         {
             _context = infraAssertDbContext;
+            dbOptions = serviceProvider.GetRequiredService<DbContextOptions<InfraAssertDbContext>>();
         }
         public async Task<List<TlListingReview>> GetByListingRent(long listingRentId)
         {
@@ -18,6 +22,44 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .Include(x => x.User)
                 .Where(x => x.ListingRentId == listingRentId).ToListAsync();
             return result;
+        }
+
+        public async Task<TlListingReview> RegisterReview(long listingRentId, int calification, string comment, int userId)
+        {
+            using (var dbContext = new InfraAssertDbContext(dbOptions))
+            {
+                TlListingReview review = new TlListingReview
+                {
+                    ListingRentId = listingRentId,
+                    UserId = userId,
+                    DateTimeReview = DateTime.UtcNow,
+                    Calification = calification,
+                    Comment = comment
+                };
+                dbContext.TlListingReviews.Add(review);
+                await dbContext.SaveChangesAsync();
+
+                UpdateReviewsAverage(listingRentId);
+
+                return review;
+            }
+        }
+
+        public async Task UpdateReviewsAverage(long listingRentId)
+        {
+            using (var dbContext = new InfraAssertDbContext(dbOptions))
+            {
+                var averageRating = await dbContext.TlListingReviews
+                    .Where(r => r.ListingReviewId == listingRentId)
+                    .AverageAsync(r => r.Calification);
+
+                TlListingRent listing = await dbContext.TlListingRents
+                    .FirstOrDefaultAsync(l => l.ListingRentId == listingRentId);
+
+                listing.AvgReviews = (Decimal)(averageRating);
+                await dbContext.SaveChangesAsync();
+                return;
+            }
         }
         public async Task<ListingReviewSummary> GetReviewSummary(long listingRentId, int topCount)
         {

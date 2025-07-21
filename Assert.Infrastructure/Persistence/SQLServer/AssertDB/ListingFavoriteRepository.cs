@@ -114,7 +114,14 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Where(x => ids.Contains(x.ListingRentId ?? 0))
                     .GroupBy(x => x.ListingRentId)
                     .ToDictionaryAsync(g => g.Key, g => g.ToList());
-               
+
+
+                var pricesDict = await dbContext.TlListingPrices
+                    .AsNoTracking()
+                    .Where(x => ids.Contains(x.ListingRentId))
+                    .GroupBy(x => x.ListingRentId)
+                    .ToDictionaryAsync(g => g.Key, g => g.ToList());
+
                 // Asignar las relaciones a cada listing
                 foreach (var listing in listings)
                 {
@@ -124,6 +131,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
                     if (featuresDict.TryGetValue(listing.ListingRentId, out var features))
                         listing.TlListingFeaturedAspects = features;
+
+                    if (pricesDict.TryGetValue(listing.ListingRentId, out var prices))
+                        listing.TlListingPrices = prices;
 
                     if (propertiesDict.TryGetValue(listing.ListingRentId, out var properties))
                     {

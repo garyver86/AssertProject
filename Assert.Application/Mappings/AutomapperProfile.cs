@@ -116,7 +116,7 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.TlListingPrices.FirstOrDefault() ?? new TlListingPrice()))
                 .ForPath(dest => dest.Price.TlListingDiscountForRates, opt => opt.MapFrom(src => src.TlListingDiscountForRates))
                 //.ForMember(dest => dest.Valoration, opt => opt.MapFrom(src => src.TlListingReviews.Select(y=>y.Calification).Average()));
-                .ForMember(dest => dest.Valoration, opt => opt.MapFrom(src => UtilsMgr.CalculateAverageCalification(src.TlListingReviews)));
+                .ForMember(dest => dest.Valoration, opt => opt.MapFrom(src => UtilsMgr.CalculateAverageCalification(src.AvgReviews, src.TlListingReviews)));
 
 
             CreateMap<TlListingFavorite, ListingFavoriteDTO>();
