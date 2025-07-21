@@ -292,7 +292,7 @@ namespace Assert.Domain.Implementation
                     ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe definir las horas de Checin y checkout.", useTechnicalMessages)
                 };
             }
-            await _listingRentRepository.SetCheckInPolicies(listing.ListingRentId, request_.CheckInPolicies?.CheckInTime, request_.CheckInPolicies?.CheckOutTime, request_.CheckInPolicies?.Instructions, request_.CheckInPolicies?.MaxCheckInTime);
+            await _listingRentRepository.SetCheckInPolicies(listing.ListingRentId, request_.CheckInPolicies?.CheckInTime, request_.CheckInPolicies?.CheckOutTime, request_.CheckInPolicies?.MaxCheckInTime, request_.CheckInPolicies?.Instructions);
             await _listingRentRulesRepository.Set(listing.ListingRentId, request_.Rules);
 
             return new ReturnModel

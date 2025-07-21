@@ -11,6 +11,7 @@ using System;
 using System.Linq;
 using System.Diagnostics.Metrics;
 using System.Globalization;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
@@ -833,6 +834,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 TimeOnly? _maxCheckin = null;
                 TimeOnly? _checkout = null;
 
+                checkinTime = FormatTime(checkinTime);
+                checkoutTime = FormatTime(checkoutTime);
+                maxCheckinTime = FormatTime(maxCheckinTime);
+
+
                 if (TimeOnly.TryParseExact(checkinTime, "HH:mm", out TimeOnly hora))
                 {
                     _checkin = hora;
@@ -851,7 +857,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     throw new FormatException("Formato de hora de salida no válido (HH:mm)");
                 }
 
-                if (TimeOnly.TryParseExact(checkoutTime, "HH:mm", out TimeOnly maxHora))
+                if (TimeOnly.TryParseExact(maxCheckinTime, "HH:mm", out TimeOnly maxHora))
                 {
                     _maxCheckin = maxHora;
                 }
@@ -889,6 +895,20 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 }
                 await context.SaveChangesAsync();
             }
+        }
+
+        private string FormatTime(string strTime)
+        {
+            if (strTime.IsNullOrEmpty())
+            {
+                return strTime;
+            }
+            var aux = strTime.Split(':');
+            if (aux.Length > 2)
+            {
+                strTime = string.Join(":", new string[] { aux[0], aux[1] });
+            }
+            return strTime;
         }
 
         public async Task SetCancellationPolicy(long listingRentId, int? cancellationPolicyTypeId)

@@ -143,7 +143,10 @@ namespace Assert.Application.Mappings
             CreateMap<TlListingPrice, PriceDTO>()
                 .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Currency != null ? src.Currency.Name : null))
                 .ForMember(dest => dest.CurrencyCode, opt => opt.MapFrom(src => src.Currency != null ? src.Currency.Code : null));
-            CreateMap<TlCheckInOutPolicy, CheckInOutPolicyDTO>();
+            CreateMap<TlCheckInOutPolicy, CheckInOutPolicyDTO>()
+                .ForMember(dest => dest.CheckInTime_Str, opt => opt.MapFrom(src => src.CheckInTime != null ? ((TimeOnly)src.CheckInTime).ToString("HH:mm") : null))
+                .ForMember(dest => dest.CheckOutTime_Str, opt => opt.MapFrom(src => src.CheckOutTime != null ? ((TimeOnly)src.CheckOutTime).ToString("HH:mm") : null))
+                .ForMember(dest => dest.MaxCheckInTime_Str, opt => opt.MapFrom(src => src.MaxCheckInTime != null ? ((TimeOnly)src.MaxCheckInTime).ToString("HH:mm") : null));
             CreateMap<TlListingAmenity, AmenityDTO>()
                 .ForMember(dest => dest.TypeCode, opt => opt.MapFrom(src => src.AmenitiesType != null ? src.AmenitiesType.Code : null))
                 .ForMember(dest => dest.IconLink, opt => opt.MapFrom(src => src.AmenitiesType != null ? src.AmenitiesType.IconLink : null))
