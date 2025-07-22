@@ -12,5 +12,6 @@ namespace Assert.Domain.Services
         Task<List<ReturnModel>> SaveListingRentImages(long listingRentId, List<UploadImageListingRent> imageFiles, int userId, bool useTechnicalMessages);
         Task<ReturnModel<TlListingPhoto>> UpdatePhoto(long listingRentId, int photoId, UploadImageListingRent request, int userId, bool v);
         Task<bool> VerifyListingRentImage(string fileName);
+        Task<ReturnModel> UploadProfilePhoto(int userId, IFormFile profilePhoto);
     }
 }

@@ -1,23 +1,17 @@
-﻿using Assert.Domain.Common.Metadata;
-using Assert.Domain.Entities;
+﻿using Assert.Domain.Entities;
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Repositories;
 using Assert.Infrastructure.Exceptions;
 using Assert.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 
 public class EmergencyContactRepository(
     IExceptionLoggerService _exceptionLoggerService,
-    InfraAssertDbContext _dbContext, ILogger<UserRepository> _logger) 
+    InfraAssertDbContext _dbContext, 
+    ILogger<UserRepository> _logger) 
         : IEmergencyContactRepository
 {
     public async Task<TuEmergencyContact> GetByUserId(int userId)

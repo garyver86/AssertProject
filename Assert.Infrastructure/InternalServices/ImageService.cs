@@ -1,9 +1,14 @@
-﻿using Assert.Domain.Entities;
+﻿using Assert.Domain.Common.Metadata;
+using Assert.Domain.Entities;
+using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
+using Assert.Infrastructure.Exceptions;
+using Assert.Shared.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
+using System.Net;
 
 namespace Assert.Infrastructure.InternalServices
 {
@@ -20,7 +25,8 @@ namespace Assert.Infrastructure.InternalServices
         private readonly IHostEnvironment _hostEnvironment;
 
         public ImageService(ISystemConfigurationRepository systemConfigurationRepository, IErrorHandler errorHandler, IListingRentService listingRentService,
-            IListingPhotoRepository listingPhotoRepository, IHostEnvironment hostEnvironment)
+            IListingPhotoRepository listingPhotoRepository, IHostEnvironment hostEnvironment,
+            IExceptionLoggerService exceptionLoggerService)
         {
             _SystemConfigurationRepository = systemConfigurationRepository;
             _errorHandler = errorHandler;
@@ -35,6 +41,62 @@ namespace Assert.Infrastructure.InternalServices
             {
                 Directory.CreateDirectory(_basePath);
             }
+        }
+
+        public async Task<ReturnModel> UploadProfilePhoto(int userId, IFormFile profilePhoto)
+        {
+            var savedFile = new ReturnModel();
+
+            try
+            {
+                string relativeBasePath = await _SystemConfigurationRepository.GetProfilePhotoResourcePath();
+
+                var physicalFolder = Path.Combine(_hostEnvironment.ContentRootPath, relativeBasePath);
+                EnsureDirectoryExists(physicalFolder);
+
+                var fileExtension = Path.GetExtension(profilePhoto.FileName).ToLowerInvariant();
+                var fileName = $"{userId}{fileExtension}";
+                var fullFilePath = Path.Combine(physicalFolder, fileName);
+
+                if (File.Exists(fullFilePath))
+                    File.Delete(fullFilePath);
+
+                if (!_allowedExtensions.Contains(fileExtension) || profilePhoto.Length > _maxFileSize)
+                {
+                    return new ReturnModel
+                    {
+                        StatusCode = ResultStatusCode.BadRequest,
+                        ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest,
+                            $"Formato inválido o tamaño excedido. Extensiones permitidas: {string.Join(", ", _allowedExtensions)}", false),
+                        HasError = true
+                    };
+                }
+
+                await using var fileStream = new FileStream(
+                    fullFilePath, FileMode.Create, FileAccess.Write, 
+                    FileShare.None, 81920, true);
+                await profilePhoto.CopyToAsync(fileStream);
+
+                string relativeBaseUrl = await _SystemConfigurationRepository.GetProfilePhotoResourceUrl();
+                var publicUrl = $"{relativeBaseUrl}{fileName}";
+
+                return new ReturnModel
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    HasError = false,
+                    Data = publicUrl
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ReturnModel
+                {
+                    ResultError = _errorHandler.GetErrorException(ResultStatusCode.InternalError, ex, "", false),
+                    StatusCode = ResultStatusCode.InternalError,
+                    Data = profilePhoto.FileName
+                };
+            }
+
         }
 
         public async Task<List<ReturnModel>> SaveListingRentImages(IEnumerable<IFormFile> imageFiles, bool useTechnicalMessages)

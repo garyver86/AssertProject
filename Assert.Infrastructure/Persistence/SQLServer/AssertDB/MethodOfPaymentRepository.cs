@@ -1,16 +1,9 @@
 ﻿using Assert.Domain.Entities;
 using Assert.Domain.Interfaces.Logging;
-using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Infrastructure.Exceptions;
 using Assert.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {

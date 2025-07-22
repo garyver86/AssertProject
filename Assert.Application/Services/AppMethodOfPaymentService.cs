@@ -1,6 +1,6 @@
 ﻿using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
-using Assert.Domain.Implementation;
+using Assert.Domain.Common.Metadata;
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
 using Assert.Domain.Services;
@@ -15,14 +15,16 @@ namespace Assert.Application.Services
         private readonly IMapper _mapper;
         private readonly IErrorHandler _errorHandler;
         private readonly IExceptionLoggerService _exceptionLoggerService;
+        private readonly RequestMetadata _metadata;
 
         public AppMethodOfPaymentService(IMethodOfPaymentService methodOfPaymentService, IMapper mapper, IErrorHandler errorHandler,
-            IExceptionLoggerService exceptionLoggerService)
+            IExceptionLoggerService exceptionLoggerService, RequestMetadata metadata)
         {
             _mopService = methodOfPaymentService;
             _mapper = mapper;
             _errorHandler = errorHandler;
             _exceptionLoggerService = exceptionLoggerService;
+            _metadata = metadata;
         }
 
         public async Task<ReturnModelDTO<List<PayMethodOfPaymentDTO>>> GetAllAsync(int countryId)

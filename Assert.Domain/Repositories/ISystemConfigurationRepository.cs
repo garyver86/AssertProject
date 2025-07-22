@@ -5,5 +5,7 @@
         Task<string> GetListingResourcePath();
         Task<string> GetListingResourceUrl();
         Task<string> GetIconsResourceUrl();
+        Task<string> GetProfilePhotoResourcePath();
+        Task<string> GetProfilePhotoResourceUrl();
     }
 }

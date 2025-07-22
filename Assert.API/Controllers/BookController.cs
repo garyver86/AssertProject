@@ -50,5 +50,44 @@ namespace Assert.API.Controllers
 
             return result;
         }
+
+        /// <summary>
+        /// Inserta/Actualiza una reserva
+        /// </summary>
+        /// <returns>Confirmación de la actualizacion: retorna el Id de la reserva</returns>
+        /// <response code="200">Si se proceso correctamente.</response>
+        /// <remarks>
+        /// Si existe la reserva se envia el Id de esta caso contrario se envia 0 para indicar que es una nueva reserva.
+        /// </remarks>
+        [HttpPost("UpdateProfilePhoto")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> UpsertBookAsync([FromBody] BookDTO incomingBook)
+        => await _bookService.UpsertBookAsync(incomingBook);
+
+        /// <summary>
+        /// Servicio que recupera una reserva esepecifica por Id.
+        /// </summary>
+        /// <returns>Confirmación de la actualizacion: retorna la informacion completa de la reserva</returns>
+        /// <response code="200">Si se proceso correctamente.</response>
+        /// <remarks>
+        /// En caso de reserva vacia retorna error
+        /// </remarks>
+        [HttpPost("GetBookByIdAsync")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> GetBookByIdAsync([FromBody] long bookId)
+        => await _bookService.GetBookByIdAsync(bookId);
+
+        /// <summary>
+        /// Servicio que recupera una lista de reservas del usuario que inicio sesion.
+        /// </summary>
+        /// <returns>Confirmación de la actualizacion: retorna la informacion completa de las reservas del usuario</returns>
+        /// <response code="200">Si se proceso correctamente.</response>
+        /// <remarks>
+        /// En caso que no existan reservas para el usuario retorna error
+        /// </remarks>
+        [HttpPost("GetBookByUserIdAsync")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> GetBookByUserIdAsync()
+        => await _bookService.GetBooksByUserIdAsync();
     }
 }

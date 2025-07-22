@@ -1,4 +1,6 @@
-﻿namespace Assert.Domain.Interfaces.Logging;
+﻿using Assert.Domain.Common.Metadata;
+
+namespace Assert.Domain.Interfaces.Logging;
 
 public interface IExceptionLoggerService
 {

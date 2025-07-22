@@ -1,4 +1,5 @@
-﻿using Assert.Domain.Entities;
+﻿using Assert.Domain.Common.Metadata;
+using Assert.Domain.Entities;
 using Assert.Domain.Exceptions;
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
@@ -18,7 +19,7 @@ namespace Assert.Domain.Implementation
         private readonly IAmenitiesRepository _amenitiesRepository;
         private readonly IErrorHandler _errorHandler;
         private readonly ILanguageRepository _languageRepository;
-        IExceptionLoggerService _exceptionLoggerService;
+        private readonly IExceptionLoggerService _exceptionLoggerService;
         public ParametricService(IAccommodationTypeRepository accommodationTypeRepository, IErrorHandler errorHandler,
             IFeaturesAspectsRepository featuredAspectsRepository, IDiscountTypeRepository discountTypeRepository,
             IPropertySubTypeRepository propertySubTypeRepository, ISpaceTypeRepository spaceTypeRepository, 

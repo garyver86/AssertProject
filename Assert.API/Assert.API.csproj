@@ -29,6 +29,7 @@
   <ItemGroup>
     <Folder Include="Resources\Icons\" />
     <Folder Include="wwwroot\Assert\Resources\Listings\" />
+    <Folder Include="wwwroot\Assert\Resources\ProfilePhotos\" />
   </ItemGroup>
 
 </Project>

@@ -27,6 +27,28 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 return resourcePath;
             }
         }
+        public async Task<string> GetProfilePhotoResourcePath()
+        {
+            using (var dbContext = new InfraAssertDbContext(dbOptions))
+            {
+                string resourcePath = string.Empty;
+                resourcePath = (await dbContext.TSystemConfigurations
+                    .Where(x => x.Name == "vgg_resource_profile_photos")
+                    .FirstOrDefaultAsync())?.Value ?? "";
+                return resourcePath;
+            }
+        }
+        public async Task<string> GetProfilePhotoResourceUrl()
+        {
+            using (var dbContext = new InfraAssertDbContext(dbOptions))
+            {
+                string resourcePath = string.Empty;
+                resourcePath = (await dbContext.TSystemConfigurations
+                    .Where(x => x.Name == "vgg_resource_url_profile_photos")
+                    .FirstOrDefaultAsync())?.Value ?? "";
+                return resourcePath;
+            }
+        }
         public async Task<string> GetListingResourceUrl()
         {
             using (var dbContext = new InfraAssertDbContext(dbOptions))

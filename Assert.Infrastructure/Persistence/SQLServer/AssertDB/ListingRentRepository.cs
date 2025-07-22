@@ -7,9 +7,6 @@ using Assert.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Diagnostics.Metrics;
-using System.Globalization;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
@@ -752,7 +749,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             catch (Exception ex)
             {
                 var (className, methodName) = this.GetCallerInfo();
-                _exceptionLoggerService.LogAsync(ex, methodName, className, new { listingRentId, title, description, aspectTypeIdList });
+                _exceptionLoggerService.LogAsync(ex, methodName, className, 
+                    new { listingRentId, title, description, aspectTypeIdList });
 
                 throw new DatabaseUnavailableException(ex.Message);
             }
