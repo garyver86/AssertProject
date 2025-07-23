@@ -585,5 +585,47 @@ namespace Assert.Application.Services
             }
             return result;
         }
+
+        public async Task<ReturnModelDTO<List<ListingRentDTO>>> GetByOwnerResumed(Dictionary<string, string> clientData, bool useTechnicalMessages)
+        {
+            string userId = clientData["UserId"] ?? "-50";
+            int _userID = -1;
+            int.TryParse(userId, out _userID);
+
+            ReturnModelDTO<List<ListingRentDTO>> result = new ReturnModelDTO<List<ListingRentDTO>>();
+            try
+            {
+                List<TlListingRent> listings = await _listingRentRepository.GetAllResumed(_userID, true);
+                if (listings?.Count > 0)
+                {
+                    string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+                    _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+                    foreach (var list in listings)
+                    {
+                        if (list?.TlListingPhotos?.Count > 0)
+                        {
+                            foreach (var item in list.TlListingPhotos)
+                            {
+                                item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                            }
+                        }
+                    }
+                }
+                result = new ReturnModelDTO<List<ListingRentDTO>>
+                {
+                    Data = _mapper.Map<List<ListingRentDTO>>(listings),
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.GetByOwner", ex, new { userId }, UseTechnicalMessages));
+            }
+            return result;
+        }
     }
 }

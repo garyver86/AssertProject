@@ -141,6 +141,25 @@ namespace Assert.API.Controllers
         }
 
         /// <summary>
+        /// Servicio que devuelve los listing rent publicados del propietario actualmente logueado con informacion
+        /// resumida (coordenadas, precios y moneda).
+        /// </summary>
+        /// <returns>Listado de listing rents (lropiedades).</returns>
+        /// <response code="200">Si no existió un error al devolver las propiedades.</response>
+        /// <remarks>
+        /// No se devolveran los listing rents que se encuentren marcados como eliminados.
+        /// </remarks>
+        [HttpGet]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("Resume")]
+        public async Task<ReturnModelDTO<List<ListingRentDTO>>> GetResume()
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            ReturnModelDTO<List<ListingRentDTO>> result = await _appListingRentService.GetByOwnerResumed(requestInfo, true);
+            return result;
+        }
+
+        /// <summary>
         /// Servicio que devuelve los listing rent del propietario actualmente logueado.
         /// </summary>
         /// <returns>Listado de listing rents (lropiedades).</returns>

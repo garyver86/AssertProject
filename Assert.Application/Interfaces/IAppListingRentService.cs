@@ -26,6 +26,6 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<string>> UpdatePricesAndDiscounts(long listingRentId,
             PricesAndDiscountRequest pricingData);
         Task<ReturnModelDTO<ListingRentDTO>> Get(long istingRentId, long userId, Dictionary<string, string> clientData, bool useTechnicalMessages);
-
+        Task<ReturnModelDTO<List<ListingRentDTO>>> GetByOwnerResumed(Dictionary<string, string> requestInfo, bool useTechnicalMessages);
     }
 }
