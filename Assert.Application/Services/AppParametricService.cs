@@ -4,7 +4,6 @@ using Assert.Domain.Entities;
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
 using Assert.Domain.Services;
-using Assert.Infrastructure.Exceptions;
 using Assert.Shared.Extensions;
 using AutoMapper;
 

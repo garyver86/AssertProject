@@ -33,5 +33,7 @@ namespace Assert.Domain.Repositories
         Task<int> UpsertAdditionalProfile(int objectId, string whatIDo,
             string wantedToGo, string pets, DateTime? birthday, List<TLanguage>? languages,
             string introduceYourself, int cityId, string cityName, string location);
+
+        Task<string> UpdateProfilePhoto(string photoLink);
     }
 }

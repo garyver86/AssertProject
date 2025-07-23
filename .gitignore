@@ -366,3 +366,4 @@ FodyWeavers.xsd
 /Assert.API/Resources/Listings/*
 /Assert.API/Resources/*
 /Assert.API/wwwroot/Assert/Resources/Listings
+/Assert.API/wwwroot/Assert/Resources/ProfilePhotos

@@ -99,6 +99,8 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.Question, opt => opt.MapFrom(src => src.DiscountTypeForTypePrice.Question))
                 .ForMember(dest => dest.DiscountTypeForTypePriceId, opt => opt.MapFrom(src => src.DiscountTypeForTypePrice.DiscountTypeForTypePriceId));
 
+            CreateMap<TbBook, BookDTO>().ReverseMap();
+
             CreateMap<TlListingRent, ListingRentDTO>()
                 .ForMember(dest => dest.ApprovalPolicy, opt => opt.MapFrom(src => src.ApprovalPolicyType))
                 .ForMember(dest => dest.ApprovalPolicy, opt => opt.MapFrom(src => src.ApprovalPolicyType))

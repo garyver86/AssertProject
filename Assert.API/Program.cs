@@ -70,6 +70,13 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = "/Resources/Listings"
 });
 
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(
+        Path.Combine(builder.Environment.WebRootPath, "Assert", "Resources", "ProfilePhotos")),
+    RequestPath = "/Resources/ProfilePhotos"
+});
+
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {

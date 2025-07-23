@@ -1,31 +1,25 @@
 ﻿using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
+using Assert.Domain.Common.Metadata;
 using Assert.Domain.Entities;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
+using Assert.Infrastructure.Exceptions;
 using AutoMapper;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Assert.Application.Services
 {
-    public class AppBookService : IAppBookService
+    public class AppBookService(
+        IBookService _bookService,
+        IBookRepository _bookRespository,
+        IMapper _mapper,
+        IErrorHandler _errorHandler,
+        RequestMetadata _metadata) : IAppBookService
     {
-        private readonly IBookService _bookService;
-        private readonly IMapper _mapper;
-        private readonly IErrorHandler _errorHandler;
-        public AppBookService(IBookService bookService,
-            IMapper mapper, IErrorHandler errorHandler)
-        {
-            _bookService = bookService;
-            _mapper = mapper;
-            _errorHandler = errorHandler;
-        }
-        public async Task<ReturnModelDTO<PayPriceCalculationDTO>> CalculatePrice(long listingRentId, DateTime startDate, DateTime endDate, int guestId, Dictionary<string, string> clientData, bool useTechnicalMessages)
+        public async Task<ReturnModelDTO<PayPriceCalculationDTO>> CalculatePrice(
+            long listingRentId, DateTime startDate, DateTime endDate, 
+            int guestId, Dictionary<string, string> clientData, bool useTechnicalMessages)
         {
             ReturnModelDTO<PayPriceCalculationDTO> result = new ReturnModelDTO<PayPriceCalculationDTO>();
             try
@@ -57,5 +51,52 @@ namespace Assert.Application.Services
             }
             return result;
         }
+
+        public async Task<ReturnModelDTO<BookDTO>> GetBookByIdAsync(long bookId)
+        {
+            var book = await _bookRespository.GetByIdAsync(bookId);
+            if(book is null)
+                throw new NotFoundException($"La reserva con ID {bookId} no fue encontrada. Verifique e intente nuevamente.");
+
+            var bookDto = _mapper.Map<BookDTO>(book);
+            return new ReturnModelDTO<BookDTO>
+            {
+                Data = bookDto,
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
+        }
+
+        public async Task<ReturnModelDTO<List<BookDTO>>> GetBooksByUserIdAsync()
+        {
+            var books = await _bookRespository.GetByUserId(_metadata.UserId);
+
+            if (!(books is { Count: >0}))
+                throw new KeyNotFoundException($"No existen reservas para el usuario con ID {_metadata.UserId}.");
+
+            var bookDtos = _mapper.Map<List<BookDTO>>(books);
+
+            return new ReturnModelDTO<List<BookDTO>>
+            {
+                Data = bookDtos,
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
+        }
+
+        public async Task<ReturnModelDTO<int>> UpsertBookAsync(BookDTO incomingBook)
+        {
+            var book = _mapper.Map<TbBook>(incomingBook);
+            var bookId = await _bookRespository.UpsertBookAsync(book);
+
+            return new ReturnModelDTO<int>
+            {
+                Data = bookId,
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
+        }
+
+
     }
 }

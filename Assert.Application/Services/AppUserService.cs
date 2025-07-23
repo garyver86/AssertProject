@@ -12,6 +12,7 @@ using Assert.Domain.Services;
 using Assert.Infrastructure.Security;
 using AutoMapper;
 using FluentValidation;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -25,6 +26,7 @@ public class AppUserService(
         RequestMetadata _metadata, IAccountRepository _accountRepository,
         IUserRolRepository _userRolRespository,
         IEmergencyContactRepository _userEmergencyContactRepository,
+        IImageService _imageService,
         Func<Platform, IAuthProviderValidator> _authValidatorFactory, IUserService _userService,
         IValidator<UpdatePersonalInformationRequest> _validator,
         IErrorHandler _errorHandler, ILogger<AppUserService> _logger,
@@ -445,6 +447,21 @@ public class AppUserService(
             StatusCode = ResultStatusCode.OK,
             Data = response
         };
+    }
+
+    public async Task<ReturnModelDTO> UpdateProfilePhoto(IFormFile profilePhoto)
+    {
+        if (profilePhoto is null)
+            throw new ApplicationException("La foto de perfil no puede ser nula.");
+
+        var upload = await _imageService.UploadProfilePhoto(_metadata.UserId, profilePhoto);
+
+        if (!upload.HasError)
+            await _userRepository.UpdateProfilePhoto((string)upload.Data);
+
+        ReturnModelDTO result = _mapper.Map<ReturnModelDTO>(upload);
+
+        return result;
     }
 
     public async Task<ReturnModelDTO> UpsertAdditionalProfile(AdditionalProfileDataDTO additionalProfileData)

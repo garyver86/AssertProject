@@ -156,7 +156,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 {
                     var plaformFrom = await _dbContext.TuPlatforms.Where(x => x.PlatformId == user.PlatformId).FirstAsync();
 
-                    _logger.LogError($"User registered in: {platformObj.Name!}", platformObj);
+                    _logger.LogError($"{_metadata.CorrelationId} | User registered in: {platformObj.Name!}. CorrelationID: {_metadata.CorrelationId}", platformObj);
                     throw new InfrastructureException($"El usuario se encuentra registrado en plataforma: {plaformFrom.Code!.ToUpper()}. No puede realizar Login por plataforma: {platform.ToString().ToUpper()}");
                 }
 
@@ -195,7 +195,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             catch (Exception ex) when (!(ex is UnauthorizedException
                                       || ex is InfrastructureException))
             {
-                _logger.LogError($"Exception while validate user: {userName}", new { userName });
+                _logger.LogError($"{_metadata.CorrelationId} | Exception while validate user: {userName}", new { userName });
                 var (className, methodName) = this.GetCallerInfo();
                 _exceptionLoggerService.LogAsync(ex, methodName, className, new { userName });
                 throw new InfrastructureException(ex.Message);
@@ -497,7 +497,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
                 if (userWithData is null)
                 {
-                    _logger.LogError($"There is not user with ID: {_metadata.User} and name: {_metadata.User}");
+                    _logger.LogError($"{_metadata.CorrelationId} | There is not user with ID: {_metadata.User} and name: {_metadata.User}");
                     throw new NotFoundException($"No existe usuario con ID: {_metadata.UserId}");
                 }
 
@@ -569,7 +569,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Exception when get all profile from user login: {_metadata.User}");
+                _logger.LogError(ex, $"{_metadata.CorrelationId} | Exception when get all profile from user login: {_metadata.User}");
                 throw new InfrastructureException(ex.Message);
             }
         }
@@ -588,7 +588,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
             if (additionalProfile == null)
             {
-                _logger.LogError($"There is not additional profile for user with ID: {_metadata.UserId} and name: {_metadata.User}");
+                _logger.LogError($"{_metadata.CorrelationId} | There is not additional profile for user with ID: {_metadata.UserId} and name: {_metadata.User}");
                 throw new NotFoundException($"No existe informacion de perfil adicional para usuario con ID: {_metadata.UserId}");
             }
 
@@ -610,7 +610,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
                 if (additionalProfile == null)
                 {
-                    _logger.LogError($"No additional profile found for user ID: {_metadata.UserId}");
+                    _logger.LogError($"{_metadata.CorrelationId} | No additional profile found for user ID: {_metadata.UserId}");
                     throw new NotFoundException($"No existe información de perfil adicional para el usuario con ID: {_metadata.UserId}");
                 }
             }
@@ -671,6 +671,30 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
             await _dbContext.SaveChangesAsync();
             return additionalProfile.AdditionalProfileId;
+        }
+
+        public async Task<string> UpdateProfilePhoto(string photoLink)
+        {
+            try
+            {
+                var user = await _dbContext.TuUsers
+                    .FirstOrDefaultAsync(u => u.UserId == _metadata.UserId);
+
+                if (user == null)
+                    throw new NotFoundException($"No existe usuario con ID: {_metadata.UserId}");
+
+                user.PhotoLink = photoLink;
+                user.UpdateDate = DateTime.UtcNow;
+                await _dbContext.SaveChangesAsync();
+
+                return "SUCCESS";
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { photoLink });
+                throw new InfrastructureException(ex.Message);
+            }
         }
         #endregion
 

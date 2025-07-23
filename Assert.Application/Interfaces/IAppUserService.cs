@@ -1,5 +1,6 @@
 ﻿using Assert.Application.DTOs.Requests;
 using Assert.Application.DTOs.Responses;
+using Microsoft.AspNetCore.Http;
 
 namespace Assert.Domain.Services;
 
@@ -19,5 +20,6 @@ public interface IAppUserService
     Task<ReturnModelDTO> GetUserProfile();
     Task<ReturnModelDTO> GetAdditionalProfile();
     Task<ReturnModelDTO> UpsertAdditionalProfile(AdditionalProfileDataDTO additionalProfileData);
+    Task<ReturnModelDTO> UpdateProfilePhoto(IFormFile profilePhoto);
 
 }

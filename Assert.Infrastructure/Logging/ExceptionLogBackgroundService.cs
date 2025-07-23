@@ -1,4 +1,5 @@
-﻿using Assert.Domain.Entities;
+﻿using Assert.Domain.Common.Metadata;
+using Assert.Domain.Entities;
 using Assert.Domain.Interfaces.Queque;
 using Assert.Domain.Repositories;
 using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
@@ -35,7 +36,7 @@ public class ExceptionLogBackgroundService(
                     {
                         Action = logModel.Action,
                         Module = logModel.Module,
-                        Message = message,
+                        Message = $"{message}",
                         BrowseInfo = logModel.BrowseInfo,
                         DateException = DateTime.UtcNow,
                         IpAddress = logModel.IpAddress,
@@ -44,13 +45,13 @@ public class ExceptionLogBackgroundService(
                         DataRequest = serializedData
                     };
 
-                    logger.LogInformation($"Log Data: {serializedData}");
+                    logger.LogError($"Log Data: {serializedData}");
                     context.TExceptionLogs.Add(entity);
                     await context.SaveChangesAsync(stoppingToken);
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Error to save exception LOG");
+                    logger.LogError(ex, $"Error to save exception LOG");
                 }
             }
             else
