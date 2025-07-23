@@ -929,9 +929,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 var query = context.TlListingRents
-                .Include(x => x.ListingStatus)
+                //.Include(x => x.ListingStatus)
                 //.Include(x => x.AccomodationType)
-                .Include(x => x.OwnerUser)
+                //.Include(x => x.OwnerUser)
                 .Include(x => x.TpProperties)
                 .Include(x => x.TlListingPrices)
                 .AsNoTracking()
