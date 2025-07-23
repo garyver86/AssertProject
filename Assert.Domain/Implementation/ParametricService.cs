@@ -21,7 +21,6 @@ namespace Assert.Domain.Implementation
         private readonly ILanguageRepository _languageRepository;
         private readonly ICancelationPoliciesTypesRepository _cancelationPoliciesTypesRepository;
         private readonly IRulesTypeRepository _rulesTypeRepository;
-        IExceptionLoggerService _exceptionLoggerService;
         private readonly IExceptionLoggerService _exceptionLoggerService;
         public ParametricService(IAccommodationTypeRepository accommodationTypeRepository, IErrorHandler errorHandler,
             IFeaturesAspectsRepository featuredAspectsRepository, IDiscountTypeRepository discountTypeRepository,
