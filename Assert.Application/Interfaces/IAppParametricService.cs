@@ -10,5 +10,7 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<List<FeaturedAspectDTO>>> GetFeaturedAspects(Dictionary<string, string> requestInfo, bool useTechnicalMessages);
         Task<ReturnModelDTO<List<PropertyTypeDTO>>> GetPropertyTypes(Dictionary<string, string> requestInfo, bool useTechnicalMessages);
         Task<ReturnModelDTO<List<LanguageDTO>>> GetLanguageTypes();
+        Task<ReturnModelDTO<List<CancellationPolicyDTO>>> GetCancellationPolicies(Dictionary<string, string> requestInfo, bool useTechnicalMessages);
+        Task<ReturnModelDTO<List<RentRuleDTO>>> GetRentRules(Dictionary<string, string> requestInfo, bool useTechnicalMessages);
     }
 }

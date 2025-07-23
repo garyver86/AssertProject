@@ -7,6 +7,11 @@ using Assert.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Linq;
+using System.Diagnostics.Metrics;
+using System.Globalization;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
@@ -89,43 +94,52 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 _listingViewHistoryRepository.ToggleFromHistory(id, true, guestid);
             }
 
-
-            listing.TpProperties.FirstOrDefault().TpPropertyAddresses = new List<TpPropertyAddress>
+            if (listing.TpProperties?.Count > 0)
             {
-                new TpPropertyAddress
+                TpProperty prop = ((List<TpProperty>)listing.TpProperties).FirstOrDefault();
+                ((List<TpProperty>)listing.TpProperties).FirstOrDefault().TpPropertyAddresses = new List<TpPropertyAddress>
                 {
-                    Address1 = listing.TpProperties.FirstOrDefault().Address1,
-                    Address2 = listing.TpProperties.FirstOrDefault().Address2,
-                    CityId = listing.TpProperties.FirstOrDefault().CityId,
-                    CountyId = listing.TpProperties.FirstOrDefault().CountyId,
-                    ZipCode = listing.TpProperties.FirstOrDefault().ZipCode,
-                    StateId = listing.TpProperties.FirstOrDefault().StateId,
-                    City = new TCity
+                    new TpPropertyAddress
                     {
-                        CityId = listing.TpProperties.FirstOrDefault().CityId??0,
-                        Name = listing.TpProperties.FirstOrDefault().CityName,
-                        CountyId = listing.TpProperties.FirstOrDefault().CountyId??0,
-                        County = new TCounty
+                        Address1 = prop.Address1,
+                        Address2 = prop.Address2,
+                        CityId = prop.CityId,
+                        CountyId = prop.CountyId,
+                        ZipCode = prop.ZipCode,
+                        StateId = prop.StateId,
+                        City = new TCity
                         {
-                            CountyId = listing.TpProperties.FirstOrDefault().CountyId ?? 0,
-                            Name = listing.TpProperties.FirstOrDefault().CountyName,
-                            StateId = listing.TpProperties.FirstOrDefault().StateId??0,
-                            State = new TState
+                            CityId = prop.CityId??0,
+                            Name = prop.CityName,
+                            CountyId = prop.CountyId??0,
+                            County = new TCounty
                             {
-                                Name = listing.TpProperties.FirstOrDefault().StateName,
-                                StateId = listing.TpProperties.FirstOrDefault().StateId ?? 0,
-                                Country = new TCountry
+                                CountyId = prop.CountyId ?? 0,
+                                Name = prop.CountyName,
+                                StateId = prop.StateId??0,
+                                State = new TState
                                 {
-                                    Name = listing.TpProperties.FirstOrDefault().CountryName,
-                                    CountryId = listing.TpProperties.FirstOrDefault().CountryId ?? 0
+                                    Name = prop.StateName,
+                                    StateId = prop.StateId ?? 0,
+                                    Country = new TCountry
+                                    {
+                                        Name = prop.CountryName,
+                                        CountryId = prop.CountryId ?? 0
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            };
+                };
+            }
 
-            return listing;
+            if (listing != null)
+            {
+                List<long> favorites = await _favoritesRepository.GetAllFavoritesList(guestid);
+                listing.isFavorite = favorites?.Contains(listing.ListingRentId);
+            }
+
+            return (TlListingRent)listing;
         }
 
         // Métodos auxiliares para cargar cada relación
@@ -327,25 +341,27 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task<TlListingRent> Get(long id, int ownerID)
+        public async Task<TlListingRent> Get(long id, long ownerID)
         {
             dynamic listingData = null;
+            // Paso 1: Obtener datos básicos del listing
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 listingData = await context.TlListingRents
-                .AsNoTracking()
-                .Where(x => x.ListingRentId == id && x.OwnerUserId == ownerID && x.ListingStatusId != 5)
-                .Select(x => new
-                {
-                    Listing = x,
-                    Status = x.ListingStatus,
-                    AccomodationType = x.AccomodationType,
-                    ApprovalPolicy = x.ApprovalPolicyType,
-                    CancelationPolicy = x.CancelationPolicyType,
-                    Owner = x.OwnerUser
-                })
-                .FirstOrDefaultAsync();
+                 .AsNoTracking()
+                 .Where(x => x.ListingRentId == id && x.ListingStatusId != 5 && x.OwnerUserId == ownerID)
+                 .Select(x => new
+                 {
+                     Listing = x,
+                     Status = x.ListingStatus,
+                     AccomodationType = x.AccomodationType,
+                     ApprovalPolicy = x.ApprovalPolicyType,
+                     CancelationPolicy = x.CancelationPolicyType,
+                     Owner = x.OwnerUser
+                 })
+                 .FirstOrDefaultAsync();
             }
+
             if (listingData == null) return null;
 
             var listing = listingData.Listing;
@@ -363,6 +379,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             listing.TlStayPresences = await LoadStayPresencesAsync(_context, id);
             listing.TlListingReviews = await LoadReviewsAsync(_context, id);
             listing.TlCheckInOutPolicies = await LoadCheckInOutPoliciesAsync(_context, id);
+            listing.TlListingDiscountForRates = await LoadDiscountsAsync(_context, id);
 
             // Asignar propiedades de navegación
             listing.ListingStatus = listingData.Status;
@@ -371,7 +388,45 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             listing.CancelationPolicyType = listingData.CancelationPolicy;
             listing.OwnerUser = listingData.Owner;
 
-            return listing;
+            if (listing.TpProperties?.Count > 0)
+            {
+                TpProperty prop = ((List<TpProperty>)listing.TpProperties).FirstOrDefault();
+                ((List<TpProperty>)listing.TpProperties).FirstOrDefault().TpPropertyAddresses = new List<TpPropertyAddress>
+                {
+                    new TpPropertyAddress
+                    {
+                        Address1 = prop.Address1,
+                        Address2 = prop.Address2,
+                        CityId = prop.CityId,
+                        CountyId = prop.CountyId,
+                        ZipCode = prop.ZipCode,
+                        StateId = prop.StateId,
+                        City = new TCity
+                        {
+                            CityId = prop.CityId??0,
+                            Name = prop.CityName,
+                            CountyId = prop.CountyId??0,
+                            County = new TCounty
+                            {
+                                CountyId = prop.CountyId ?? 0,
+                                Name = prop.CountyName,
+                                StateId = prop.StateId??0,
+                                State = new TState
+                                {
+                                    Name = prop.StateName,
+                                    StateId = prop.StateId ?? 0,
+                                    Country = new TCountry
+                                    {
+                                        Name = prop.CountryName,
+                                        CountryId = prop.CountryId ?? 0
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+            }
+            return (TlListingRent)listing;
         }
 
         public async Task<List<TlListingRent>> GetAll(int ownerID)
@@ -406,7 +461,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .Include(x => x.TlListingReviews)
                 .AsNoTracking()
                 .Where(x => x.ListingStatusId != 5 && x.OwnerUserId == ownerID)
-                .OrderByDescending(x => x.TlListingReviews.Average(y => y.Calification));
+                //.OrderByDescending(x => x.TlListingReviews.Average(y => y.Calification));
+                .OrderByDescending(x => x.AvgReviews);
 
                 var result = await query
                     //.Skip(skipAmount)
@@ -494,7 +550,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Include(x => x.TlListingReviews)
                     .AsNoTracking()
                     .Where(x => x.ListingStatusId == 3 && (countryId == null || countryId == 0 || x.TpProperties.FirstOrDefault().CountryId == countryId))
-                    .OrderByDescending(x => x.TlListingReviews.Average(y => y.Calification));
+                    //.OrderByDescending(x => x.TlListingReviews.Average(y => y.Calification));
+                    .OrderByDescending(x => x.AvgReviews);
 
                 var result = await query
                     .Skip(skipAmount)
@@ -768,16 +825,22 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task SetCheckInPolicies(long listingRentId, string checkinTime, string checkoutTime, string instructions)
+        public async Task SetCheckInPolicies(long listingRentId, string checkinTime, string checkoutTime, string maxCheckinTime, string instructions)
         {
             using (var context = new InfraAssertDbContext(dbOptions))
             {
-                TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                //TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId).Include(x => x.).FirstOrDefault();
 
-                var chkPolicies = listing.TlCheckInOutPolicies.FirstOrDefault();
+                var chkPolicies = context.TlCheckInOutPolicies.Where(x => x.ListingRentid == listingRentId).FirstOrDefault();
 
                 TimeOnly? _checkin = null;
+                TimeOnly? _maxCheckin = null;
                 TimeOnly? _checkout = null;
+
+                checkinTime = FormatTime(checkinTime);
+                checkoutTime = FormatTime(checkoutTime);
+                maxCheckinTime = FormatTime(maxCheckinTime);
+
 
                 if (TimeOnly.TryParseExact(checkinTime, "HH:mm", out TimeOnly hora))
                 {
@@ -797,15 +860,25 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     throw new FormatException("Formato de hora de salida no válido (HH:mm)");
                 }
 
+                if (TimeOnly.TryParseExact(maxCheckinTime, "HH:mm", out TimeOnly maxHora))
+                {
+                    _maxCheckin = maxHora;
+                }
+                else
+                {
+                    throw new FormatException("Formato de hora de la maxima hora de entrada no es válido (HH:mm)");
+                }
+
                 if (chkPolicies != null)
                 {
                     chkPolicies.CheckOutTime = _checkout;
                     chkPolicies.CheckInTime = _checkin;
-                    chkPolicies.Instructions = instructions;
+                    chkPolicies.Instructions = instructions ?? chkPolicies.Instructions;
                     chkPolicies.FlexibleCheckIn = true; // Asumiendo que siempre se permite check-in flexible
                     chkPolicies.FlexibleCheckOut = true; // Asumiendo que siempre se permite check-out flexible
                     chkPolicies.LateCheckInFee = 0; // Asumiendo que no hay cargo por check-in tardío
                     chkPolicies.LateCheckOutFee = 0; // Asumiendo que no hay cargo por check-out tardío
+                    chkPolicies.MaxCheckInTime = _maxCheckin;
                 }
                 else
                 {
@@ -815,6 +888,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         CheckInTime = _checkin,
                         CheckOutTime = _checkout,
                         Instructions = instructions,
+                        MaxCheckInTime = _maxCheckin,
                         FlexibleCheckIn = true, // Asumiendo que siempre se permite check-in flexible
                         FlexibleCheckOut = true, // Asumiendo que siempre se permite check-out flexible
                         LateCheckInFee = 0, // Asumiendo que no hay cargo por check-in tardío
@@ -822,6 +896,30 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     };
                     context.TlCheckInOutPolicies.Add(chkPolicies);
                 }
+                await context.SaveChangesAsync();
+            }
+        }
+
+        private string FormatTime(string strTime)
+        {
+            if (strTime.IsNullOrEmpty())
+            {
+                return strTime;
+            }
+            var aux = strTime.Split(':');
+            if (aux.Length > 2)
+            {
+                strTime = string.Join(":", new string[] { aux[0], aux[1] });
+            }
+            return strTime;
+        }
+
+        public async Task SetCancellationPolicy(long listingRentId, int? cancellationPolicyTypeId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                listing.CancelationPolicyTypeId = cancellationPolicyTypeId;
                 await context.SaveChangesAsync();
             }
         }

@@ -1,6 +1,6 @@
 ﻿namespace Assert.Application.DTOs.Responses
 {
-    public class CancelationPolicyDTO
+    public class CancellationPolicyDTO
     {
         public string? Code { get; set; }
 

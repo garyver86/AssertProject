@@ -19,12 +19,16 @@ namespace Assert.Domain.Implementation
         private readonly IAmenitiesRepository _amenitiesRepository;
         private readonly IErrorHandler _errorHandler;
         private readonly ILanguageRepository _languageRepository;
+        private readonly ICancelationPoliciesTypesRepository _cancelationPoliciesTypesRepository;
+        private readonly IRulesTypeRepository _rulesTypeRepository;
+        IExceptionLoggerService _exceptionLoggerService;
         private readonly IExceptionLoggerService _exceptionLoggerService;
         public ParametricService(IAccommodationTypeRepository accommodationTypeRepository, IErrorHandler errorHandler,
             IFeaturesAspectsRepository featuredAspectsRepository, IDiscountTypeRepository discountTypeRepository,
-            IPropertySubTypeRepository propertySubTypeRepository, ISpaceTypeRepository spaceTypeRepository, 
-            ILanguageRepository languageRepository, IExceptionLoggerService exceptionLoggerService, 
-            IAmenitiesRepository amenitiesRepository)
+            IPropertySubTypeRepository propertySubTypeRepository, ISpaceTypeRepository spaceTypeRepository,
+            ILanguageRepository languageRepository, IExceptionLoggerService exceptionLoggerService,
+            IAmenitiesRepository amenitiesRepository, ICancelationPoliciesTypesRepository cancelationPoliciesTypesRepository,
+            IRulesTypeRepository rulesTypeRepository)
         {
             _accommodationTypeRepository = accommodationTypeRepository;
             _errorHandler = errorHandler;
@@ -35,6 +39,8 @@ namespace Assert.Domain.Implementation
             _amenitiesRepository = amenitiesRepository;
             _languageRepository = languageRepository;
             _exceptionLoggerService = exceptionLoggerService;
+            _cancelationPoliciesTypesRepository = cancelationPoliciesTypesRepository;
+            _rulesTypeRepository = rulesTypeRepository;
         }
 
         public async Task<ReturnModel<List<TlAccommodationType>>> GetAccomodationTypesActives()
@@ -195,6 +201,50 @@ namespace Assert.Domain.Implementation
                 _exceptionLoggerService.LogAsync(ex, methodName, className, "Language");
                 throw new DomainException(ex.Message);
             }
+        }
+
+        public async Task<ReturnModel<List<TCancelationPolicyType>>> GetCancellationPolicies(bool useTechnicalMessages)
+        {
+            ReturnModel<List<TCancelationPolicyType>> result = new ReturnModel<List<TCancelationPolicyType>>();
+            try
+            {
+                var result_data = await _cancelationPoliciesTypesRepository.GetActives();
+                return new ReturnModel<List<TCancelationPolicyType>>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    Data = result_data,
+                    HasError = false
+                };
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _errorHandler.GetErrorException("IParametricService.GetCancellationPolicies", ex, null, true);
+            }
+            return result;
+        }
+
+        public async Task<ReturnModel<List<TpRuleType>>> GetRentRuleTypes(bool useTechnicalMessages)
+        {
+            ReturnModel<List<TpRuleType>> result = new ReturnModel<List<TpRuleType>>();
+            try
+            {
+                var result_data = await _rulesTypeRepository.GetActives();
+                return new ReturnModel<List<TpRuleType>>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    Data = result_data,
+                    HasError = false
+                };
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _errorHandler.GetErrorException("IParametricService.GetRentRuleTypes", ex, null, true);
+            }
+            return result;
         }
     }
 }

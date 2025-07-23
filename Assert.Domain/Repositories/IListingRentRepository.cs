@@ -6,7 +6,7 @@ namespace Assert.Domain.Repositories
     public interface IListingRentRepository
     {
         Task<TlListingRent> Get(long id, int guestId, bool onlyActive);
-        Task<TlListingRent> Get(long id, int ownerID);
+        Task<TlListingRent> Get(long id, long ownerID);
         Task<TlListingRent> ChangeStatus(long id, int ownerID, int newStatus, Dictionary<string, string> userInfo);
         Task<List<TlListingRent>> GetAll(int ownerUserId);
         Task<TlListingRent> Register(TlListingRent listingRent, Dictionary<string, string> clientData);
@@ -24,6 +24,7 @@ namespace Assert.Domain.Repositories
         
         Task<string> UpdateBasicData(long listingRentId, string title, string description, List<int> aspectTypeIdList);
         Task SetReservationTypeApprobation(long listingRentId, int value1, int value2, int value3);
-        Task SetCheckInPolicies(long listingRentId, string checkinTime, string checkoutTime, string instructions);
+        Task SetCheckInPolicies(long listingRentId, string checkinTime, string checkoutTime, string instructions, string maxCheckinTime);
+        Task SetCancellationPolicy(long listingRentId, int? cancellationPolicyTypeId);
     }
 }

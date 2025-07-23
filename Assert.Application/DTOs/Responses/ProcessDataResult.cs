@@ -18,7 +18,7 @@ namespace Assert.Application.DTOs
         public List<SecurityItemDTO> SecurityItems { get; set; }
         public List<ApprovalPolicyDTO> ApprovalPolicyType { get; set; }
         public List<RentRuleDTO> RuleTypes { get; set; }
-        public List<CancelationPolicyDTO> CancelationPolicyTypes { get; set; }
+        public List<CancellationPolicyDTO> CancelationPolicyTypes { get; set; }
     }
     public class ListingProcessData_ListingData
     {
@@ -55,5 +55,6 @@ namespace Assert.Application.DTOs
         public int? privateBathroom { get; set; }
         public int? privateBathroomLodging { get; set; }
         public int? sharedBathroom { get; set; }
+        public CancellationPolicyDTO CancelationPolicyType { get; set; }
     }
 }

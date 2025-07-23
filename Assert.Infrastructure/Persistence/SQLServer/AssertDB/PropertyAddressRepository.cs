@@ -16,7 +16,25 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         }
         public async Task<TpPropertyAddress> Set(TpPropertyAddress addresInput, long propertyId)
         {
-            var address = await _context.TpProperties.Where(x => x.PropertyId == propertyId).FirstOrDefaultAsync();
+            TpProperty address = null;
+            if (propertyId > 0)
+            {
+                address = await _context.TpProperties.Where(x => x.PropertyId == propertyId).FirstOrDefaultAsync();
+            }
+            else
+            {
+                address = new TpProperty
+                {
+                    Address1 = addresInput.Address1,
+                    CityId = addresInput.CityId,
+                    Address2 = addresInput.Address2,
+                    ZipCode = addresInput.ZipCode,
+                    CountyId = addresInput.CountyId,
+                    StateId = addresInput.StateId,
+                    ListingRentId = (-1) * propertyId
+                };
+                _context.TpProperties.Add(address);
+            }
             if (address != null)
             {
                 address.Address1 = addresInput.Address1;
@@ -25,11 +43,14 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 address.ZipCode = addresInput.ZipCode;
                 address.CountyId = addresInput.CountyId;
                 address.StateId = addresInput.StateId;
-                await _context.SaveChangesAsync();
+                //await _context.SaveChangesAsync();
 
                 if (addresInput.CityId > 0)
                 {
-                    var city = await _context.TCities.Where(x => x.CityId == addresInput.CityId).FirstOrDefaultAsync();
+                    var city = await _context.TCities.Where(x => x.CityId == addresInput.CityId)
+                        .Include(c => c.County)
+                            .ThenInclude(co => co.State)
+                                .ThenInclude(s => s.Country).FirstOrDefaultAsync();
                     if (city != null)
                     {
                         address.CityName = city.Name;
@@ -47,7 +68,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 }
                 else if (addresInput.CountyId > 0)
                 {
-                    var county = await _context.TCounties.Where(x => x.CountyId == addresInput.CountyId).FirstOrDefaultAsync();
+                    var county = await _context.TCounties.Where(x => x.CountyId == addresInput.CountyId)
+                        .Include(co => co.State)
+                                .ThenInclude(s => s.Country).FirstOrDefaultAsync();
                     if (county != null)
                     {
                         address.CountyName = county.Name;
@@ -62,7 +85,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 }
                 else if (addresInput.StateId > 0)
                 {
-                    var state = await _context.TStates.Where(x => x.StateId == addresInput.StateId).FirstOrDefaultAsync();
+                    var state = await _context.TStates.Where(x => x.StateId == addresInput.StateId)
+                        .Include(s => s.Country).FirstOrDefaultAsync();
                     if (state != null)
                     {
                         address.StateName = state.Name;
@@ -71,7 +95,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         addresInput.StateId = state.StateId;
                     }
                 }
-                _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
                 return addresInput;
             }
             throw new Exception("La propiedad no fue encontrada o no puede ser modificada.");

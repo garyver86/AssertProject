@@ -6,8 +6,13 @@ namespace Assert.Infrastructure.Utils
 {
     public class UtilsMgr
     {
-        public static decimal CalculateAverageCalification(ICollection<TlListingReview> reviews)
+        public static decimal CalculateAverageCalification(Decimal? AverageReviews, ICollection<TlListingReview> reviews)
         {
+            if (AverageReviews > 0)
+            {
+                return AverageReviews.Value;
+            }
+
             if (reviews == null || !reviews.Any())
             {
                 return 0; // Or return 0, or throw an exception, depending on your needs

@@ -6,7 +6,7 @@ namespace Assert.Domain.Services
 {
     public interface IListingFavoriteService
     {
-        Task<ReturnModel> ToggleFavorite(long listingRentId, long groupId, bool setAsFavorite, int userId, Dictionary<string, string> requestInfo);
+        Task<ReturnModel> ToggleFavorite(long listingRentId, long? groupId, bool setAsFavorite, int userId, Dictionary<string, string> requestInfo);
         Task<ReturnModel> ToggleHistory(long listingRentId, bool setAsFavorite, int userId, Dictionary<string, string> requestInfo);
         Task<ReturnModel<(List<TlListingRent> data, PaginationMetadata pagination)>> GetViewsHistory(int userId, int pageNumber, int pageSize, Dictionary<string, string> requestInfo);
         Task<ReturnModel<TlListingFavoriteGroup>> GetFavoriteContent(long favoriteGroupId, int userId, Dictionary<string, string> requestInfo);

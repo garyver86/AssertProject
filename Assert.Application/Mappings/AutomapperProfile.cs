@@ -71,6 +71,9 @@ namespace Assert.Application.Mappings
             CreateMap<ReturnModel<List<TlListingRent>>, ReturnModelDTO<List<ListingRentDTO>>>()
             .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src.Data));
 
+            CreateMap<ReturnModel<List<TlListingPhoto>>, ReturnModelDTO<List<PhotoDTO>>>()
+            .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src.Data));
+
             CreateMap<ReturnModel<ListingProcessDataResultModel>, ReturnModelDTO<ProcessDataResult>>()
             .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src.Data));
 
@@ -115,7 +118,7 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.TlListingPrices.FirstOrDefault() ?? new TlListingPrice()))
                 .ForPath(dest => dest.Price.TlListingDiscountForRates, opt => opt.MapFrom(src => src.TlListingDiscountForRates))
                 //.ForMember(dest => dest.Valoration, opt => opt.MapFrom(src => src.TlListingReviews.Select(y=>y.Calification).Average()));
-                .ForMember(dest => dest.Valoration, opt => opt.MapFrom(src => UtilsMgr.CalculateAverageCalification(src.TlListingReviews)));
+                .ForMember(dest => dest.Valoration, opt => opt.MapFrom(src => UtilsMgr.CalculateAverageCalification(src.AvgReviews, src.TlListingReviews)));
 
 
             CreateMap<TlListingFavorite, ListingFavoriteDTO>();
@@ -125,7 +128,7 @@ namespace Assert.Application.Mappings
             CreateMap<PayPriceCalculation, PayPriceCalculationDTO>();
             CreateMap<PayMethodOfPayment, PayMethodOfPaymentDTO>();
             CreateMap<TApprovalPolicyType, ApprovalPolicyDTO>();
-            CreateMap<TCancelationPolicyType, CancelationPolicyDTO>();
+            CreateMap<TCancelationPolicyType, CancellationPolicyDTO>();
             CreateMap<TpRuleType, RentRuleDTO>();
             CreateMap<TuEmergencyContact, EmergencyContactDTO>().ReverseMap();
             CreateMap<TuUser, UserDTO>().
@@ -142,7 +145,10 @@ namespace Assert.Application.Mappings
             CreateMap<TlListingPrice, PriceDTO>()
                 .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Currency != null ? src.Currency.Name : null))
                 .ForMember(dest => dest.CurrencyCode, opt => opt.MapFrom(src => src.Currency != null ? src.Currency.Code : null));
-            CreateMap<TlCheckInOutPolicy, CheckInOutPolicyDTO>();
+            CreateMap<TlCheckInOutPolicy, CheckInOutPolicyDTO>()
+                .ForMember(dest => dest.CheckInTime_Str, opt => opt.MapFrom(src => src.CheckInTime != null ? ((TimeOnly)src.CheckInTime).ToString("HH:mm") : null))
+                .ForMember(dest => dest.CheckOutTime_Str, opt => opt.MapFrom(src => src.CheckOutTime != null ? ((TimeOnly)src.CheckOutTime).ToString("HH:mm") : null))
+                .ForMember(dest => dest.MaxCheckInTime_Str, opt => opt.MapFrom(src => src.MaxCheckInTime != null ? ((TimeOnly)src.MaxCheckInTime).ToString("HH:mm") : null));
             CreateMap<TlListingAmenity, AmenityDTO>()
                 .ForMember(dest => dest.TypeCode, opt => opt.MapFrom(src => src.AmenitiesType != null ? src.AmenitiesType.Code : null))
                 .ForMember(dest => dest.IconLink, opt => opt.MapFrom(src => src.AmenitiesType != null ? src.AmenitiesType.IconLink : null))
@@ -154,7 +160,8 @@ namespace Assert.Application.Mappings
             CreateMap<TlListingFeaturedAspect, FeaturedAspectDTO>()
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.FeaturesAspectType != null ? src.FeaturesAspectType.FeaturedAspectCode : null))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.FeaturesAspectType != null ? src.FeaturesAspectType.FeaturedAspectName : null))
-                .ForMember(dest => dest.Value, opt => opt.MapFrom(src => src.FeaturesAspectType != null ? src.FeaturedAspectValue : null));
+                .ForMember(dest => dest.Value, opt => opt.MapFrom(src => src.FeaturedAspectValue))
+                .ForMember(dest => dest.FeaturedAspectTypeId, opt => opt.MapFrom(src => src.FeaturesAspectTypeId));
             CreateMap<TFeaturedAspectType, FeaturedAspectDTO>()
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.FeaturedAspectCode))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.FeaturedAspectName))

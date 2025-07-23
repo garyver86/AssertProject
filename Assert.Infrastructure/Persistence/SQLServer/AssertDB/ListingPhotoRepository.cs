@@ -124,7 +124,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     photoDb.IsPrincipal = photo.IsPrincipal;
                     if (photo.IsPrincipal ?? false)
                     {
-                        var result = dbContedt.TlListingPhotos.Where(x => x.ListingRentId == listingRentId && x.IsPrincipal == true).FirstOrDefault();
+                        var result = dbContedt.TlListingPhotos.Where(x => x.ListingRentId == listingRentId && x.ListingPhotoId != photo.PhotoId && x.IsPrincipal == true).FirstOrDefault();
                         if (result != null)
                         {
                             result.IsPrincipal = false;

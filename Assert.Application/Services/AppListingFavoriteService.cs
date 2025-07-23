@@ -192,7 +192,7 @@ namespace Assert.Application.Services
             return result;
         }
 
-        public async Task<ReturnModelDTO> ToggleFavorite(long listingRentId, long groupId, bool setAsFavorite, int userId, Dictionary<string, string> requestInfo)
+        public async Task<ReturnModelDTO> ToggleFavorite(long listingRentId, long? groupId, bool setAsFavorite, int userId, Dictionary<string, string> requestInfo)
         {
             ReturnModelDTO result = new ReturnModelDTO();
             try

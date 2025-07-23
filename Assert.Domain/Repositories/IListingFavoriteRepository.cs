@@ -5,8 +5,7 @@ namespace Assert.Domain.Repositories
 {
     public interface IListingFavoriteRepository
     {
-        Task ToggleFavorite(long listingRentId, long groupId, bool setAsFavorite, int userId);
-
+        Task ToggleFavorite(long listingRentId, long? groupId, bool setAsFavorite, int userId);
         Task<List<TlListingFavoriteGroup>> GetFavoriteGroups(int userId);
         Task<TlListingFavoriteGroup?> GetFavoriteGroupById(long groupId, int userId);
         Task<TlListingFavoriteGroup> CreateFavoriteGroup(string groupName, int userId);

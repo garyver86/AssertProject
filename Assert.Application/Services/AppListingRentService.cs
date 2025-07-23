@@ -467,7 +467,13 @@ namespace Assert.Application.Services
                 int _userID = -1;
                 int.TryParse(userId, out _userID);
                 ReturnModel<TlListingPhoto> savingResult = await _imageService.UpdatePhoto(listingRentId, photoId, request, _userID, true);
-                result = _mapper.Map<ReturnModelDTO<PhotoDTO>>(savingResult);
+                result = new ReturnModelDTO<PhotoDTO>
+                {
+                    Data = _mapper.Map<PhotoDTO>(savingResult.Data),
+                    HasError = savingResult.HasError,
+                    ResultError = _mapper.Map<ErrorCommonDTO>(savingResult.ResultError),
+                    StatusCode = savingResult.StatusCode
+                };
                 return result;
             }
             catch (Exception ex)
@@ -524,6 +530,60 @@ namespace Assert.Application.Services
                 _exceptionLoggerService.LogAsync(ex, methodName, className, pricingData);
                 throw new Exceptions.ApplicationException(ex.Message);
             }
+        }
+
+        public async Task<ReturnModelDTO<ListingRentDTO>> Get(long listingRentId, long userId, Dictionary<string, string> clientData, bool useTechnicalMessages)
+        {
+            ReturnModelDTO<ListingRentDTO> result = new ReturnModelDTO<ListingRentDTO>();
+            try
+            {
+                TlListingRent listings = await _listingRentRepository.Get(listingRentId, userId);
+                if (listings == null)
+                {
+                    return new ReturnModelDTO<ListingRentDTO>
+                    {
+                        StatusCode = ResultStatusCode.NotFound,
+                        ResultError = new ErrorCommonDTO
+                        {
+                            Code = ResultStatusCode.NotFound,
+                            Message = "El listing no ha podido ser encontrado."
+                        }
+                    };
+                }
+                else
+                {
+                    if (listings?.TlListingPhotos?.Count > 0)
+                    {
+                        string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+                        _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+                        foreach (var item in listings.TlListingPhotos)
+                        {
+                            item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                        }
+                    }
+                    ListingRentDTO listingRentReult = _mapper.Map<ListingRentDTO>(listings);
+                    if (listings.OwnerUser?.RegisterDate != null)
+                    {
+                        int[] registerDetails = AppUtils.GetTimeElapsed((DateTime)listings.OwnerUser.RegisterDate);
+                        listingRentReult.Owner.RegisterDateDays = registerDetails[0];
+                        listingRentReult.Owner.RegisterDateMonths = registerDetails[1];
+                        listingRentReult.Owner.RegisterDateYears = registerDetails[2];
+                    }
+                    result = new ReturnModelDTO<ListingRentDTO>
+                    {
+                        Data = listingRentReult,
+                        HasError = false,
+                        StatusCode = ResultStatusCode.OK
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.GetAllListingsRentsData", ex, new { listingRentId }, useTechnicalMessages));
+            }
+            return result;
         }
     }
 }

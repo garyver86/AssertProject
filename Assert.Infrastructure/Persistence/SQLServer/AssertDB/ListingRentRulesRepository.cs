@@ -14,7 +14,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         }
         public async Task<List<TlListingRentRule>?> GetByListingRentId(long listingRentId)
         {
-            var result = await _context.TlListingRentRules.Where(x => x.ListingId == listingRentId).ToListAsync();
+            var result = await _context.TlListingRentRules.Where(x => x.ListingId == listingRentId).Include(x=>x.RuleType).ToListAsync();
             return result;
         }
         public async Task Set(long listingRentId, List<int> rules)

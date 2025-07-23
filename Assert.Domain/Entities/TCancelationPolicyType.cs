@@ -25,5 +25,9 @@ public partial class TCancelationPolicyType
 
     public bool? Status { get; set; }
 
+    public decimal? HoursBeforeCheckIn { get; set; }
+
+    public decimal? HoursAfetrBooking { get; set; }
+
     public virtual ICollection<TlListingRent> TlListingRents { get; set; } = new List<TlListingRent>();
 }

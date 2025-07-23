@@ -7,7 +7,7 @@ namespace Assert.Application.Interfaces
 {
     public interface IAppListingFavoriteService
     {
-        Task<ReturnModelDTO> ToggleFavorite(long listingRentId, long groupId, bool setAsFavorite, int userId, Dictionary<string, string> requestInfo);
+        Task<ReturnModelDTO> ToggleFavorite(long listingRentId, long? groupId, bool setAsFavorite, int userId, Dictionary<string, string> requestInfo);
 
         Task<ReturnModelDTO> ToggleHistory(long listingRentId, bool setAsFavorite, int userId, Dictionary<string, string> requestInfo);
         Task<ReturnModelDTO<(List<ListingRentDTO> data, PaginationMetadataDTO pagination)>> GetViewsHistory(int userId, int pageNumber, int pageSize, Dictionary<string, string> requestInfo);

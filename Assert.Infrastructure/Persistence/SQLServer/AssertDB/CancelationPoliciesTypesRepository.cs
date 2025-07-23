@@ -21,5 +21,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             List<TCancelationPolicyType> amenities = await _context.TCancelationPolicyTypes.Where(x => x.Status == true || x.Status == null).ToListAsync();
             return amenities;
         }
+
+        public async Task<TCancelationPolicyType> GetById(int? cancelationPolicyTypeId)
+        {
+            TCancelationPolicyType type = await _context.TCancelationPolicyTypes.Where(x => x.CancelationPolicyTypeId == cancelationPolicyTypeId).FirstOrDefaultAsync();
+            return type;
+        }
     }
 }

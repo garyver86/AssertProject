@@ -19,7 +19,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task<List<TlListingDiscountForRate>?> Get(long listingRentId)
         {
-            List<TlListingDiscountForRate> activeDiscounts = await _context.TlListingDiscountForRates.Where(x => x.ListingRentId == listingRentId).ToListAsync();
+            List<TlListingDiscountForRate> activeDiscounts = await _context.TlListingDiscountForRates.Include(x=>x.DiscountTypeForTypePrice).Where(x => x.ListingRentId == listingRentId).ToListAsync();
             return activeDiscounts;
         }
 
@@ -48,12 +48,21 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         {
                             DiscountTypeForTypePriceId = discountTypeId.Item1,
                             ListingRentId = listingRentId,
-                            DiscountCalculated = discountTypeId.Item2,
-                            Porcentage = 0,
+                            DiscountCalculated = 0,
+                            Porcentage = discountTypeId.Item2,
                             IsDiscount = true
                         };
                         _context.Add(newDiscount);
                         alreadyExist.Add(discountTypeId.Item1);
+                    }
+                    else
+                    {
+                        var existingDiscount = activeDiscounts.FirstOrDefault(x => x.DiscountTypeForTypePriceId == discountTypeId.Item1);
+                        if (existingDiscount != null)
+                        {
+                            existingDiscount.Porcentage = discountTypeId.Item2;
+                            _context.Update(existingDiscount);
+                        }
                     }
                 }
             }

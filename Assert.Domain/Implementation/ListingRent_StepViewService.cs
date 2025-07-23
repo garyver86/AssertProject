@@ -144,6 +144,7 @@ namespace Assert.Domain.Implementation
             result.Data.ListingData.TlCheckInOutPolicy = data.TlCheckInOutPolicies.FirstOrDefault();
             result.Data.ListingData.Rules = await _listingRentRulesRepository.GetByListingRentId(data.ListingRentId);
             result.Data.ListingData.CancelationPolicyTypeId = data.CancelationPolicyTypeId;
+            //result.Data.ListingData.CancelationPolicyType = await _cancelationPoliciesTypesRepository.GetById(data.CancelationPolicyTypeId);
             switch (view.Code)
             {
                 case "LV001":
@@ -262,6 +263,17 @@ namespace Assert.Domain.Implementation
 
         private async Task<ReturnModel> SetPolitics(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
         {
+            if (!(request_.cancelPolicyTypeId > 0))
+            {
+                return new ReturnModel
+                {
+                    HasError = true,
+                    StatusCode = ResultStatusCode.BadRequest,
+                    ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar el tipo de politica de cancelación.", useTechnicalMessages)
+                };
+            }
+            await _listingRentRepository.SetCancellationPolicy(listing.ListingRentId, request_.cancelPolicyTypeId);
+
             return new ReturnModel
             {
                 StatusCode = ResultStatusCode.OK,
@@ -280,7 +292,7 @@ namespace Assert.Domain.Implementation
                     ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe definir las horas de Checin y checkout.", useTechnicalMessages)
                 };
             }
-            await _listingRentRepository.SetCheckInPolicies(listing.ListingRentId, request_.CheckInPolicies?.CheckInTime, request_.CheckInPolicies?.CheckOutTime, request_.CheckInPolicies?.Instructions);
+            await _listingRentRepository.SetCheckInPolicies(listing.ListingRentId, request_.CheckInPolicies?.CheckInTime, request_.CheckInPolicies?.CheckOutTime, request_.CheckInPolicies?.MaxCheckInTime, request_.CheckInPolicies?.Instructions);
             await _listingRentRulesRepository.Set(listing.ListingRentId, request_.Rules);
 
             return new ReturnModel
@@ -371,7 +383,7 @@ namespace Assert.Domain.Implementation
             }
 
             await _listingPriceRepository.SetPricing(listing.ListingRentId, request_.Pricing, request_.WeekendPrice, request_.CurrencyId);
-            await _listingDiscountRepository.SetDiscounts(listing.ListingRentId, request_.Discounts?.Select(x => (x.dicountTypeId, x.Price)).ToList());
+            await _listingDiscountRepository.SetDiscounts(listing.ListingRentId, request_.Discounts?.Select(x => (x.dicountTypeId, x.Percentage)).ToList());
 
             return new ReturnModel
             {
@@ -497,7 +509,7 @@ namespace Assert.Domain.Implementation
 
         private async Task<ReturnModel> SetDiscount(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
         {
-            await _listingDiscountRepository.SetDiscounts(listing.ListingRentId, request_.Discounts?.Select(x => (x.dicountTypeId, x.Price)).ToList());
+            await _listingDiscountRepository.SetDiscounts(listing.ListingRentId, request_.Discounts?.Select(x => (x.dicountTypeId, x.Percentage)).ToList());
             return new ReturnModel
             {
                 HasError = false,
@@ -756,7 +768,7 @@ namespace Assert.Domain.Implementation
                 request_.Address.Longitude = null;
             }
 
-            TpPropertyAddress addressResult = await _propertyAddressRepository.Set(addresInput, listing.TpProperties.First().PropertyId);
+            TpPropertyAddress addressResult = await _propertyAddressRepository.Set(addresInput, listing.TpProperties.FirstOrDefault()?.PropertyId ?? (-1 * listing.ListingRentId));
             if (request_.Address.Latitude != 0 && request_.Address.Longitude != 0)
             {
                 Thread.Sleep(1000);

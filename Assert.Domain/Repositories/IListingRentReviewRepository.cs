@@ -7,5 +7,6 @@ namespace Assert.Domain.Repositories
     {
         Task<List<TlListingReview>> GetByListingRent(long listingRentId);
         Task<ListingReviewSummary> GetReviewSummary(long listingRentId, int topCount);
+        Task<TlListingReview> RegisterReview(long listingRentId, int calification, string comment, int userId);
     }
 }

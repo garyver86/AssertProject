@@ -446,6 +446,8 @@ namespace Assert.Domain.Implementation
                 if (result != null)
                 {
                     var property = await _propertyRepository.Register(listingRent.ListingRentId);
+                    result.TpProperties = new List<TpProperty> { property };
+                    _userRepository.EnableHostRol(userId);
                     ReturnModel processResult = await _StepViewService.ProccessListingRentData(viewType, result, userId, request_, clientData, useTechnicalMessages);
                     if (processResult.StatusCode == ResultStatusCode.OK)
                     {

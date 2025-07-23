@@ -12,5 +12,7 @@ namespace Assert.Domain.Services
         Task<ReturnModel<List<TpPropertySubtype>>> GetPropertySubTypes(bool onlyActives);
         Task<ReturnModel<List<TSpaceType>>> GetSpaceTypes();
         Task<ReturnModel<List<TLanguage>>> GetLanguages();
+        Task<ReturnModel<List<TCancelationPolicyType>>> GetCancellationPolicies(bool useTechnicalMessages);
+        Task<ReturnModel<List<TpRuleType>>> GetRentRuleTypes(bool useTechnicalMessages);
     }
 }

@@ -25,7 +25,7 @@
         public bool? NoiseDesibelesMonitor { get; set; }
         public AccomodationTypeDTO? AccomodationType { get; set; }
         public ApprovalPolicyDTO? ApprovalPolicy { get; set; }
-        public CancelationPolicyDTO? CancelationPolicy { get; set; }
+        public CancellationPolicyDTO? CancelationPolicy { get; set; }
         public UserDTO Owner { get; set; }
         public PropertyDTO Property { get; set; }
         public PriceDTO Price { get; set; }

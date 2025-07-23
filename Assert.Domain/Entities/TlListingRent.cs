@@ -67,6 +67,8 @@ public partial class TlListingRent
 
     public int? SharedBathroom { get; set; }
 
+    public decimal? AvgReviews { get; set; }
+
     public virtual TlAccommodationType? AccomodationType { get; set; }
 
     public virtual TApprovalPolicyType? ApprovalPolicyType { get; set; }
