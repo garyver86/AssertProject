@@ -120,6 +120,7 @@ public static class InfrastructureInjectionDependences
         services.AddScoped<IListingSecurityItemsRepository, ListingSecurityItemsRepository>();
         services.AddScoped<ICancelationPoliciesTypesRepository, CancelationPoliciesTypesRepository>();
         services.AddScoped<IBookRepository, BookRepository>();
+        services.AddScoped<ICurrencyRespository, CurrencyRespository>();
         #endregion
 
         return services;

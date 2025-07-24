@@ -81,10 +81,29 @@ namespace Assert.API.Controllers
         }
 
         /// <summary>
+        /// Servicio que actualiza nombre y descripcion de Listing Rent
+        /// </summary>
+        /// <param name="listinRentId">Identificador de Listing Rent</param>
+        /// <param name="request">Valores: Titulo - Descripcion</param>
+        /// <returns></returns>
+        /// <response code="200">El valor de Data seria UPDATED</response>
+        /// <remarks>
+        /// </remarks>
+        [HttpPost]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("{listinRentId}/UpdateNameAndDescription")]
+        public async Task<ReturnModelDTO<string>> UpdateNameAndDescription(long listinRentId,
+            [FromBody] BasicListingRentDataBase request)
+        => await _appListingRentService.UpdateBasicData(listinRentId,
+                new BasicListingRentData { Title = request.Title, 
+                    Description = request.Description, AspectTypeIdList = null });
+           
+
+        /// <summary>
         /// Servicio que actualiza informacion de precios de renta y descuentos
         /// </summary>
         /// <param name="listinRentId">Identificador de Listing Rent</param>
-        /// <param name="request">Precios de renta para: semana - fin de semana y lista de descuentos</param>
+        /// <param name="request">Precios de renta para: semana - fin de semana y lista de descuentos. Valores posibles para "discountCode" son: "week - month" dentro la lista</param>
         /// <returns></returns>
         /// <response code="200">El valor de Data seria UPDATED</response>
         /// <remarks>

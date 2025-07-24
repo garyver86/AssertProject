@@ -32,6 +32,8 @@ namespace Assert.Application.Mappings
             CreateMap<ProcessData_Photo, ProcessData_PhotoModel>();
             CreateMap<ProcessData_Discount, ProcessData_DiscountModel>();
 
+            CreateMap<TCurrency, CurrencyDTO>().ReverseMap();
+
             CreateMap<ListingProcessDataResultModel, ProcessDataResult>();
 
             CreateMap<string, ReturnModelDTO<string>>()

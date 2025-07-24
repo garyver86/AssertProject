@@ -12,7 +12,6 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         private readonly ISystemConfigurationRepository _systemConfigurationRepository;
         private readonly DbContextOptions<InfraAssertDbContext> dbOptions;
 
-
         public ListingPhotoRepository(InfraAssertDbContext infraAssertDbContext, ISystemConfigurationRepository systemConfigurationRepository,
             IServiceProvider serviceProvider)
         {

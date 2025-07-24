@@ -230,6 +230,19 @@ namespace Assert.API.Controllers
         => await _parametricService.GetLanguageTypes();
 
         /// <summary>
+        /// Servicio que devuelve la lista tipos de monedas disponibles.
+        /// </summary>
+        /// <returns>Listado de tipso de monedas</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// Solo se consideraran todos los tipos de monedas registradas
+        /// </remarks>
+        [HttpGet("GetCurrencyTipes")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO<List<CurrencyDTO>>> GetCurrencyTipes()
+        => await _parametricService.GetCurrencies();
+
+        /// <summary>
         /// Servicio que devuelve la lista de políticas de cancelación.
         /// </summary>
         /// <returns>Listado de políticas de cancelación.</returns>

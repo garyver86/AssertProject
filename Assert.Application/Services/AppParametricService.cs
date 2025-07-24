@@ -3,6 +3,7 @@ using Assert.Application.Interfaces;
 using Assert.Domain.Entities;
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
+using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Assert.Shared.Extensions;
 using AutoMapper;
@@ -10,6 +11,7 @@ using AutoMapper;
 namespace Assert.Application.Services
 {
     public class AppParametricService(IParametricService _parametricService,
+        ICurrencyRespository _currencyRepository,
         IMapper _mapper, IErrorHandler _errorHandler,
         IExceptionLoggerService _exceptionLoggerService) 
         : IAppParametricService
@@ -240,6 +242,18 @@ namespace Assert.Application.Services
             {
                 return HandleException<List<RentRuleDTO>>("AppParametricService.GetCancellationPolicies", ex, null, useTechnicalMessages);
             }
+        }
+    
+        public async Task<ReturnModelDTO<List<CurrencyDTO>>> GetCurrencies()
+        {
+            var currencies = _currencyRepository.GetAllAsync();
+            var currenciesDto = _mapper.Map<List<CurrencyDTO>>(await currencies);
+            return new ReturnModelDTO<List<CurrencyDTO>>
+            {
+                Data = currenciesDto,
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
         }
     }
 }

@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Assert.Application.DTOs.Requests;
 
-namespace Assert.Application.DTOs.Requests;
+public class BasicListingRentData : BasicListingRentDataBase
+{   
+    public List<int>? AspectTypeIdList { get; set; } = new();
+}
 
-public class BasicListingRentData
+public class BasicListingRentDataBase
 {
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
-    public List<int> AspectTypeIdList { get; set; } = new();
 }

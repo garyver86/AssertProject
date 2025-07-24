@@ -142,205 +142,6 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             return (TlListingRent)listing;
         }
 
-        // Métodos auxiliares para cargar cada relación
-        private async Task<List<TlListingAmenity>> LoadAmenitiesAsync(InfraAssertDbContext _context, long listingId)
-        {
-            using (var context = new InfraAssertDbContext(dbOptions))
-            {
-                return await context.TlListingAmenities
-                    .AsNoTracking()
-                    .Where(a => a.ListingRentId == listingId)
-                    .Include(a => a.AmenitiesType)
-                    .ToListAsync();
-            }
-        }
-
-        private async Task<List<TlListingFeaturedAspect>> LoadFeaturesAsync(InfraAssertDbContext _context, long listingId)
-        {
-            using (var context = new InfraAssertDbContext(dbOptions))
-            {
-                return await context.TlListingFeaturedAspects
-                .AsNoTracking()
-                .Where(f => f.ListingRentId == listingId)
-                .Include(f => f.FeaturesAspectType)
-                .ToListAsync();
-            }
-        }
-
-        private async Task<List<TpProperty>> LoadPropertiesAsync(InfraAssertDbContext _context, long listingId)
-        {
-            List<TpProperty> result = new List<TpProperty>();
-            using (var context = new InfraAssertDbContext(dbOptions))
-            {
-                result = await context.TpProperties
-                .AsNoTracking()
-                .Where(p => p.ListingRentId == listingId)
-                //.Include(p => p.TpPropertyAddresses)
-                //    .ThenInclude(a => a.City)
-                //    .ThenInclude(c => c.County)
-                //    .ThenInclude(co => co.State)
-                //    .ThenInclude(s => s.Country)
-                .Include(p => p.PropertySubtype)
-                    .ThenInclude(ps => ps.PropertyType)
-                .ToListAsync();
-            }
-
-            foreach (var prop in result)
-            {
-                prop.TpPropertyAddresses = new List<TpPropertyAddress>
-                {
-                    new TpPropertyAddress
-                    {
-                        Address1 = prop.Address1,
-                        Address2 = prop.Address2,
-                        CityId = prop.CityId,
-                        CountyId = prop.CountyId,
-                        ZipCode = prop.ZipCode,
-                        StateId = prop.StateId,
-                        City = new TCity
-                        {
-                            CityId = prop.CityId??0,
-                            Name = prop.CityName,
-                            CountyId = prop.CountyId??0,
-                            County = new TCounty
-                            {
-                                CountyId = prop.CountyId ?? 0,
-                                Name = prop.CountyName,
-                                State = new TState
-                                {
-                                    Name = prop.StateName,
-                                    StateId = prop.StateId ?? 0,
-                                    Country = new TCountry
-                                    {
-                                        Name = prop.CountryName,
-                                        CountryId = prop.CountryId ?? 0
-                                    }
-                                },
-                                StateId = prop.StateId??0
-                            }
-                        }
-                    }
-                };
-                prop.City = prop.TpPropertyAddresses.FirstOrDefault().City;
-            }
-            return result;
-        }
-
-        private async Task<List<TlListingPhoto>> LoadPhotosAsync(InfraAssertDbContext _context, long listingId)
-        {
-            using (var context = new InfraAssertDbContext(dbOptions))
-            {
-                return await context.TlListingPhotos
-                .AsNoTracking()
-                .Where(p => p.ListingRentId == listingId)
-                .ToListAsync();
-            }
-        }
-
-        private async Task<List<TlListingPrice>> LoadPricesAsync(InfraAssertDbContext _context, long listingId)
-        {
-            using (var context = new InfraAssertDbContext(dbOptions))
-            {
-                return await context.TlListingPrices
-                .AsNoTracking()
-                .Where(p => p.ListingRentId == listingId)
-                .ToListAsync();
-            }
-        }
-
-        private async Task<List<TlListingRentRule>> LoadRulesAsync(InfraAssertDbContext _context, long listingId)
-        {
-            using (var context = new InfraAssertDbContext(dbOptions))
-            {
-                return await context.TlListingRentRules
-                .AsNoTracking()
-                .Where(r => r.ListingId == listingId)
-                .Include(r => r.RuleType)
-                .ToListAsync();
-            }
-        }
-
-        private async Task<List<TlListingSecurityItem>> LoadSecurityItemsAsync(InfraAssertDbContext _context, long listingId)
-        {
-            using (var context = new InfraAssertDbContext(dbOptions))
-            {
-                return await context.TlListingSecurityItems
-                .AsNoTracking()
-                .Where(s => s.ListingRentId == listingId)
-                .Include(s => s.SecurityItemType)
-                .ToListAsync();
-            }
-        }
-
-        private async Task<List<TlListingSpace>> LoadSpacesAsync(InfraAssertDbContext _context, long listingId)
-        {
-            using (var context = new InfraAssertDbContext(dbOptions))
-            {
-                return await context.TlListingSpaces
-                .AsNoTracking()
-                .Where(s => s.ListingId == listingId)
-                .Include(s => s.SpaceType)
-                .ToListAsync();
-            }
-        }
-
-        private async Task<List<TlListingSpecialDatePrice>> LoadSpecialDatesAsync(InfraAssertDbContext _context, long listingId)
-        {
-            using (var context = new InfraAssertDbContext(dbOptions))
-            {
-                return await context.TlListingSpecialDatePrices
-                .AsNoTracking()
-                .Where(s => s.ListingRentId == listingId)
-                .ToListAsync();
-            }
-        }
-
-        private async Task<List<TlStayPresence>> LoadStayPresencesAsync(InfraAssertDbContext _context, long listingId)
-        {
-            using (var context = new InfraAssertDbContext(dbOptions))
-            {
-                return await context.TlStayPresences
-                .AsNoTracking()
-                .Where(s => s.ListingRentId == listingId)
-                .Include(s => s.StayPrecenseType)
-                .ToListAsync();
-            }
-        }
-
-        private async Task<List<TlListingReview>> LoadReviewsAsync(InfraAssertDbContext _context, long listingId)
-        {
-            using (var context = new InfraAssertDbContext(dbOptions))
-            {
-                return await context.TlListingReviews
-                .AsNoTracking()
-                .Where(r => r.ListingRentId == listingId)
-                .ToListAsync();
-            }
-        }
-
-        private async Task<List<TlListingDiscountForRate>> LoadDiscountsAsync(InfraAssertDbContext _context, long listingId)
-        {
-            using (var context = new InfraAssertDbContext(dbOptions))
-            {
-                return await context.TlListingDiscountForRates
-                .AsNoTracking()
-                .Where(c => c.ListingRentId == listingId)
-                .Include(x => x.DiscountTypeForTypePrice)
-                .ToListAsync();
-            }
-        }
-
-        private async Task<List<TlCheckInOutPolicy>> LoadCheckInOutPoliciesAsync(InfraAssertDbContext _context, long listingId)
-        {
-            using (var context = new InfraAssertDbContext(dbOptions))
-            {
-                return await context.TlCheckInOutPolicies
-                .AsNoTracking()
-                .Where(c => c.ListingRentid == listingId)
-                .ToListAsync();
-            }
-        }
-
         public async Task<TlListingRent> Get(long id, long ownerID)
         {
             dynamic listingData = null;
@@ -806,7 +607,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             catch (Exception ex)
             {
                 var (className, methodName) = this.GetCallerInfo();
-                _exceptionLoggerService.LogAsync(ex, methodName, className, 
+                _exceptionLoggerService.LogAsync(ex, methodName, className,
                     new { listingRentId, title, description, aspectTypeIdList });
 
                 throw new DatabaseUnavailableException(ex.Message);
@@ -900,6 +701,205 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
+        #region Métodos auxiliares para cargar cada relación
+        private async Task<List<TlListingAmenity>> LoadAmenitiesAsync(InfraAssertDbContext _context, long listingId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlListingAmenities
+                    .AsNoTracking()
+                    .Where(a => a.ListingRentId == listingId)
+                    .Include(a => a.AmenitiesType)
+                    .ToListAsync();
+            }
+        }
+
+        private async Task<List<TlListingFeaturedAspect>> LoadFeaturesAsync(InfraAssertDbContext _context, long listingId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlListingFeaturedAspects
+                .AsNoTracking()
+                .Where(f => f.ListingRentId == listingId)
+                .Include(f => f.FeaturesAspectType)
+                .ToListAsync();
+            }
+        }
+
+        private async Task<List<TpProperty>> LoadPropertiesAsync(InfraAssertDbContext _context, long listingId)
+        {
+            List<TpProperty> result = new List<TpProperty>();
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                result = await context.TpProperties
+                .AsNoTracking()
+                .Where(p => p.ListingRentId == listingId)
+                //.Include(p => p.TpPropertyAddresses)
+                //    .ThenInclude(a => a.City)
+                //    .ThenInclude(c => c.County)
+                //    .ThenInclude(co => co.State)
+                //    .ThenInclude(s => s.Country)
+                .Include(p => p.PropertySubtype)
+                    .ThenInclude(ps => ps.PropertyType)
+                .ToListAsync();
+            }
+
+            foreach (var prop in result)
+            {
+                prop.TpPropertyAddresses = new List<TpPropertyAddress>
+                {
+                    new TpPropertyAddress
+                    {
+                        Address1 = prop.Address1,
+                        Address2 = prop.Address2,
+                        CityId = prop.CityId,
+                        CountyId = prop.CountyId,
+                        ZipCode = prop.ZipCode,
+                        StateId = prop.StateId,
+                        City = new TCity
+                        {
+                            CityId = prop.CityId??0,
+                            Name = prop.CityName,
+                            CountyId = prop.CountyId??0,
+                            County = new TCounty
+                            {
+                                CountyId = prop.CountyId ?? 0,
+                                Name = prop.CountyName,
+                                State = new TState
+                                {
+                                    Name = prop.StateName,
+                                    StateId = prop.StateId ?? 0,
+                                    Country = new TCountry
+                                    {
+                                        Name = prop.CountryName,
+                                        CountryId = prop.CountryId ?? 0
+                                    }
+                                },
+                                StateId = prop.StateId??0
+                            }
+                        }
+                    }
+                };
+                prop.City = prop.TpPropertyAddresses.FirstOrDefault().City;
+            }
+            return result;
+        }
+
+        private async Task<List<TlListingPhoto>> LoadPhotosAsync(InfraAssertDbContext _context, long listingId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlListingPhotos
+                .AsNoTracking()
+                .Where(p => p.ListingRentId == listingId)
+                .ToListAsync();
+            }
+        }
+
+        private async Task<List<TlListingPrice>> LoadPricesAsync(InfraAssertDbContext _context, long listingId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlListingPrices
+                .AsNoTracking()
+                .Where(p => p.ListingRentId == listingId)
+                .ToListAsync();
+            }
+        }
+
+        private async Task<List<TlListingRentRule>> LoadRulesAsync(InfraAssertDbContext _context, long listingId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlListingRentRules
+                .AsNoTracking()
+                .Where(r => r.ListingId == listingId)
+                .Include(r => r.RuleType)
+                .ToListAsync();
+            }
+        }
+
+        private async Task<List<TlListingSecurityItem>> LoadSecurityItemsAsync(InfraAssertDbContext _context, long listingId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlListingSecurityItems
+                .AsNoTracking()
+                .Where(s => s.ListingRentId == listingId)
+                .Include(s => s.SecurityItemType)
+                .ToListAsync();
+            }
+        }
+
+        private async Task<List<TlListingSpace>> LoadSpacesAsync(InfraAssertDbContext _context, long listingId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlListingSpaces
+                .AsNoTracking()
+                .Where(s => s.ListingId == listingId)
+                .Include(s => s.SpaceType)
+                .ToListAsync();
+            }
+        }
+
+        private async Task<List<TlListingSpecialDatePrice>> LoadSpecialDatesAsync(InfraAssertDbContext _context, long listingId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlListingSpecialDatePrices
+                .AsNoTracking()
+                .Where(s => s.ListingRentId == listingId)
+                .ToListAsync();
+            }
+        }
+
+        private async Task<List<TlStayPresence>> LoadStayPresencesAsync(InfraAssertDbContext _context, long listingId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlStayPresences
+                .AsNoTracking()
+                .Where(s => s.ListingRentId == listingId)
+                .Include(s => s.StayPrecenseType)
+                .ToListAsync();
+            }
+        }
+
+        private async Task<List<TlListingReview>> LoadReviewsAsync(InfraAssertDbContext _context, long listingId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlListingReviews
+                .AsNoTracking()
+                .Where(r => r.ListingRentId == listingId)
+                .ToListAsync();
+            }
+        }
+
+        private async Task<List<TlListingDiscountForRate>> LoadDiscountsAsync(InfraAssertDbContext _context, long listingId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlListingDiscountForRates
+                .AsNoTracking()
+                .Where(c => c.ListingRentId == listingId)
+                .Include(x => x.DiscountTypeForTypePrice)
+                .ToListAsync();
+            }
+        }
+
+        private async Task<List<TlCheckInOutPolicy>> LoadCheckInOutPoliciesAsync(InfraAssertDbContext _context, long listingId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                return await context.TlCheckInOutPolicies
+                .AsNoTracking()
+                .Where(c => c.ListingRentid == listingId)
+                .ToListAsync();
+            }
+        }
+
         private string FormatTime(string strTime)
         {
             if (strTime.IsNullOrEmpty())
@@ -923,5 +923,6 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 await context.SaveChangesAsync();
             }
         }
+        #endregion
     }
 }
