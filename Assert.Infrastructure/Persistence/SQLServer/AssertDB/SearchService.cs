@@ -111,6 +111,12 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     (b.StartDate <= filters.CheckOutDate.Value && b.EndDate >= filters.CheckInDate.Value)));
             }
 
+            if (filters?.Rules?.AllowedPets != null)
+            {
+                query = query.Where(p => p.TlListingRentRules.Any(b => b.RuleTypeId == 1 &&
+                  (filters.Rules.AllowedPets == b.Value )));
+            }
+
             List<double> boundingBox = null;
             if (filters.Latitude.HasValue && filters.Longitude.HasValue && filters.Radius.HasValue)
             {
@@ -157,6 +163,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                             .ThenInclude(y => y.PropertyType)
                     .Include(x => x.TlListingPhotos)
                     .Include(x => x.TlListingPrices)
+                    .Include(x => x.TlListingRentRules)
                     .AsNoTracking();
 
             var properties = await query

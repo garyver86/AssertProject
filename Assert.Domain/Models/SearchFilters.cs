@@ -79,5 +79,12 @@
         /// </summary>
         public long CountryId { get; set; }
         public int? Bathrooms { get; set; }
+        public RulesFilter? Rules { get; set; }
+    }
+    public class RulesFilter
+    {
+        public bool? AllowedPets { get; set; }
+        public bool? AllowedSmook { get; set; }
+        public bool? AllowedEvents { get; set; }
     }
 }

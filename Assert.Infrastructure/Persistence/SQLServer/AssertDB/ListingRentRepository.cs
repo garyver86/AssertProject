@@ -923,6 +923,30 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 await context.SaveChangesAsync();
             }
         }
-        #endregion
+
+        public async Task<List<TlListingRent>> GetAllResumed(int ownerID, bool onlyPublish)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                var query = context.TlListingRents
+                //.Include(x => x.ListingStatus)
+                //.Include(x => x.AccomodationType)
+                //.Include(x => x.OwnerUser)
+                .Include(x => x.TpProperties)
+                .Include(x => x.TlListingPrices)
+                .AsNoTracking()
+                .Where(x => x.ListingStatusId != 5 && x.OwnerUserId == ownerID &&
+                (!onlyPublish || (onlyPublish && x.ListingStatusId == 3)))
+                //.OrderByDescending(x => x.TlListingReviews.Average(y => y.Calification));
+                .OrderByDescending(x => x.AvgReviews);
+
+                var result = await query
+                    //.Skip(skipAmount)
+                    //.Take(pageSize)
+                    .ToListAsync();
+
+                return result;
+            }
+        }
     }
 }

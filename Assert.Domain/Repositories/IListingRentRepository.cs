@@ -26,5 +26,6 @@ namespace Assert.Domain.Repositories
         Task SetReservationTypeApprobation(long listingRentId, int value1, int value2, int value3);
         Task SetCheckInPolicies(long listingRentId, string checkinTime, string checkoutTime, string instructions, string maxCheckinTime);
         Task SetCancellationPolicy(long listingRentId, int? cancellationPolicyTypeId);
+        Task<List<TlListingRent>> GetAllResumed(int userID, bool onlyPublish);
     }
 }
