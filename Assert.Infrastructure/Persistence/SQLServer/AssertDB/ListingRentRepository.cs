@@ -701,6 +701,41 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
+        public async Task SetCancellationPolicy(long listingRentId, int? cancellationPolicyTypeId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                listing.CancelationPolicyTypeId = cancellationPolicyTypeId;
+                await context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<List<TlListingRent>> GetAllResumed(int ownerID, bool onlyPublish)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                var query = context.TlListingRents
+                //.Include(x => x.ListingStatus)
+                //.Include(x => x.AccomodationType)
+                //.Include(x => x.OwnerUser)
+                .Include(x => x.TpProperties)
+                .Include(x => x.TlListingPrices)
+                .AsNoTracking()
+                .Where(x => x.ListingStatusId != 5 && x.OwnerUserId == ownerID &&
+                (!onlyPublish || (onlyPublish && x.ListingStatusId == 3)))
+                //.OrderByDescending(x => x.TlListingReviews.Average(y => y.Calification));
+                .OrderByDescending(x => x.AvgReviews);
+
+                var result = await query
+                    //.Skip(skipAmount)
+                    //.Take(pageSize)
+                    .ToListAsync();
+
+                return result;
+            }
+        }
+
         #region Métodos auxiliares para cargar cada relación
         private async Task<List<TlListingAmenity>> LoadAmenitiesAsync(InfraAssertDbContext _context, long listingId)
         {
@@ -913,40 +948,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
             return strTime;
         }
+        #endregion
 
-        public async Task SetCancellationPolicy(long listingRentId, int? cancellationPolicyTypeId)
-        {
-            using (var context = new InfraAssertDbContext(dbOptions))
-            {
-                TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
-                listing.CancelationPolicyTypeId = cancellationPolicyTypeId;
-                await context.SaveChangesAsync();
-            }
-        }
-
-        public async Task<List<TlListingRent>> GetAllResumed(int ownerID, bool onlyPublish)
-        {
-            using (var context = new InfraAssertDbContext(dbOptions))
-            {
-                var query = context.TlListingRents
-                //.Include(x => x.ListingStatus)
-                //.Include(x => x.AccomodationType)
-                //.Include(x => x.OwnerUser)
-                .Include(x => x.TpProperties)
-                .Include(x => x.TlListingPrices)
-                .AsNoTracking()
-                .Where(x => x.ListingStatusId != 5 && x.OwnerUserId == ownerID &&
-                (!onlyPublish || (onlyPublish && x.ListingStatusId == 3)))
-                //.OrderByDescending(x => x.TlListingReviews.Average(y => y.Calification));
-                .OrderByDescending(x => x.AvgReviews);
-
-                var result = await query
-                    //.Skip(skipAmount)
-                    //.Take(pageSize)
-                    .ToListAsync();
-
-                return result;
-            }
-        }
     }
 }
