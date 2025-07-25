@@ -59,7 +59,7 @@ namespace Assert.API.Controllers
         /// <remarks>
         /// Si existe la reserva se envia el Id de esta caso contrario se envia 0 para indicar que es una nueva reserva.
         /// </remarks>
-        [HttpPost("UpdateProfilePhoto")]
+        [HttpPost("UpsertBookAsync")]
         [Authorize(Policy = "GuestOrHostOrAdmin")]
         public async Task<ReturnModelDTO> UpsertBookAsync([FromBody] BookDTO incomingBook)
         => await _bookService.UpsertBookAsync(incomingBook);
