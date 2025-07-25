@@ -9,9 +9,12 @@ using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Assert.Domain.ValueObjects;
+using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 using Assert.Shared.Extensions;
 using AutoMapper;
+using Azure.Core;
 using Microsoft.AspNetCore.Http;
+using System.Reflection;
 
 namespace Assert.Application.Services
 {
@@ -26,6 +29,7 @@ namespace Assert.Application.Services
         IErrorHandler _errorHandler,
         IExceptionLoggerService _exceptionLoggerService,
         ISystemConfigurationRepository _systemConfigurationRepository,
+        IPropertyRepository _propertyRepository,
         IHttpContextAccessor requestContext)
         : IAppListingRentService
     {
@@ -167,7 +171,8 @@ namespace Assert.Application.Services
             return result;
         }
 
-        public async Task<ReturnModelDTO<ProcessDataResult>> ProcessListingData(long listinRentId, ProcessDataRequest request, Dictionary<string, string> clientData, bool useTechnicalMessages)
+        public async Task<ReturnModelDTO<ProcessDataResult>> ProcessListingData(long listinRentId, 
+            ProcessDataRequest request, Dictionary<string, string> clientData, bool useTechnicalMessages)
         {
             ReturnModelDTO<ProcessDataResult> result = new ReturnModelDTO<ProcessDataResult>();
             try
@@ -626,6 +631,30 @@ namespace Assert.Application.Services
                 result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.GetByOwner", ex, new { userId }, UseTechnicalMessages));
             }
             return result;
+        }
+
+        public async Task<ReturnModelDTO<string>> UpdatePropertyAndAccomodationTypes(long listingRentId, 
+            int? propertyTypeId, int? accomodationTypeId)
+        {
+            if (propertyTypeId is not null && propertyTypeId > 0)
+            {
+                var tpProperty = await _propertyRepository.GetFromListingId(listingRentId);
+                var _ = await _propertyRepository
+                    .SetPropertySubType(tpProperty.PropertyId, propertyTypeId!);
+            }
+
+            if (accomodationTypeId is not null && accomodationTypeId > 0)
+            {
+                var _ = await _listingRentRepository
+                    .SetAccomodationType(listingRentId, accomodationTypeId!);
+            }
+
+            return new ReturnModelDTO<string>
+            {
+                Data = "UPDATED",
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Assert.Domain.Entities;
 using Assert.Domain.Repositories;
+using Assert.Infrastructure.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
@@ -16,6 +17,10 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         public async Task<TpProperty> GetFromListingId(long listingRentId)
         {
             var result = await _context.TpProperties.Where(x => x.ListingRentId == listingRentId).FirstOrDefaultAsync();
+
+            if (result is null)
+                throw new NotFoundException($"No se encontro la propiedad para el ListingRent con ID: {listingRentId}");
+
             return result;
         }
 

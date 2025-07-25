@@ -294,5 +294,23 @@ namespace Assert.API.Controllers
             var result = await _appListingRentService.Get(listinRentId, userId, requestInfo, true);
             return result;
         }
+
+        /// <summary>
+        /// Servicio que actualiza los tipos de propiedad y alojamiento de un Listing Rent.
+        /// </summary>
+        /// <param name="listingRentId">ID de listing rent</param>
+        /// <param name="propertyTypeId">ID de property type</param>
+        /// <param name="accomodationTypeId">ID de accommodation type</param>
+        /// <returns>UPDATED de un listing rent.</returns>
+        /// <response code="200">Detalle del Listing Rent</response>
+        /// <remarks>
+        /// Como prerequisito ya deberia haber sido creado el listing rent y se deberian haber definido los tipos de propiedad y alojamiento.
+        /// </remarks>
+        [HttpGet()]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("{listinRentId}/UpdatePropertyAndAccomodationTypes")]
+        public async Task<ReturnModelDTO> UpdatePropertyAndAccomodationTypes(long listingRentId,
+            int propertyTypeId, int accomodationTypeId)
+        => await _appListingRentService.UpdatePropertyAndAccomodationTypes(listingRentId, propertyTypeId, accomodationTypeId);
     }
 }
