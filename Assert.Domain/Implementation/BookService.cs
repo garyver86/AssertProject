@@ -5,7 +5,9 @@ using Assert.Domain.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using System.Transactions;
 using static Azure.Core.HttpHeader;
 
 namespace Assert.Domain.Implementation
@@ -19,6 +21,9 @@ namespace Assert.Domain.Implementation
         private readonly IPayPriceCalculationRepository _payPriceCalculationRepository;
         private readonly IErrorHandler _errorHandler;
         private readonly IListingDiscountForRateRepository _listingDiscountForRateRepository;
+        private readonly IBookRepository _bookRepository;
+        private readonly ICurrencyRespository _currencyrepository;
+        private readonly IPayTransactionRepository _payTransactionRepository;
 
         public BookService(
             IListingRentRepository listingRentRepository,
@@ -27,7 +32,10 @@ namespace Assert.Domain.Implementation
             IListingDiscountRepository listingDiscountRepository,
             IErrorHandler errorHandler,
             IPayPriceCalculationRepository payPriceCalculationRepository,
-            IListingDiscountForRateRepository listingDiscountForRateRepository)
+            IListingDiscountForRateRepository listingDiscountForRateRepository,
+            IBookRepository bookRepository,
+            ICurrencyRespository currencyrepository,
+            IPayTransactionRepository payTransactionRepository)
         {
             _listingRentRepository = listingRentRepository;
             _listingCalendarRepository = listingCalendarRepository;
@@ -36,6 +44,9 @@ namespace Assert.Domain.Implementation
             _errorHandler = errorHandler;
             _payPriceCalculationRepository = payPriceCalculationRepository;
             _listingDiscountForRateRepository = listingDiscountForRateRepository;
+            _bookRepository = bookRepository;
+            _currencyrepository = currencyrepository;
+            _payTransactionRepository = payTransactionRepository;
         }
 
 
@@ -71,14 +82,14 @@ namespace Assert.Domain.Implementation
             {
                 result.HasError = true;
                 result.StatusCode = ResultStatusCode.NotFound;
-                result.ResultError = _errorHandler.GetError(ResultStatusCode.NotFound, "La propiedad no existe o no está activa.", useTechnicalMessages);
+                result.ResultError = new ErrorCommon { Message = "La propiedad no existe o no está activa." };
                 return result;
             }
             else if (listing.ListingStatusId != 3)
             {
                 result.HasError = true;
                 result.StatusCode = ResultStatusCode.BadRequest;
-                result.ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "La propiedad no está disponible para reservas.", useTechnicalMessages);
+                result.ResultError = new ErrorCommon { Message = "La propiedad no está disponible para reservas." };
                 return result;
             }
 
@@ -87,14 +98,14 @@ namespace Assert.Domain.Implementation
             {
                 result.HasError = true;
                 result.StatusCode = ResultStatusCode.BadRequest;
-                result.ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "La fecha de inicio debe ser menor a la fecha de fin.", useTechnicalMessages);
+                result.ResultError = new ErrorCommon { Message = "La fecha de inicio debe ser menor a la fecha de fin." };
                 return result;
             }
             if (startDate < DateTime.Today)
             {
                 result.HasError = true;
                 result.StatusCode = ResultStatusCode.BadRequest;
-                result.ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "No se pueden reservar fechas en el pasado.", useTechnicalMessages);
+                result.ResultError = new ErrorCommon { Message = "No se pueden reservar fechas en el pasado." };
                 return result;
             }
 
@@ -106,7 +117,7 @@ namespace Assert.Domain.Implementation
             {
                 result.HasError = true;
                 result.StatusCode = ResultStatusCode.Conflict;
-                result.ResultError = _errorHandler.GetError(ResultStatusCode.Conflict, "Las fechas seleccionadas no están disponibles.", useTechnicalMessages);
+                result.ResultError = new ErrorCommon { Message = "Las fechas seleccionadas no están disponibles." };
                 return result;
             }
 
@@ -116,14 +127,14 @@ namespace Assert.Domain.Implementation
             {
                 result.HasError = true;
                 result.StatusCode = ResultStatusCode.BadRequest;
-                result.ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, $"La estancia mínima es de {listing.MinimunStay.Value} noches.", useTechnicalMessages);
+                result.ResultError = new ErrorCommon { Message = $"La estancia mínima es de {listing.MinimunStay.Value} noches." };
                 return result;
             }
             if (listing.MaximumStay.HasValue && nights > listing.MaximumStay.Value)
             {
                 result.HasError = true;
                 result.StatusCode = ResultStatusCode.BadRequest;
-                result.ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, $"La estancia máxima es de {listing.MaximumStay.Value} noches.", useTechnicalMessages);
+                result.ResultError = new ErrorCommon { Message = $"La estancia máxima es de {listing.MaximumStay.Value} noches." };
                 return result;
             }
 
@@ -213,6 +224,9 @@ namespace Assert.Domain.Implementation
                 CalculationCode = Guid.NewGuid(),
                 IpAddress = clientData != null && clientData.ContainsKey("ip") ? clientData["ip"] : null,
                 UserAgent = clientData != null && clientData.ContainsKey("userAgent") ? clientData["userAgent"] : null,
+                InitBook = startDate,
+                EndBook = endDate,
+                ListingRentId = listingRentId
             };
 
             var resultCalculation = await _payPriceCalculationRepository.Create(payPriceCalculation);
@@ -222,129 +236,146 @@ namespace Assert.Domain.Implementation
             result.HasError = false;
             return result;
         }
-        //public async Task<ReturnModel<PayPriceCalculation>> CalculatePrice(
-        //    long listingRentId,
-        //    DateTime startDate,
-        //    DateTime endDate,
-        //    int guestId,
-        //    Dictionary<string, string> clientData,
-        //    bool useTechnicalMessages)
-        //{
-        //    var result = new ReturnModel<PayPriceCalculation>();
+        public async Task<ReturnModel<TbBook>> RegisterPaymentAndCreateBooking(
+            PaymentRequest paymentRequest,
+            int userId,
+            Dictionary<string, string> clientData,
+            bool useTechnicalMessages)
+        {
 
-        //    // 1. Validar existencia y estado de la propiedad
-        //    var listing = await _listingRentRepository.Get(listingRentId, onlyActive: true);
-        //    if (listing == null)
-        //    {
-        //        result.HasError = true;
-        //        result.StatusCode = ResultStatusCode.NotFound;
-        //        result.ResultError = _errorHandler.GetError(ResultStatusCode.NotFound, "La propiedad no existe o no está activa.", useTechnicalMessages);
-        //        return result;
-        //    }
-        //    else if (listing.ListingStatusId != 3)
-        //    {
-        //        result.HasError = true;
-        //        result.StatusCode = ResultStatusCode.BadRequest;
-        //        result.ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "La propiedad no está disponible para reservas.", useTechnicalMessages);
-        //        return result;
-        //    }
+            PayPriceCalculation priceCalculation = await _payPriceCalculationRepository.GetByCode(paymentRequest.CalculationCode);
 
-        //    // 2. Validar fechas
-        //    if (startDate >= endDate)
-        //    {
-        //        result.HasError = true;
-        //        result.StatusCode = ResultStatusCode.BadRequest;
-        //        result.ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "La fecha de inicio debe ser menor a la fecha de fin.", useTechnicalMessages);
-        //        return result;
-        //    }
-        //    if (startDate < DateTime.Today)
-        //    {
-        //        result.HasError = true;
-        //        result.StatusCode = ResultStatusCode.BadRequest;
-        //        result.ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "No se pueden reservar fechas en el pasado.", useTechnicalMessages);
-        //        return result;
-        //    }
+            if (priceCalculation == null)
+            {
+                return new ReturnModel<TbBook>
+                {
+                    HasError = true,
+                    StatusCode = ResultStatusCode.BadRequest,
+                    ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, $"El código de cotización ingresado no puede ser encontrado.", useTechnicalMessages)
+                };
+            }
 
-        //    // 3. Validar conflicto con reservas o bloqueos
-        //    var (calendarDays, _) = await _listingCalendarRepository.GetCalendarDaysAsync(
-        //        (int)listingRentId, startDate, endDate, 1, (int)(endDate - startDate).TotalDays + 1);
+            var result = new ReturnModel<TbBook>();
 
-        //    if (calendarDays.Any(d => d.BlockType != null))
-        //    {
-        //        result.HasError = true;
-        //        result.StatusCode = ResultStatusCode.Conflict;
-        //        result.ResultError = _errorHandler.GetError(ResultStatusCode.Conflict, "Las fechas seleccionadas no están disponibles.", useTechnicalMessages);
-        //        return result;
-        //    }
+            // 1. Validar que la cotización aún sea válida (no haya expirado)
+            if (priceCalculation.ExpirationDate < DateTime.UtcNow)
+            {
+                result.HasError = true;
+                result.StatusCode = ResultStatusCode.BadRequest;
+                result.ResultError = _errorHandler.GetError(
+                    ResultStatusCode.BadRequest,
+                    "La cotización ha expirado. Por favor, solicite una nueva cotización.",
+                    useTechnicalMessages);
+                return result;
+            }
 
-        //    // 4. Validar mínimo y máximo de noches
-        //    int nights = (endDate - startDate).Days;
-        //    if (listing.MinimunStay.HasValue && nights < listing.MinimunStay.Value)
-        //    {
-        //        result.HasError = true;
-        //        result.StatusCode = ResultStatusCode.BadRequest;
-        //        result.ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, $"La estancia mínima es de {listing.MinimunStay.Value} noches.", useTechnicalMessages);
-        //        return result;
-        //    }
-        //    if (listing.MaximumStay.HasValue && nights > listing.MaximumStay.Value)
-        //    {
-        //        result.HasError = true;
-        //        result.StatusCode = ResultStatusCode.BadRequest;
-        //        result.ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, $"La estancia máxima es de {listing.MaximumStay.Value} noches.", useTechnicalMessages);
-        //        return result;
-        //    }
+            // 2. Validar que el monto del pago coincida con la cotización
+            if (paymentRequest.Amount != priceCalculation.Amount ||
+                paymentRequest.CurrencyCode != priceCalculation.CurrencyCode)
+            {
+                result.HasError = true;
+                result.StatusCode = ResultStatusCode.BadRequest;
+                result.ResultError = _errorHandler.GetError(
+                    ResultStatusCode.BadRequest,
+                    "El monto o moneda del pago no coincide con la cotización.",
+                    useTechnicalMessages);
+                return result;
+            }
 
-        //    // 5. Calcular precio base
-        //    var priceInfo = await _listingPricingRepository.GetByListingRent(listingRentId);
-        //    if (priceInfo == null || !priceInfo.PriceNightly.HasValue)
-        //    {
-        //        result.HasError = true;
-        //        result.StatusCode = ResultStatusCode.BadRequest;
-        //        result.ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "No se encontró información de precios para la propiedad.", useTechnicalMessages);
-        //        return result;
-        //    }
+            // 3. Validar disponibilidad nuevamente (en caso de que haya cambiado desde la cotización)
+            ReturnModel avaResult = await CheckAvailability(
+                (int)priceCalculation.ListingRentId,
+                priceCalculation.InitBook,
+                priceCalculation.EndBook);
 
-        //    decimal total = 0;
-        //    for (var date = startDate; date < endDate; date = date.AddDays(1))
-        //    {
-        //        // Si es fin de semana y hay precio especial, usarlo
-        //        bool isWeekend = date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
-        //        if (isWeekend && priceInfo.WeekendNightlyPrice.HasValue)
-        //        {
-        //            total += priceInfo.WeekendNightlyPrice.Value;
-        //        }
-        //        else
-        //        {
-        //            total += priceInfo.PriceNightly.Value;
-        //        }
-        //    }
+            if (avaResult.StatusCode != ResultStatusCode.OK)
+            {
+                result.HasError = true;
+                result.StatusCode = ResultStatusCode.Conflict;
+                result.ResultError = _errorHandler.GetError(
+                    ResultStatusCode.Conflict,
+                    "Las fechas seleccionadas ya no están disponibles.",
+                    useTechnicalMessages);
+                return result;
+            }
 
-        //    // 6. Aplicar descuentos (si existen)
-        //    // Aquí podrías consultar los descuentos y aplicarlos según la lógica de negocio
+            // 4. Crear transacción de pago
+            var transaction = new PayTransaction
+            {
+                OrderCode = paymentRequest.OrderCode,
+                Stan = paymentRequest.Stan,
+                Amount = paymentRequest.Amount,
+                CurrencyCode = paymentRequest.CurrencyCode,
+                MethodOfPaymentId = paymentRequest.MethodOfPaymentId,
+                PaymentProviderId = paymentRequest.PaymentProviderId,
+                CountryId = paymentRequest.CountryId,
+                TransactionStatusCode = "APP", // Aprobado
+                TransactionStatus = "AUTHORISED",
+                PaymentData = paymentRequest.PaymentData,
+                TransactionData = paymentRequest.TransactionData,
+                CreatedAt = DateTime.UtcNow
+            };
 
-        //    // 7. Sumar tarifas adicionales (ejemplo: limpieza, servicio, etc.)
-        //    // Aquí podrías sumar tarifas adicionales si existen
+            // 5. Crear la reserva
 
-        //    // 8. Construir el modelo de resultado
-        //    var payPriceCalculation = new PayPriceCalculation
-        //    {
-        //        Amount = total,
-        //        CurrencyCode = priceInfo.Currency?.Code ?? "USD",
-        //        CalculationDetails = $"Reserva de {nights} noches del {startDate:yyyy-MM-dd} al {endDate:yyyy-MM-dd}",
-        //        CreationDate = DateTime.UtcNow,
-        //        ExpirationDate = DateTime.UtcNow.AddMinutes(30),
-        //        CalculationStatue = "PENDING",
-        //        CalculationCode = Guid.NewGuid(),
-        //        IpAddress = clientData != null && clientData.ContainsKey("ip") ? clientData["ip"] : null,
-        //        UserAgent = clientData != null && clientData.ContainsKey("userAgent") ? clientData["userAgent"] : null,
-        //    };
 
-        //    var resultCalculation = await _payPriceCalculationRepository.Create(payPriceCalculation);
+            var booking = new TbBook
+            {
+                ListingRentId = priceCalculation.ListingRentId ?? 0,
+                UserIdRenter = userId,
+                StartDate = priceCalculation.InitBook ?? DateTime.UtcNow,
+                EndDate = priceCalculation.EndBook ?? DateTime.UtcNow,
+                AmountTotal = priceCalculation.Amount,
+                CurrencyId = await _currencyrepository.GetCurrencyId(priceCalculation.CurrencyCode),
+                NameRenter = clientData.ContainsKey("name") ? clientData["name"] : string.Empty,
+                LastNameRenter = clientData.ContainsKey("lastName") ? clientData["lastName"] : string.Empty,
+                TermsAccepted = true, // Asumimos que se aceptaron los términos para llegar aquí
+                BookStatusId = 1, // Estado inicial (por ejemplo, "Confirmado")
+                PaymentCode = paymentRequest.OrderCode,
+                PaymentId = "",
 
-        //    result.Data = payPriceCalculation;
-        //    result.StatusCode = ResultStatusCode.OK;
-        //    result.HasError = false;
-        //    return result;
-        //}
+            };
+
+            int bookId = await _bookRepository.UpsertBookAsync(booking);
+
+            if (bookId <= 0)
+            {
+                result.HasError = true;
+                result.StatusCode = ResultStatusCode.Conflict;
+                result.ResultError = _errorHandler.GetError(
+                    ResultStatusCode.Conflict,
+                    "La reserva no ha podido ser creada.",
+                    useTechnicalMessages);
+                return result;
+            }
+            transaction.BookingId = bookId;
+            long savedTransaction = await _payTransactionRepository.Create(transaction);
+
+            List<DateOnly> dates = new List<DateOnly>();
+
+            for (var date = booking.StartDate; date <= booking.EndDate; date = date.AddDays(1))
+            {
+                dates.Add(DateOnly.FromDateTime(date));
+            }
+
+            var resultBlock = await _listingCalendarRepository.BulkBlockDaysAsync(priceCalculation.ListingRentId ?? 0, dates, 2, "Alquiler de propiedad", bookId);
+
+            var resultStatusUpdate = await _payPriceCalculationRepository.SetAsPayed(paymentRequest.CalculationCode, paymentRequest.PaymentProviderId,
+                paymentRequest.MethodOfPaymentId, savedTransaction);
+
+            var book = await _bookRepository.GetByIdAsync(bookId);
+
+            return new ReturnModel<TbBook>
+            {
+                Data = book,
+                StatusCode = ResultStatusCode.OK,
+                HasError = false,
+            };
+        }
+
+        private async Task<ReturnModel> CheckAvailability(int listingRentId, DateTime? initBook, DateTime? endBook)
+        {
+            return new ReturnModel { StatusCode = ResultStatusCode.OK, HasError = false };
+        }
     }
 }

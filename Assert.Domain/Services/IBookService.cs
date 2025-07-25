@@ -12,5 +12,8 @@ namespace Assert.Domain.Services
     {
         Task<ReturnModel<PayPriceCalculation>> CalculatePrice(long listingRentId, DateTime startDate, DateTime endDate, int guestId,
             Dictionary<string, string> clientData, bool useTechnicalMessages);
+
+        Task<ReturnModel<TbBook>> RegisterPaymentAndCreateBooking(PaymentRequest paymentRequest, int userId,
+            Dictionary<string, string> clientData, bool useTechnicalMessages);
     }
 }

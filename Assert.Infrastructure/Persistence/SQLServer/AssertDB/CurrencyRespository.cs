@@ -11,7 +11,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 public class CurrencyRespository(
     InfraAssertDbContext _context,
     IExceptionLoggerService _exceptionLoggerService,
-    ILogger<ListingRentRepository> _logger) 
+    ILogger<ListingRentRepository> _logger)
     : ICurrencyRespository
 {
     public async Task<List<TCurrency>> GetAllAsync()
@@ -29,13 +29,19 @@ public class CurrencyRespository(
 
             return currencies;
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             var (className, methodName) = this.GetCallerInfo();
-            _exceptionLoggerService.LogAsync(ex, methodName, className,"T_Currency");
+            _exceptionLoggerService.LogAsync(ex, methodName, className, "T_Currency");
 
             throw new DatabaseUnavailableException(ex.Message);
         }
     }
 
+    public async Task<int> GetCurrencyId(string currencyCode)
+    {
+        var currencies = await _context.TCurrencies.Where(x => x.Code == currencyCode)
+                .FirstOrDefaultAsync();
+        return currencies?.CurrencyId ?? -1;
+    }
 }

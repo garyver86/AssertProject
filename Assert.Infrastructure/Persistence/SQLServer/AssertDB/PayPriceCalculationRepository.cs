@@ -3,6 +3,7 @@ using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -15,8 +16,10 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
     public class PayPriceCalculationRepository(InfraAssertDbContext _context,
         IListingLogRepository _logRepository,
-        IExceptionLoggerService _exceptionLoggerService) : IPayPriceCalculationRepository
+        IExceptionLoggerService _exceptionLoggerService, IServiceProvider serviceProvider) : IPayPriceCalculationRepository
     {
+        private readonly DbContextOptions<InfraAssertDbContext> dbOptions = serviceProvider.GetRequiredService<DbContextOptions<InfraAssertDbContext>>();
+
         public async Task<ReturnModel<PayPriceCalculation>> Create(PayPriceCalculation payPriceCalculation)
         {
             PayPriceCalculation priceCalculation = null;
@@ -60,6 +63,22 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         Message = "La reserva ya cuenta con una cotización pagada."
                     }
                 };
+            }
+        }
+
+        public async Task<PayPriceCalculation> GetByCode(Guid calculationCode)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                var priceCalculation = await context.PayPriceCalculations.Where(x => x.CalculationCode == calculationCode).FirstOrDefaultAsync();
+                if (priceCalculation != null)
+                {
+                    return priceCalculation;
+                }
+                else
+                {
+                    return null;
+                }
             }
         }
 

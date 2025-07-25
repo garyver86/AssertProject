@@ -369,6 +369,10 @@ public partial class AssertDbContext : DbContext
 
             entity.HasIndex(e => e.BookId, "IX_ReservaID");
 
+            entity.HasIndex(e => e.ListingRentId, "NonClusteredIndex-ListingRentId-20250725");
+
+            entity.HasIndex(e => new { e.InitBook, e.EndBook }, "NonClusteredIndex-bookdates-20250725");
+
             entity.HasIndex(e => e.CalculationCode, "UQ_CodigoCotizacion").IsUnique();
 
             entity.Property(e => e.PriceCalculationId).HasColumnName("priceCalculationId");
@@ -392,12 +396,19 @@ public partial class AssertDbContext : DbContext
                 .HasMaxLength(3)
                 .IsUnicode(false)
                 .HasColumnName("currencyCode");
+            entity.Property(e => e.EndBook)
+                .HasColumnType("datetime")
+                .HasColumnName("endBook");
             entity.Property(e => e.ExpirationDate)
                 .HasColumnType("datetime")
                 .HasColumnName("expirationDate");
+            entity.Property(e => e.InitBook)
+                .HasColumnType("datetime")
+                .HasColumnName("initBook");
             entity.Property(e => e.IpAddress)
                 .HasMaxLength(45)
                 .IsUnicode(false);
+            entity.Property(e => e.ListingRentId).HasColumnName("listingRentId");
             entity.Property(e => e.MethodOfPaymentId).HasColumnName("methodOfPaymentId");
             entity.Property(e => e.PaymentProviderId).HasColumnName("paymentProviderId");
             entity.Property(e => e.PaymentTransactionId).HasColumnName("paymentTransactionId");
@@ -408,6 +419,10 @@ public partial class AssertDbContext : DbContext
             entity.HasOne(d => d.Book).WithMany(p => p.PayPriceCalculations)
                 .HasForeignKey(d => d.BookId)
                 .HasConstraintName("FK_Pay_PriceCalculation_TB_Book");
+
+            entity.HasOne(d => d.ListingRent).WithMany(p => p.PayPriceCalculations)
+                .HasForeignKey(d => d.ListingRentId)
+                .HasConstraintName("FK_Pay_PriceCalculation_TL_ListingRent");
 
             entity.HasOne(d => d.MethodOfPayment).WithMany(p => p.PayPriceCalculations)
                 .HasForeignKey(d => d.MethodOfPaymentId)

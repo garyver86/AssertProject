@@ -33,7 +33,15 @@ public partial class PayPriceCalculation
 
     public long? PaymentTransactionId { get; set; }
 
+    public long? ListingRentId { get; set; }
+
+    public DateTime? InitBook { get; set; }
+
+    public DateTime? EndBook { get; set; }
+
     public virtual TbBook? Book { get; set; }
+
+    public virtual TlListingRent? ListingRent { get; set; }
 
     public virtual PayMethodOfPayment? MethodOfPayment { get; set; }
 
