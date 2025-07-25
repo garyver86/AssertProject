@@ -13,7 +13,7 @@ namespace Assert.Application.Services
     public class AppParametricService(IParametricService _parametricService,
         ICurrencyRespository _currencyRepository,
         IMapper _mapper, IErrorHandler _errorHandler,
-        IExceptionLoggerService _exceptionLoggerService) 
+        IExceptionLoggerService _exceptionLoggerService)
         : IAppParametricService
     {
         public async Task<ReturnModelDTO<List<AccomodationTypeDTO>>> GetAccomodationTypes(Dictionary<string, string> clientData, bool useTechnicalMessages)
@@ -146,13 +146,13 @@ namespace Assert.Application.Services
                 return HandleException<List<SpaceTypeDTO>>("AppParametricService.GetSpaceTypes", ex, null, useTechnicalMessages);
             }
         }
-        
+
         public async Task<ReturnModelDTO<List<LanguageDTO>>> GetLanguageTypes()
         {
             try
             {
                 var languages = await _parametricService.GetLanguages();
-                
+
                 return new ReturnModelDTO<List<LanguageDTO>>
                 {
                     Data = _mapper.Map<List<LanguageDTO>>(languages.Data),
@@ -168,7 +168,7 @@ namespace Assert.Application.Services
                 throw new ApplicationException(ex.Message);
             }
         }
-        
+
         private ReturnModelDTO<T> CreateErrorResult<T>(string statusCode, string errorMessage, bool useTechnicalMessages)
         {
             return new ReturnModelDTO<T>
@@ -243,7 +243,30 @@ namespace Assert.Application.Services
                 return HandleException<List<RentRuleDTO>>("AppParametricService.GetCancellationPolicies", ex, null, useTechnicalMessages);
             }
         }
-    
+
+
+        public async Task<ReturnModelDTO<List<SecurityItemDTO>>> GetSecurityItems(Dictionary<string, string> requestInfo, bool useTechnicalMessages)
+        {
+            try
+            {
+                ReturnModel<List<TpSecurityItemType>> result = await _parametricService.GetSecurityItems(useTechnicalMessages);
+                if (result.HasError)
+                {
+                    return CreateErrorResult<List<SecurityItemDTO>>(result.StatusCode, result.ResultError, useTechnicalMessages);
+                }
+                return new ReturnModelDTO<List<SecurityItemDTO>>
+                {
+                    Data = _mapper.Map<List<SecurityItemDTO>>(result.Data),
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            catch (Exception ex)
+            {
+                return HandleException<List<SecurityItemDTO>>("AppParametricService.GetSecurityItems", ex, null, useTechnicalMessages);
+            }
+        }
+
         public async Task<ReturnModelDTO<List<CurrencyDTO>>> GetCurrencies()
         {
             var currencies = _currencyRepository.GetAllAsync();

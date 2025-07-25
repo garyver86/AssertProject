@@ -260,6 +260,25 @@ namespace Assert.API.Controllers
             return discountTypesResult;
         }
 
+
+        /// <summary>
+        /// Servicio que devuelve la lista de items de seguridad.
+        /// </summary>
+        /// <returns>Listado de items de seguridad.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// Solo se consideraran los items de seguridad activos.
+        /// </remarks>
+        [HttpGet("SecurityItems")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO<List<SecurityItemDTO>>> SecurityItems()
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            var SecurityItemDTO = await _parametricService.GetSecurityItems(requestInfo, true);
+
+            return SecurityItemDTO;
+        }
+
         /// <summary>
         /// Servicio que devuelve la lista de tipos de reglas.
         /// </summary>
