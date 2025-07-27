@@ -13,7 +13,6 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<List<CancellationPolicyDTO>>> GetCancellationPolicies(Dictionary<string, string> requestInfo, bool useTechnicalMessages);
         Task<ReturnModelDTO<List<RentRuleDTO>>> GetRentRules(Dictionary<string, string> requestInfo, bool useTechnicalMessages);
         Task<ReturnModelDTO<List<CurrencyDTO>>> GetCurrencies();
-
-
+        Task<ReturnModelDTO<List<SecurityItemDTO>>> GetSecurityItems(Dictionary<string, string> requestInfo, bool v);
     }
 }

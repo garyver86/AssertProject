@@ -49,5 +49,6 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<string>> UpdateReservation(long listingRentId,
            int approvalPolicyTypeId, int minimunNoticeDays, int preparationDays);
 
+        Task<ReturnModelDTO<List<ListingRentCalendarDTO>>> GetCalendarByOwner(Dictionary<string, string> requestInfo, bool v);
     }
 }

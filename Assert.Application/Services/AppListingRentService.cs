@@ -771,5 +771,47 @@ namespace Assert.Application.Services
                 StatusCode = ResultStatusCode.OK
             };
         }
+
+        public async Task<ReturnModelDTO<List<ListingRentCalendarDTO>>> GetCalendarByOwner(Dictionary<string, string> clientData, bool v)
+        {
+            string userId = clientData["UserId"] ?? "-50";
+            int _userID = -1;
+            int.TryParse(userId, out _userID);
+
+            ReturnModelDTO<List<ListingRentCalendarDTO>> result = new ReturnModelDTO<List<ListingRentCalendarDTO>>();
+            try
+            {
+                List<TlListingRent> listings = await _listingRentRepository.GetCalendarData(_userID);
+                if (listings?.Count > 0)
+                {
+                    string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+                    _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+                    foreach (var list in listings)
+                    {
+                        if (list?.TlListingPhotos?.Count > 0)
+                        {
+                            foreach (var item in list.TlListingPhotos)
+                            {
+                                item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                            }
+                        }
+                    }
+                }
+                result = new ReturnModelDTO<List<ListingRentCalendarDTO>>
+                {
+                    Data = _mapper.Map<List<ListingRentCalendarDTO>>(listings),
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.GetByOwner", ex, new { userId }, UseTechnicalMessages));
+            }
+            return result;
+        }
     }
 }

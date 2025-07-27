@@ -948,6 +948,86 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
             return strTime;
         }
+
+        public async Task<List<TlListingRent>> GetCalendarData(int ownerID)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                var query = context.TlListingRents
+                //.Include(x => x.ListingStatus)
+                .Include(x => x.AccomodationType)
+                .Include(x => x.OwnerUser)
+                .Include(x => x.TpProperties)
+                //.ThenInclude(y => y.PropertySubtype)
+                //    .ThenInclude(y => y.PropertyType)
+                .Include(x => x.TlListingPhotos)
+                .Include(x => x.TlListingPrices)
+                //.Include(x => x.TlListingSpecialDatePrices)
+                //.Include(x => x.TlListingReviews)
+                .Include(x => x.TbBooks)
+                    .ThenInclude(y => y.PayPriceCalculations)
+                .Include(x => x.TlListingCalendars)
+                .AsNoTracking()
+                .Where(x => x.ListingStatusId == 3 && x.OwnerUserId == ownerID)
+                //.OrderByDescending(x => x.TlListingReviews.Average(y => y.Calification));
+                .OrderByDescending(x => x.AvgReviews);
+
+                var result = await query
+                    //.Skip(skipAmount)
+                    //.Take(pageSize)
+                    .ToListAsync();
+                if (result != null)
+                {
+                    foreach (var listing in result)
+                    {
+                        foreach (var prop in listing.TpProperties)
+                        {
+                            prop.TpPropertyAddresses = new List<TpPropertyAddress>
+                            {
+                                new TpPropertyAddress
+                                {
+                                    Address1 = prop.Address1,
+                                    Address2 = prop.Address2,
+                                    CityId = prop.CityId,
+                                    CountyId = prop.CountyId,
+                                    ZipCode = prop.ZipCode,
+                                    StateId = prop.StateId,
+                                    City = new TCity
+                                    {
+                                        CityId = prop.CityId??0,
+                                        Name = prop.CityName,
+                                        CountyId = prop.CountyId??0,
+                                        County = new TCounty
+                                        {
+                                            CountyId = prop.CountyId ?? 0,
+                                            Name = prop.CountyName,
+                                            StateId = prop.StateId??0,
+                                            State = new TState
+                                            {
+                                                Name = prop.StateName,
+                                                StateId = prop.StateId ?? 0,
+                                                Country = new TCountry
+                                                {
+                                                    Name = prop.CountryName,
+                                                    CountryId = prop.CountryId ?? 0
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            };
+                        }
+
+                        foreach (var reservation in listing.TbBooks)
+                        {
+                            reservation.TlListingCalendars = listing.TlListingCalendars.Where(x => x.BookId == reservation.BookId).ToList();
+                        }
+                        listing.TlListingCalendars = listing.TlListingCalendars.Where(x => x.BookId == null).ToList();
+                    }
+                }
+                return result;
+            }
+        }
         #endregion
 
     }

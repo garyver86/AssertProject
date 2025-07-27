@@ -17,49 +17,129 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task<List<TlListingCalendar>> BulkBlockDaysAsync(long listingRentId, List<DateOnly> dates, int blockType, string? blockReason, long? bookId)
         {
-            // Obtener la estrategia de ejecución
+            //// Obtener la estrategia de ejecución
+            //var executionStrategy = _context.Database.CreateExecutionStrategy();
+
+            //return await executionStrategy.ExecuteAsync(async () =>
+            //{
+            //    List<TlListingCalendar> response = new List<TlListingCalendar>();
+            //    var failedDates = new List<DateOnly>();
+
+            //    await using var transaction = await _context.Database.BeginTransactionAsync();
+
+            //    try
+            //    {
+            //        // 1. Buscar días existentes
+            //        var existingDays = await _context.TlListingCalendars
+            //            .Where(c => c.ListingrentId == listingRentId &&
+            //                       dates.Contains(c.Date))
+            //            .ToListAsync();
+
+            //        // 2. Actualizar días existentes
+            //        var existingDates = existingDays.Select(d => d.Date).ToList();
+
+            //        foreach (var day in existingDays)
+            //        {
+            //            response.Add(day);
+            //            if (day.BlockType != null && bookId == null)
+            //            {
+            //                // Si ya está bloqueado, no lo actualizamos
+            //                continue;
+            //            }
+            //            else if (bookId != null && day.BookId != null)
+            //            {
+            //                await transaction.RollbackAsync();
+            //                throw new Exception($"Error al bloquear días en el calendario, el día {day.Date} ya se encuentra bloqueado para otra reserva.");
+            //            }
+            //            else
+            //            {
+            //                day.BlockType = (byte)blockType;
+            //                day.BlockReason = blockReason;
+            //                day.BookId = bookId;
+            //            }
+            //        }
+
+            //        // 3. Insertar nuevos días bloqueados
+            //        var newDates = dates.Except(existingDates).ToList();
+
+            //        foreach (var date in newDates)
+            //        {
+            //            try
+            //            {
+            //                var newDay = new TlListingCalendar
+            //                {
+            //                    ListingrentId = listingRentId,
+            //                    Date = date,
+            //                    BlockType = (byte)blockType,
+            //                    BlockReason = blockReason,
+            //                    BookId = bookId
+            //                };
+            //                _context.TlListingCalendars.Add(newDay);
+            //                response.Add(newDay);
+            //            }
+            //            catch
+            //            {
+            //                failedDates.Add(date);
+            //            }
+            //        }
+
+            //        await _context.SaveChangesAsync();
+            //        await transaction.CommitAsync();
+
+            //        if (failedDates.Any())
+            //        {
+            //            // Puedes registrar aquí los días que fallaron si es necesario
+            //        }
+
+            //        return response;
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        await transaction.RollbackAsync();
+            //        throw new Exception("Error al bloquear días en el calendario del listing rent", ex);
+            //    }
+            //});
             var executionStrategy = _context.Database.CreateExecutionStrategy();
 
             return await executionStrategy.ExecuteAsync(async () =>
             {
-                List<TlListingCalendar> response = new List<TlListingCalendar>();
-                var failedDates = new List<DateOnly>();
-
                 await using var transaction = await _context.Database.BeginTransactionAsync();
+                List<TlListingCalendar> response = new();
+                var failedDates = new List<DateOnly>();
 
                 try
                 {
                     // 1. Buscar días existentes
                     var existingDays = await _context.TlListingCalendars
-                        .Where(c => c.ListingrentId == listingRentId &&
-                                   dates.Contains(c.Date))
+                        .Where(c => c.ListingrentId == listingRentId && dates.Contains(c.Date))
                         .ToListAsync();
 
-                    // 2. Actualizar días existentes
+                    // 2. Verificar conflictos primero
+                    var conflictingDays = existingDays
+                        .Where(day => bookId != null && day.BookId != null && day.BookId != bookId)
+                        .ToList();
+
+                    if (conflictingDays.Any())
+                    {
+                        await transaction.RollbackAsync();
+                        throw new Exception($"Error al bloquear días en el calendario, los siguientes días ya están bloqueados para otras reservas: {string.Join(", ", conflictingDays.Select(d => d.Date))}");
+                    }
+
+                    // 3. Actualizar días existentes
                     var existingDates = existingDays.Select(d => d.Date).ToList();
 
                     foreach (var day in existingDays)
                     {
-                        response.Add(day);
-                        if (day.BlockType != null && bookId == null)
-                        {
-                            // Si ya está bloqueado, no lo actualizamos
-                            continue;
-                        }
-                        else if (bookId != null && day.BookId != null)
-                        {
-                            await transaction.RollbackAsync();
-                            throw new Exception($"Error al bloquear días en el calendario, el día {day.Date} ya se encuentra bloqueado para otra reserva.");
-                        }
-                        else
+                        if (day.BlockType == null || bookId != null)
                         {
                             day.BlockType = (byte)blockType;
                             day.BlockReason = blockReason;
                             day.BookId = bookId;
                         }
+                        response.Add(day);
                     }
 
-                    // 3. Insertar nuevos días bloqueados
+                    // 4. Insertar nuevos días bloqueados
                     var newDates = dates.Except(existingDates).ToList();
 
                     foreach (var date in newDates)
@@ -88,14 +168,21 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
                     if (failedDates.Any())
                     {
-                        // Puedes registrar aquí los días que fallaron si es necesario
+                        // Registrar días fallidos si es necesario
                     }
 
                     return response;
                 }
                 catch (Exception ex)
                 {
-                    await transaction.RollbackAsync();
+                    try
+                    {
+                        await transaction.RollbackAsync();
+                    }
+                    catch
+                    {
+                        // Ignorar errores en rollback si la transacción ya terminó
+                    }
                     throw new Exception("Error al bloquear días en el calendario del listing rent", ex);
                 }
             });

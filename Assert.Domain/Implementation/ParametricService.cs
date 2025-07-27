@@ -22,12 +22,13 @@ namespace Assert.Domain.Implementation
         private readonly ICancelationPoliciesTypesRepository _cancelationPoliciesTypesRepository;
         private readonly IRulesTypeRepository _rulesTypeRepository;
         private readonly IExceptionLoggerService _exceptionLoggerService;
+        private readonly ISecurityItemsRepository _securityItemsRepository;
         public ParametricService(IAccommodationTypeRepository accommodationTypeRepository, IErrorHandler errorHandler,
             IFeaturesAspectsRepository featuredAspectsRepository, IDiscountTypeRepository discountTypeRepository,
             IPropertySubTypeRepository propertySubTypeRepository, ISpaceTypeRepository spaceTypeRepository,
             ILanguageRepository languageRepository, IExceptionLoggerService exceptionLoggerService,
             IAmenitiesRepository amenitiesRepository, ICancelationPoliciesTypesRepository cancelationPoliciesTypesRepository,
-            IRulesTypeRepository rulesTypeRepository)
+            IRulesTypeRepository rulesTypeRepository, ISecurityItemsRepository securityItemsRepository)
         {
             _accommodationTypeRepository = accommodationTypeRepository;
             _errorHandler = errorHandler;
@@ -40,6 +41,7 @@ namespace Assert.Domain.Implementation
             _exceptionLoggerService = exceptionLoggerService;
             _cancelationPoliciesTypesRepository = cancelationPoliciesTypesRepository;
             _rulesTypeRepository = rulesTypeRepository;
+            _securityItemsRepository = securityItemsRepository;
         }
 
         public async Task<ReturnModel<List<TlAccommodationType>>> GetAccomodationTypesActives()
@@ -242,6 +244,27 @@ namespace Assert.Domain.Implementation
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
                 result.ResultError = _errorHandler.GetErrorException("IParametricService.GetRentRuleTypes", ex, null, true);
+            }
+            return result;
+        }
+        public async Task<ReturnModel<List<TpSecurityItemType>>> GetSecurityItems(bool useTechnicalMessages)
+        {
+            ReturnModel<List<TpSecurityItemType>> result = new ReturnModel<List<TpSecurityItemType>>();
+            try
+            {
+                var result_data = await _securityItemsRepository.GetActives();
+                return new ReturnModel<List<TpSecurityItemType>>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    Data = result_data,
+                    HasError = false
+                };
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _errorHandler.GetErrorException("IParametricService.GetSecurityItems", ex, null, true);
             }
             return result;
         }

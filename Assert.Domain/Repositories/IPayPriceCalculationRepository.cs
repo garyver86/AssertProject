@@ -11,5 +11,8 @@ namespace Assert.Domain.Repositories
     public interface IPayPriceCalculationRepository
     {
         Task<ReturnModel<PayPriceCalculation>> Create(PayPriceCalculation payPriceCalculation);
+        Task<PayPriceCalculation> GetByCode(Guid calculationCode);
+        Task<ReturnModel> SetAsPayed(Guid calculationCode, int paymentProviderId, int methodOfPaymentId,
+            long PaymentTransactionId);
     }
 }

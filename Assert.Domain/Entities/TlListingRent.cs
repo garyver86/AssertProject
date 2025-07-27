@@ -79,6 +79,8 @@ public partial class TlListingRent
 
     public virtual TuUser OwnerUser { get; set; } = null!;
 
+    public virtual ICollection<PayPriceCalculation> PayPriceCalculations { get; set; } = new List<PayPriceCalculation>();
+
     public virtual ICollection<TbBook> TbBooks { get; set; } = new List<TbBook>();
 
     public virtual ICollection<TlCheckInOutPolicy> TlCheckInOutPolicies { get; set; } = new List<TlCheckInOutPolicy>();

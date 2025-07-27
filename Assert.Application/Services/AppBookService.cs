@@ -1,4 +1,5 @@
-﻿using Assert.Application.DTOs.Responses;
+﻿using Assert.Application.DTOs.Requests;
+using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
 using Assert.Domain.Common.Metadata;
 using Assert.Domain.Entities;
@@ -18,7 +19,7 @@ namespace Assert.Application.Services
         RequestMetadata _metadata) : IAppBookService
     {
         public async Task<ReturnModelDTO<PayPriceCalculationDTO>> CalculatePrice(
-            long listingRentId, DateTime startDate, DateTime endDate, 
+            long listingRentId, DateTime startDate, DateTime endDate,
             int guestId, Dictionary<string, string> clientData, bool useTechnicalMessages)
         {
             ReturnModelDTO<PayPriceCalculationDTO> result = new ReturnModelDTO<PayPriceCalculationDTO>();
@@ -47,7 +48,7 @@ namespace Assert.Application.Services
             {
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
-                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.GetListingRentReviews", ex, new { listingRentId, startDate, endDate, guestId, clientData }, useTechnicalMessages));
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppBookService.CalculatePrice", ex, new { listingRentId, startDate, endDate, guestId, clientData }, useTechnicalMessages));
             }
             return result;
         }
@@ -55,7 +56,7 @@ namespace Assert.Application.Services
         public async Task<ReturnModelDTO<BookDTO>> GetBookByIdAsync(long bookId)
         {
             var book = await _bookRespository.GetByIdAsync(bookId);
-            if(book is null)
+            if (book is null)
                 throw new NotFoundException($"La reserva con ID {bookId} no fue encontrada. Verifique e intente nuevamente.");
 
             var bookDto = _mapper.Map<BookDTO>(book);
@@ -71,7 +72,7 @@ namespace Assert.Application.Services
         {
             var books = await _bookRespository.GetByUserId(_metadata.UserId);
 
-            if (!(books is { Count: >0}))
+            if (!(books is { Count: > 0 }))
                 throw new KeyNotFoundException($"No existen reservas para el usuario con ID {_metadata.UserId}.");
 
             var bookDtos = _mapper.Map<List<BookDTO>>(books);
@@ -84,12 +85,58 @@ namespace Assert.Application.Services
             };
         }
 
-        public async Task<ReturnModelDTO<int>> UpsertBookAsync(BookDTO incomingBook)
+        public async Task<ReturnModelDTO<BookDTO>> SimulatePayment(PaymentModel request, int userId, Dictionary<string, string> requestInfo, bool useTechnicalMessages)
+        {
+            ReturnModelDTO<BookDTO> result = new ReturnModelDTO<BookDTO>();
+            try
+            {
+
+                PaymentRequest req = new PaymentRequest
+                {
+                    Amount = request.Amount,
+                    CalculationCode = request.CalculationCode,
+                    CountryId = request.CountryId,
+                    CurrencyCode = request.CurrencyCode,
+                    MethodOfPaymentId = request.MethodOfPaymentId,
+                    OrderCode = request.OrderCode,
+                    PaymentData = request.PaymentData,
+                    PaymentProviderId = request.PaymentProviderId,
+                    Stan = request.Stan,
+                    TransactionData = request.TransactionData
+                };
+                var _result = await _bookService.RegisterPaymentAndCreateBooking(req, userId, requestInfo, useTechnicalMessages);
+                if (_result.StatusCode == ResultStatusCode.OK)
+                {
+                    result = new ReturnModelDTO<BookDTO>
+                    {
+                        Data = _mapper.Map<BookDTO>(_result.Data),
+                        HasError = false,
+                        StatusCode = ResultStatusCode.OK
+                    };
+                }
+                else
+                {
+                    result.StatusCode = _result.StatusCode;
+                    result.HasError = true;
+                    result.ResultError = _mapper.Map<ErrorCommonDTO>(_result.ResultError);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppBookService.SimulatePayment", ex, new { request, userId, requestInfo, useTechnicalMessages }, useTechnicalMessages));
+            }
+            return result;
+        }
+
+        public async Task<ReturnModelDTO<long>> UpsertBookAsync(BookDTO incomingBook)
         {
             var book = _mapper.Map<TbBook>(incomingBook);
             var bookId = await _bookRespository.UpsertBookAsync(book);
 
-            return new ReturnModelDTO<int>
+            return new ReturnModelDTO<long>
             {
                 Data = bookId,
                 HasError = false,
