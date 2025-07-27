@@ -2,14 +2,13 @@
 using Assert.Application.DTOs.Requests;
 using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
-using Assert.Domain.Common.Metadata;
 using Assert.Domain.Entities;
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
+using Assert.Domain.Utils;
 using Assert.Domain.ValueObjects;
-using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 using Assert.Shared.Extensions;
 using AutoMapper;
 using Azure.Core;
@@ -30,6 +29,10 @@ namespace Assert.Application.Services
         IExceptionLoggerService _exceptionLoggerService,
         ISystemConfigurationRepository _systemConfigurationRepository,
         IPropertyRepository _propertyRepository,
+        IPropertyAddressRepository _propertyAddressRepository,
+        IListingAmenitiesRepository _listingAmenitiesRepository,
+        IListingFeaturedAspectRepository _listingFeaturedAspectRepository,
+        IListingSecurityItemsRepository _listingSecurityItemsRepository,
         IHttpContextAccessor requestContext)
         : IAppListingRentService
     {
@@ -648,6 +651,118 @@ namespace Assert.Application.Services
                 var _ = await _listingRentRepository
                     .SetAccomodationType(listingRentId, accomodationTypeId!);
             }
+
+            return new ReturnModelDTO<string>
+            {
+                Data = "UPDATED",
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
+        }
+
+        public async Task<ReturnModelDTO<string>> UpdateCapacity(long listingRentId, 
+            int beds, int bedrooms, int bathrooms, int maxGuests, 
+            int privateBathroom, int privateBathroomLodging, int sharedBathroom)
+        {
+            await _listingRentRepository.SetCapacity(listingRentId, beds, bedrooms, 
+                bathrooms, maxGuests, privateBathroom, privateBathroomLodging, sharedBathroom);
+
+            return new ReturnModelDTO<string>
+            {
+                Data = "UPDATED",
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
+        }
+
+        public async Task<ReturnModelDTO<string>> UpdatePropertyLocation(long listingRentId,
+            int cityId, int countyId, int stateId, double latitude, double longitude,
+            string address1, string address2, string zipCode)
+        {
+            var property = await _propertyRepository.GetFromListingId(listingRentId);
+
+            if(property is null)
+                throw new ApplicationException("No se ha encontrado el listado de renta, verifica los datos e intenta de nuevo.");
+
+            TpPropertyAddress addresInput = new TpPropertyAddress
+            {
+                Address1 = address1,
+                Address2 = address2,
+                ZipCode = zipCode,
+            };
+
+            if (cityId > 0) addresInput.CityId = cityId;
+            if (countyId > 0) addresInput.CountyId = countyId;
+            if (stateId > 0) addresInput.StateId = stateId;
+
+            TpPropertyAddress addressResult = await _propertyAddressRepository.Set(
+                addresInput, property.PropertyId);
+
+            if (latitude != 0 && longitude != 0)
+            {
+                if (!GeoUtils.ValidateLatitudLongitude(latitude, longitude))
+                    throw new ApplicationException("La Latitud o Longitud ingresada no es válida, verifica los datos e intenta de nuevo.");
+
+                await _propertyRepository.SetLocation(property.PropertyId, 
+                    latitude, longitude);
+            }
+
+            return new ReturnModelDTO<string>
+            {
+                Data = "UPDATED",
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
+        }
+
+        public async Task<ReturnModelDTO<string>> UpdateCharasteristics(long listingRentId,
+            Dictionary<string, string> clientData, List<int> featuredAmenities, List<int> featureAspects,
+            List<int> securityItems)
+        {
+            if (featuredAmenities is { Count: > 0 })
+                await _listingAmenitiesRepository.SetListingAmmenities(listingRentId,
+                    featuredAmenities, clientData, true);
+
+            if (featureAspects is { Count: > 0 })
+                await _listingFeaturedAspectRepository.SetListingFeaturesAspects(listingRentId,
+                    featureAspects);
+
+            if (securityItems is { Count: > 0 })
+                await _listingSecurityItemsRepository.SetListingSecurityItems(listingRentId,
+                    securityItems);
+
+            return new ReturnModelDTO<string>
+            {
+                Data = "UPDATED",
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
+        }
+
+        public async Task<ReturnModelDTO<string>> UpdateCancellationPolicy(long listingRentId,
+            int cancellationPolicyId)
+        {   
+            if (cancellationPolicyId <= 0)
+                throw new ApplicationException("El ID de la política de cancelación no es válido, verifica los datos e intenta de nuevo.");
+
+            await _listingRentRepository.SetCancellationPolicy(listingRentId, cancellationPolicyId);
+
+            return new ReturnModelDTO<string>
+            {
+                Data = "UPDATED",
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
+        }
+
+        public async Task<ReturnModelDTO<string>> UpdateReservation(long listingRentId,
+           int approvalPolicyTypeId, int minimunNoticeDays, int preparationDays)
+        {
+            if(approvalPolicyTypeId <= 0 || minimunNoticeDays <= 0 || preparationDays <= 0)
+                throw new ApplicationException("Los datos de la política de reserva no son válidos, verifica los datos e intenta de nuevo.");
+
+            await _listingRentRepository.SetReservationTypeApprobation(listingRentId, 
+                approvalPolicyTypeId, minimunNoticeDays, preparationDays);
 
             return new ReturnModelDTO<string>
             {

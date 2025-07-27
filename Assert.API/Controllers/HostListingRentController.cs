@@ -62,44 +62,6 @@ namespace Assert.API.Controllers
         }
 
         /// <summary>
-        /// Servicio que actualiza informacion basica de un Listing Rent
-        /// </summary>
-        /// <param name="listinRentId">Identificador de Listing Rent</param>
-        /// <param name="request">Valores: Titulo - Descripcion - 2 Tipos de aspectos (Id)</param>
-        /// <returns></returns>
-        /// <response code="200">El valor de Data seria UPDATED</response>
-        /// <remarks>
-        /// </remarks>
-        [HttpPost]
-        [Authorize(Policy = "GuestOrHost")]
-        [Route("{listinRentId}/UpdateBasicData")]
-        public async Task<ReturnModelDTO<string>> UpdateBasicData(long listinRentId, 
-            [FromBody] BasicListingRentData request)
-        {
-            var result = await _appListingRentService.UpdateBasicData(listinRentId, request);
-            return result;
-        }
-
-        /// <summary>
-        /// Servicio que actualiza nombre y descripcion de Listing Rent
-        /// </summary>
-        /// <param name="listinRentId">Identificador de Listing Rent</param>
-        /// <param name="request">Valores: Titulo - Descripcion</param>
-        /// <returns></returns>
-        /// <response code="200">El valor de Data seria UPDATED</response>
-        /// <remarks>
-        /// </remarks>
-        [HttpPost]
-        [Authorize(Policy = "GuestOrHost")]
-        [Route("{listinRentId}/UpdateNameAndDescription")]
-        public async Task<ReturnModelDTO<string>> UpdateNameAndDescription(long listinRentId,
-            [FromBody] BasicListingRentDataBase request)
-        => await _appListingRentService.UpdateBasicData(listinRentId,
-                new BasicListingRentData { Title = request.Title, 
-                    Description = request.Description, AspectTypeIdList = null });
-           
-
-        /// <summary>
         /// Servicio que actualiza informacion de precios de renta y descuentos
         /// </summary>
         /// <param name="listinRentId">Identificador de Listing Rent</param>
@@ -295,6 +257,47 @@ namespace Assert.API.Controllers
             return result;
         }
 
+
+        /// <summary>
+        /// Servicio que actualiza informacion basica de un Listing Rent
+        /// </summary>
+        /// <param name="listinRentId">Identificador de Listing Rent</param>
+        /// <param name="request">Valores: Titulo - Descripcion - 2 Tipos de aspectos (Id)</param>
+        /// <returns></returns>
+        /// <response code="200">El valor de Data seria UPDATED</response>
+        /// <remarks>
+        /// </remarks>
+        [HttpPut]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("{listinRentId}/UpdateBasicData")]
+        public async Task<ReturnModelDTO<string>> UpdateBasicData(
+            [FromRoute] long listinRentId,
+            [FromBody] BasicListingRentData request)
+        => await _appListingRentService.UpdateBasicData(listinRentId, request);
+
+        /// <summary>
+        /// Servicio que actualiza nombre y descripcion de Listing Rent
+        /// </summary>
+        /// <param name="listingRentId">Identificador de Listing Rent</param>
+        /// <param name="request">Valores: Titulo - Descripcion</param>
+        /// <returns></returns>
+        /// <response code="200">El valor de Data seria UPDATED</response>
+        /// <remarks>
+        /// </remarks>
+        [HttpPut]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("{listingRentId}/UpdateNameAndDescription")]
+        public async Task<ReturnModelDTO<string>> UpdateNameAndDescription(
+            [FromRoute] long listingRentId,
+            [FromBody] BasicListingRentDataBase request)
+        => await _appListingRentService.UpdateBasicData(listingRentId,
+                new BasicListingRentData
+                {
+                    Title = request.Title,
+                    Description = request.Description,
+                    AspectTypeIdList = null
+                });
+
         /// <summary>
         /// Servicio que actualiza los tipos de propiedad y alojamiento de un Listing Rent.
         /// </summary>
@@ -306,11 +309,127 @@ namespace Assert.API.Controllers
         /// <remarks>
         /// Como prerequisito ya deberia haber sido creado el listing rent y se deberian haber definido los tipos de propiedad y alojamiento.
         /// </remarks>
-        [HttpGet()]
+        [HttpPut()]
         [Authorize(Policy = "GuestOrHost")]
-        [Route("{listinRentId}/UpdatePropertyAndAccomodationTypes")]
-        public async Task<ReturnModelDTO> UpdatePropertyAndAccomodationTypes(long listingRentId,
+        [Route("{listingRentId}/UpdatePropertyAndAccomodationTypes")]
+        public async Task<ReturnModelDTO> UpdatePropertyAndAccomodationTypes([FromRoute] long listingRentId,
             int propertyTypeId, int accomodationTypeId)
         => await _appListingRentService.UpdatePropertyAndAccomodationTypes(listingRentId, propertyTypeId, accomodationTypeId);
+
+        /// <summary>
+        /// Servicio que actualiza la capacidades de un Listing Rent.
+        /// </summary>
+        /// <param name="listingRentId">ID de listing rent</param>
+        /// <param name="beds">Número de camas</param>
+        /// <param name="bedrooms">Número de habitaciones</param>
+        /// <param name="bathrooms">Número de baños</param>
+        /// <param name="maxGuests">Máximo número de huéspedes</param>
+        /// <returns>UPDATED</returns>
+        /// <response code="200">Detalle del Listing Rent</response>
+        /// <remarks>
+        /// Como prerequisito ya debería haber sido creado el listing rent.
+        /// </remarks>
+        [HttpPut()]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("{listingRentId}/UpdateCapacity")]
+        public async Task<ReturnModelDTO> UpdateCapacity([FromRoute] long listingRentId,
+            int beds, int bedrooms, int bathrooms, int maxGuests)
+        => await _appListingRentService.UpdateCapacity(listingRentId, beds, bedrooms,
+            bathrooms,maxGuests, 0, 0, 0);
+
+        /// <summary>
+        /// Servicio que actualiza la ubicación y dirección de un Listing Rent.
+        /// </summary>
+        /// <param name="listingRentId">ID del listing rent</param>
+        /// <param name="cityId">ID de la ciudad</param>
+        /// <param name="countyId">ID del condado</param>
+        /// <param name="stateId">ID del estado/provincia</param>
+        /// <param name="latitude">Coordenada de latitud</param>
+        /// <param name="longitude">Coordenada de longitud</param>
+        /// <param name="address1">Dirección principal (calle y número)</param>
+        /// <param name="address2">Dirección secundaria (departamento, piso, etc.)</param>
+        /// <param name="zipCode">Código postal</param>
+        /// <returns>UPDATED</returns>
+        /// <response code="200">Detalle del Listing Rent actualizado</response>
+        /// <remarks>
+        /// Como prerequisito ya debería haber sido creado el listing rent.
+        /// en caso de no tener algun dato solo enviar 0 en caso de entero y vacio en caso de string.
+        /// </remarks>
+        [HttpPut()]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("{listingRentId}/UpdatePropertyLocation")]
+        public async Task<ReturnModelDTO> UpdatePropertyLocation([FromRoute] long listingRentId,
+            int cityId, int countyId, int stateId, double latitude, double longitude,
+            string address1, string address2, string zipCode)
+        => await _appListingRentService.UpdatePropertyLocation(listingRentId, 
+            cityId, countyId, stateId, latitude, longitude, address1, address2, zipCode);
+
+        /// <summary>
+        /// Actualiza las características, amenidades y elementos de seguridad de un Listing Rent.
+        /// </summary>
+        /// <param name="listingRentId">ID de listing rent</param>
+        /// <param name="request">DTO con los datos para actualizar las características</param>
+        /// <returns>UPDATED</returns>
+        /// <response code="200">Retorna el listing con las características actualizadas exitosamente</response>
+        /// <remarks>
+        /// <para><strong>Requisitos:</strong></para>
+        /// <para>- El listing rent debe existir previamente en el sistema</para>
+        /// <para>- Los IDs proporcionados deben existir en la base de datos</para>
+        /// <para><strong>Comportamiento:</strong></para>
+        /// <para>- Solo se actualizan las listas que contengan valores (las listas vacías se ignoran)</para>
+        /// <para>- Las listas se inicializan vacías por defecto para evitar valores nulos</para>
+        /// </remarks>
+        [HttpPut()]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("{listingRentId}/UpdateCharacteristics")]
+        public async Task<ReturnModelDTO> UpdateCharacteristics([FromRoute] long listingRentId, 
+            [FromBody] UpdateCharasteristicsRequestDTO request)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            return await _appListingRentService.UpdateCharasteristics(listingRentId, 
+                requestInfo, request.FeaturedAmenities, request.FeatureAspects, request.SecurityItems);
+        }
+
+        /// <summary>
+        /// Servicio que actualiza la política de cancelación de un Listing Rent.
+        /// </summary>
+        /// <param name="listingRentId">ID del listing rent</param>
+        /// <param name="cancellationPolicyId">ID de la política de cancelación a aplicar</param>
+        /// <returns>UPDATED</returns>
+        /// <response code="200">Detalle del Listing Rent con la política de cancelación actualizada</response>
+        /// <remarks>
+        /// Requisitos:
+        /// - El listing rent debe existir previamente
+        /// - La política de cancelación debe existir en el sistema
+        /// </remarks>
+        [HttpPut()]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("{listingRentId}/UpdateCancellationPolicy")]
+        public async Task<ReturnModelDTO> UpdateCancellationPolicy([FromRoute] long listingRentId,
+            int cancellationPolicyId)
+        => await _appListingRentService.UpdateCancellationPolicy(listingRentId, cancellationPolicyId);
+
+        /// <summary>
+        /// Servicio que actualiza la configuración de reservas de un Listing Rent.
+        /// </summary>
+        /// <param name="listingRentId">ID del listing rent</param>
+        /// <param name="approvalPolicyTypeId">ID del tipo de política de aprobación</param>
+        /// <param name="minimunNoticeDays">Días mínimos de anticipación requeridos para reservar</param>
+        /// <param name="preparationDays">Días de preparación requeridos entre reservas</param>
+        /// <returns>UPDATED</returns>
+        /// <response code="200">Detalle del Listing Rent con la configuración de reservas actualizada</response>
+        /// <remarks>
+        /// Requisitos:
+        /// - El listing rent debe existir previamente
+        /// - Los valores numéricos deben ser enteros no negativos
+        /// </remarks>
+        [HttpPut()]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("{listingRentId}/UpdateReservation")]
+        public async Task<ReturnModelDTO> UpdateReservation([FromRoute] long listingRentId,
+            int approvalPolicyTypeId, int minimunNoticeDays, int preparationDays)
+        => await _appListingRentService.UpdateReservation(listingRentId, 
+            approvalPolicyTypeId, minimunNoticeDays, preparationDays);
+
     }
 }

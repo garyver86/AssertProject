@@ -28,7 +28,26 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<ListingRentDTO>> Get(long istingRentId, long userId, Dictionary<string, string> clientData, bool useTechnicalMessages);
         Task<ReturnModelDTO<List<ListingRentDTO>>> GetByOwnerResumed(Dictionary<string, string> requestInfo, bool useTechnicalMessages);
 
+
         Task<ReturnModelDTO<string>> UpdatePropertyAndAccomodationTypes(long listingRentId,
                 int? propertyTypeId, int? accomodationTypeId);
+        Task<ReturnModelDTO<string>> UpdateCapacity(long listingRentId,
+            int beds, int bedrooms, int bathrooms, int maxGuests,
+            int privateBathroom, int privateBathroomLodging, int sharedBathroom);
+
+        Task<ReturnModelDTO<string>> UpdatePropertyLocation(long listingRentId,
+            int cityId, int countyId, int stateId, double latitude, double longitude,
+            string address1, string address2, string zipCode);
+
+        Task<ReturnModelDTO<string>> UpdateCharasteristics(long listingRentId,
+            Dictionary<string, string> clientData, List<int> featuredAmenities, List<int> featureAspects,
+            List<int> securityItems);
+
+        Task<ReturnModelDTO<string>> UpdateCancellationPolicy(long listingRentId,
+            int cancellationPolicyId);
+
+        Task<ReturnModelDTO<string>> UpdateReservation(long listingRentId,
+           int approvalPolicyTypeId, int minimunNoticeDays, int preparationDays);
+
     }
 }
