@@ -160,6 +160,21 @@ namespace Assert.API.Controllers
         }
 
         /// <summary>
+        /// Servicio que devuelve los listing rents publicados del propietario junto con la información de reservas y dís bloqueados.
+        /// </summary>
+        /// <returns>Listado de listing rents (propiedades) publicadas masreservas y días bloqueados.</returns>
+        /// <response code="200">Si no existió un error al devolver las propiedades.</response>
+        [HttpGet]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("CalendarInfo")]
+        public async Task<ReturnModelDTO<List<ListingRentCalendarDTO>>> GetCalendar()
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            ReturnModelDTO<List<ListingRentCalendarDTO>> result = await _appListingRentService.GetCalendarByOwner(requestInfo, true);
+            return result;
+        }
+
+        /// <summary>
         /// Servicio que devuelve los listing rent publicados del propietario actualmente logueado con informacion
         /// resumida (coordenadas, precios y moneda).
         /// </summary>

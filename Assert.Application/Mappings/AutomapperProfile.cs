@@ -122,6 +122,11 @@ namespace Assert.Application.Mappings
                 //.ForMember(dest => dest.Valoration, opt => opt.MapFrom(src => src.TlListingReviews.Select(y=>y.Calification).Average()));
                 .ForMember(dest => dest.Valoration, opt => opt.MapFrom(src => UtilsMgr.CalculateAverageCalification(src.AvgReviews, src.TlListingReviews)));
 
+            CreateMap<TlListingRent, ListingRentCalendarDTO>()
+               .ForMember(dest => dest.CalendarDays, opt => opt.MapFrom(src => src.TlListingCalendars))
+               .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.TlListingPrices.FirstOrDefault()))
+               .ForMember(dest => dest.Reservations, opt => opt.MapFrom(src => src.TbBooks))
+               .ForMember(dest => dest.Property, opt => opt.MapFrom(src => src.TpProperties.FirstOrDefault()));
 
             CreateMap<TlListingFavorite, ListingFavoriteDTO>();
             CreateMap<TlListingFavoriteGroup, ListingFavoriteGroupDTO>();
