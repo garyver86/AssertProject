@@ -958,13 +958,13 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .Include(x => x.AccomodationType)
                 .Include(x => x.OwnerUser)
                 .Include(x => x.TpProperties)
-                    //.ThenInclude(y => y.PropertySubtype)
-                    //    .ThenInclude(y => y.PropertyType)
+                //.ThenInclude(y => y.PropertySubtype)
+                //    .ThenInclude(y => y.PropertyType)
                 .Include(x => x.TlListingPhotos)
                 .Include(x => x.TlListingPrices)
                 //.Include(x => x.TlListingSpecialDatePrices)
                 //.Include(x => x.TlListingReviews)
-                .Include(x=> x.TbBooks)
+                .Include(x => x.TbBooks)
                     .ThenInclude(y => y.PayPriceCalculations)
                 .Include(x => x.TlListingCalendars)
                 .AsNoTracking()
@@ -983,40 +983,46 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         foreach (var prop in listing.TpProperties)
                         {
                             prop.TpPropertyAddresses = new List<TpPropertyAddress>
-                        {
-                            new TpPropertyAddress
                             {
-                                Address1 = prop.Address1,
-                                Address2 = prop.Address2,
-                                CityId = prop.CityId,
-                                CountyId = prop.CountyId,
-                                ZipCode = prop.ZipCode,
-                                StateId = prop.StateId,
-                                City = new TCity
+                                new TpPropertyAddress
                                 {
-                                    CityId = prop.CityId??0,
-                                    Name = prop.CityName,
-                                    CountyId = prop.CountyId??0,
-                                    County = new TCounty
+                                    Address1 = prop.Address1,
+                                    Address2 = prop.Address2,
+                                    CityId = prop.CityId,
+                                    CountyId = prop.CountyId,
+                                    ZipCode = prop.ZipCode,
+                                    StateId = prop.StateId,
+                                    City = new TCity
                                     {
-                                        CountyId = prop.CountyId ?? 0,
-                                        Name = prop.CountyName,
-                                        StateId = prop.StateId??0,
-                                        State = new TState
+                                        CityId = prop.CityId??0,
+                                        Name = prop.CityName,
+                                        CountyId = prop.CountyId??0,
+                                        County = new TCounty
                                         {
-                                            Name = prop.StateName,
-                                            StateId = prop.StateId ?? 0,
-                                            Country = new TCountry
+                                            CountyId = prop.CountyId ?? 0,
+                                            Name = prop.CountyName,
+                                            StateId = prop.StateId??0,
+                                            State = new TState
                                             {
-                                                Name = prop.CountryName,
-                                                CountryId = prop.CountryId ?? 0
+                                                Name = prop.StateName,
+                                                StateId = prop.StateId ?? 0,
+                                                Country = new TCountry
+                                                {
+                                                    Name = prop.CountryName,
+                                                    CountryId = prop.CountryId ?? 0
+                                                }
                                             }
                                         }
                                     }
                                 }
-                            }
-                        };
+                            };
                         }
+
+                        foreach (var reservation in listing.TbBooks)
+                        {
+                            reservation.TlListingCalendars = listing.TlListingCalendars.Where(x => x.BookId == reservation.BookId).ToList();
+                        }
+                        listing.TlListingCalendars = listing.TlListingCalendars.Where(x => x.BookId == null).ToList();
                     }
                 }
                 return result;

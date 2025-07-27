@@ -59,4 +59,5 @@ public class BookDTO
     public decimal? VggFee { get; set; }
 
     public decimal? VggFeePercent { get; set; }
+    public List<CalendarDayDto>? CalendarDays { get; set; }
 }
