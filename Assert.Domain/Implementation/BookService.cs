@@ -336,7 +336,7 @@ namespace Assert.Domain.Implementation
 
             };
 
-            int bookId = await _bookRepository.UpsertBookAsync(booking);
+            long bookId = await _bookRepository.UpsertBookAsync(booking);
 
             if (bookId <= 0)
             {

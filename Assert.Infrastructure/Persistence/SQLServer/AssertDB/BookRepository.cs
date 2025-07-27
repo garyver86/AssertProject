@@ -47,7 +47,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task<int> UpsertBookAsync(TbBook incomingBook)
+        public async Task<long> UpsertBookAsync(TbBook incomingBook)
         {
             try
             {
@@ -86,7 +86,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 else //insert
                     _dbContext.TbBooks.Add(incomingBook);
 
-                return await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync();
+                return incomingBook.BookId;
 
             }
             catch (Exception ex)

@@ -131,12 +131,12 @@ namespace Assert.Application.Services
             return result;
         }
 
-        public async Task<ReturnModelDTO<int>> UpsertBookAsync(BookDTO incomingBook)
+        public async Task<ReturnModelDTO<long>> UpsertBookAsync(BookDTO incomingBook)
         {
             var book = _mapper.Map<TbBook>(incomingBook);
             var bookId = await _bookRespository.UpsertBookAsync(book);
 
-            return new ReturnModelDTO<int>
+            return new ReturnModelDTO<long>
             {
                 Data = bookId,
                 HasError = false,
