@@ -32,7 +32,9 @@ namespace Assert.Domain.Implementation
                 Description = c.Description,
                 Type = LocationType.Country,
                 EntityId = c.CountryId,
-                TypeDesc = "country"
+                TypeDesc = "country",
+                Latitude = c.Latitude,
+                Longitude = c.Longitude
             }));
 
             var states = await _cityRepository.SearchStates(filter);
@@ -43,7 +45,9 @@ namespace Assert.Domain.Implementation
                 Description = $"Departamento de {s.Name}, {s.Country?.Name}",
                 Type = LocationType.State,
                 EntityId = s.StateId,
-                TypeDesc = "state"
+                TypeDesc = "state",
+                Latitude = s.Latitude,
+                Longitude = s.Longitude
             }));
 
             var counties = await _cityRepository.SearchCounties(filter);
@@ -54,7 +58,9 @@ namespace Assert.Domain.Implementation
                 Description = $"Provincia de {co.Name}, {co.State?.Name}, {co.State?.Country?.Name}",
                 Type = LocationType.County,
                 EntityId = co.CountyId,
-                TypeDesc = "county"
+                TypeDesc = "county",
+                Latitude = co.Latitude,
+                Longitude = co.Longitude
             }));
 
             var cities = await _cityRepository.SearchCities(filter);
@@ -65,7 +71,9 @@ namespace Assert.Domain.Implementation
                 Description = $"{c.Name},{c.County?.State?.Name}, {c.County?.State?.Country?.Name}", 
                 Type = LocationType.City,
                 EntityId = c.CityId,
-                TypeDesc = "city"
+                TypeDesc = "city",
+                Latitude = c.Latitude,
+                Longitude = c.Longitude
             }));
                         
             suggestions = suggestions.GroupBy(s => s.Id)

@@ -13,6 +13,10 @@ public partial class TCounty
 
     public bool? IsDisabled { get; set; }
 
+    public double? Latitude { get; set; }
+
+    public double? Longitude { get; set; }
+
     public virtual TState? State { get; set; }
 
     public virtual ICollection<TCity> TCities { get; set; } = new List<TCity>();

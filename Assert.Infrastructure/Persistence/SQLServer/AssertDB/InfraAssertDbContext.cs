@@ -684,6 +684,8 @@ public partial class InfraAssertDbContext : DbContext
             entity.Property(e => e.CityId).HasColumnName("cityId");
             entity.Property(e => e.CountyId).HasColumnName("countyId");
             entity.Property(e => e.IsDisabled).HasColumnName("isDisabled");
+            entity.Property(e => e.Latitude).HasColumnName("latitude");
+            entity.Property(e => e.Longitude).HasColumnName("longitude");
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false)
@@ -724,6 +726,8 @@ public partial class InfraAssertDbContext : DbContext
             entity.ToTable("T_County");
 
             entity.Property(e => e.IsDisabled).HasColumnName("isDisabled");
+            entity.Property(e => e.Latitude).HasColumnName("latitude");
+            entity.Property(e => e.Longitude).HasColumnName("longitude");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .IsUnicode(false);
@@ -1146,6 +1150,8 @@ public partial class InfraAssertDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("iataCode");
             entity.Property(e => e.IsDisabled).HasColumnName("isDisabled");
+            entity.Property(e => e.Latitude).HasColumnName("latitude");
+            entity.Property(e => e.Longitude).HasColumnName("longitude");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .IsUnicode(false)

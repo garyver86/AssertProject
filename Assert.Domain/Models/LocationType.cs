@@ -22,5 +22,7 @@ namespace Assert.Domain.Models
         public LocationType Type { get; set; } // Para determinar el icono (país, ciudad, vecindario)
         public string TypeDesc { get; set; } // Para determinar el icono (país, ciudad, vecindario)
         public int EntityId { get; set; } // El ID real de la entidad (CityId, StateId, CountryId, etc.)
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
     }
 }
