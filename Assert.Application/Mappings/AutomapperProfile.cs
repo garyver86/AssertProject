@@ -73,6 +73,12 @@ namespace Assert.Application.Mappings
             CreateMap<ReturnModel<List<TlListingRent>>, ReturnModelDTO<List<ListingRentDTO>>>()
             .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src.Data));
 
+            CreateMap<ReturnModel<TlListingRent>, ReturnModelDTO<ListingRentResumeDTO>>()
+            .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src.Data));
+
+            CreateMap<ReturnModel<List<TlListingRent>>, ReturnModelDTO<List<ListingRentResumeDTO>>>()
+            .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src.Data));
+
             CreateMap<ReturnModel<List<TlListingPhoto>>, ReturnModelDTO<List<PhotoDTO>>>()
             .ForMember(dest => dest.Data, opt => opt.MapFrom(src => src.Data));
 
@@ -123,6 +129,10 @@ namespace Assert.Application.Mappings
                 .ForPath(dest => dest.Price.TlListingDiscountForRates, opt => opt.MapFrom(src => src.TlListingDiscountForRates))
                 //.ForMember(dest => dest.Valoration, opt => opt.MapFrom(src => src.TlListingReviews.Select(y=>y.Calification).Average()));
                 .ForMember(dest => dest.Valoration, opt => opt.MapFrom(src => UtilsMgr.CalculateAverageCalification(src.AvgReviews, src.TlListingReviews)));
+
+            CreateMap<TlListingRent, ListingRentResumeDTO>()
+                .ForMember(dest => dest.Property, opt => opt.MapFrom(src => src.TpProperties.FirstOrDefault()))
+                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.TlListingPrices.FirstOrDefault()));
 
             CreateMap<TlListingRent, ListingRentCalendarDTO>()
                .ForMember(dest => dest.CalendarDays, opt => opt.MapFrom(src => src.TlListingCalendars))

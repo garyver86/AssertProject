@@ -22,5 +22,6 @@ namespace Assert.Domain.Services
         Task<string> GetPriceNightlySuggestion(int spaces, int year, int amenities, bool UseTechnicalMessages);
         Task<ReturnModel<ListingProcessDataResultModel>> ProcessData(long? listingRentId, string viewCode, ListingProcessDataModel request_, int userId, Dictionary<string, string> clientData, bool useTechnicalMessages);
         Task<bool> ValidateListingRentOwner(long listingRentId, int userId);
+        Task<ReturnModel<ListingProcessDataResultModel>> GetLastView(long listinRentId, int ownerId);
     }
 }

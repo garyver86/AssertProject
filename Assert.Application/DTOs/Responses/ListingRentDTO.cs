@@ -42,4 +42,12 @@
         public DateTime? historyDate { get; set; }
         public bool? isFavorite { get; set; }
     }
+    public class ListingRentResumeDTO
+    {
+        public long ListingRentId { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public PropertyDTO Property { get; set; }
+        public PriceDTO Price { get; set; }
+    }
 }

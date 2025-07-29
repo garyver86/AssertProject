@@ -594,34 +594,34 @@ namespace Assert.Application.Services
             return result;
         }
 
-        public async Task<ReturnModelDTO<List<ListingRentDTO>>> GetByOwnerResumed(Dictionary<string, string> clientData, bool useTechnicalMessages)
+        public async Task<ReturnModelDTO<List<ListingRentResumeDTO>>> GetByOwnerResumed(Dictionary<string, string> clientData, bool useTechnicalMessages)
         {
             string userId = clientData["UserId"] ?? "-50";
             int _userID = -1;
             int.TryParse(userId, out _userID);
 
-            ReturnModelDTO<List<ListingRentDTO>> result = new ReturnModelDTO<List<ListingRentDTO>>();
+            ReturnModelDTO<List<ListingRentResumeDTO>> result = new ReturnModelDTO<List<ListingRentResumeDTO>>();
             try
             {
                 List<TlListingRent> listings = await _listingRentRepository.GetAllResumed(_userID, true);
-                if (listings?.Count > 0)
+                //if (listings?.Count > 0)
+                //{
+                //    string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+                //    _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+                //    foreach (var list in listings)
+                //    {
+                //        if (list?.TlListingPhotos?.Count > 0)
+                //        {
+                //            foreach (var item in list.TlListingPhotos)
+                //            {
+                //                item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                //            }
+                //        }
+                //    }
+                //}
+                result = new ReturnModelDTO<List<ListingRentResumeDTO>>
                 {
-                    string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
-                    _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
-                    foreach (var list in listings)
-                    {
-                        if (list?.TlListingPhotos?.Count > 0)
-                        {
-                            foreach (var item in list.TlListingPhotos)
-                            {
-                                item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
-                            }
-                        }
-                    }
-                }
-                result = new ReturnModelDTO<List<ListingRentDTO>>
-                {
-                    Data = _mapper.Map<List<ListingRentDTO>>(listings),
+                    Data = _mapper.Map<List<ListingRentResumeDTO>>(listings),
                     HasError = false,
                     StatusCode = ResultStatusCode.OK
                 };
@@ -810,6 +810,67 @@ namespace Assert.Application.Services
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
                 result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.GetByOwner", ex, new { userId }, UseTechnicalMessages));
+            }
+            return result;
+        }
+
+        public async Task<ReturnModelDTO<ProcessDataResult>> GetLastView(long listinRentId, int ownerId)
+        {
+            ReturnModelDTO<ProcessDataResult> result = new ReturnModelDTO<ProcessDataResult>();
+            try
+            {
+                ReturnModel<ListingProcessDataResultModel> viewResult = await _listingRentService.GetLastView(listinRentId, ownerId);
+
+                if (viewResult.StatusCode == ResultStatusCode.OK)
+                {
+                    if (viewResult.Data?.ListingData?.ListingPhotos?.Count > 0)
+                    {
+                        string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+                        _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+                        foreach (var item in viewResult.Data.ListingData.ListingPhotos)
+                        {
+                            item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                        }
+
+                    }
+
+                    result = _mapper.Map<ReturnModelDTO<ProcessDataResult>>(viewResult);
+                }
+                else
+                {
+                    result = _mapper.Map<ReturnModelDTO<ProcessDataResult>>(viewResult);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.GetLastView", ex, new { listinRentId, ownerId }, UseTechnicalMessages));
+            }
+            return result;
+        }
+
+        public async Task<ReturnModelDTO<List<ListingRentDTO>>> GetUnfinished(int ownerId)
+        {
+            ReturnModelDTO<List<ListingRentDTO>> result = new ReturnModelDTO<List<ListingRentDTO>>();
+            try
+            {
+                List<TlListingRent> listings = await _listingRentRepository.GetUnfinishedList(ownerId);
+               
+                result = new ReturnModelDTO<List<ListingRentDTO>>
+                {
+                    Data = _mapper.Map<List<ListingRentDTO>>(listings),
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.GetUnfinished", ex, new { ownerId }, UseTechnicalMessages));
             }
             return result;
         }

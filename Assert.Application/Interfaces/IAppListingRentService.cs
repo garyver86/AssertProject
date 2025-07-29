@@ -26,7 +26,7 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<string>> UpdatePricesAndDiscounts(long listingRentId,
             PricesAndDiscountRequest pricingData);
         Task<ReturnModelDTO<ListingRentDTO>> Get(long istingRentId, long userId, Dictionary<string, string> clientData, bool useTechnicalMessages);
-        Task<ReturnModelDTO<List<ListingRentDTO>>> GetByOwnerResumed(Dictionary<string, string> requestInfo, bool useTechnicalMessages);
+        Task<ReturnModelDTO<List<ListingRentResumeDTO>>> GetByOwnerResumed(Dictionary<string, string> requestInfo, bool useTechnicalMessages);
 
 
         Task<ReturnModelDTO<string>> UpdatePropertyAndAccomodationTypes(long listingRentId,
@@ -50,5 +50,7 @@ namespace Assert.Application.Interfaces
            int approvalPolicyTypeId, int minimunNoticeDays, int preparationDays);
 
         Task<ReturnModelDTO<List<ListingRentCalendarDTO>>> GetCalendarByOwner(Dictionary<string, string> requestInfo, bool v);
+        Task<ReturnModelDTO<ProcessDataResult>> GetLastView(long listinRentId, int userId);
+        Task<ReturnModelDTO<List<ListingRentDTO>>> GetUnfinished(int userId);
     }
 }
