@@ -4,14 +4,17 @@ using Assert.Domain.Repositories;
 using Assert.Infrastructure.Exceptions;
 using Assert.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
     public class BookRepository(
         InfraAssertDbContext _dbContext,
-        IExceptionLoggerService _exceptionLoggerService)
+        IExceptionLoggerService _exceptionLoggerService, IServiceProvider serviceProvider)
         : IBookRepository
     {
+        private readonly DbContextOptions<InfraAssertDbContext> dbOptions = serviceProvider.GetRequiredService<DbContextOptions<InfraAssertDbContext>>();
+
         public async Task<TbBook> GetByIdAsync(long bookId)
         {
             try
@@ -22,7 +25,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 return book ??
                     throw new NotFoundException($"La reserva con ID {bookId} no fue encontrada. Verifique e intente nuevamente.");
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 var (className, methodName) = this.GetCallerInfo();
                 _exceptionLoggerService.LogAsync(ex, methodName, className, new { bookId });
@@ -51,7 +54,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         {
             try
             {
-                if(incomingBook.BookId > 0) //update
+                if (incomingBook.BookId > 0) //update
                 {
                     var existingBook = await _dbContext.TbBooks.FindAsync(incomingBook.BookId);
                     if (existingBook == null)
@@ -95,6 +98,20 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 var (className, methodName) = this.GetCallerInfo();
                 _exceptionLoggerService.LogAsync(ex, methodName, className, new { incomingBook });
                 throw new InfrastructureException(ex.Message);
+            }
+        }
+
+        public async Task<List<TbBook>> GetBooksWithoutReviewByUser(int userId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                // Recupera los TbBook del usuario que no tienen review asociado
+                var booksWithoutReview = await context.Set<TbBook>()
+                    .Where(b => b.UserIdRenter == userId)
+                    .Where(b => !context.TlListingReviews.Any(r => r.Book != null && r.Book.BookId == b.BookId))
+                    .ToListAsync();
+
+                return booksWithoutReview;
             }
         }
     }

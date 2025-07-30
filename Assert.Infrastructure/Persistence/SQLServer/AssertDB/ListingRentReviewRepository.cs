@@ -141,7 +141,5 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 TotalReviews = stats?.TotalReviews ?? 0
             };
         }
-
-
     }
 }

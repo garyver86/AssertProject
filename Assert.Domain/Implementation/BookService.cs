@@ -373,6 +373,12 @@ namespace Assert.Domain.Implementation
             };
         }
 
+        public async Task<List<TbBook>> GetBooksWithoutReviewByUser(int userId)
+        {
+            var result = await _bookRepository.GetBooksWithoutReviewByUser(userId);
+            return result;
+        }
+
         private async Task<ReturnModel> CheckAvailability(int listingRentId, DateTime? initBook, DateTime? endBook)
         {
             return new ReturnModel { StatusCode = ResultStatusCode.OK, HasError = false };

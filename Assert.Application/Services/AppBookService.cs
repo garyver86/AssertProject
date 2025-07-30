@@ -7,7 +7,9 @@ using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Assert.Infrastructure.Exceptions;
+using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 using AutoMapper;
+using Azure.Core;
 
 namespace Assert.Application.Services
 {
@@ -144,6 +146,28 @@ namespace Assert.Application.Services
             };
         }
 
+        public async Task<ReturnModelDTO<List<BookDTO>>> GetBooksWithoutReviewByUser(int userId)
+        {
+            try { 
+                var books = await _bookService.GetBooksWithoutReviewByUser(userId);
+               
+                var bookDtos = _mapper.Map<List<BookDTO>>(books);
+                return new ReturnModelDTO<List<BookDTO>>
+                {
+                    Data = bookDtos,
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            catch (Exception ex)
+            {
+                ReturnModelDTO<List<BookDTO>> result = new ReturnModelDTO<List<BookDTO>>();
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppBookService.GetBooksWithoutReviewByUser", ex, new { userId }, true));
+                return result ;
+            }
+        }
 
     }
 }
