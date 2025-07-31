@@ -501,5 +501,40 @@ namespace Assert.Domain.Implementation
                 return Task.FromResult(false);
             }
         }
+
+        public async Task<ReturnModel<ListingProcessDataResultModel>> GetLastView(long listinRentId, int ownerId)
+        {
+            TlListingStepsView lastView = await _listingViewStepRepository.GetLastView(listinRentId, ownerId);
+            if(lastView == null)
+            {
+                return new ReturnModel<ListingProcessDataResultModel>
+                {
+                    StatusCode = ResultStatusCode.NotFound,
+                    ResultError = _errorHandler.GetError(ResultStatusCode.NotFound, "No se encontró la última vista para el listing rent.", true)
+                };
+            }
+            else
+            {
+               
+                TlListingRent listingRent = await _listingRentRepository.Get(listinRentId, ownerId);
+                if (listingRent == null)
+                {
+                    return new ReturnModel<ListingProcessDataResultModel>
+                    {
+                        StatusCode = ResultStatusCode.NotFound,
+                        ResultError = _errorHandler.GetError(ResultStatusCode.NotFound, "No se encontró el listing rent.", true)
+                    };
+                }
+                if(listingRent.OwnerUserId != ownerId)
+                {
+                    return new ReturnModel<ListingProcessDataResultModel>
+                    {
+                        StatusCode = ResultStatusCode.Unauthorized,
+                        ResultError = _errorHandler.GetError(ResultStatusCode.Unauthorized, "No está autorizado para acceder a este listing rent.", true)
+                    };
+                }
+                return await _StepViewService.GetNextListingStepViewData(lastView.ViewTypeId, listingRent, true);
+            }
+        }
     }
 }

@@ -17,6 +17,10 @@ public partial class TState
 
     public bool? IsDisabled { get; set; }
 
+    public double? Latitude { get; set; }
+
+    public double? Longitude { get; set; }
+
     public virtual TCountry Country { get; set; } = null!;
 
     public virtual ICollection<TCounty> TCounties { get; set; } = new List<TCounty>();

@@ -37,6 +37,14 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             return result;
         }
 
+        public async Task<TlListingStepsView> GetLastView(long listinRentId, int ownerId)
+        {
+            var result = await _context.TlListingStepsViews.
+              Include(x => x.ViewType).Include(x=>x.ListingSteps).Where(x => x.ListingSteps.ListingRentId == listinRentId && !(x.IsEnded ?? false)).FirstOrDefaultAsync();
+            
+            return result;
+        }
+
         public async Task<ReturnModel> IsAllViewsEndeds(long listingRentId)
         {
             var result = await _context.TlListingStepsViews.

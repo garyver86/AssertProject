@@ -24,7 +24,7 @@ namespace Assert.Infrastructure.Security
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
 
             var expiryDate = _jwtConfig.TimeLife <= 0
-                ? DateTime.UtcNow.AddYears(10)
+                ? DateTime.UtcNow.AddMinutes(120)
                 : DateTime.UtcNow.AddMinutes(_jwtConfig.TimeLife);
 
             var token = new JwtSecurityToken(

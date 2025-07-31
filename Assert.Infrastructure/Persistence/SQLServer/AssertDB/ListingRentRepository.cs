@@ -1028,6 +1028,19 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 return result;
             }
         }
+
+        public async Task<List<TlListingRent>> GetUnfinishedList(int ownerId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                var result = await context.TlListingRents.
+                  Include(x => x.TlListingSteps)
+                  .ThenInclude(vx => vx.TlListingStepsViews)
+                  .Where(x => x.OwnerUserId == ownerId && x.TlListingSteps != null && x.TlListingSteps.Any(st => st.TlListingStepsViews.Any(stv => stv.IsEnded != true))).ToListAsync();
+
+                return result;
+            }
+        }
         #endregion
 
     }

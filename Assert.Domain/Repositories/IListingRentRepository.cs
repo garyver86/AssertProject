@@ -28,5 +28,6 @@ namespace Assert.Domain.Repositories
         Task SetCancellationPolicy(long listingRentId, int? cancellationPolicyTypeId);
         Task<List<TlListingRent>> GetAllResumed(int userID, bool onlyPublish);
         Task<List<TlListingRent>> GetCalendarData(int userID);
+        Task<List<TlListingRent>> GetUnfinishedList(int ownerId);
     }
 }

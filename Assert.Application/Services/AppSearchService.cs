@@ -143,6 +143,8 @@ namespace Assert.Application.Services
                 {
                     CountryId = group.Key.CountryId,
                     Name = group.Key.Name,
+                    Latitude = group.Key.Latitude,
+                    Longitude = group.Key.Longitude,
                     States = group
                         .GroupBy(city => city.County?.State)
                         .Where(stateGroup => stateGroup.Key != null && !(stateGroup.Key.IsDisabled ?? false))
@@ -150,6 +152,8 @@ namespace Assert.Application.Services
                         {
                             StateId = stateGroup.Key.StateId,
                             Name = stateGroup.Key.Name,
+                            Latitude = stateGroup.Key.Latitude,
+                            Longitude = stateGroup.Key.Longitude,
                             Counties = stateGroup
                                 .GroupBy(city => city.County)
                                 .Where(countyGroup => countyGroup.Key != null && !(countyGroup.Key.IsDisabled ?? false))
@@ -157,11 +161,15 @@ namespace Assert.Application.Services
                                 {
                                     CountyId = countyGroup.Key.CountyId,
                                     Name = countyGroup.Key.Name,
+                                    Latitude = countyGroup.Key.Latitude,
+                                    Longitude = countyGroup.Key.Longitude,
                                     Cities = countyGroup
                                         .Select(city => new City2DTO
                                         {
                                             CityId = city.CityId,
-                                            Name = city.Name
+                                            Name = city.Name,
+                                            Latitude = city.Latitude,
+                                            Longitude = city.Longitude,
                                         }).ToList()
                                 }).ToList()
                         }).ToList()

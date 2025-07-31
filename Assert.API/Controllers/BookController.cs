@@ -2,6 +2,7 @@
 using Assert.Application.DTOs.Requests;
 using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
+using Assert.Domain.Common.Metadata;
 using Assert.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,10 +16,12 @@ namespace Assert.API.Controllers
     public class BookController : Controller
     {
         private readonly IAppBookService _bookService;
+        private readonly RequestMetadata _metadata;
 
-        public BookController(IAppBookService bookService)
+        public BookController(IAppBookService bookService, RequestMetadata requestMetadata)
         {
             _bookService = bookService;
+            _metadata = requestMetadata;
         }
 
         /// <summary>
@@ -89,5 +92,22 @@ namespace Assert.API.Controllers
         [Authorize(Policy = "GuestOrHostOrAdmin")]
         public async Task<ReturnModelDTO> GetBookByUserIdAsync()
         => await _bookService.GetBooksByUserIdAsync();
+
+
+        /// <summary>
+        /// Servicio que recupera una lista de reservas del usuario que no cuentan con un review.
+        /// </summary>
+        /// <returns>Lista de reservas sin reviews.</returns>
+        /// <response code="200">Si se proceso correctamente.</response>
+        /// <remarks>
+        /// En caso que no existan reservas para el usuario retorna error
+        /// </remarks>
+        [HttpGet("GetBooksWithoutReview")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> GetBooksWithoutReviewByUser()
+        {
+            var result = await _bookService.GetBooksWithoutReviewByUser(_metadata.UserId);
+            return result;
+        }
     }
 }

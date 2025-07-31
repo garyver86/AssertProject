@@ -1,8 +1,10 @@
 ﻿using Assert.API.Helpers;
+using Assert.API.Middleware;
 using Assert.Application.DTOs;
 using Assert.Application.DTOs.Requests;
 using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
+using Assert.Domain.Common.Metadata;
 using Assert.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,9 +17,11 @@ namespace Assert.API.Controllers
     public class HostListingRentController : Controller
     {
         private readonly IAppListingRentService _appListingRentService;
-        public HostListingRentController(IAppListingRentService appListingRentService)
+        private readonly RequestMetadata _metadata;
+        public HostListingRentController(IAppListingRentService appListingRentService, RequestMetadata metadata)
         {
             _appListingRentService = appListingRentService;
+            _metadata = metadata;
         }
 
 
@@ -62,6 +66,41 @@ namespace Assert.API.Controllers
         }
 
         /// <summary>
+        /// Servicio que devuelve el paso de registro no finalizado de una propiedad
+        /// </summary>
+        /// <param name="listinRentId">Identificador de Listing Rent</param>
+        /// <returns></returns>
+        /// <response code="200">El valor de Data seria UPDATED</response>
+        /// <remarks>
+        /// Si no existe descuentos enviar null el valor de la lista
+        /// </remarks>
+        [HttpGet]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("{listinRentId}/ProcessData/Continue")]
+        public async Task<ReturnModelDTO<ProcessDataResult>> GetLastView(long listinRentId)
+        {
+
+            var result = await _appListingRentService.GetLastView(listinRentId, _metadata.UserId);
+            return result;
+        }
+        /// <summary>
+        /// Servicio que devuelve la lista de propiedades cuyo registro no ha finalizado
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200">El valor de Data seria UPDATED</response>
+        /// <remarks>
+        /// Si no existe descuentos enviar null el valor de la lista
+        /// </remarks>
+        [HttpGet]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("ProcessData/Unfinished")]
+        public async Task<ReturnModelDTO<List<ListingRentDTO>>> GetUnfinished()
+        {
+            var result = await _appListingRentService.GetUnfinished(_metadata.UserId);
+            return result;
+        }
+
+        /// <summary>
         /// Servicio que actualiza informacion de precios de renta y descuentos
         /// </summary>
         /// <param name="listinRentId">Identificador de Listing Rent</param>
@@ -74,7 +113,7 @@ namespace Assert.API.Controllers
         [HttpPost]
         [Authorize(Policy = "GuestOrHost")]
         [Route("{listinRentId}/UpdatePricesAndDiscounts")]
-        public async Task<ReturnModelDTO<string>> UpdatePricesAndDiscounts(long listinRentId, 
+        public async Task<ReturnModelDTO<string>> UpdatePricesAndDiscounts(long listinRentId,
             [FromBody] PricesAndDiscountRequest request)
         {
             var result = await _appListingRentService.UpdatePricesAndDiscounts(listinRentId, request);
@@ -148,10 +187,10 @@ namespace Assert.API.Controllers
         [HttpGet]
         [Authorize(Policy = "GuestOrHost")]
         [Route("Resume")]
-        public async Task<ReturnModelDTO<List<ListingRentDTO>>> GetResume()
+        public async Task<ReturnModelDTO<List<ListingRentResumeDTO>>> GetResume()
         {
             var requestInfo = HttpContext.GetRequestInfo();
-            ReturnModelDTO<List<ListingRentDTO>> result = await _appListingRentService.GetByOwnerResumed(requestInfo, true);
+            ReturnModelDTO<List<ListingRentResumeDTO>> result = await _appListingRentService.GetByOwnerResumed(requestInfo, true);
             return result;
         }
 
@@ -350,7 +389,7 @@ namespace Assert.API.Controllers
         public async Task<ReturnModelDTO> UpdateCapacity([FromRoute] long listingRentId,
             int beds, int bedrooms, int bathrooms, int maxGuests)
         => await _appListingRentService.UpdateCapacity(listingRentId, beds, bedrooms,
-            bathrooms,maxGuests, 0, 0, 0);
+            bathrooms, maxGuests, 0, 0, 0);
 
         /// <summary>
         /// Servicio que actualiza la ubicación y dirección de un Listing Rent.
@@ -376,7 +415,7 @@ namespace Assert.API.Controllers
         public async Task<ReturnModelDTO> UpdatePropertyLocation([FromRoute] long listingRentId,
             int cityId, int countyId, int stateId, double latitude, double longitude,
             string address1, string address2, string zipCode)
-        => await _appListingRentService.UpdatePropertyLocation(listingRentId, 
+        => await _appListingRentService.UpdatePropertyLocation(listingRentId,
             cityId, countyId, stateId, latitude, longitude, address1, address2, zipCode);
 
         /// <summary>
@@ -397,11 +436,11 @@ namespace Assert.API.Controllers
         [HttpPut()]
         [Authorize(Policy = "GuestOrHost")]
         [Route("{listingRentId}/UpdateCharacteristics")]
-        public async Task<ReturnModelDTO> UpdateCharacteristics([FromRoute] long listingRentId, 
+        public async Task<ReturnModelDTO> UpdateCharacteristics([FromRoute] long listingRentId,
             [FromBody] UpdateCharasteristicsRequestDTO request)
         {
             var requestInfo = HttpContext.GetRequestInfo();
-            return await _appListingRentService.UpdateCharasteristics(listingRentId, 
+            return await _appListingRentService.UpdateCharasteristics(listingRentId,
                 requestInfo, request.FeaturedAmenities, request.FeatureAspects, request.SecurityItems);
         }
 
@@ -443,7 +482,7 @@ namespace Assert.API.Controllers
         [Route("{listingRentId}/UpdateReservation")]
         public async Task<ReturnModelDTO> UpdateReservation([FromRoute] long listingRentId,
             int approvalPolicyTypeId, int minimunNoticeDays, int preparationDays)
-        => await _appListingRentService.UpdateReservation(listingRentId, 
+        => await _appListingRentService.UpdateReservation(listingRentId,
             approvalPolicyTypeId, minimunNoticeDays, preparationDays);
 
         /// <summary>
