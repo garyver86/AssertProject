@@ -109,6 +109,8 @@ namespace Assert.Application.Mappings
 
             CreateMap<TbBook, BookDTO>()
                 .ForMember(dest => dest.CalendarDays, opt => opt.MapFrom(src => src.TlListingCalendars))
+                .ForMember(dest => dest.Photos, opt => opt.MapFrom(src => src.ListingRent != null ? src.ListingRent.TlListingPhotos : null))
+                .ForMember(dest => dest.Owner, opt => opt.MapFrom(src => src.ListingRent != null ? src.ListingRent.OwnerUser : null))
                 .ReverseMap();
 
             CreateMap<TlListingRent, ListingRentDTO>()
@@ -138,6 +140,7 @@ namespace Assert.Application.Mappings
                .ForMember(dest => dest.CalendarDays, opt => opt.MapFrom(src => src.TlListingCalendars))
                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.TlListingPrices.FirstOrDefault()))
                .ForMember(dest => dest.Reservations, opt => opt.MapFrom(src => src.TbBooks))
+               .ForMember(dest => dest.Photos, opt => opt.MapFrom(src => src.TlListingPhotos))
                .ForMember(dest => dest.Property, opt => opt.MapFrom(src => src.TpProperties.FirstOrDefault()));
 
             CreateMap<TlListingFavorite, ListingFavoriteDTO>();
