@@ -527,5 +527,25 @@ namespace Assert.API.Controllers
         => await _appListingRentService.UpdateCheckInOutAndRules(listingRentId, 
             request.CheckInTime, request.CheckOutTime, request.MaxCheckInTime, 
             request.Instructions, request.RuleIds);
+
+        /// <summary>
+        /// Servicio que actualiza las reglas de estadía asociadas a un Listing Rent.
+        /// </summary>
+        /// <param name="listingRentId">ID del Listing Rent cuyo conjunto de reglas se desea modificar</param>
+        /// <param name="ruleIds">Lista de IDs de las reglas que se deben aplicar. Puede ser null o vacía si no se desea asignar reglas</param>
+        /// <returns>UPDATED</returns>
+        /// <response code="200">Detalle del Listing Rent con las reglas actualizadas</response>
+        /// <remarks>
+        /// Requisitos:
+        /// - El Listing Rent debe existir previamente.
+        /// - Los IDs deben referenciar reglas válidas definidas en el sistema.
+        /// </remarks>
+        [HttpPut()]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("{listingRentId}/UpdateRules")]
+        public async Task<ReturnModelDTO> UpdateRules([FromRoute] long listingRentId,
+            List<int> ruleIds)
+        => await _appListingRentService.UpdateRules(listingRentId,
+            ruleIds);
     }
 }

@@ -57,6 +57,9 @@ namespace Assert.Application.Interfaces
             string checkinTime, string checkoutTime, string maxCheckinTime, string instructions,
             List<int> rules);
 
+        Task<ReturnModelDTO<string>> UpdateRules(long listingRentId,
+            List<int> rules);
+
         Task<ReturnModelDTO<List<ListingRentCalendarDTO>>> GetCalendarByOwner(Dictionary<string, string> requestInfo, bool v);
         Task<ReturnModelDTO<ProcessDataResult>> GetLastView(long listinRentId, int userId);
         Task<ReturnModelDTO<List<ListingRentDTO>>> GetUnfinished(int userId);

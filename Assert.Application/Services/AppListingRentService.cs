@@ -816,6 +816,22 @@ namespace Assert.Application.Services
             };
         }
 
+        public async Task<ReturnModelDTO<string>> UpdateRules(long listingRentId,
+            List<int> rules)
+        {
+            if (rules is not { Count: > 0 })
+                throw new ApplicationException("Debe definir al menos una regla para la publicacion.");
+
+            await _listingRentRulesRepository.Set(listingRentId, rules);
+
+            return new ReturnModelDTO<string>
+            {
+                Data = "UPDATED",
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
+        }
+
         public async Task<ReturnModelDTO<List<ListingRentCalendarDTO>>> GetCalendarByOwner(Dictionary<string, string> clientData, bool v)
         {
             string userId = clientData["UserId"] ?? "-50";
