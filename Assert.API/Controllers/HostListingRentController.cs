@@ -446,5 +446,47 @@ namespace Assert.API.Controllers
         => await _appListingRentService.UpdateReservation(listingRentId, 
             approvalPolicyTypeId, minimunNoticeDays, preparationDays);
 
+        /// <summary>
+        /// Servicio que actualiza la configuración de precios y descuentos de un Listing Rent.
+        /// </summary>
+        /// <param name="listingRentId">ID del Listing Rent al que se aplican los cambios</param>
+        /// <param name="request">Datos de precios y descuentos que se desean actualizar</param>
+        /// <returns>UPDATE</returns>
+        /// <response code="200">Detalle del Listing Rent con precios y descuentos actualizados</response>
+        /// <remarks>
+        /// Requisitos:
+        /// - El Listing Rent debe existir previamente.
+        /// - Los valores numéricos deben ser válidos según las reglas del dominio.
+        /// - Las fechas, si están presentes, deben ser consistentes y no superponerse.
+        /// </remarks>
+        [HttpPut()]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("{listingRentId}/UpdatePricingAndDiscounts")]
+        public async Task<ReturnModelDTO> UpdatePricingAndDiscounts([FromRoute] long listingRentId,
+            [FromBody] PricesAndDiscountRequest request)
+        => await _appListingRentService.UpdatePricesAndDiscounts(listingRentId, request);
+
+        /// <summary>
+        /// Servicio que actualiza los horarios de check-in/check-out y las reglas de estadía para un Listing Rent.
+        /// </summary>
+        /// <param name="listingRentId">ID del Listing Rent que se desea actualizar</param>
+        /// <param name="request">Datos con la nueva configuración de horarios, instrucciones y reglas</param>
+        /// <returns>UPDATED</returns>
+        /// <response code="200">Detalle del Listing Rent con la configuración de check-in/out y reglas actualizadas</response>
+        /// <remarks>
+        /// Requisitos:
+        /// - El Listing Rent debe existir previamente.
+        /// - Los horarios deben estar en formato válido (por ejemplo, HH:mm) y respetar la lógica de entrada/salida.
+        /// - Las instrucciones pueden ser vacio.
+        /// - Los IDs de reglas deben referenciar reglas existentes en el sistema, pero en caso de no tener reglas se puede enviar null o lista vacia.
+        /// </remarks>
+        [HttpPut()]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("{listingRentId}/UpdateCheckInOutAndRules")]
+        public async Task<ReturnModelDTO> UpdateCheckInOutAndRules([FromRoute] long listingRentId,
+            [FromBody] CheckInOutAndRulesRequestDTO request)
+        => await _appListingRentService.UpdateCheckInOutAndRules(listingRentId, 
+            request.CheckInTime, request.CheckOutTime, request.MaxCheckInTime, 
+            request.Instructions, request.RuleIds);
     }
 }
