@@ -9,6 +9,7 @@ using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Assert.Domain.Utils;
 using Assert.Domain.ValueObjects;
+using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 using Assert.Shared.Extensions;
 using AutoMapper;
 using Azure.Core;
@@ -33,6 +34,8 @@ namespace Assert.Application.Services
         IListingAmenitiesRepository _listingAmenitiesRepository,
         IListingFeaturedAspectRepository _listingFeaturedAspectRepository,
         IListingSecurityItemsRepository _listingSecurityItemsRepository,
+        IListingDiscountRepository _listingDiscountRepository,
+        IListingRentRulesRepository _listingRentRulesRepository,
         IHttpContextAccessor requestContext)
         : IAppListingRentService
     {
@@ -763,6 +766,63 @@ namespace Assert.Application.Services
 
             await _listingRentRepository.SetReservationTypeApprobation(listingRentId, 
                 approvalPolicyTypeId, minimunNoticeDays, preparationDays);
+
+            return new ReturnModelDTO<string>
+            {
+                Data = "UPDATED",
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
+        }
+
+        public async Task<ReturnModelDTO<string>> UpdatePricingAndDiscounts(long listingRentId,
+            decimal pricing, decimal weekendPrice, int currencyId,
+            List<(int, decimal)> discounts)
+        {
+            if (!(pricing > 0))
+                throw new ApplicationException("Debe definir el precio de alquiler por noche  de la propiedad.");
+
+            if (!(weekendPrice > 0))
+                throw new ApplicationException("Debe definir el precio de alquiler por noche los fines de semana de la propiedad.");
+
+            await _listingPriceRepository.SetPricing(listingRentId, pricing, weekendPrice, currencyId);
+            await _listingDiscountRepository.SetDiscounts(listingRentId, discounts);
+
+            return new ReturnModelDTO<string>
+            {
+                Data = "UPDATED",
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
+        }
+
+        public async Task<ReturnModelDTO<string>> UpdateCheckInOutAndRules(long listingRentId,
+            string checkinTime, string checkoutTime, string maxCheckinTime, string instructions,
+            List<int> rules)
+        {
+            if (string.IsNullOrEmpty(checkinTime) || string.IsNullOrEmpty(checkoutTime))
+                throw new ApplicationException("Debe definir las horas de Checin y checkout.");
+
+            await _listingRentRepository.SetCheckInPolicies(listingRentId, checkinTime, checkoutTime, maxCheckinTime, instructions);
+            
+            if(rules is { Count: > 0 })
+                await _listingRentRulesRepository.Set(listingRentId, rules);
+
+            return new ReturnModelDTO<string>
+            {
+                Data = "UPDATED",
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
+        }
+
+        public async Task<ReturnModelDTO<string>> UpdateRules(long listingRentId,
+            List<int> rules)
+        {
+            if (rules is not { Count: > 0 })
+                throw new ApplicationException("Debe definir al menos una regla para la publicacion.");
+
+            await _listingRentRulesRepository.Set(listingRentId, rules);
 
             return new ReturnModelDTO<string>
             {

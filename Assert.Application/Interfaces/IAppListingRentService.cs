@@ -49,6 +49,17 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<string>> UpdateReservation(long listingRentId,
            int approvalPolicyTypeId, int minimunNoticeDays, int preparationDays);
 
+        Task<ReturnModelDTO<string>> UpdatePricingAndDiscounts(long listingRentId,
+            decimal pricing, decimal weekendPrice, int currencyId,
+            List<(int, decimal)> discounts);
+
+        Task<ReturnModelDTO<string>> UpdateCheckInOutAndRules(long listingRentId,
+            string checkinTime, string checkoutTime, string maxCheckinTime, string instructions,
+            List<int> rules);
+
+        Task<ReturnModelDTO<string>> UpdateRules(long listingRentId,
+            List<int> rules);
+
         Task<ReturnModelDTO<List<ListingRentCalendarDTO>>> GetCalendarByOwner(Dictionary<string, string> requestInfo, bool v);
         Task<ReturnModelDTO<ProcessDataResult>> GetLastView(long listinRentId, int userId);
         Task<ReturnModelDTO<List<ListingRentDTO>>> GetUnfinished(int userId);
