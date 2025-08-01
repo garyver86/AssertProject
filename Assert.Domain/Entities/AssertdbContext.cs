@@ -380,6 +380,10 @@ public partial class AssertDbContext : DbContext
                 .HasColumnType("decimal(10, 2)")
                 .HasColumnName("amount");
             entity.Property(e => e.BookId).HasColumnName("bookId");
+            entity.Property(e => e.BreakdownInfo)
+                .HasMaxLength(5000)
+                .IsUnicode(false)
+                .HasColumnName("breakdownInfo");
             entity.Property(e => e.CalculationCode)
                 .HasDefaultValueSql("(newid())")
                 .HasColumnName("calculationCode");
@@ -717,6 +721,8 @@ public partial class AssertDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("iataCode");
             entity.Property(e => e.IsDisabled).HasColumnName("isDisabled");
+            entity.Property(e => e.Latitude).HasColumnName("latitude");
+            entity.Property(e => e.Longitude).HasColumnName("longitude");
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .IsUnicode(false)

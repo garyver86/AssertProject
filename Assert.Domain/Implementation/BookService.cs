@@ -2,10 +2,13 @@
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Json;
 using System.Reflection;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Transactions;
 using static Azure.Core.HttpHeader;
@@ -66,7 +69,7 @@ namespace Assert.Domain.Implementation
         /// <param name="clientData"></param>
         /// <param name="useTechnicalMessages"></param>
         /// <returns></returns>
-        public async Task<ReturnModel<PayPriceCalculation>> CalculatePrice(
+        public async Task<ReturnModel<(PayPriceCalculation, List<PriceBreakdownItem>)>> CalculatePrice(
             long listingRentId,
             DateTime startDate,
             DateTime endDate,
@@ -74,7 +77,8 @@ namespace Assert.Domain.Implementation
             Dictionary<string, string> clientData,
             bool useTechnicalMessages)
         {
-            var result = new ReturnModel<PayPriceCalculation>();
+            var result = new ReturnModel<(PayPriceCalculation, List<PriceBreakdownItem>)>();
+            var breakdown = new List<PriceBreakdownItem>();
 
             // 1. Validar existencia y estado de la propiedad
             var listing = await _listingRentRepository.Get(listingRentId, 0, onlyActive: true);
@@ -156,19 +160,34 @@ namespace Assert.Domain.Implementation
 
                 // 1. Precio base del día
                 decimal dayPrice;
+                string priceType = "STANDARD";
+
                 if (calendarDay != null && calendarDay.Price.HasValue)
                 {
                     dayPrice = calendarDay.Price.Value;
+                    priceType = "CUSTOM";
                 }
                 else
                 {
                     bool isWeekend = date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
                     if (isWeekend && priceInfo.WeekendNightlyPrice.HasValue)
+                    {
                         dayPrice = priceInfo.WeekendNightlyPrice.Value;
+                        priceType = "WEEKEND";
+                    }
                     else
+                    {
                         dayPrice = priceInfo.PriceNightly ?? 0;
+                    }
                 }
                 total += dayPrice;
+                breakdown.Add(new PriceBreakdownItem
+                {
+                    Type = "BASE_PRICE",
+                    Description = $"Precio por noche ({priceType})",
+                    Amount = dayPrice,
+                    Date = date
+                });
 
                 // 2. Descuentos por día (TLCalendarDiscount)
                 if (calendarDay != null && calendarDay.TlCalendarDiscounts != null)
@@ -177,7 +196,18 @@ namespace Assert.Domain.Implementation
                     {
                         if (calDiscount.IsDiscount)
                         {
-                            totalDiscount += dayPrice * (calDiscount.Porcentage / 100m);
+                            //totalDiscount += dayPrice * (calDiscount.Porcentage / 100m);
+                            decimal discountAmount = dayPrice * (calDiscount.Porcentage / 100m);
+                            totalDiscount += discountAmount;
+
+                            breakdown.Add(new PriceBreakdownItem
+                            {
+                                Type = "DAILY_DISCOUNT",
+                                Description = $"Descuento diario ({calDiscount.Porcentage}%)",
+                                Amount = -discountAmount,
+                                Percentage = calDiscount.Porcentage,
+                                Date = date
+                            });
                         }
                     }
                 }
@@ -188,6 +218,13 @@ namespace Assert.Domain.Implementation
                 //    foreach (var fee in calendarDay.TlAdditionalFees)
                 //    {
                 //        totalAdditionalFees += fee.Amount; // Asumiendo que la propiedad es Amount
+                //         breakdown.Add(new PriceBreakdownItem
+                //         {
+                //             Type = fee.FeeType, // Asume que tienes un tipo de fee
+                //             Description = fee.Description,
+                //             Amount = fee.Amount,
+                //             Date = date
+                //         });
                 //    }
                 //}
             }
@@ -204,7 +241,17 @@ namespace Assert.Domain.Implementation
                 {
                     if (discount.IsDiscount)
                     {
-                        totalDiscount += total * (discount.Porcentage / 100m);
+                        //totalDiscount += total * (discount.Porcentage / 100m);
+                        decimal discountAmount = total * (discount.Porcentage / 100m);
+                        totalDiscount += discountAmount;
+
+                        breakdown.Add(new PriceBreakdownItem
+                        {
+                            Type = "GENERAL_DISCOUNT",
+                            Description = $"Descuento general ({discount.Porcentage}%)",
+                            Amount = -discountAmount,
+                            Percentage = discount.Porcentage
+                        });
                     }
                 }
             }
@@ -226,12 +273,13 @@ namespace Assert.Domain.Implementation
                 UserAgent = clientData != null && clientData.ContainsKey("userAgent") ? clientData["userAgent"] : null,
                 InitBook = startDate,
                 EndBook = endDate,
-                ListingRentId = listingRentId
+                ListingRentId = listingRentId,
+                BreakdownInfo = JsonConvert.SerializeObject(breakdown),
             };
 
             var resultCalculation = await _payPriceCalculationRepository.Create(payPriceCalculation);
 
-            result.Data = payPriceCalculation;
+            result.Data = (payPriceCalculation, breakdown);
             result.StatusCode = ResultStatusCode.OK;
             result.HasError = false;
             return result;

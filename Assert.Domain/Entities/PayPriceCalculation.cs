@@ -39,6 +39,8 @@ public partial class PayPriceCalculation
 
     public DateTime? EndBook { get; set; }
 
+    public string? BreakdownInfo { get; set; }
+
     public virtual TbBook? Book { get; set; }
 
     public virtual TlListingRent? ListingRent { get; set; }

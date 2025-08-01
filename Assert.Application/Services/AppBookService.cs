@@ -25,20 +25,20 @@ namespace Assert.Application.Services
         ISystemConfigurationRepository _systemConfigurationRepository,
         IHttpContextAccessor requestContext) : IAppBookService
     {
-        public async Task<ReturnModelDTO<PayPriceCalculationDTO>> CalculatePrice(
+        public async Task<ReturnModelDTO<(PayPriceCalculationDTO, List<PriceBreakdownItemDTO>)>> CalculatePrice(
             long listingRentId, DateTime startDate, DateTime endDate,
             int guestId, Dictionary<string, string> clientData, bool useTechnicalMessages)
         {
-            ReturnModelDTO<PayPriceCalculationDTO> result = new ReturnModelDTO<PayPriceCalculationDTO>();
+            ReturnModelDTO<(PayPriceCalculationDTO, List<PriceBreakdownItemDTO>)> result = new ReturnModelDTO<(PayPriceCalculationDTO, List<PriceBreakdownItemDTO>)>();
             try
             {
-                ReturnModel<PayPriceCalculation> returnModel = await _bookService.CalculatePrice(listingRentId, startDate, endDate, guestId, clientData, useTechnicalMessages);
+                ReturnModel<(PayPriceCalculation, List<PriceBreakdownItem>)> returnModel = await _bookService.CalculatePrice(listingRentId, startDate, endDate, guestId, clientData, useTechnicalMessages);
 
                 if (returnModel.StatusCode == ResultStatusCode.OK)
                 {
-                    result = new ReturnModelDTO<PayPriceCalculationDTO>
+                    result = new ReturnModelDTO<(PayPriceCalculationDTO, List<PriceBreakdownItemDTO>)>
                     {
-                        Data = _mapper.Map<PayPriceCalculationDTO>(returnModel.Data),
+                        Data = (_mapper.Map<PayPriceCalculationDTO>(returnModel.Data.Item1), _mapper.Map<List<PriceBreakdownItemDTO>>(returnModel.Data.Item2)),
                         HasError = false,
                         StatusCode = ResultStatusCode.OK
                     };
