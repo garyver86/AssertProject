@@ -31,6 +31,8 @@ public partial class AssertDbContext : DbContext
 
     public virtual DbSet<TApprovalPolicyType> TApprovalPolicyTypes { get; set; }
 
+    public virtual DbSet<TAssertFee> TAssertFees { get; set; }
+
     public virtual DbSet<TAvailabilityBlockType> TAvailabilityBlockTypes { get; set; }
 
     public virtual DbSet<TBookingPlatform> TBookingPlatforms { get; set; }
@@ -128,6 +130,8 @@ public partial class AssertDbContext : DbContext
     public virtual DbSet<TlCheckInOutPolicy> TlCheckInOutPolicies { get; set; }
 
     public virtual DbSet<TlExternalReference> TlExternalReferences { get; set; }
+
+    public virtual DbSet<TlGeneralAdditionalFee> TlGeneralAdditionalFees { get; set; }
 
     public virtual DbSet<TlGenerateRate> TlGenerateRates { get; set; }
 
@@ -238,6 +242,8 @@ public partial class AssertDbContext : DbContext
     public virtual DbSet<TuEmergencyContact> TuEmergencyContacts { get; set; }
 
     public virtual DbSet<TuGenderType> TuGenderTypes { get; set; }
+
+    public virtual DbSet<TuOwnerConfiguration> TuOwnerConfigurations { get; set; }
 
     public virtual DbSet<TuPhone> TuPhones { get; set; }
 
@@ -585,6 +591,26 @@ public partial class AssertDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("name");
             entity.Property(e => e.Status).HasColumnName("status");
+        });
+
+        modelBuilder.Entity<TAssertFee>(entity =>
+        {
+            entity.HasKey(e => e.AssertFeeId);
+
+            entity.ToTable("T_AssertFee");
+
+            entity.Property(e => e.AssertFeeId).HasColumnName("assertFeeId");
+            entity.Property(e => e.CityId).HasColumnName("cityId");
+            entity.Property(e => e.CountryId).HasColumnName("countryId");
+            entity.Property(e => e.CountyId).HasColumnName("countyId");
+            entity.Property(e => e.FeeBase)
+                .HasColumnType("decimal(6, 2)")
+                .HasColumnName("feeBase");
+            entity.Property(e => e.FeePercent)
+                .HasColumnType("decimal(6, 2)")
+                .HasColumnName("feePercent");
+            entity.Property(e => e.IsEnabled).HasColumnName("isEnabled");
+            entity.Property(e => e.StateId).HasColumnName("stateId");
         });
 
         modelBuilder.Entity<TAvailabilityBlockType>(entity =>
@@ -1873,7 +1899,7 @@ public partial class AssertDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("deeDescription");
             entity.Property(e => e.FeeCode)
-                .HasMaxLength(5)
+                .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("feeCode");
             entity.Property(e => e.FeeValue)
@@ -1968,6 +1994,31 @@ public partial class AssertDbContext : DbContext
                 .HasForeignKey(d => d.ListingRentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TL_ExternalReference_TL_ListingRent");
+        });
+
+        modelBuilder.Entity<TlGeneralAdditionalFee>(entity =>
+        {
+            entity.HasKey(e => e.GeneralAdditionalFeeId);
+
+            entity.ToTable("TL_GeneralAdditionalFee");
+
+            entity.Property(e => e.GeneralAdditionalFeeId).HasColumnName("generalAdditionalFeeId");
+            entity.Property(e => e.AdditionalFeeId).HasColumnName("additionalFeeId");
+            entity.Property(e => e.AmountFee)
+                .HasColumnType("decimal(8, 2)")
+                .HasColumnName("amountFee");
+            entity.Property(e => e.IsPercent).HasColumnName("isPercent");
+            entity.Property(e => e.UserId).HasColumnName("userId");
+
+            entity.HasOne(d => d.AdditionalFee).WithMany(p => p.TlGeneralAdditionalFees)
+                .HasForeignKey(d => d.AdditionalFeeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TL_GeneralAdditionalFee_TL_AdditionalFees");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TlGeneralAdditionalFees)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TL_GeneralAdditionalFee_TL_ListingRent");
         });
 
         modelBuilder.Entity<TlGenerateRate>(entity =>
@@ -3578,6 +3629,33 @@ public partial class AssertDbContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("name");
+        });
+
+        modelBuilder.Entity<TuOwnerConfiguration>(entity =>
+        {
+            entity.HasKey(e => e.OwnerConfigurationId);
+
+            entity.ToTable("TU_OwnerConfiguration");
+
+            entity.Property(e => e.OwnerConfigurationId).HasColumnName("ownerConfigurationId");
+            entity.Property(e => e.ConfigurationValue)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("configurationValue");
+            entity.Property(e => e.ConfigurationValue2)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("configurationValue2");
+            entity.Property(e => e.KeyConfiguration)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("keyConfiguration");
+            entity.Property(e => e.UserId).HasColumnName("userId");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TuOwnerConfigurations)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TU_OwnerConfiguration_TU_User");
         });
 
         modelBuilder.Entity<TuPhone>(entity =>

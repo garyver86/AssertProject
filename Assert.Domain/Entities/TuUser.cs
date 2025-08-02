@@ -57,6 +57,8 @@ public partial class TuUser
 
     public virtual TuTitleType? TitleType { get; set; }
 
+    public virtual ICollection<TlGeneralAdditionalFee> TlGeneralAdditionalFees { get; set; } = new List<TlGeneralAdditionalFee>();
+
     public virtual ICollection<TlListingFavoriteGroup> TlListingFavoriteGroups { get; set; } = new List<TlListingFavoriteGroup>();
 
     public virtual ICollection<TlListingFavorite> TlListingFavorites { get; set; } = new List<TlListingFavorite>();
@@ -84,6 +86,8 @@ public partial class TuUser
     public virtual ICollection<TuEmail> TuEmails { get; set; } = new List<TuEmail>();
 
     public virtual ICollection<TuEmergencyContact> TuEmergencyContacts { get; set; } = new List<TuEmergencyContact>();
+
+    public virtual ICollection<TuOwnerConfiguration> TuOwnerConfigurations { get; set; } = new List<TuOwnerConfiguration>();
 
     public virtual ICollection<TuPhone> TuPhones { get; set; } = new List<TuPhone>();
 

@@ -122,6 +122,8 @@ public static class InfrastructureInjectionDependences
         services.AddScoped<IBookRepository, BookRepository>();
         services.AddScoped<ICurrencyRespository, CurrencyRespository>();
         services.AddScoped<IPayTransactionRepository, PayTransactionRepository>();
+        services.AddScoped<IListingAdditionalFeeRepository, ListingAdditionalFeeRepository>();
+        services.AddScoped<IAssertFeeRepository, AssertFeeRepository>();
         #endregion
 
         return services;

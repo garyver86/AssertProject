@@ -15,6 +15,8 @@ public partial class TlAdditionalFee
 
     public decimal FeeValue { get; set; }
 
+    public virtual ICollection<TlGeneralAdditionalFee> TlGeneralAdditionalFees { get; set; } = new List<TlGeneralAdditionalFee>();
+
     public virtual ICollection<TlListingAdditionalFee> TlListingAdditionalFees { get; set; } = new List<TlListingAdditionalFee>();
 
     public virtual ICollection<TlListingCalendarAdditionalFee> TlListingCalendarAdditionalFees { get; set; } = new List<TlListingCalendarAdditionalFee>();

@@ -722,15 +722,15 @@ namespace Assert.Application.Services
             Dictionary<string, string> clientData, List<int> featuredAmenities, List<int> featureAspects,
             List<int> securityItems)
         {
-            if (featuredAmenities is { Count: > 0 })
+            //if (featuredAmenities is { Count: > 0 })
                 await _listingAmenitiesRepository.SetListingAmmenities(listingRentId,
                     featuredAmenities, clientData, true);
 
-            if (featureAspects is { Count: > 0 })
+            //if (featureAspects is { Count: > 0 })
                 await _listingFeaturedAspectRepository.SetListingFeaturesAspects(listingRentId,
                     featureAspects);
 
-            if (securityItems is { Count: > 0 })
+            //if (securityItems is { Count: > 0 })
                 await _listingSecurityItemsRepository.SetListingSecurityItems(listingRentId,
                     securityItems);
 
