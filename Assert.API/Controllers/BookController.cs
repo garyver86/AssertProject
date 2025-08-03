@@ -16,12 +16,14 @@ namespace Assert.API.Controllers
     public class BookController : Controller
     {
         private readonly IAppBookService _bookService;
+        private readonly IAppReviewService _reviewService;
         private readonly RequestMetadata _metadata;
 
-        public BookController(IAppBookService bookService, RequestMetadata requestMetadata)
+        public BookController(IAppBookService bookService, RequestMetadata requestMetadata, IAppReviewService reviewService)
         {
             _bookService = bookService;
             _metadata = requestMetadata;
+            _reviewService = reviewService;
         }
 
         /// <summary>
@@ -165,6 +167,39 @@ namespace Assert.API.Controllers
         public async Task<ReturnModelDTO> GetBooksWithoutReviewByUser()
         {
             var result = await _bookService.GetBooksWithoutReviewByUser(_metadata.UserId);
+            return result;
+        }
+
+        /// <summary>
+        /// Servicio registra un review a una propiedad en base a una reserva.
+        /// </summary>
+        /// <param name="review">Objeto que contiene la información del review.</param>
+        /// <param name="bookId">Id del re la reserva.</param>
+        /// <returns>Lista de reservas sin reviews.</returns>
+        /// <response code="200">Si se proceso correctamente.</response>
+        [HttpPost("{bookId}/Review")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> SubmitBookReview(long bookId, [FromBody] ReviewDTO review)
+        {
+            review.BookId = bookId;
+            var requestInfo = HttpContext.GetRequestInfo();
+            var result = await _reviewService.SubmitBookReview(review, _metadata.UserId, requestInfo);
+            return result;
+        }
+
+
+        /// <summary>
+        /// Servicio devuelve el detalle completo de un review.
+        /// </summary>
+        /// <param name="bookId">Id del re la reserva.</param>
+        /// <returns>Lista de reservas sin reviews.</returns>
+        /// <response code="200">Si se proceso correctamente.</response>
+        [HttpGet("{bookId}/Review")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> GetBookReview(long bookId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            var result = await _reviewService.GetBookReviewDetails(bookId, requestInfo);
             return result;
         }
     }

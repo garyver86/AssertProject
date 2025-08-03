@@ -33,6 +33,7 @@ namespace Assert.Application.Mappings
             CreateMap<ProcessData_Discount, ProcessData_DiscountModel>();
 
             CreateMap<TCurrency, CurrencyDTO>().ReverseMap();
+            CreateMap<TReviewQuestion, ReviewQuestionDTO>().ReverseMap();
 
             CreateMap<ListingProcessDataResultModel, ProcessDataResult>();
 
@@ -154,6 +155,7 @@ namespace Assert.Application.Mappings
             CreateMap<TCancelationPolicyType, CancellationPolicyDTO>();
             CreateMap<TpRuleType, RentRuleDTO>();
             CreateMap<TuEmergencyContact, EmergencyContactDTO>().ReverseMap();
+            CreateMap<TlListingReviewQuestion, ReviewQuestionAnswerDTO>().ReverseMap();
             CreateMap<TuUser, UserDTO>().
                 ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.TuEmails.ToList().FirstOrDefault(email => email.IsPrincipal ?? true) != null ? src.TuEmails.ToList().First(email => email.IsPrincipal ?? true).Email : null))
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.TuPhones.ToList().FirstOrDefault(phone => phone.IsPrimary ?? true) != null ? src.TuPhones.ToList().First(phone => phone.IsPrimary ?? true).Number : null))
@@ -198,8 +200,11 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.RuleType != null ? src.RuleType.Description : null))
                 .ForMember(dest => dest.IconLink, opt => opt.MapFrom(src => src.RuleType != null ? src.RuleType.IconLink : null));
             CreateMap<TlListingReview, ReviewDTO>()
+                .ForMember(dest => dest.ReviewQuestions, opt => opt.MapFrom(src => src.TlListingReviewQuestions))
                 .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User != null ? $"{src.User.Name} {src.User.LastName}" : null))
                 .ForMember(dest => dest.UserProfilePhoto, opt => opt.MapFrom(src => src.User != null ? src.User.PhotoLink : null));
+            CreateMap<ReviewDTO, TlListingReview>()
+                .ForMember(dest => dest.TlListingReviewQuestions, opt => opt.MapFrom(src => src.ReviewQuestions));
             CreateMap<TlListingSecurityItem, SecurityItemDTO>()
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.SecurityItemType != null ? src.SecurityItemType.Code : null))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.SecurityItemType != null ? src.SecurityItemType.Name : null))

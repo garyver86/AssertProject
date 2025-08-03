@@ -124,6 +124,8 @@ public static class InfrastructureInjectionDependences
         services.AddScoped<IPayTransactionRepository, PayTransactionRepository>();
         services.AddScoped<IListingAdditionalFeeRepository, ListingAdditionalFeeRepository>();
         services.AddScoped<IAssertFeeRepository, AssertFeeRepository>();
+        services.AddScoped<IListingRentReviewRepository, ListingRentReviewRepository>();
+        services.AddScoped<IReviewQuestionRepository, ReviewQuestionRepository>();
         #endregion
 
         return services;

@@ -11,9 +11,13 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
     {
         private readonly InfraAssertDbContext _context;
         private readonly DbContextOptions<InfraAssertDbContext> dbOptions;
-        public ListingRentReviewRepository(InfraAssertDbContext infraAssertDbContext, IServiceProvider serviceProvider)
+        private readonly IReviewQuestionRepository _questionRepository;
+
+        public ListingRentReviewRepository(InfraAssertDbContext infraAssertDbContext, IServiceProvider serviceProvider,
+            IReviewQuestionRepository questionRepository)
         {
             _context = infraAssertDbContext;
+            _questionRepository = questionRepository;
             dbOptions = serviceProvider.GetRequiredService<DbContextOptions<InfraAssertDbContext>>();
         }
         public async Task<List<TlListingReview>> GetByListingRent(long listingRentId)
@@ -140,6 +144,76 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 AverageRating = stats?.AverageRating ?? 0,
                 TotalReviews = stats?.TotalReviews ?? 0
             };
+        }
+
+
+        public async Task<TlListingReview?> GetReviewByBookingAsync(long bookId)
+        {
+            return await _context.TlListingReviews
+                .Include(r => r.TlListingReviewQuestions)
+                .ThenInclude(q => q.ReviewQuestion)
+                .Include(lr => lr.ListingRent)
+                .FirstOrDefaultAsync(r => r.BookId == bookId);
+        }
+
+        public async Task<TlListingReview?> GetReviewByIdAsync(long listingReviewId)
+        {
+            return await _context.TlListingReviews
+                .Include(r => r.TlListingReviewQuestions)
+                .ThenInclude(q => q.ReviewQuestion)
+                .FirstOrDefaultAsync(r => r.ListingReviewId == listingReviewId);
+        }
+
+        public async Task<TlListingReview> CreateReviewAsync(TlListingReview review)
+        {
+            _context.TlListingReviews.Add(review);
+            await _context.SaveChangesAsync();
+            return review;
+        }
+
+        public async Task UpdateReviewAsync(TlListingReview review)
+        {
+            _context.TlListingReviews.Update(review);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task SaveAnswersAsync(List<TlListingReviewQuestion> answers)
+        {
+            foreach (var answer in answers)
+            {
+                var existing = await _context.TlListingReviewQuestions
+                    .FirstOrDefaultAsync(a =>
+                        a.ListingReviewId == answer.ListingReviewId &&
+                        a.ReviewQuestionId == answer.ReviewQuestionId);
+
+                if (existing != null && existing.Rating != answer.Rating)
+                {
+                    existing.Rating = answer.Rating;
+                    existing.ReviewDate = DateTime.UtcNow;
+                    _context.TlListingReviewQuestions.Update(existing);
+                }
+                else if (existing == null)
+                {
+                    answer.ReviewDate = DateTime.UtcNow;
+                    _context.TlListingReviewQuestions.Add(answer);
+                }
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<int> GetTotalActiveQuestionsAsync()
+        {
+            return await _context.TReviewQuestions
+                .CountAsync(q => q.IsActive);
+        }
+
+        public async Task<int> GetAnsweredQuestionsCountAsync(long bookId)
+        {
+            return await _context.TlListingReviewQuestions
+                .Include(a => a.ListingReview)
+                .Where(a => a.ListingReview.BookId == bookId)
+                .CountAsync();
         }
     }
 }

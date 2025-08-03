@@ -15,10 +15,12 @@ namespace Assert.API.Controllers
     {
         private readonly IAppSearchService _searchService;
         private readonly IAppParametricService _parametricService;
-        public ParametricsController(IAppSearchService searchService, IAppParametricService parametricService)
+        private readonly IAppReviewService _reviewService;
+        public ParametricsController(IAppSearchService searchService, IAppParametricService parametricService, IAppReviewService reviewService)
         {
             _searchService = searchService;
             _parametricService = parametricService;
+            _reviewService = reviewService;
         }
 
         /// <summary>
@@ -293,6 +295,21 @@ namespace Assert.API.Controllers
         {
             var requestInfo = HttpContext.GetRequestInfo();
             var discountTypesResult = await _parametricService.GetRentRules(requestInfo, true);
+
+            return discountTypesResult;
+        }
+
+        /// <summary>
+        /// Servicio que devuelve la lista de preguntas para realizar un review.
+        /// </summary>
+        /// <returns>Listado de preguntas para realizar reviews a una reserva.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        [HttpGet("ReviewQuestions")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO<List<ReviewQuestionDTO>>> GetReviewQuestions()
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            var discountTypesResult = await _reviewService.GetReviewQuestions(requestInfo);
 
             return discountTypesResult;
         }

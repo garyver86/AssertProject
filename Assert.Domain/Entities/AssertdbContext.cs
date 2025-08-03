@@ -71,6 +71,8 @@ public partial class AssertDbContext : DbContext
 
     public virtual DbSet<TResource> TResources { get; set; }
 
+    public virtual DbSet<TReviewQuestion> TReviewQuestions { get; set; }
+
     public virtual DbSet<TSearchLocation> TSearchLocations { get; set; }
 
     public virtual DbSet<TSpaceType> TSpaceTypes { get; set; }
@@ -164,6 +166,8 @@ public partial class AssertDbContext : DbContext
     public virtual DbSet<TlListingRentRule> TlListingRentRules { get; set; }
 
     public virtual DbSet<TlListingReview> TlListingReviews { get; set; }
+
+    public virtual DbSet<TlListingReviewQuestion> TlListingReviewQuestions { get; set; }
 
     public virtual DbSet<TlListingSecurityItem> TlListingSecurityItems { get; set; }
 
@@ -1089,6 +1093,27 @@ public partial class AssertDbContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.UserRegisterId).HasColumnName("userRegisterId");
             entity.Property(e => e.UserUpdate).HasColumnName("userUpdate");
+        });
+
+        modelBuilder.Entity<TReviewQuestion>(entity =>
+        {
+            entity.HasKey(e => e.ReviewQuestionId);
+
+            entity.ToTable("T_ReviewQuestion");
+
+            entity.Property(e => e.ReviewQuestionId).HasColumnName("reviewQuestionId");
+            entity.Property(e => e.CreationDate)
+                .HasColumnType("datetime")
+                .HasColumnName("creationDate");
+            entity.Property(e => e.IsActive).HasColumnName("isActive");
+            entity.Property(e => e.QuestionCode)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("questionCode");
+            entity.Property(e => e.QuestionText)
+                .HasMaxLength(500)
+                .IsUnicode(false)
+                .HasColumnName("questionText");
         });
 
         modelBuilder.Entity<TSearchLocation>(entity =>
@@ -2523,6 +2548,7 @@ public partial class AssertDbContext : DbContext
             entity.Property(e => e.DateTimeReview)
                 .HasColumnType("datetime")
                 .HasColumnName("dateTimeReview");
+            entity.Property(e => e.IsComplete).HasColumnName("isComplete");
             entity.Property(e => e.ListingRentId).HasColumnName("listingRentId");
             entity.Property(e => e.UserId).HasColumnName("userId");
 
@@ -2539,6 +2565,31 @@ public partial class AssertDbContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TL_ListingReview_TU_User");
+        });
+
+        modelBuilder.Entity<TlListingReviewQuestion>(entity =>
+        {
+            entity.HasKey(e => e.ListingReviewQuestionId);
+
+            entity.ToTable("TL_ListingReviewQuestion");
+
+            entity.Property(e => e.ListingReviewQuestionId).HasColumnName("listingReviewQuestionId");
+            entity.Property(e => e.ListingReviewId).HasColumnName("listingReviewId");
+            entity.Property(e => e.Rating).HasColumnName("rating");
+            entity.Property(e => e.ReviewDate)
+                .HasColumnType("datetime")
+                .HasColumnName("reviewDate");
+            entity.Property(e => e.ReviewQuestionId).HasColumnName("reviewQuestionId");
+
+            entity.HasOne(d => d.ListingReview).WithMany(p => p.TlListingReviewQuestions)
+                .HasForeignKey(d => d.ListingReviewId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TL_ListingReviewQuestion_TL_ListingReview");
+
+            entity.HasOne(d => d.ReviewQuestion).WithMany(p => p.TlListingReviewQuestions)
+                .HasForeignKey(d => d.ReviewQuestionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TL_ListingReviewQuestion_T_ReviewQuestion");
         });
 
         modelBuilder.Entity<TlListingSecurityItem>(entity =>

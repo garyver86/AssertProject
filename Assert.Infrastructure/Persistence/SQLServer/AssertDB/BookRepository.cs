@@ -21,6 +21,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             try
             {
                 var book = await _dbContext.TbBooks
+                    .Include(lr => lr.ListingRent)
                     .FirstOrDefaultAsync(b => b.BookId == bookId);
 
                 return book ??
