@@ -33,6 +33,7 @@ namespace Assert.Application.Mappings
             CreateMap<ProcessData_Discount, ProcessData_DiscountModel>();
 
             CreateMap<TCurrency, CurrencyDTO>().ReverseMap();
+            CreateMap<TReviewQuestion, ReviewQuestionDTO>().ReverseMap();
 
             CreateMap<ListingProcessDataResultModel, ProcessDataResult>();
 
@@ -109,6 +110,8 @@ namespace Assert.Application.Mappings
 
             CreateMap<TbBook, BookDTO>()
                 .ForMember(dest => dest.CalendarDays, opt => opt.MapFrom(src => src.TlListingCalendars))
+                .ForMember(dest => dest.Photos, opt => opt.MapFrom(src => src.ListingRent != null ? src.ListingRent.TlListingPhotos : null))
+                .ForMember(dest => dest.Owner, opt => opt.MapFrom(src => src.ListingRent != null ? src.ListingRent.OwnerUser : null))
                 .ReverseMap();
 
             CreateMap<TlListingRent, ListingRentDTO>()
@@ -138,6 +141,7 @@ namespace Assert.Application.Mappings
                .ForMember(dest => dest.CalendarDays, opt => opt.MapFrom(src => src.TlListingCalendars))
                .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.TlListingPrices.FirstOrDefault()))
                .ForMember(dest => dest.Reservations, opt => opt.MapFrom(src => src.TbBooks))
+               .ForMember(dest => dest.Photos, opt => opt.MapFrom(src => src.TlListingPhotos))
                .ForMember(dest => dest.Property, opt => opt.MapFrom(src => src.TpProperties.FirstOrDefault()));
 
             CreateMap<TlListingFavorite, ListingFavoriteDTO>();
@@ -145,11 +149,13 @@ namespace Assert.Application.Mappings
 
             CreateMap<TlAccommodationType, AccomodationTypeDTO>();
             CreateMap<PayPriceCalculation, PayPriceCalculationDTO>();
+            CreateMap<PriceBreakdownItem, PriceBreakdownItemDTO>();
             CreateMap<PayMethodOfPayment, PayMethodOfPaymentDTO>();
             CreateMap<TApprovalPolicyType, ApprovalPolicyDTO>();
             CreateMap<TCancelationPolicyType, CancellationPolicyDTO>();
             CreateMap<TpRuleType, RentRuleDTO>();
             CreateMap<TuEmergencyContact, EmergencyContactDTO>().ReverseMap();
+            CreateMap<TlListingReviewQuestion, ReviewQuestionAnswerDTO>().ReverseMap();
             CreateMap<TuUser, UserDTO>().
                 ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.TuEmails.ToList().FirstOrDefault(email => email.IsPrincipal ?? true) != null ? src.TuEmails.ToList().First(email => email.IsPrincipal ?? true).Email : null))
                 .ForMember(dest => dest.PhoneNumber, opt => opt.MapFrom(src => src.TuPhones.ToList().FirstOrDefault(phone => phone.IsPrimary ?? true) != null ? src.TuPhones.ToList().First(phone => phone.IsPrimary ?? true).Number : null))
@@ -194,8 +200,11 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.RuleType != null ? src.RuleType.Description : null))
                 .ForMember(dest => dest.IconLink, opt => opt.MapFrom(src => src.RuleType != null ? src.RuleType.IconLink : null));
             CreateMap<TlListingReview, ReviewDTO>()
+                .ForMember(dest => dest.ReviewQuestions, opt => opt.MapFrom(src => src.TlListingReviewQuestions))
                 .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User != null ? $"{src.User.Name} {src.User.LastName}" : null))
                 .ForMember(dest => dest.UserProfilePhoto, opt => opt.MapFrom(src => src.User != null ? src.User.PhotoLink : null));
+            CreateMap<ReviewDTO, TlListingReview>()
+                .ForMember(dest => dest.TlListingReviewQuestions, opt => opt.MapFrom(src => src.ReviewQuestions));
             CreateMap<TlListingSecurityItem, SecurityItemDTO>()
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.SecurityItemType != null ? src.SecurityItemType.Code : null))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.SecurityItemType != null ? src.SecurityItemType.Name : null))

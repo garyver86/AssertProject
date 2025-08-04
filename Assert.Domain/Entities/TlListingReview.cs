@@ -19,9 +19,13 @@ public partial class TlListingReview
 
     public long? BookId { get; set; }
 
+    public bool? IsComplete { get; set; }
+
     public virtual TbBook? Book { get; set; }
 
     public virtual TlListingRent ListingRent { get; set; } = null!;
+
+    public virtual ICollection<TlListingReviewQuestion> TlListingReviewQuestions { get; set; } = new List<TlListingReviewQuestion>();
 
     public virtual TuUser User { get; set; } = null!;
 }

@@ -40,7 +40,7 @@ namespace Assert.Application
             });
             services.AddValidatorsFromAssemblyContaining<LoginRequestValidator>();
             services.AddValidatorsFromAssemblyContaining<LocalUserRequestValidator>();
-            services.AddScoped<IValidator<UpdatePersonalInformationRequest>, 
+            services.AddScoped<IValidator<UpdatePersonalInformationRequest>,
                 PersonalInformationBaseValidator<UpdatePersonalInformationRequest>>();
 
 
@@ -55,6 +55,7 @@ namespace Assert.Application
             services.AddScoped<IAppListingCalendarService, AppListingCalendarService>();
             services.AddScoped<IAppBookService, AppBookService>();
             services.AddScoped<IAppMethodOfPaymentService, AppMethodOfPaymentService>();
+            services.AddScoped<IAppReviewService, AppReviewService>();
 
             //Domain Services
             services.AddScoped<IListingRentService, ListingRentService>();
@@ -65,6 +66,7 @@ namespace Assert.Application
             services.AddScoped<ILocationService, LocationService>();
             services.AddScoped<IBookService, BookService>();
             services.AddScoped<IMethodOfPaymentService, MethodOfPaymentService>();
+            services.AddScoped<IReviewService, ReviewService>();
 
             return services;
         }

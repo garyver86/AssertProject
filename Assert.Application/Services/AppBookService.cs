@@ -9,7 +9,10 @@ using Assert.Domain.Services;
 using Assert.Infrastructure.Exceptions;
 using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 using AutoMapper;
+using Azure;
 using Azure.Core;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Assert.Application.Services
 {
@@ -18,22 +21,24 @@ namespace Assert.Application.Services
         IBookRepository _bookRespository,
         IMapper _mapper,
         IErrorHandler _errorHandler,
-        RequestMetadata _metadata) : IAppBookService
+        RequestMetadata _metadata,
+        ISystemConfigurationRepository _systemConfigurationRepository,
+        IHttpContextAccessor requestContext) : IAppBookService
     {
-        public async Task<ReturnModelDTO<PayPriceCalculationDTO>> CalculatePrice(
+        public async Task<ReturnModelDTO<(PayPriceCalculationDTO, List<PriceBreakdownItemDTO>)>> CalculatePrice(
             long listingRentId, DateTime startDate, DateTime endDate,
             int guestId, Dictionary<string, string> clientData, bool useTechnicalMessages)
         {
-            ReturnModelDTO<PayPriceCalculationDTO> result = new ReturnModelDTO<PayPriceCalculationDTO>();
+            ReturnModelDTO<(PayPriceCalculationDTO, List<PriceBreakdownItemDTO>)> result = new ReturnModelDTO<(PayPriceCalculationDTO, List<PriceBreakdownItemDTO>)>();
             try
             {
-                ReturnModel<PayPriceCalculation> returnModel = await _bookService.CalculatePrice(listingRentId, startDate, endDate, guestId, clientData, useTechnicalMessages);
+                ReturnModel<(PayPriceCalculation, List<PriceBreakdownItem>)> returnModel = await _bookService.CalculatePrice(listingRentId, startDate, endDate, guestId, clientData, useTechnicalMessages);
 
                 if (returnModel.StatusCode == ResultStatusCode.OK)
                 {
-                    result = new ReturnModelDTO<PayPriceCalculationDTO>
+                    result = new ReturnModelDTO<(PayPriceCalculationDTO, List<PriceBreakdownItemDTO>)>
                     {
-                        Data = _mapper.Map<PayPriceCalculationDTO>(returnModel.Data),
+                        Data = (_mapper.Map<PayPriceCalculationDTO>(returnModel.Data.Item1), _mapper.Map<List<PriceBreakdownItemDTO>>(returnModel.Data.Item2)),
                         HasError = false,
                         StatusCode = ResultStatusCode.OK
                     };
@@ -76,6 +81,20 @@ namespace Assert.Application.Services
 
             if (!(books is { Count: > 0 }))
                 throw new KeyNotFoundException($"No existen reservas para el usuario con ID {_metadata.UserId}.");
+
+            string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+            _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+            foreach (var book in books)
+            {
+                if (book.ListingRent?.TlListingPhotos?.Count > 0)
+                {
+                    foreach (var item in book.ListingRent?.TlListingPhotos)
+                    {
+                        item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                    }
+
+                }
+            }
 
             var bookDtos = _mapper.Map<List<BookDTO>>(books);
 
@@ -148,9 +167,24 @@ namespace Assert.Application.Services
 
         public async Task<ReturnModelDTO<List<BookDTO>>> GetBooksWithoutReviewByUser(int userId)
         {
-            try { 
+            try
+            {
                 var books = await _bookService.GetBooksWithoutReviewByUser(userId);
-               
+
+                string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+                _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+                foreach (var book in books)
+                {
+                    if (book.ListingRent?.TlListingPhotos?.Count > 0)
+                    {
+                        foreach (var item in book.ListingRent?.TlListingPhotos)
+                        {
+                            item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                        }
+
+                    }
+                }
+
                 var bookDtos = _mapper.Map<List<BookDTO>>(books);
                 return new ReturnModelDTO<List<BookDTO>>
                 {
@@ -165,7 +199,7 @@ namespace Assert.Application.Services
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
                 result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppBookService.GetBooksWithoutReviewByUser", ex, new { userId }, true));
-                return result ;
+                return result;
             }
         }
 

@@ -66,6 +66,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
+
         public async Task<PayPriceCalculation> GetByCode(Guid calculationCode)
         {
             using (var context = new InfraAssertDbContext(dbOptions))

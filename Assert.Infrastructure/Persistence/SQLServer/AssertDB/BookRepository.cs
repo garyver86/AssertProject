@@ -5,6 +5,7 @@ using Assert.Infrastructure.Exceptions;
 using Assert.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using static System.Reflection.Metadata.BlobBuilder;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
@@ -20,6 +21,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             try
             {
                 var book = await _dbContext.TbBooks
+                    .Include(lr => lr.ListingRent)
                     .FirstOrDefaultAsync(b => b.BookId == bookId);
 
                 return book ??
@@ -38,7 +40,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             try
             {
                 var books = await _dbContext.TbBooks
-                    .Where(b => b.UserIdRenter == userId).ToListAsync();
+                    .Where(b => b.UserIdRenter == userId)
+                    .Include(x => x.ListingRent).ThenInclude(lr => lr.OwnerUser)
+                    .Include(x => x.ListingRent.TlListingPhotos).ToListAsync();
+
+                books = books.OrderByDescending(x => x.InitDate).ToList();
                 return books ??
                     throw new KeyNotFoundException($"No existen reservas para el  usuaerio con ID {userId}.");
             }
@@ -109,8 +115,10 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 var booksWithoutReview = await context.Set<TbBook>()
                     .Where(b => b.UserIdRenter == userId)
                     .Where(b => !context.TlListingReviews.Any(r => r.Book != null && r.Book.BookId == b.BookId))
+                    .Include(x => x.ListingRent).ThenInclude(lr => lr.OwnerUser)
+                    .Include(x => x.ListingRent.TlListingPhotos)
                     .ToListAsync();
-
+                booksWithoutReview = booksWithoutReview.OrderByDescending(x => x.InitDate).ToList();
                 return booksWithoutReview;
             }
         }

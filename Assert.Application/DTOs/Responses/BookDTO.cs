@@ -60,4 +60,6 @@ public class BookDTO
 
     public decimal? VggFeePercent { get; set; }
     public List<CalendarDayDto>? CalendarDays { get; set; }
+    public UserDTO? Owner { get; set; }
+    public List<PhotoDTO>? Photos { get; set; }
 }

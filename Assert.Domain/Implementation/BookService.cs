@@ -2,10 +2,13 @@
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Json;
 using System.Reflection;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Transactions;
 using static Azure.Core.HttpHeader;
@@ -24,6 +27,8 @@ namespace Assert.Domain.Implementation
         private readonly IBookRepository _bookRepository;
         private readonly ICurrencyRespository _currencyrepository;
         private readonly IPayTransactionRepository _payTransactionRepository;
+        private readonly IListingAdditionalFeeRepository _listingAdditionalFee;
+        private readonly IAssertFeeRepository _assertFeeRepository;
 
         public BookService(
             IListingRentRepository listingRentRepository,
@@ -35,7 +40,9 @@ namespace Assert.Domain.Implementation
             IListingDiscountForRateRepository listingDiscountForRateRepository,
             IBookRepository bookRepository,
             ICurrencyRespository currencyrepository,
-            IPayTransactionRepository payTransactionRepository)
+            IPayTransactionRepository payTransactionRepository,
+            IListingAdditionalFeeRepository listingAdditionalFee,
+            IAssertFeeRepository assertFeeRepository)
         {
             _listingRentRepository = listingRentRepository;
             _listingCalendarRepository = listingCalendarRepository;
@@ -47,6 +54,8 @@ namespace Assert.Domain.Implementation
             _bookRepository = bookRepository;
             _currencyrepository = currencyrepository;
             _payTransactionRepository = payTransactionRepository;
+            _listingAdditionalFee = listingAdditionalFee;
+            _assertFeeRepository = assertFeeRepository;
         }
 
 
@@ -66,7 +75,7 @@ namespace Assert.Domain.Implementation
         /// <param name="clientData"></param>
         /// <param name="useTechnicalMessages"></param>
         /// <returns></returns>
-        public async Task<ReturnModel<PayPriceCalculation>> CalculatePrice(
+        public async Task<ReturnModel<(PayPriceCalculation, List<PriceBreakdownItem>)>> CalculatePrice(
             long listingRentId,
             DateTime startDate,
             DateTime endDate,
@@ -74,7 +83,8 @@ namespace Assert.Domain.Implementation
             Dictionary<string, string> clientData,
             bool useTechnicalMessages)
         {
-            var result = new ReturnModel<PayPriceCalculation>();
+            var result = new ReturnModel<(PayPriceCalculation, List<PriceBreakdownItem>)>();
+            var breakdown = new List<PriceBreakdownItem>();
 
             // 1. Validar existencia y estado de la propiedad
             var listing = await _listingRentRepository.Get(listingRentId, 0, onlyActive: true);
@@ -156,19 +166,34 @@ namespace Assert.Domain.Implementation
 
                 // 1. Precio base del día
                 decimal dayPrice;
+                string priceType = "STANDARD";
+
                 if (calendarDay != null && calendarDay.Price.HasValue)
                 {
                     dayPrice = calendarDay.Price.Value;
+                    priceType = "CUSTOM";
                 }
                 else
                 {
                     bool isWeekend = date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
                     if (isWeekend && priceInfo.WeekendNightlyPrice.HasValue)
+                    {
                         dayPrice = priceInfo.WeekendNightlyPrice.Value;
+                        priceType = "WEEKEND";
+                    }
                     else
+                    {
                         dayPrice = priceInfo.PriceNightly ?? 0;
+                    }
                 }
                 total += dayPrice;
+                breakdown.Add(new PriceBreakdownItem
+                {
+                    Type = "BASE_PRICE",
+                    Description = $"Precio por noche ({priceType})",
+                    Amount = dayPrice,
+                    Date = date
+                });
 
                 // 2. Descuentos por día (TLCalendarDiscount)
                 if (calendarDay != null && calendarDay.TlCalendarDiscounts != null)
@@ -177,25 +202,62 @@ namespace Assert.Domain.Implementation
                     {
                         if (calDiscount.IsDiscount)
                         {
-                            totalDiscount += dayPrice * (calDiscount.Porcentage / 100m);
+                            //totalDiscount += dayPrice * (calDiscount.Porcentage / 100m);
+                            decimal discountAmount = dayPrice * (calDiscount.Porcentage / 100m);
+                            totalDiscount += discountAmount;
+
+                            breakdown.Add(new PriceBreakdownItem
+                            {
+                                Type = "DAILY_DISCOUNT",
+                                Description = $"Descuento diario ({calDiscount.Porcentage}%)",
+                                Amount = -discountAmount,
+                                Percentage = calDiscount.Porcentage,
+                                Date = date
+                            });
                         }
                     }
                 }
 
                 //// 3. Tarifas adicionales por día (TLAdditionalFees)
-                //if (calendarDay != null && calendarDay.TlAdditionalFees != null)
+                //if (calendarDay != null && calendarDay.TlListingCalendarAdditionalFees != null)
                 //{
-                //    foreach (var fee in calendarDay.TlAdditionalFees)
+                //    foreach (var fee in calendarDay.TlListingCalendarAdditionalFees)
                 //    {
-                //        totalAdditionalFees += fee.Amount; // Asumiendo que la propiedad es Amount
+                //        decimal feeAmount = fee.IsPercent ? (total * fee.AmountFee / 100) : fee.AmountFee;
+                //        totalAdditionalFees += feeAmount;
+                //        breakdown.Add(new PriceBreakdownItem
+                //        {
+                //            Type = fee.AdditionalFee.FeeCode ?? "ADDITIONAL_FEE",
+                //            Description = fee.AdditionalFee.DeeDescription,
+                //            Amount = feeAmount,
+                //            Percentage = fee.IsPercent ? fee.AmountFee : 0,
+                //        });
                 //    }
                 //}
+                //TODO: En este caso, preguntar si se debe aplicar la tarifa adicional por día o por reserva completa. EN caso de tener
+                // tarifas adicionales por día, se debe aplicar el total de tarifas adicionales al final del cálculo?.
             }
 
-            //// 7. Sumar tarifas adicionales (ejemplo: amenities premium)
-            //var amenities = await _listingAmenityRepository.GetByListingRentId(listingRentId);
-            //decimal extraFees = amenities?.Where(a => a.IsPremium).Sum(a => a.AmenitiesType?.Price ?? 0) ?? 0;
-            //total += extraFees;
+            // 7. Sumar tarifas adicionales
+            var additionalFees = await _listingAdditionalFee.GetByListingRentId(listingRentId, listing.OwnerUserId);
+            if (additionalFees != null && additionalFees.Count > 0)
+            {
+                foreach (var fee in additionalFees)
+                {
+                    if (fee.AdditionalFee != null)
+                    {
+                        decimal feeAmount = fee.IsPercent ? (total * fee.AmountFee / 100) : fee.AmountFee;
+                        totalAdditionalFees += feeAmount;
+                        breakdown.Add(new PriceBreakdownItem
+                        {
+                            Type = fee.AdditionalFee.FeeCode ?? "ADDITIONAL_FEE",
+                            Description = fee.AdditionalFee.DeeDescription,
+                            Amount = feeAmount,
+                            Percentage = fee.IsPercent ? fee.AmountFee : 0,
+                        });
+                    }
+                }
+            }
 
             // 8. Aplicar descuentos generales
             if (discounts != null)
@@ -204,7 +266,17 @@ namespace Assert.Domain.Implementation
                 {
                     if (discount.IsDiscount)
                     {
-                        totalDiscount += total * (discount.Porcentage / 100m);
+                        //totalDiscount += total * (discount.Porcentage / 100m);
+                        decimal discountAmount = total * (discount.Porcentage / 100m);
+                        totalDiscount += discountAmount;
+
+                        breakdown.Add(new PriceBreakdownItem
+                        {
+                            Type = "GENERAL_DISCOUNT",
+                            Description = $"Descuento general ({discount.Porcentage}%)",
+                            Amount = -discountAmount,
+                            Percentage = discount.Porcentage
+                        });
                     }
                 }
             }
@@ -212,11 +284,35 @@ namespace Assert.Domain.Implementation
             // 9. Total final
             total = total + totalAdditionalFees - totalDiscount;
 
+            // 9. Aplicar fee de uso de plataforma
+            var assertFee = await _assertFeeRepository.GetAssertFee(listingRentId);
+            if (assertFee != null)
+            {
+                decimal assertFeeAmount = assertFee.FeeBase ?? 0;
+                decimal asserFeePercent = assertFee.FeePercent ?? 0;
+                if (asserFeePercent > 0)
+                {
+                    assertFeeAmount = total * (asserFeePercent / 100);
+                }
+                if (assertFeeAmount > 0)
+                {
+                    total += assertFeeAmount;
+                    breakdown.Add(new PriceBreakdownItem
+                    {
+                        Type = "PLATFORM_FEE",
+                        Description = "Tarifa de uso de plataforma",
+                        Amount = assertFeeAmount,
+                        Percentage = asserFeePercent > 0 ? asserFeePercent : null,
+                    });
+                }
+            }
+
+
             // 10. Construir el modelo de resultado
             var payPriceCalculation = new PayPriceCalculation
             {
                 Amount = total,
-                CurrencyCode = priceInfo.Currency?.Code ?? "USD",
+                CurrencyCode = priceInfo.Currency?.Code ?? "BOB",
                 CalculationDetails = $"Reserva de {nights} noches del {startDate:yyyy-MM-dd} al {endDate:yyyy-MM-dd}",
                 CreationDate = DateTime.UtcNow,
                 ExpirationDate = DateTime.UtcNow.AddMinutes(30),
@@ -226,12 +322,13 @@ namespace Assert.Domain.Implementation
                 UserAgent = clientData != null && clientData.ContainsKey("userAgent") ? clientData["userAgent"] : null,
                 InitBook = startDate,
                 EndBook = endDate,
-                ListingRentId = listingRentId
+                ListingRentId = listingRentId,
+                BreakdownInfo = JsonConvert.SerializeObject(breakdown),
             };
 
             var resultCalculation = await _payPriceCalculationRepository.Create(payPriceCalculation);
 
-            result.Data = payPriceCalculation;
+            result.Data = (payPriceCalculation, breakdown);
             result.StatusCode = ResultStatusCode.OK;
             result.HasError = false;
             return result;

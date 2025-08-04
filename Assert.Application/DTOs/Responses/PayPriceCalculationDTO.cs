@@ -6,6 +6,11 @@ using System.Threading.Tasks;
 
 namespace Assert.Application.DTOs.Responses
 {
+    public class PayPriceCalculationCompleteDTO
+    {
+        public PayPriceCalculationDTO PriceCalculation { get; set; }
+        public List<PriceBreakdownItemDTO> PriceBreakdowns { get; set; }
+    }
     public class PayPriceCalculationDTO
     {
         public long PriceCalculationId { get; set; }
@@ -35,5 +40,13 @@ namespace Assert.Application.DTOs.Responses
         public int? PaymentProviderId { get; set; }
 
         public long? PaymentTransactionId { get; set; }
+    }
+    public class PriceBreakdownItemDTO
+    {
+        public string Type { get; set; } // "BASE_PRICE", "DISCOUNT", "CLEANING_FEE", etc.
+        public string Description { get; set; }
+        public decimal Amount { get; set; }
+        public decimal? Percentage { get; set; } // Para descuentos
+        public DateTime? Date { get; set; } // Para cobros por día específico
     }
 }

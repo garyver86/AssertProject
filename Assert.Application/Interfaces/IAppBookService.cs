@@ -5,7 +5,7 @@ namespace Assert.Application.Interfaces
 {
     public interface IAppBookService
     {
-        Task<ReturnModelDTO<PayPriceCalculationDTO>> CalculatePrice(long listingRentId, DateTime startDate, DateTime endDate, int guestId,
+        Task<ReturnModelDTO<(PayPriceCalculationDTO, List<PriceBreakdownItemDTO>)>> CalculatePrice(long listingRentId, DateTime startDate, DateTime endDate, int guestId,
            Dictionary<string, string> clientData, bool useTechnicalMessages);
 
         Task<ReturnModelDTO<long>> UpsertBookAsync(BookDTO incomingBook);

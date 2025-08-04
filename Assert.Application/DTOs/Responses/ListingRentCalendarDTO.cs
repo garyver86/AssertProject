@@ -76,5 +76,6 @@ namespace Assert.Application.DTOs.Responses
         public List<BookDTO>? Reservations { get; set; }
         public List<CalendarDayDto>? CalendarDays { get; set; }
         public PropertyDTO? Property { get; set; }
+        public List<PhotoDTO> Photos { get; set; }
     }
 }
