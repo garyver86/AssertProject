@@ -349,54 +349,66 @@ namespace Assert.Domain.Implementation
                             {
                                 await _listingViewStepRepository.SetEnded(listingRentId ?? 0, viewType.ViewTypeId, true);
 
-                                if (viewType.NextViewTypeId == null)
+                                if (request_.IsPreviousOption ?? false)
                                 {
-                                    ReturnModel resultStatuses = await _listingViewStepRepository.IsAllViewsEndeds(listingRentId ?? 0);
-                                    if (resultStatuses.StatusCode == ResultStatusCode.OK)
+                                    ReturnModel<ListingProcessDataResultModel> PreviousStepResult = await _StepViewService.GetNextListingStepViewData(viewType.ViewTypeIdParent, listing, useTechnicalMessages);
+                                    if (PreviousStepResult.StatusCode == ResultStatusCode.OK)
                                     {
-                                        //var newStatus = await ChangeStatus(listingRentId ?? 0, userId, "COMPLETED", clientData, useTechnicalMessages);
-                                        var newStatus = await ChangeStatus(listingRentId ?? 0, userId, "PUBLISH", clientData, useTechnicalMessages);
-                                        if (newStatus.StatusCode != ResultStatusCode.OK)
+                                        PreviousStepResult.Data.ListingData.actualViewCode = viewType.Code;
+                                    }
+                                    return PreviousStepResult;
+                                }
+                                else
+                                {
+                                    if (viewType.NextViewTypeId == null)
+                                    {
+                                        ReturnModel resultStatuses = await _listingViewStepRepository.IsAllViewsEndeds(listingRentId ?? 0);
+                                        if (resultStatuses.StatusCode == ResultStatusCode.OK)
+                                        {
+                                            //var newStatus = await ChangeStatus(listingRentId ?? 0, userId, "COMPLETED", clientData, useTechnicalMessages);
+                                            var newStatus = await ChangeStatus(listingRentId ?? 0, userId, "PUBLISH", clientData, useTechnicalMessages);
+                                            if (newStatus.StatusCode != ResultStatusCode.OK)
+                                            {
+                                                return new ReturnModel<ListingProcessDataResultModel>
+                                                {
+                                                    HasError = false,
+                                                    StatusCode = ResultStatusCode.Accepted,
+                                                    ResultError = newStatus.ResultError
+                                                };
+                                            }
+                                            listing = await _listingRentRepository.Get(listingRentId ?? 0, userId);
+                                            ReturnModel<ListingProcessDataResultModel> NextStepResult = await _StepViewService.GetNextListingStepViewData(viewType.NextViewTypeId, listing, useTechnicalMessages);
+                                            if (NextStepResult.StatusCode == ResultStatusCode.OK)
+                                            {
+                                                NextStepResult.Data.ListingData.actualViewCode = viewType.Code;
+                                            }
+                                            return new ReturnModel<ListingProcessDataResultModel>
+                                            {
+                                                HasError = false,
+                                                StatusCode = ResultStatusCode.OK,
+                                                Data = NextStepResult.Data
+                                            };
+                                        }
+                                        else
                                         {
                                             return new ReturnModel<ListingProcessDataResultModel>
                                             {
                                                 HasError = false,
                                                 StatusCode = ResultStatusCode.Accepted,
-                                                ResultError = newStatus.ResultError
+                                                ResultError = resultStatuses.ResultError
                                             };
                                         }
+                                    }
+                                    else
+                                    {
                                         listing = await _listingRentRepository.Get(listingRentId ?? 0, userId);
                                         ReturnModel<ListingProcessDataResultModel> NextStepResult = await _StepViewService.GetNextListingStepViewData(viewType.NextViewTypeId, listing, useTechnicalMessages);
                                         if (NextStepResult.StatusCode == ResultStatusCode.OK)
                                         {
                                             NextStepResult.Data.ListingData.actualViewCode = viewType.Code;
                                         }
-                                        return new ReturnModel<ListingProcessDataResultModel>
-                                        {
-                                            HasError = false,
-                                            StatusCode = ResultStatusCode.OK,
-                                            Data = NextStepResult.Data
-                                        };
+                                        return NextStepResult;
                                     }
-                                    else
-                                    {
-                                        return new ReturnModel<ListingProcessDataResultModel>
-                                        {
-                                            HasError = false,
-                                            StatusCode = ResultStatusCode.Accepted,
-                                            ResultError = resultStatuses.ResultError
-                                        };
-                                    }
-                                }
-                                else
-                                {
-                                    listing = await _listingRentRepository.Get(listingRentId ?? 0, userId);
-                                    ReturnModel<ListingProcessDataResultModel> NextStepResult = await _StepViewService.GetNextListingStepViewData(viewType.NextViewTypeId, listing, useTechnicalMessages);
-                                    if (NextStepResult.StatusCode == ResultStatusCode.OK)
-                                    {
-                                        NextStepResult.Data.ListingData.actualViewCode = viewType.Code;
-                                    }
-                                    return NextStepResult;
                                 }
                             }
                             else

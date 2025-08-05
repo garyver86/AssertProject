@@ -62,4 +62,5 @@ public class BookDTO
     public List<CalendarDayDto>? CalendarDays { get; set; }
     public UserDTO? Owner { get; set; }
     public List<PhotoDTO>? Photos { get; set; }
+    public ListingRentDTO? ListingRent { get; set; }
 }

@@ -4,6 +4,7 @@ namespace Assert.Application.DTOs.Responses
 {
     public class ProcessDataRequest
     {
+        public bool? IsPreviousOption { get; set; }
         public long? ListingRentId { get; set; }
         public int Step { get; set; }
         public string ViewCode { get; set; }
