@@ -123,6 +123,7 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.TlListingPrices.FirstOrDefault()))
                 .ForMember(dest => dest.CheckInOutPolicies, opt => opt.MapFrom(src => src.TlCheckInOutPolicies))
                 .ForMember(dest => dest.Amenities, opt => opt.MapFrom(src => src.TlListingAmenities))
+                .ForMember(dest => dest.FeaturedAspects, opt => opt.MapFrom(src => src.TlListingFeaturedAspects))
                 .ForMember(dest => dest.Photos, opt => opt.MapFrom(src => src.TlListingPhotos))
                 .ForMember(dest => dest.RentRules, opt => opt.MapFrom(src => src.TlListingRentRules))
                 .ForMember(dest => dest.SecurityItems, opt => opt.MapFrom(src => src.TlListingSecurityItems))
