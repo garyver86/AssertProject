@@ -10,5 +10,8 @@ namespace Assert.Domain.Repositories
         Task<List<TlListingPhoto>> GetByListingRentId(long listinRentId, int userID);
         Task<ReturnModel> UploadPhoto(long listingRentId, string fileName, string description, int? spaceType, bool isMain);
         Task<TlListingPhoto> UpdatePhoto(long listingRentId, ProcessData_PhotoModel photo);
+
+        Task<string> UpdatePhotoPosition(long listingRentId, long listingPhotoId, int newPostition);
+        Task<string> SortListingRentPhotos();
     }
 }

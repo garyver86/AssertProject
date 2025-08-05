@@ -63,5 +63,8 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<List<ListingRentCalendarDTO>>> GetCalendarByOwner(Dictionary<string, string> requestInfo, bool v);
         Task<ReturnModelDTO<ProcessDataResult>> GetLastView(long listinRentId, int userId);
         Task<ReturnModelDTO<List<ListingRentDTO>>> GetUnfinished(int userId);
+
+        Task<ReturnModelDTO<string>> UpdatePhotoPosition(long listingRentId, long listingPhotoId, int newPostition);
+        Task<ReturnModelDTO<string>> SortListingRentPhotos();
     }
 }

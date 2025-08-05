@@ -83,6 +83,7 @@ namespace Assert.API.Controllers
             var result = await _appListingRentService.GetLastView(listinRentId, _metadata.UserId);
             return result;
         }
+       
         /// <summary>
         /// Servicio que devuelve la lista de propiedades cuyo registro no ha finalizado
         /// </summary>
@@ -547,5 +548,45 @@ namespace Assert.API.Controllers
             List<int> ruleIds)
         => await _appListingRentService.UpdateRules(listingRentId,
             ruleIds);
+
+        /// <summary>
+        /// Servicio que actualiza la posición de una foto en el orden de presentación dentro de un Listing Rent.
+        /// </summary>
+        /// <param name="listingRentId">ID del Listing Rent al que pertenece la foto</param>
+        /// <param name="listingPhotoId">ID de la foto cuya posición se desea modificar</param>
+        /// <param name="newPostition">Nueva posición que se desea asignar a la foto en el listado</param>
+        /// <returns>UPDATED</returns>
+        /// <response code="200">Detalle del Listing Rent con la nueva posición de la foto aplicada</response>
+        /// <remarks>
+        /// Requisitos:
+        /// - El Listing Rent y la foto deben existir previamente.
+        /// - La nueva posición debe ser un número entero positivo dentro del rango permitido.
+        /// - La operación debe mantener la integridad del orden de las demás fotos.
+        /// </remarks>
+        [HttpPut()]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("{listingRentId}/UpdatePhotoPosition")]
+        public async Task<ReturnModelDTO> UpdatePhotoPosition(long listingRentId, 
+            long listingPhotoId, int newPostition)
+        => await _appListingRentService.UpdatePhotoPosition(listingRentId,
+            listingPhotoId, newPostition);
+
+        /// <summary>
+        /// Servicio que reorganiza el orden de las fotos asociadas a un Listing Rent.
+        /// </summary>
+        /// <returns>Modelo con los detalles actualizados del Listing Rent y el nuevo orden aplicado</returns>
+        /// <response code="200">UPDATED</response>
+        /// <remarks>
+        /// Requisitos:
+        /// - La identificación del Listing Rent debe estar contenida en el contexto interno o ser deducida por el servicio.
+        /// - La nueva secuencia de fotos debe ser provista en el cuerpo de la petición (por ejemplo, lista ordenada de IDs).
+        /// - Todas las fotos deben pertenecer al Listing Rent involucrado.
+        /// - La operación debe validar integridad del orden y evitar colisiones.
+        /// </remarks>
+        [HttpPut()]
+        [AllowAnonymous]
+        [Route("SortListingRentPhotos")]
+        public async Task<ReturnModelDTO> SortListingRentPhotos()
+        => await _appListingRentService.SortListingRentPhotos();
     }
 }

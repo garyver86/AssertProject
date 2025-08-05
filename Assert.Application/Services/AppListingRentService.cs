@@ -934,5 +934,49 @@ namespace Assert.Application.Services
             }
             return result;
         }
+
+        public async Task<ReturnModelDTO<string>> UpdatePhotoPosition(long listingRentId, long listingPhotoId, int newPostition)
+        {
+            try
+            {
+                var updateResult = await _listingPhotoRepository
+                    .UpdatePhotoPosition(listingRentId, listingPhotoId, newPostition);
+
+                return new ReturnModelDTO<string>
+                {
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK,
+                    Data = updateResult
+                };
+            }
+            catch(Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { listingRentId, listingPhotoId, newPostition });
+                throw new Exceptions.ApplicationException(ex.Message);
+            }
+        }
+
+        public async Task<ReturnModelDTO<string>> SortListingRentPhotos()
+        {
+            try
+            {
+                var sortResult = await _listingPhotoRepository.SortListingRentPhotos();
+
+                return new ReturnModelDTO<string>
+                {
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK,
+                    Data = sortResult
+                };
+
+            }
+            catch(Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, 0);
+                throw new Exceptions.ApplicationException(ex.Message);
+            }
+        }
     }
 }
