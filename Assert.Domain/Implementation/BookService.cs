@@ -457,6 +457,19 @@ namespace Assert.Domain.Implementation
 
             var resultBlock = await _listingCalendarRepository.BulkBlockDaysAsync(priceCalculation.ListingRentId ?? 0, dates, 2, "Alquiler de propiedad", bookId);
 
+            if (priceCalculation.ListingRent?.PreparationDays > 0)
+            {
+                DateTime initPreparation = booking.EndDate.AddDays(1);
+                DateTime endPreparation = booking.EndDate.AddDays(priceCalculation.ListingRent?.PreparationDays ?? 1);
+                List<DateOnly> preparationDates = new List<DateOnly>();
+
+                for (var date = initPreparation; date <= endPreparation; date = date.AddDays(1))
+                {
+                    preparationDates.Add(DateOnly.FromDateTime(date));
+                }
+                var resultBlockPreparation = await _listingCalendarRepository.BulkBlockDaysAsync(priceCalculation.ListingRentId ?? 0, preparationDates, 3, "Preparación", bookId);
+            }
+
             var resultStatusUpdate = await _payPriceCalculationRepository.SetAsPayed(paymentRequest.CalculationCode, paymentRequest.PaymentProviderId,
                 paymentRequest.MethodOfPaymentId, savedTransaction);
 

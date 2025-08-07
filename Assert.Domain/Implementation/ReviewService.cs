@@ -22,7 +22,7 @@ namespace Assert.Domain.Implementation
         {
             _reviewRepository = reviewRepository;
             _questionRepository = questionRepository;
-            _bookRepository = bookRepository;
+            _bookRepository = bookRepository; ;
         }
 
         private async Task<decimal> CalculateReviewAverageAsync(long listingReviewId)
@@ -114,7 +114,7 @@ namespace Assert.Domain.Implementation
             int prom = decimalPart >= 0.6m ? (int)Math.Ceiling(average) : (int)Math.Floor(average);
             review.Calification = prom;
             review.IsComplete = answers.Count == questions.Count;
-
+            _reviewRepository.UpdateReviewsAverage(bookInfo.ListingRentId);
             await _reviewRepository.UpdateReviewAsync(review);
 
             return await GetReviewDetailsAsync(review.BookId ?? 0);
