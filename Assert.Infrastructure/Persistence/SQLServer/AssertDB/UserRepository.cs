@@ -103,6 +103,62 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
+
+        public async Task<ReturnModel> BlockAsHost(int userId, int id)
+        {
+            TuUser? user = _dbContext.TuUsers.Where(x => x.UserId == id).FirstOrDefault();
+            if (user != null)
+            {
+                user.BlockAsHost = true;
+
+                await _dbContext.SaveChangesAsync();
+                return new ReturnModel
+                {
+                    StatusCode = ResultStatusCode.OK
+                };
+
+            }
+            else
+            {
+
+                return new ReturnModel
+                {
+                    StatusCode = ResultStatusCode.NotFound,
+                    ResultError = new ErrorCommon
+                    {
+                        Message = "El registro no ha sido encontrado."
+                    }
+                };
+            }
+        }
+
+        public async Task<ReturnModel> UnblockAsHost(int userId, int id)
+        {
+            TuUser? user = _dbContext.TuUsers.Where(x => x.UserId == id).FirstOrDefault();
+            if (user != null)
+            {
+                user.BlockAsHost = false;
+
+                await _dbContext.SaveChangesAsync();
+                return new ReturnModel
+                {
+                    StatusCode = ResultStatusCode.OK
+                };
+
+            }
+            else
+            {
+
+                return new ReturnModel
+                {
+                    StatusCode = ResultStatusCode.NotFound,
+                    ResultError = new ErrorCommon
+                    {
+                        Message = "El registro no ha sido encontrado."
+                    }
+                };
+            }
+        }
         public async Task<ReturnModel<bool>> ExistLocalUser(string userName)
         {
             try

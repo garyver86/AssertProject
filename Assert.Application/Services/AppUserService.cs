@@ -165,6 +165,36 @@ public class AppUserService(
         }
     }
 
+    public async Task<ReturnModelDTO> BlockAsHost(int userBlockedid, int userId, Dictionary<string, string> clientData, bool useTechnicalMessages)
+    {
+        try
+        {
+            var result = await _userService.BlockAsHost(userId, userBlockedid);
+            var dataResult = _mapper.Map<ReturnModelDTO>(result);
+
+            return dataResult;
+        }
+        catch (Exception ex)
+        {
+            return HandleException<ReturnModelDTO>("AppUserService.BlockAsHost", ex, new { userId, userBlockedid, clientData }, useTechnicalMessages);
+        }
+    }
+
+    public async Task<ReturnModelDTO> UnblockAsHost(int userBlockedid, int userId, Dictionary<string, string> clientData, bool useTechnicalMessages)
+    {
+        try
+        {
+            var result = await _userService.UnblockAsHost(userId, userBlockedid);
+            var dataResult = _mapper.Map<ReturnModelDTO>(result);
+
+            return dataResult;
+        }
+        catch (Exception ex)
+        {
+            return HandleException<ReturnModelDTO>("AppUserService.UnblockAsHost", ex, new { userId, userBlockedid, clientData }, useTechnicalMessages);
+        }
+    }
+
     public async Task<ReturnModelDTO> EnableHostRole(long userId, Dictionary<string, string> clientData, bool useTechnicalMessages)
     {
         try
@@ -425,7 +455,7 @@ public class AppUserService(
     public async Task<ReturnModelDTO> GetAdditionalProfile()
     {
         var additionalProfile = await _userRepository.GetAdditionalProfile();
-        if(additionalProfile == null)
+        if (additionalProfile == null)
         {
             return new ReturnModelDTO
             {

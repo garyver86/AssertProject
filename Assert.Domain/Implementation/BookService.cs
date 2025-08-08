@@ -102,6 +102,13 @@ namespace Assert.Domain.Implementation
                 result.ResultError = new ErrorCommon { Message = "La propiedad no está disponible para reservas." };
                 return result;
             }
+            else if (listing.OwnerUser.BlockAsHost == true)
+            {
+                result.HasError = true;
+                result.StatusCode = ResultStatusCode.BadRequest;
+                result.ResultError = new ErrorCommon { Message = "La propiedad no está disponible para reservas (bl)." };
+                return result;
+            }
 
             // 2. Validar fechas
             if (startDate >= endDate)

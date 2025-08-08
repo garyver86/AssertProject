@@ -39,6 +39,10 @@ public partial class TuUser
 
     public string? FavoriteName { get; set; }
 
+    public bool? BlockAsHost { get; set; }
+
+    public DateTime? BlockAsHostDateTime { get; set; }
+
     public virtual TuAccountType AccountTypeNavigation { get; set; } = null!;
 
     public virtual TuGenderType? GenderType { get; set; }

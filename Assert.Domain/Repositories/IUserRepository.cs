@@ -35,5 +35,7 @@ namespace Assert.Domain.Repositories
             string introduceYourself, int cityId, string cityName, string location);
 
         Task<string> UpdateProfilePhoto(string photoLink);
+        Task<ReturnModel> BlockAsHost(int userId, int id);
+        Task<ReturnModel> UnblockAsHost(int userId, int id);
     }
 }

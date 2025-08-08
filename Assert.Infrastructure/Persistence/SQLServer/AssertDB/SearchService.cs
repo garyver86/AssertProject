@@ -39,6 +39,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
             query = query.Where(x => x.ListingStatus.Code == "PUBLISH");
 
+            query = query.Where(p => p.OwnerUser.BlockAsHost != true);
+
+
             if (filters.CityId > 0)
             {
                 query = query.Where(p => p.TpProperties.FirstOrDefault().CityId == filters.CityId);
