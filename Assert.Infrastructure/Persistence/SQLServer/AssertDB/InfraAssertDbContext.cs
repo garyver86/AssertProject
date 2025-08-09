@@ -3812,6 +3812,10 @@ public partial class InfraAssertDbContext : DbContext
 
             entity.Property(e => e.UserId).HasColumnName("userId");
             entity.Property(e => e.AccountType).HasColumnName("accountType");
+            entity.Property(e => e.BlockAsHost).HasColumnName("blockAsHost");
+            entity.Property(e => e.BlockAsHostDateTime)
+                .HasColumnType("datetime")
+                .HasColumnName("blockAsHostDateTime");
             entity.Property(e => e.DateOfBirth).HasColumnName("dateOfBirth");
             entity.Property(e => e.FavoriteName)
                 .HasMaxLength(100)

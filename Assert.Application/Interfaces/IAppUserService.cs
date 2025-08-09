@@ -21,5 +21,6 @@ public interface IAppUserService
     Task<ReturnModelDTO> GetAdditionalProfile();
     Task<ReturnModelDTO> UpsertAdditionalProfile(AdditionalProfileDataDTO additionalProfileData);
     Task<ReturnModelDTO> UpdateProfilePhoto(IFormFile profilePhoto);
-
+    Task<ReturnModelDTO> BlockAsHost(int userBlockedid, int userId, Dictionary<string, string> clientData, bool useTechnicalMessages);
+    Task<ReturnModelDTO> UnblockAsHost(int userBlockedid, int userId, Dictionary<string, string> clientData, bool useTechnicalMessages);
 }

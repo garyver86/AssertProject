@@ -16,5 +16,6 @@ namespace Assert.Domain.Repositories
         Task SaveAnswersAsync(List<TlListingReviewQuestion> answers);
         Task<int> GetTotalActiveQuestionsAsync();
         Task<int> GetAnsweredQuestionsCountAsync(long bookid);
+        Task UpdateReviewsAverage(long listingRentId);
     }
 }

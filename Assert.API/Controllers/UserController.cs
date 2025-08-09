@@ -1,6 +1,7 @@
 ﻿using Assert.API.Helpers;
 using Assert.Application.DTOs.Requests;
 using Assert.Application.DTOs.Responses;
+using Assert.Domain.Common.Metadata;
 using Assert.Domain.Models;
 using Assert.Domain.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -12,9 +13,11 @@ namespace Assert.API.Controllers;
 public class UserController : Controller
 {
     private readonly IAppUserService _userService;
-    public UserController(IAppUserService userService)
+    private readonly RequestMetadata _metadata;
+    public UserController(IAppUserService userService, RequestMetadata metadata)
     {
         _userService = userService;
+        _metadata = metadata;
     }
 
     /// <summary>
@@ -222,7 +225,7 @@ public class UserController : Controller
     [HttpPost("UpsertAdditionalProfileData")]
     [Authorize(Policy = "GuestOrHostOrAdmin")]
     public async Task<ReturnModelDTO> UpsertAdditionalProfileData([FromBody] AdditionalProfileDataDTO data)
-    =>  await _userService.UpsertAdditionalProfile(data);
+    => await _userService.UpsertAdditionalProfile(data);
 
     /// <summary>
     /// Servicio actualiza foto de perfil.
@@ -236,4 +239,31 @@ public class UserController : Controller
     [Authorize(Policy = "GuestOrHostOrAdmin")]
     public async Task<ReturnModelDTO> UpdateProfilePhoto(ProfilePhotoRequestDTO profilePhotoRequest)
     => await _userService.UpdateProfilePhoto(profilePhotoRequest.ProfilePhoto);
+
+    /// <summary>
+    /// Servicio para bloquear un usuario como host.
+    /// </summary>
+    /// <param name="id">Id del usuario a bloquear</param>
+    /// <returns>Confirmación de la actualizacion</returns>
+    /// <response code="200">Si se proceso correctamente.</response>
+    /// <remarks>
+    /// Esta acción bloquea a un usuario para que no pueda realizar tareas de host, por lo que sus propiedades
+    /// no podran aparecer en busquedas, en listas de sugerencias, tampoco se podrán realizar cotizaciones (Solo permitirá crear una reserva
+    /// si el pago se realizó antes del bloqueo, para evitar que un usuario pague y no obtenga el servicio y evitar malas experiencias).
+    /// </remarks>
+    [HttpPut("{id}/BlockAsHost")]
+    [Authorize(Policy = "GuestOrHostOrAdmin")]
+    public async Task<ReturnModelDTO> BlockAsHost(int id)
+    => await _userService.BlockAsHost(id, _metadata.UserId, HttpContext.GetRequestInfo(), true);
+
+    /// <summary>
+    /// Servicio para desbloquear un usuario como host.
+    /// </summary>
+    /// <param name="id">Id del usuario a desbloquear</param>
+    /// <returns>Confirmación de la actualizacion</returns>
+    /// <response code="200">Si se proceso correctamente.</response>
+    [HttpPut("{id}/UnblockAsHost")]
+    [Authorize(Policy = "GuestOrHostOrAdmin")]
+    public async Task<ReturnModelDTO> UnblockAsHost(int id)
+    => await _userService.UnblockAsHost(id, _metadata.UserId, HttpContext.GetRequestInfo(), true);
 }

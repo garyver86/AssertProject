@@ -102,6 +102,13 @@ namespace Assert.Domain.Implementation
                 result.ResultError = new ErrorCommon { Message = "La propiedad no está disponible para reservas." };
                 return result;
             }
+            else if (listing.OwnerUser.BlockAsHost == true)
+            {
+                result.HasError = true;
+                result.StatusCode = ResultStatusCode.BadRequest;
+                result.ResultError = new ErrorCommon { Message = "La propiedad no está disponible para reservas (bl)." };
+                return result;
+            }
 
             // 2. Validar fechas
             if (startDate >= endDate)
@@ -456,6 +463,19 @@ namespace Assert.Domain.Implementation
             }
 
             var resultBlock = await _listingCalendarRepository.BulkBlockDaysAsync(priceCalculation.ListingRentId ?? 0, dates, 2, "Alquiler de propiedad", bookId);
+
+            if (priceCalculation.ListingRent?.PreparationDays > 0)
+            {
+                DateTime initPreparation = booking.EndDate.AddDays(1);
+                DateTime endPreparation = booking.EndDate.AddDays(priceCalculation.ListingRent?.PreparationDays ?? 1);
+                List<DateOnly> preparationDates = new List<DateOnly>();
+
+                for (var date = initPreparation; date <= endPreparation; date = date.AddDays(1))
+                {
+                    preparationDates.Add(DateOnly.FromDateTime(date));
+                }
+                var resultBlockPreparation = await _listingCalendarRepository.BulkBlockDaysAsync(priceCalculation.ListingRentId ?? 0, preparationDates, 3, "Preparación", bookId);
+            }
 
             var resultStatusUpdate = await _payPriceCalculationRepository.SetAsPayed(paymentRequest.CalculationCode, paymentRequest.PaymentProviderId,
                 paymentRequest.MethodOfPaymentId, savedTransaction);

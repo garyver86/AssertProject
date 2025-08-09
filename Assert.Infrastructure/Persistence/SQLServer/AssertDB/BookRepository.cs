@@ -42,7 +42,55 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 var books = await _dbContext.TbBooks
                     .Where(b => b.UserIdRenter == userId)
                     .Include(x => x.ListingRent).ThenInclude(lr => lr.OwnerUser)
-                    .Include(x => x.ListingRent.TlListingPhotos).ToListAsync();
+                    .Include(x => x.ListingRent.TlListingPhotos)
+                    .Include(x => x.ListingRent.TpProperties).ToListAsync();
+
+                if (books != null)
+                {
+                    foreach (var book in books)
+                    {
+                        if (book?.ListingRent?.TpProperties?.Count > 0)
+                        {
+                            foreach (var prop in book.ListingRent.TpProperties)
+                            {
+                                prop.TpPropertyAddresses = new List<TpPropertyAddress>
+                                {
+                                    new TpPropertyAddress
+                                    {
+                                        Address1 = prop.Address1,
+                                        Address2 = prop.Address2,
+                                        CityId = prop.CityId,
+                                        CountyId = prop.CountyId,
+                                        ZipCode = prop.ZipCode,
+                                        StateId = prop.StateId,
+                                        City = new TCity
+                                        {
+                                            CityId = prop.CityId??0,
+                                            Name = prop.CityName,
+                                            CountyId = prop.CountyId??0,
+                                            County = new TCounty
+                                            {
+                                                CountyId = prop.CountyId ?? 0,
+                                                Name = prop.CountyName,
+                                                StateId = prop.StateId??0,
+                                                State = new TState
+                                                {
+                                                    Name = prop.StateName,
+                                                    StateId = prop.StateId ?? 0,
+                                                    Country = new TCountry
+                                                    {
+                                                        Name = prop.CountryName,
+                                                        CountryId = prop.CountryId ?? 0
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                };
+                            }
+                        }
+                    }
+                }
 
                 books = books.OrderByDescending(x => x.InitDate).ToList();
                 return books ??
@@ -117,7 +165,57 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Where(b => !context.TlListingReviews.Any(r => r.Book != null && r.Book.BookId == b.BookId))
                     .Include(x => x.ListingRent).ThenInclude(lr => lr.OwnerUser)
                     .Include(x => x.ListingRent.TlListingPhotos)
+                    .Include(x => x.ListingRent.TpProperties)
                     .ToListAsync();
+
+                if (booksWithoutReview != null)
+                {
+                    foreach (var book in booksWithoutReview)
+                    {
+                        if (book?.ListingRent?.TpProperties?.Count > 0)
+                        {
+                            foreach (var prop in book.ListingRent.TpProperties)
+                            {
+                                prop.TpPropertyAddresses = new List<TpPropertyAddress>
+                                {
+                                    new TpPropertyAddress
+                                    {
+                                        Address1 = prop.Address1,
+                                        Address2 = prop.Address2,
+                                        CityId = prop.CityId,
+                                        CountyId = prop.CountyId,
+                                        ZipCode = prop.ZipCode,
+                                        StateId = prop.StateId,
+                                        City = new TCity
+                                        {
+                                            CityId = prop.CityId??0,
+                                            Name = prop.CityName,
+                                            CountyId = prop.CountyId??0,
+                                            County = new TCounty
+                                            {
+                                                CountyId = prop.CountyId ?? 0,
+                                                Name = prop.CountyName,
+                                                StateId = prop.StateId??0,
+                                                State = new TState
+                                                {
+                                                    Name = prop.StateName,
+                                                    StateId = prop.StateId ?? 0,
+                                                    Country = new TCountry
+                                                    {
+                                                        Name = prop.CountryName,
+                                                        CountryId = prop.CountryId ?? 0
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                };
+                            }
+                        }
+                    }
+                }
+
+
                 booksWithoutReview = booksWithoutReview.OrderByDescending(x => x.InitDate).ToList();
                 return booksWithoutReview;
             }

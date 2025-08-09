@@ -350,7 +350,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Include(x => x.TlListingSpecialDatePrices)
                     .Include(x => x.TlListingReviews)
                     .AsNoTracking()
-                    .Where(x => x.ListingStatusId == 3 && (countryId == null || countryId == 0 || x.TpProperties.FirstOrDefault().CountryId == countryId))
+                    .Where(x => x.ListingStatusId == 3 && (countryId == null || countryId == 0 || x.TpProperties.FirstOrDefault().CountryId == countryId) &&
+                             x.OwnerUser.BlockAsHost != true)
                     //.OrderByDescending(x => x.TlListingReviews.Average(y => y.Calification));
                     .OrderByDescending(x => x.AvgReviews);
 

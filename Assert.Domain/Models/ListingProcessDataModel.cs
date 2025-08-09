@@ -45,6 +45,7 @@
         public int? privateBathroomLodging { get; set; }
         public int? sharedBathroom { get; set; }
         public int? cancelPolicyTypeId { get; set; }
+        public bool? IsPreviousOption { get; set; }
     }
     public class CheckInPoliciesModel
     {
