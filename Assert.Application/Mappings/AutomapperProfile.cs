@@ -166,6 +166,7 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.Documents, opt => opt.MapFrom(src => src.TuDocuments))
                 .ForMember(dest => dest.Phones, opt => opt.MapFrom(src => src.TuPhones))
                 .ForMember(dest => dest.ProfilePhotos, opt => opt.MapFrom(src => src.TuProfilePhotos));
+            CreateMap<UserDTO, TuUser>();
             CreateMap<TpProperty, PropertyDTO>()
                 .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.TpPropertyAddresses.FirstOrDefault()))
                 .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.PropertySubtype));
@@ -206,7 +207,8 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User != null ? $"{src.User.Name} {src.User.LastName}" : null))
                 .ForMember(dest => dest.UserProfilePhoto, opt => opt.MapFrom(src => src.User != null ? src.User.PhotoLink : null));
             CreateMap<ReviewDTO, TlListingReview>()
-                .ForMember(dest => dest.TlListingReviewQuestions, opt => opt.MapFrom(src => src.ReviewQuestions));
+                .ForMember(dest => dest.TlListingReviewQuestions, opt => opt.MapFrom(src => src.ReviewQuestions))
+                .ForMember(dest => dest.User, opt => opt.MapFrom(src => src.User));
             CreateMap<TlListingSecurityItem, SecurityItemDTO>()
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.SecurityItemType != null ? src.SecurityItemType.Code : null))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.SecurityItemType != null ? src.SecurityItemType.Name : null))
