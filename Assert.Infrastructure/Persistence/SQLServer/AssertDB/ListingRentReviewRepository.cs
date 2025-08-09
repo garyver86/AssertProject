@@ -173,8 +173,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task UpdateReviewAsync(TlListingReview review)
         {
-            _context.TlListingReviews.Update(review);
-            await _context.SaveChangesAsync();
+            using (var dbContext = new InfraAssertDbContext(dbOptions))
+            {
+                dbContext.TlListingReviews.Update(review);
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task SaveAnswersAsync(List<TlListingReviewQuestion> answers)

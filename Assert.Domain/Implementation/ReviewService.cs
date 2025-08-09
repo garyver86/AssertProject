@@ -1,6 +1,7 @@
 ﻿using Assert.Domain.Entities;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
+using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -113,11 +114,17 @@ namespace Assert.Domain.Implementation
             // Redondear hacia arriba si la parte decimal es >= 0.6
             int prom = decimalPart >= 0.6m ? (int)Math.Ceiling(average) : (int)Math.Floor(average);
             review.Calification = prom;
-            review.IsComplete = answers.Count == questions.Count;
             _reviewRepository.UpdateReviewsAverage(bookInfo.ListingRentId);
             await _reviewRepository.UpdateReviewAsync(review);
 
-            return await GetReviewDetailsAsync(review.BookId ?? 0);
+            var result = await GetReviewDetailsAsync(review.BookId ?? 0);
+            if (!(result.IsComplete ?? false) && result.TlListingReviewQuestions?.Count == questions.Count && !(result.Comment.IsNullOrEmpty()))
+            {
+                review.IsComplete = true;
+                _reviewRepository.UpdateReviewAsync(review);
+                result.IsComplete = review.IsComplete;
+            }
+            return result;
         }
 
         public async Task<List<TReviewQuestion>> GetReviewsQuestions()
