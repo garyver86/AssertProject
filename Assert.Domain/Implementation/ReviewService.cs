@@ -84,7 +84,7 @@ namespace Assert.Domain.Implementation
 
                 review = await _reviewRepository.CreateReviewAsync(review);
             }
-            else if (reviewDto.Comment != null)
+            else if (reviewDto.Comment != null && reviewDto.Comment != "" && review.Comment != reviewDto.Comment)
             {
                 review.Comment = reviewDto.Comment;
             }

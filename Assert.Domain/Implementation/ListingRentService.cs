@@ -305,7 +305,7 @@ namespace Assert.Domain.Implementation
                         {
                             await _listingViewStepRepository.SetEnded(newListing.Data?.ListingRentId ?? 0, viewType.ViewTypeId, true);
                             newListing.Data = await _listingRentRepository.Get(newListing.Data?.ListingRentId ?? 0, userId);
-                            ReturnModel<ListingProcessDataResultModel> NextStepResult = await _StepViewService.GetNextListingStepViewData(viewType.NextViewTypeId, newListing.Data, useTechnicalMessages);
+                            ReturnModel<ListingProcessDataResultModel> NextStepResult = await _StepViewService.GetNextListingStepViewData(viewType.NextViewTypeId, newListing.Data, useTechnicalMessages, true);
                             if (NextStepResult.StatusCode == ResultStatusCode.OK)
                             {
                                 NextStepResult.Data.ListingData.actualViewCode = viewType.Code;
@@ -351,7 +351,7 @@ namespace Assert.Domain.Implementation
 
                                 if (request_.IsPreviousOption ?? false)
                                 {
-                                    ReturnModel<ListingProcessDataResultModel> PreviousStepResult = await _StepViewService.GetNextListingStepViewData(viewType.ViewTypeIdParent, listing, useTechnicalMessages);
+                                    ReturnModel<ListingProcessDataResultModel> PreviousStepResult = await _StepViewService.GetNextListingStepViewData(viewType.ViewTypeIdParent, listing, useTechnicalMessages, false);
                                     if (PreviousStepResult.StatusCode == ResultStatusCode.OK)
                                     {
                                         PreviousStepResult.Data.ListingData.actualViewCode = viewType.Code;
@@ -377,7 +377,7 @@ namespace Assert.Domain.Implementation
                                                 };
                                             }
                                             listing = await _listingRentRepository.Get(listingRentId ?? 0, userId);
-                                            ReturnModel<ListingProcessDataResultModel> NextStepResult = await _StepViewService.GetNextListingStepViewData(viewType.NextViewTypeId, listing, useTechnicalMessages);
+                                            ReturnModel<ListingProcessDataResultModel> NextStepResult = await _StepViewService.GetNextListingStepViewData(viewType.NextViewTypeId, listing, useTechnicalMessages, true);
                                             if (NextStepResult.StatusCode == ResultStatusCode.OK)
                                             {
                                                 NextStepResult.Data.ListingData.actualViewCode = viewType.Code;
@@ -402,7 +402,7 @@ namespace Assert.Domain.Implementation
                                     else
                                     {
                                         listing = await _listingRentRepository.Get(listingRentId ?? 0, userId);
-                                        ReturnModel<ListingProcessDataResultModel> NextStepResult = await _StepViewService.GetNextListingStepViewData(viewType.NextViewTypeId, listing, useTechnicalMessages);
+                                        ReturnModel<ListingProcessDataResultModel> NextStepResult = await _StepViewService.GetNextListingStepViewData(viewType.NextViewTypeId, listing, useTechnicalMessages, true);
                                         if (NextStepResult.StatusCode == ResultStatusCode.OK)
                                         {
                                             NextStepResult.Data.ListingData.actualViewCode = viewType.Code;
@@ -517,7 +517,7 @@ namespace Assert.Domain.Implementation
         public async Task<ReturnModel<ListingProcessDataResultModel>> GetLastView(long listinRentId, int ownerId)
         {
             TlListingStepsView lastView = await _listingViewStepRepository.GetLastView(listinRentId, ownerId);
-            if(lastView == null)
+            if (lastView == null)
             {
                 return new ReturnModel<ListingProcessDataResultModel>
                 {
@@ -527,7 +527,7 @@ namespace Assert.Domain.Implementation
             }
             else
             {
-               
+
                 TlListingRent listingRent = await _listingRentRepository.Get(listinRentId, ownerId);
                 if (listingRent == null)
                 {
@@ -537,7 +537,7 @@ namespace Assert.Domain.Implementation
                         ResultError = _errorHandler.GetError(ResultStatusCode.NotFound, "No se encontró el listing rent.", true)
                     };
                 }
-                if(listingRent.OwnerUserId != ownerId)
+                if (listingRent.OwnerUserId != ownerId)
                 {
                     return new ReturnModel<ListingProcessDataResultModel>
                     {
@@ -545,7 +545,7 @@ namespace Assert.Domain.Implementation
                         ResultError = _errorHandler.GetError(ResultStatusCode.Unauthorized, "No está autorizado para acceder a este listing rent.", true)
                     };
                 }
-                return await _StepViewService.GetNextListingStepViewData(lastView.ViewTypeId, listingRent, true);
+                return await _StepViewService.GetAllListingStepViewData(lastView.ViewTypeId, listingRent, true);
             }
         }
     }

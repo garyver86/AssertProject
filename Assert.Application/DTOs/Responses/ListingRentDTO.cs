@@ -38,9 +38,21 @@
         public List<SecurityItemDTO> SecurityItems { get; set; }
         public List<SpaceDTO> Spaces { get; set; }
         public List<StayPresenceDTO> StayPresences { get; set; }
-        public object Valoration { get; set; }
+        public decimal? Valoration { get; set; }
         public DateTime? historyDate { get; set; }
         public bool? isFavorite { get; set; }
+        public int? PrivateBathroom { get; set; }
+        public int? PrivateBathroomLodging { get; set; }
+        public int? SharedBathroom { get; set; }
+        public decimal? AvgReviews { get; set; }
+        public int? MinimunStay { get; set; }
+        public int? MaximumStay { get; set; }
+        public int? MinimumNotice { get; set; }
+        public TimeOnly? MinimumNoticeHour { get; set; }
+        public int? PreparationDays { get; set; }
+        public int? AvailabilityWindowMonth { get; set; }
+        public string? CheckInDays { get; set; }
+        public string? CheckOutDays { get; set; }
     }
     public class ListingRentResumeDTO
     {
