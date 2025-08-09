@@ -31,8 +31,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 {
                     _context.TlListingDiscountForRates.Add(new TlListingDiscountForRate { 
                         ListingRentId = listingRentId,
-                        DiscountCalculated = discount.Item2,
-                        Porcentage = 0,
+                        DiscountCalculated = 0,
+                        Porcentage = discount.Item2,
                         DiscountTypeForTypePriceId = discount.Item1,
                         IsDiscount = true
                     });
