@@ -15,7 +15,11 @@ public partial class TuAdditionalProfileLiveAt
 
     public string? Location { get; set; }
 
+    public int? CityId { get; set; }
+
     public virtual TuAdditionalProfile? AdditionalProfile { get; set; }
+
+    public virtual TCity? City { get; set; }
 
     public virtual TState? State { get; set; }
 }

@@ -12,6 +12,7 @@ public class ProfileDTO
     public double GuestReviewCalification { get; set; }
     public double HostReviewCalification { get; set; }
     public int YearsInAssert { get; set; }
+    public int ListingRentCount { get; set; }
     public string TimeInAssert { get; set; } = string.Empty;
     public string Avatar { get; set; } = string.Empty;
     public int CountReviewsGuest { get; set; }

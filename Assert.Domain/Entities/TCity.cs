@@ -22,4 +22,6 @@ public partial class TCity
     public virtual ICollection<TpProperty> TpProperties { get; set; } = new List<TpProperty>();
 
     public virtual ICollection<TpPropertyAddress> TpPropertyAddresses { get; set; } = new List<TpPropertyAddress>();
+
+    public virtual ICollection<TuAdditionalProfileLiveAt> TuAdditionalProfileLiveAts { get; set; } = new List<TuAdditionalProfileLiveAt>();
 }

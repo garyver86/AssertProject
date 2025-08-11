@@ -2,6 +2,7 @@
 using Assert.Domain.Enums;
 using Assert.Domain.Models;
 using Assert.Domain.Models.Profile;
+using Assert.Domain.ValueObjects;
 
 namespace Assert.Domain.Repositories
 {
@@ -37,5 +38,6 @@ namespace Assert.Domain.Repositories
         Task<string> UpdateProfilePhoto(string photoLink);
         Task<ReturnModel> BlockAsHost(int userId, int id);
         Task<ReturnModel> UnblockAsHost(int userId, int id);
+        Task<ReturnModel<(List<Profile>, PaginationMetadata)>> SearchHostAsync(SearchFilters filters, int pageNumber, int pageSize);
     }
 }
