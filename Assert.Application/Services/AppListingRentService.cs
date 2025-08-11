@@ -529,7 +529,7 @@ namespace Assert.Application.Services
                 if (pricingData.DiscountPrices != null)
                 {
                     string response = await _listingDiscountForRateRepository.SetDiscounts(listingRentId, pricingData.DiscountPrices
-                                .Select(d => (d.DiscountId, d.Price)).ToList());
+                                .Select(d => (d.DiscountId, d.Percentage)).ToList());
                 }
 
                 result = _mapper.Map<ReturnModelDTO<string>>("UPDATE");
