@@ -1,5 +1,7 @@
 ﻿using Assert.Domain.Entities;
+using Assert.Domain.Models;
 using Assert.Domain.Repositories;
+using Assert.Domain.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics.Metrics;
 
@@ -8,9 +10,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
     public class CityRepository : ICityRepository
     {
         private readonly InfraAssertDbContext _context;
-        public CityRepository(InfraAssertDbContext infraAssertDbContext)
+        private readonly IFuzzyMatcher _fuzzyMatcher;
+        public CityRepository(InfraAssertDbContext infraAssertDbContext, IFuzzyMatcher fuzzyMatcher)
         {
             _context = infraAssertDbContext;
+            _fuzzyMatcher = fuzzyMatcher;
         }
 
         // Método general para aplicar filtros de habilitación y cargar relaciones
@@ -179,6 +183,97 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .AsNoTracking()
                 .ToListAsync();
             return result;
+        }
+
+        public async Task<int?> FindBestCountryMatch(string normalizedCountryName)
+        {
+            // Primero intentar búsqueda exacta
+            var exactMatch = await _context.TCountries
+                .FirstOrDefaultAsync(c => c.NormalizedName == normalizedCountryName);
+
+            if (exactMatch != null) return exactMatch.CountryId;
+
+            // Fallback a fuzzy matching
+            var allCountries = await _context.TCountries.ToListAsync();
+            var bestMatch = allCountries
+                .Select(c => new
+                {
+                    CountryId = c.CountryId,
+                    Score = _fuzzyMatcher.Compare(c.NormalizedName, normalizedCountryName)
+                })
+                .Where(x => x.Score >= 0.7) // Umbral de similitud
+                .OrderByDescending(x => x.Score)
+                .FirstOrDefault();
+
+            return bestMatch?.CountryId;
+        }
+        public async Task<int?> FindBestStateMatch(string normalizedStateName, int? countryId)
+        {
+            // Primero intentar búsqueda exacta
+            var exactMatch = await _context.TStates
+                .FirstOrDefaultAsync(c => c.CountryId == countryId && c.NormalizedName == normalizedStateName);
+
+            if (exactMatch != null) return exactMatch.StateId;
+
+            // Fallback a fuzzy matching
+            var allStates = await _context.TStates.Where(x => x.CountryId == countryId).ToListAsync();
+            var bestMatch = allStates
+                .Select(c => new
+                {
+                    StateId = c.StateId,
+                    Score = _fuzzyMatcher.Compare(c.NormalizedName, normalizedStateName)
+                })
+                .Where(x => x.Score >= 0.7) // Umbral de similitud
+                .OrderByDescending(x => x.Score)
+                .FirstOrDefault();
+
+            return bestMatch?.StateId;
+        }
+
+        public async Task<int?> FindBestCountyMatch(string normalizedCountyName, int? stateId)
+        {
+            // Primero intentar búsqueda exacta
+            var exactMatch = await _context.TCounties
+                .FirstOrDefaultAsync(c => c.StateId == stateId && c.NormalizedName == normalizedCountyName);
+
+            if (exactMatch != null) return exactMatch.CountyId;
+
+            // Fallback a fuzzy matching
+            var allStates = await _context.TCounties.Where(x => x.StateId == stateId).ToListAsync();
+            var bestMatch = allStates
+                .Select(c => new
+                {
+                    CountyId = c.CountyId,
+                    Score = _fuzzyMatcher.Compare(c.NormalizedName, normalizedCountyName)
+                })
+                .Where(x => x.Score >= 0.7) // Umbral de similitud
+                .OrderByDescending(x => x.Score)
+                .FirstOrDefault();
+
+            return bestMatch?.CountyId;
+        }
+
+        public async Task<int?> FindBestCityMatch(string normalizedCityName, int? countyId)
+        {
+            // Primero intentar búsqueda exacta
+            var exactMatch = await _context.TCities
+                .FirstOrDefaultAsync(c => c.CountyId == countyId && c.NormalizedName == normalizedCityName);
+
+            if (exactMatch != null) return exactMatch.CityId;
+
+            // Fallback a fuzzy matching
+            var allStates = await _context.TCities.Where(x => x.CountyId == countyId).ToListAsync();
+            var bestMatch = allStates
+                .Select(c => new
+                {
+                    CityId = c.CityId,
+                    Score = _fuzzyMatcher.Compare(c.NormalizedName, normalizedCityName)
+                })
+                .Where(x => x.Score >= 0.7) // Umbral de similitud
+                .OrderByDescending(x => x.Score)
+                .FirstOrDefault();
+
+            return bestMatch?.CityId;
         }
     }
 }

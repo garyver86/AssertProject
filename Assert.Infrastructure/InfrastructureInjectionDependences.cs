@@ -43,6 +43,7 @@ public static class InfrastructureInjectionDependences
         services.AddScoped<IErrorHandler, ErrorHandler>();
         services.AddScoped<ISearchService, SearchService>();
         services.AddScoped<IImageService, ImageService>();
+        services.AddScoped<IFuzzyMatcher, FuzzyMatcher>();
 
         services.AddScoped<GoogleAuthValidator>();
         services.AddScoped<AppleAuthValidator>();

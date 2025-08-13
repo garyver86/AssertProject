@@ -80,6 +80,12 @@
         public long CountryId { get; set; }
         public int? Bathrooms { get; set; }
         public RulesFilter? Rules { get; set; }
+        public string? Street { get; set; }
+        public string? AnotherLocation { get; set; }
+        public string? Country { get; set; }
+        public string? State { get; set; }
+        public string? County { get; set; }
+        public string? City { get; set; }
     }
     public class RulesFilter
     {

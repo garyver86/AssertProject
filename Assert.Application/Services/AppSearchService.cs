@@ -38,15 +38,43 @@ namespace Assert.Application.Services
             try
             {
                 ReturnModel<(List<TlListingRent> data, PaginationMetadata pagination)> listings = await _searchService.SearchPropertiesAsync(filters, pageNumber, pageSize, userId);
-                //var dataResult = _mapper.Map<List<ListingRentDTO>>(listings.Data);
+              
+                if (listings.Data.data?.Count > 0)
+                {
+                    string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+                    _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+                    foreach (var list in listings.Data.data)
+                    {
+                        if (list?.TlListingPhotos?.Count > 0)
+                        {
+                            foreach (var item in list.TlListingPhotos)
+                            {
+                                item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                            }
+                        }
+                    }
+                }
 
-                //return new ReturnModelDTO<List<ListingRentDTO>>
-                //{
-                //    Data = dataResult,
-                //    HasError = false,
-                //    StatusCode = ResultStatusCode.OK
-                //};
+                return new ReturnModelDTO<(List<ListingRentDTO> data, PaginationMetadataDTO pagination)>
+                {
+                    HasError = listings.HasError,
+                    StatusCode = listings.StatusCode,
+                    ResultError = _mapper.Map<ErrorCommonDTO>(listings.ResultError),
+                    Data = (_mapper.Map<List<ListingRentDTO>>(listings.Data.data), _mapper.Map<PaginationMetadataDTO>(listings.Data.pagination))
+                };
+            }
+            catch (Exception ex)
+            {
+                return HandleException<(List<ListingRentDTO> data, PaginationMetadataDTO pagination)>("AppSearchProperties.SearchProperties", ex, new { filters }, useTechnicalMessages);
+            }
+        }
 
+        public async Task<ReturnModelDTO<(List<ListingRentDTO> data, PaginationMetadataDTO pagination)>> SearchPropertiesV2(SearchFilters filters, int pageNumber, int pageSize, long userId, Dictionary<string, string> clientData, bool useTechnicalMessages)
+        {
+            try
+            {
+                ReturnModel<(List<TlListingRent> data, PaginationMetadata pagination)> listings = await _searchService.SearchPropertiesV2Async(filters, pageNumber, pageSize, userId);
+              
                 if (listings.Data.data?.Count > 0)
                 {
                     string _basePath = await _systemConfigurationRepository.GetListingResourcePath();

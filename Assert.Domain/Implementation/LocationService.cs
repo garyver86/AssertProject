@@ -1,6 +1,8 @@
 ﻿using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 
 
 namespace Assert.Domain.Implementation
@@ -9,10 +11,66 @@ namespace Assert.Domain.Implementation
     {
         private readonly ICityRepository _cityRepository;
 
-        public LocationService(ICityRepository cityRepository)
+        private readonly IFuzzyMatcher _fuzzyMatcher;
+
+        public LocationService(ICityRepository cityRepository, IFuzzyMatcher fuzzyMatcher)
         {
             _cityRepository = cityRepository;
+            _fuzzyMatcher = fuzzyMatcher;
         }
+
+        public async Task<LocationModel?> ResolveLocation(string? country, string? state, string? county, string? city, string? street)
+        {
+            // Paso 1: Normalización de inputs
+            var normalizedInput = new NormalizedLocationInput(
+               Utils.Tools.NormalizeText(country),
+                Utils.Tools.NormalizeText(state),
+                Utils.Tools.NormalizeText(county),
+                Utils.Tools.NormalizeText(city)
+            );
+
+            // Paso 2: Búsqueda jerárquica con tolerancia a variaciones
+            LocationModel result = new LocationModel();
+
+            // Buscar país primero
+            if (!normalizedInput.Country.IsNullOrEmpty())
+            {
+                result.CountryId = await _cityRepository.FindBestCountryMatch(normalizedInput.Country);
+            }
+
+            // Luego estado/provincia
+            if (result.CountryId > 0 && !normalizedInput.State.IsNullOrEmpty())
+            {
+                result.StateId = await _cityRepository.FindBestStateMatch(normalizedInput.State, result.CountryId);
+            }
+            else if (!normalizedInput.State.IsNullOrEmpty())
+            {
+                result.StateId = -1; // Indica que se proporcionó estado pero no se encontró
+            }
+
+            // Luego condado
+            if (result.StateId > 0 && !normalizedInput.County.IsNullOrEmpty())
+            {
+                result.CountyId = await _cityRepository.FindBestCountyMatch(normalizedInput.County, result.StateId);
+            }
+            else if (!normalizedInput.County.IsNullOrEmpty())
+            {
+                result.CountyId = -1; // Indica que se proporcionó condado pero no se encontró
+            }
+
+            // Finalmente ciudad
+            if (result.CountyId > 0 && !normalizedInput.City.IsNullOrEmpty())
+            {
+                result.CityId = await _cityRepository.FindBestCityMatch(normalizedInput.City, result.CountyId);
+            }
+            else if (!normalizedInput.City.IsNullOrEmpty())
+            {
+                result.CityId = -1; // Indica que se proporcionó ciudad pero no se encontró
+            }
+            return result;
+        }
+
+
 
         /// <summary>
         /// Busca ubicaciones (ciudades, condados, estados, países) según un filtro

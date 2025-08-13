@@ -17,6 +17,8 @@ public partial class TCounty
 
     public double? Longitude { get; set; }
 
+    public string? NormalizedName { get; set; }
+
     public virtual TState? State { get; set; }
 
     public virtual ICollection<TCity> TCities { get; set; } = new List<TCity>();

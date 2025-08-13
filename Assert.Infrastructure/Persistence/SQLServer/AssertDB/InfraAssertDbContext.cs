@@ -724,6 +724,10 @@ public partial class InfraAssertDbContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("name");
+            entity.Property(e => e.NormalizedName)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("normalizedName");
 
             entity.HasOne(d => d.County).WithMany(p => p.TCities)
                 .HasForeignKey(d => d.CountyId)
@@ -753,6 +757,10 @@ public partial class InfraAssertDbContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("name");
+            entity.Property(e => e.NormalizedName)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("normalizedName");
         });
 
         modelBuilder.Entity<TCounty>(entity =>
@@ -767,6 +775,10 @@ public partial class InfraAssertDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+            entity.Property(e => e.NormalizedName)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("normalizedName");
             entity.Property(e => e.StateId).HasColumnName("stateId");
 
             entity.HasOne(d => d.State).WithMany(p => p.TCounties)
@@ -1217,6 +1229,10 @@ public partial class InfraAssertDbContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("name");
+            entity.Property(e => e.NormalizedName)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("normalizedName");
 
             entity.HasOne(d => d.Country).WithMany(p => p.TStates)
                 .HasForeignKey(d => d.CountryId)
