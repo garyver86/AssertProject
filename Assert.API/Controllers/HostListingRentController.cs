@@ -529,21 +529,6 @@ namespace Assert.API.Controllers
             request.CheckInTime, request.CheckOutTime, request.MaxCheckInTime, 
             request.Instructions, request.RuleIds);
 
-        ///// <summary>
-        ///// Servicio que actualiza el tipo de aprobación de una reserva para un Listing Rent.
-        ///// </summary>
-        ///// <param name="listingRentId">ID del Listing Rent que se desea actualizar</param>
-        ///// <param name="approvalPolicyTypeId">Id del tipo de aprobación</param>
-        ///// <returns>UPDATED</returns>
-        ///// <response code="200">Detalle del Listing Rent con la configuración actualizada</response>
-        //[HttpPut()]
-        //[Authorize(Policy = "GuestOrHost")]
-        //[Route("{listingRentId}/UpdateReservationType")]
-        //public async Task<ReturnModelDTO> UpdateReservationType([FromRoute] long listingRentId,
-        //    int approvalPolicyTypeId)
-        //=> await _appListingRentService.UpdateReservationType(listingRentId,
-        //    approvalPolicyTypeId);
-
         /// <summary>
         /// Servicio que actualiza las reglas de estadía asociadas a un Listing Rent.
         /// </summary>
