@@ -1,16 +1,22 @@
 ﻿using Assert.Domain.Enums;
 using Assert.Domain.Implementation;
 using Assert.Domain.Interfaces.Infraestructure.External;
+using Assert.Domain.Interfaces.Notifications;
+using Assert.Domain.Notifications.Settings;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Assert.Infrastructure.Exceptions;
 using Assert.Infrastructure.External.AuthProviderValidator;
+using Assert.Infrastructure.External.Notifications;
 using Assert.Infrastructure.InternalServices;
 using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 using Assert.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using System.Net;
+using System.Net.Mail;
 
 namespace Assert.Infrastructure;
 
@@ -21,14 +27,6 @@ public static class InfrastructureInjectionDependences
     {
         var connectionString = configuration.GetConnectionString("AssertDB");
 
-        //services.AddDbContext<InfraAssertDbContext>(options =>
-        //options.UseSqlServer(connectionString,
-        //    sqlServerOptions => sqlServerOptions.EnableRetryOnFailure(
-        //        maxRetryCount: 3,
-        //        maxRetryDelay: TimeSpan.FromSeconds(20),
-        //        errorNumbersToAdd: null
-        //    )),
-        //ServiceLifetime.Scoped);
         services.AddDbContextPool<InfraAssertDbContext>(options =>
             options.UseSqlServer(connectionString, sqlServerOptions =>
             {
@@ -37,6 +35,21 @@ public static class InfrastructureInjectionDependences
                     maxRetryDelay: TimeSpan.FromSeconds(20),
                     errorNumbersToAdd: null);
             }));
+
+        //smtp
+        services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
+        services.AddScoped<SmtpClient>(sp =>
+        {
+            var settings = sp.GetRequiredService<IOptions<EmailSettings>>().Value;
+
+            return new SmtpClient(settings.SmtpServer, settings.Port)
+            {
+                UseDefaultCredentials = false,
+                Credentials = new NetworkCredential(settings.From, settings.Password),
+                EnableSsl = true
+            };
+        });
+        services.AddScoped<IEmailNotification, GmailNotification>();
 
         services.AddScoped<IJWTSecurity, JWTSecurityService>();
         services.AddScoped<IAuthentication, AuthenticationService>();

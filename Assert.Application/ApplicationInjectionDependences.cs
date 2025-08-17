@@ -1,8 +1,10 @@
 ﻿
 using Assert.Application.DTOs.Requests;
 using Assert.Application.Interfaces;
+using Assert.Application.Interfaces.Notifications;
 using Assert.Application.Mappings;
 using Assert.Application.Services;
+using Assert.Application.Services.Notifications;
 using Assert.Application.Services.Security;
 using Assert.Application.Validators;
 using Assert.Domain.Implementation;
@@ -56,6 +58,8 @@ namespace Assert.Application
             services.AddScoped<IAppBookService, AppBookService>();
             services.AddScoped<IAppMethodOfPaymentService, AppMethodOfPaymentService>();
             services.AddScoped<IAppReviewService, AppReviewService>();
+            services.AddScoped<IEmailNotificationService, EmailNotificationsService>();
+
 
             //Domain Services
             services.AddScoped<IListingRentService, ListingRentService>();
