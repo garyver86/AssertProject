@@ -9,5 +9,5 @@ public class LoginModelResult
     public string userName { get; set; }
     public string givenName { get; set; }
     public string lastName { get; set; }
-    public string Photo { get; set; } = string.Empty;
+    public string? Photo { get; set; }
 }
