@@ -56,7 +56,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                             UserId = result_login.Identifier.ToString(),
                             Email = result_login.userName,
                             Name = result_login.givenName,
-                            LastName = result_login.lastName
+                            LastName = result_login.lastName,
+                            Photo = result_login.Photo,
                         },
                         ResultError = new ErrorCommon
                         {
