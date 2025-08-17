@@ -978,21 +978,5 @@ namespace Assert.Application.Services
                 throw new Exceptions.ApplicationException(ex.Message);
             }
         }
-
-        public Task<ReturnModelDTO> UpdateReservationType(long listingRentId, int approvalPolicyTypeId)
-        {
-            if (approvalPolicyTypeId <= 0)
-                throw new ApplicationException("Los datos de la política de reserva no son válidos, verifica los datos e intenta de nuevo.");
-
-            await _listingRentRepository.SetReservationTypeApprobation(listingRentId,
-                approvalPolicyTypeId, minimunNoticeDays, preparationDays);
-
-            return new ReturnModelDTO<string>
-            {
-                Data = "UPDATED",
-                HasError = false,
-                StatusCode = ResultStatusCode.OK
-            };
-        }
     }
 }

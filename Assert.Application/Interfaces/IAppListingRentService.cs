@@ -66,6 +66,5 @@ namespace Assert.Application.Interfaces
 
         Task<ReturnModelDTO<string>> UpdatePhotoPosition(long listingRentId, long listingPhotoId, int newPostition);
         Task<ReturnModelDTO<string>> SortListingRentPhotos();
-        Task<ReturnModelDTO> UpdateReservationType(long listingRentId, int approvalPolicyTypeId);
     }
 }
