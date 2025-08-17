@@ -19,6 +19,8 @@ public partial class TCountry
 
     public double? Longitude { get; set; }
 
+    public string? NormalizedName { get; set; }
+
     public virtual ICollection<PayCountryConfiguration> PayCountryConfigurations { get; set; } = new List<PayCountryConfiguration>();
 
     public virtual ICollection<PayTransaction> PayTransactions { get; set; } = new List<PayTransaction>();

@@ -526,5 +526,20 @@ public class AppUserService(
             ResultError = _mapper.Map<ErrorCommonDTO>(error)
         };
     }
+
+    public async Task<ReturnModelDTO<(List<ProfileDTO>, PaginationMetadataDTO)>> SearchHosts(SearchFilters filters, int pageNumber, int pageSize, int userId, Dictionary<string, string> requestInfo, bool useTechnicalMessages)
+    {
+        var result = await _userService.SearchHosts(filters, pageNumber, pageSize);
+        return new ReturnModelDTO<(List<ProfileDTO>, PaginationMetadataDTO)>
+        {
+            Data = (
+                _mapper.Map<List<ProfileDTO>>(result.Data.Item1),
+                _mapper.Map<PaginationMetadataDTO>(result.Data.Item2)
+            ),
+            StatusCode = result.StatusCode,
+            HasError = result.HasError,
+            ResultError = result.ResultError != null ? _mapper.Map<ErrorCommonDTO>(result.ResultError) : null
+        };
+    }
     #endregion
 }

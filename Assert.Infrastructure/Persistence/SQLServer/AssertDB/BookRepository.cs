@@ -162,7 +162,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 // Recupera los TbBook del usuario que no tienen review asociado
                 var booksWithoutReview = await context.Set<TbBook>()
                     .Where(b => b.UserIdRenter == userId)
-                    .Where(b => !context.TlListingReviews.Any(r => r.Book != null && r.Book.BookId == b.BookId))
+                    //.Where(b => !context.TlListingReviews.Any(r => r.Book != null && r.Book.BookId == b.BookId))
+                    .Where(b => !context.TlListingReviews.Any(r => r.Book != null && r.Book.BookId == b.BookId) || context.TlListingReviews.Where(x=> x.Book != null && x.Book.BookId == b.BookId && x.IsComplete != true).FirstOrDefault() != null)
                     .Include(x => x.ListingRent).ThenInclude(lr => lr.OwnerUser)
                     .Include(x => x.ListingRent.TlListingPhotos)
                     .Include(x => x.ListingRent.TpProperties)

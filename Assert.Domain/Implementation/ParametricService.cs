@@ -23,12 +23,13 @@ namespace Assert.Domain.Implementation
         private readonly IRulesTypeRepository _rulesTypeRepository;
         private readonly IExceptionLoggerService _exceptionLoggerService;
         private readonly ISecurityItemsRepository _securityItemsRepository;
+        private readonly IApprovalPolityTypeRepository _approvalPolicyTypeRepository;
         public ParametricService(IAccommodationTypeRepository accommodationTypeRepository, IErrorHandler errorHandler,
             IFeaturesAspectsRepository featuredAspectsRepository, IDiscountTypeRepository discountTypeRepository,
             IPropertySubTypeRepository propertySubTypeRepository, ISpaceTypeRepository spaceTypeRepository,
             ILanguageRepository languageRepository, IExceptionLoggerService exceptionLoggerService,
             IAmenitiesRepository amenitiesRepository, ICancelationPoliciesTypesRepository cancelationPoliciesTypesRepository,
-            IRulesTypeRepository rulesTypeRepository, ISecurityItemsRepository securityItemsRepository)
+            IRulesTypeRepository rulesTypeRepository, ISecurityItemsRepository securityItemsRepository, IApprovalPolityTypeRepository approvalPolicyTypeRepository)
         {
             _accommodationTypeRepository = accommodationTypeRepository;
             _errorHandler = errorHandler;
@@ -42,6 +43,7 @@ namespace Assert.Domain.Implementation
             _cancelationPoliciesTypesRepository = cancelationPoliciesTypesRepository;
             _rulesTypeRepository = rulesTypeRepository;
             _securityItemsRepository = securityItemsRepository;
+            _approvalPolicyTypeRepository = approvalPolicyTypeRepository;
         }
 
         public async Task<ReturnModel<List<TlAccommodationType>>> GetAccomodationTypesActives()
@@ -265,6 +267,28 @@ namespace Assert.Domain.Implementation
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
                 result.ResultError = _errorHandler.GetErrorException("IParametricService.GetSecurityItems", ex, null, true);
+            }
+            return result;
+        }
+
+        public async Task<ReturnModel<List<TApprovalPolicyType>>> GetApprobalPolicyTypes(bool useTechnicalMessages)
+        {
+            ReturnModel<List<TApprovalPolicyType>> result = new ReturnModel<List<TApprovalPolicyType>>();
+            try
+            {
+                var result_data = await _approvalPolicyTypeRepository.GetActives();
+                return new ReturnModel<List<TApprovalPolicyType>>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    Data = result_data,
+                    HasError = false
+                };
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _errorHandler.GetErrorException("IParametricService.GetApprobalPolicyTypes", ex, null, true);
             }
             return result;
         }

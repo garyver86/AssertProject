@@ -7,6 +7,8 @@ public partial class TReviewQuestion
 {
     public int ReviewQuestionId { get; set; }
 
+    public string? QuestionTitle { get; set; }
+
     public string? QuestionText { get; set; }
 
     public string QuestionCode { get; set; } = null!;

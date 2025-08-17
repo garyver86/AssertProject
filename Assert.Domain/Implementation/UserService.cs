@@ -1,6 +1,8 @@
 ﻿using Assert.Domain.Models;
+using Assert.Domain.Models.Profile;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
+using Assert.Domain.ValueObjects;
 
 namespace Assert.Domain.Implementation
 {
@@ -93,6 +95,28 @@ namespace Assert.Domain.Implementation
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
                 result.ResultError = _errorHandler.GetErrorException("UserService.UnblockAsHost", ex, new { userBlockedId, userId }, true);
+            }
+            return result;
+        }
+
+        public async Task<ReturnModel<(List<Profile>, PaginationMetadata)>> SearchHosts(SearchFilters filters, int pageNumber, int pageSize)
+        {
+            ReturnModel<(List<Profile>, PaginationMetadata)> result = new ReturnModel<(List<Profile>, PaginationMetadata)>();
+            try
+            {
+                var result_data = await _userRepository.SearchHostAsync(filters,pageNumber, pageSize);
+                return new ReturnModel<(List<Profile>, PaginationMetadata)>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    HasError = false,
+                    Data = (result_data.Data.Item1, result_data.Data.Item2)
+                };
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _errorHandler.GetErrorException("UserService.SearchHosts", ex, new { filters, pageNumber, pageSize }, true);
             }
             return result;
         }

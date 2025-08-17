@@ -20,4 +20,5 @@ public class Profile
     public int CountReviewsHost { get; set; }
     public List<CommonReview> GuestReviews { get; set; }
     public List<CommonReview> HostReviews { get; set; }
+    public int ListingRentCount { get; set; }
 }

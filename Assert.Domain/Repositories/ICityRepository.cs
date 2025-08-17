@@ -1,4 +1,5 @@
 ﻿using Assert.Domain.Entities;
+using Assert.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Assert.Domain.Repositories
@@ -16,6 +17,10 @@ namespace Assert.Domain.Repositories
         Task<TCounty> GetCountyById(int countyId);
         Task<TState> GetStateById(int stateId);
         Task<TCountry> GetCountryById(int countryId);
-
+        Task<int?> FindBestCountryMatch(string normalizedCountryName);
+        Task<int?> FindBestStateMatch(string normalizedStateName, int? countryId);
+        Task<int?> FindBestCountyMatch(string normalizedCountyName, int? stateId);
+        Task<int?> FindBestCityMatch(string normalizedCityName, int? countyId);
+        TCity RegisterLocation(string country, string state, string county, string city, string? street, LocationModel result);
     }
 }

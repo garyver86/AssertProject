@@ -728,6 +728,10 @@ public partial class AssertDbContext : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("name");
+            entity.Property(e => e.NormalizedName)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("normalizedName");
 
             entity.HasOne(d => d.County).WithMany(p => p.TCities)
                 .HasForeignKey(d => d.CountyId)
@@ -757,6 +761,10 @@ public partial class AssertDbContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("name");
+            entity.Property(e => e.NormalizedName)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("normalizedName");
         });
 
         modelBuilder.Entity<TCounty>(entity =>
@@ -771,6 +779,10 @@ public partial class AssertDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+            entity.Property(e => e.NormalizedName)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("normalizedName");
             entity.Property(e => e.StateId).HasColumnName("stateId");
 
             entity.HasOne(d => d.State).WithMany(p => p.TCounties)
@@ -1114,6 +1126,10 @@ public partial class AssertDbContext : DbContext
                 .HasMaxLength(500)
                 .IsUnicode(false)
                 .HasColumnName("questionText");
+            entity.Property(e => e.QuestionTitle)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("questionTitle");
         });
 
         modelBuilder.Entity<TSearchLocation>(entity =>
@@ -1217,6 +1233,10 @@ public partial class AssertDbContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("name");
+            entity.Property(e => e.NormalizedName)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("normalizedName");
 
             entity.HasOne(d => d.Country).WithMany(p => p.TStates)
                 .HasForeignKey(d => d.CountryId)
@@ -3473,6 +3493,7 @@ public partial class AssertDbContext : DbContext
 
             entity.Property(e => e.AdditionalProfileLiveAtId).HasColumnName("additionalProfileLiveAtId");
             entity.Property(e => e.AdditionalProfileId).HasColumnName("additionalProfileId");
+            entity.Property(e => e.CityId).HasColumnName("cityId");
             entity.Property(e => e.CityName)
                 .HasMaxLength(500)
                 .IsUnicode(false)
@@ -3485,6 +3506,10 @@ public partial class AssertDbContext : DbContext
             entity.HasOne(d => d.AdditionalProfile).WithMany(p => p.TuAdditionalProfileLiveAts)
                 .HasForeignKey(d => d.AdditionalProfileId)
                 .HasConstraintName("FK_TU_AdditionalProfileLiveAt_TU_AdditionalProfile");
+
+            entity.HasOne(d => d.City).WithMany(p => p.TuAdditionalProfileLiveAts)
+                .HasForeignKey(d => d.CityId)
+                .HasConstraintName("FK_TU_AdditionalProfileLiveAt_T_City");
 
             entity.HasOne(d => d.State).WithMany(p => p.TuAdditionalProfileLiveAts)
                 .HasForeignKey(d => d.StateId)

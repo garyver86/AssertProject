@@ -6,6 +6,7 @@ using Assert.Domain.Utils;
 using Azure.Core;
 using Microsoft.IdentityModel.Tokens;
 using System.Net;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Assert.Domain.Implementation
 {
@@ -32,6 +33,8 @@ namespace Assert.Domain.Implementation
         private readonly IApprovalPolityTypeRepository _approvalPolicyTypeRepository;
         private readonly IRulesTypeRepository _rulesTypeRepository;
         private readonly ICancelationPoliciesTypesRepository _cancelationPoliciesTypesRepository;
+        private readonly ILocationService _locationService;
+
         public ListingRent_StepViewService(IErrorHandler errorHandler, IPropertySubTypeRepository propertySubtypeRepository,
             IListingRentRepository listingRentRepository, IPropertyRepository propertyRepository, IAccommodationTypeRepository accommodationTypeRepository,
             IPropertyAddressRepository propertyAddressRepository, IListingAmenitiesRepository listingAmenitiesRepository,
@@ -41,7 +44,7 @@ namespace Assert.Domain.Implementation
             IListingDiscountRepository listingDiscountRepository, IListingSecurityItemsRepository listingSecurityItemsRepository,
             IListingRentRulesRepository listingRentRulesRepository, ISecurityItemsRepository securityItemsRepository,
             IApprovalPolityTypeRepository approvalPolicyTypeRepository, IRulesTypeRepository rulesTypeRepository,
-            ICancelationPoliciesTypesRepository cancelationPoliciesTypesRepository)
+            ICancelationPoliciesTypesRepository cancelationPoliciesTypesRepository, ILocationService locationService)
         {
             _errorHandler = errorHandler;
             _propertySubtypeRepository = propertySubtypeRepository;
@@ -64,6 +67,7 @@ namespace Assert.Domain.Implementation
             _approvalPolicyTypeRepository = approvalPolicyTypeRepository;
             _rulesTypeRepository = rulesTypeRepository;
             _cancelationPoliciesTypesRepository = cancelationPoliciesTypesRepository;
+            _locationService = locationService;
         }
         public async Task<ReturnModel<ListingProcessDataResultModel>> GetNextListingStepViewData(int? nextViewTypeId, TlListingRent? data, bool useTechnicalMessages, bool getViewData)
         {
@@ -816,34 +820,71 @@ namespace Assert.Domain.Implementation
                     ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar la información de la dirección de la propiedad.", useTechnicalMessages)
                 };
             }
+
+            LocationModel? location = null;
+
+            if (!request_.Address.Country.IsNullOrEmpty() || !request_.Address.State.IsNullOrEmpty() || !request_.Address.County.IsNullOrEmpty() || !request_.Address.City.IsNullOrEmpty() || !request_.Address.Street.IsNullOrEmpty())
+            {
+                location = await _locationService.ResolveLocation(request_.Address.Country, request_.Address.State, request_.Address.County, request_.Address.City, request_.Address.Street);
+            }
+
             TpPropertyAddress addresInput = new TpPropertyAddress
             {
                 Address1 = request_.Address.Address1,
                 Address2 = request_.Address.Address2,
                 ZipCode = request_.Address.ZipCode,
             };
-
-            if (request_.Address.CityId > 0)
+            if (location != null)
             {
-                addresInput.CityId = request_.Address.CityId;
-                addresInput.CountyId = null;
-                addresInput.StateId = null;
-            }
-            else
-            {
-                if (request_.Address.CountyId > 0)
+                if (location.CityId > 0)
                 {
-                    addresInput.CityId = null;
-                    addresInput.CountyId = request_.Address.CountyId;
+                    addresInput.CityId = location.CityId;
+                    addresInput.CountyId = null;
                     addresInput.StateId = null;
                 }
                 else
                 {
-                    if (request_.Address.StateId > 0)
+                    if (location.CountyId > 0)
                     {
                         addresInput.CityId = null;
-                        addresInput.CountyId = null;
-                        addresInput.StateId = request_.Address.StateId;
+                        addresInput.CountyId = location.CountyId;
+                        addresInput.StateId = null;
+                    }
+                    else
+                    {
+                        if (location.StateId > 0)
+                        {
+                            addresInput.CityId = null;
+                            addresInput.CountyId = null;
+                            addresInput.StateId = location.StateId;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (request_.Address.CityId > 0)
+                {
+                    addresInput.CityId = request_.Address.CityId;
+                    addresInput.CountyId = null;
+                    addresInput.StateId = null;
+                }
+                else
+                {
+                    if (request_.Address.CountyId > 0)
+                    {
+                        addresInput.CityId = null;
+                        addresInput.CountyId = request_.Address.CountyId;
+                        addresInput.StateId = null;
+                    }
+                    else
+                    {
+                        if (request_.Address.StateId > 0)
+                        {
+                            addresInput.CityId = null;
+                            addresInput.CountyId = null;
+                            addresInput.StateId = request_.Address.StateId;
+                        }
                     }
                 }
             }

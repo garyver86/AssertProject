@@ -1,4 +1,7 @@
-﻿namespace Assert.Domain.Utils
+﻿using System.Globalization;
+using System.Text;
+
+namespace Assert.Domain.Utils
 {
     public static class GeoUtils
     {
@@ -78,6 +81,48 @@
         public static bool ValidateLongitude(double? longitud)
         {
             return longitud >= -180 && longitud <= 180;
+        }
+    }
+    public static class Tools
+    {
+        public static string NormalizeText(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return input;
+
+            return input.Trim()
+                .ToLowerInvariant()
+                .RemoveDiacritics() // Eliminar acentos
+                .RemovePunctuation() // Eliminar puntuación
+                .Replace("á", "a").Replace("é", "e").Replace("í", "i")
+                .Replace("ó", "o").Replace("ú", "u")
+                .Replace("-", " ")
+                .Replace("  ", " ");
+        }
+
+        public static string RemoveDiacritics(this string text)
+        {
+            var normalizedString = text.Normalize(NormalizationForm.FormD);
+            var stringBuilder = new StringBuilder();
+
+            foreach (var c in normalizedString)
+            {
+                var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+
+            return stringBuilder.ToString().Normalize(NormalizationForm.FormC);
+        }
+
+        public static string RemovePunctuation(this string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return input;
+
+            return new string(input.Where(c => !char.IsPunctuation(c)).ToArray());
         }
     }
 }

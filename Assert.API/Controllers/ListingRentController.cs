@@ -76,6 +76,50 @@ namespace Assert.API.Controllers
             };
         }
 
+
+        /// <summary>
+        /// Servicio que permite la busqueda de propiedades en base a distintos parámetros, optimizado para el buscador de ubicaciones de google.
+        /// </summary>
+        /// <param name="filters">Diferentes valores que reducen el rango de busqueda de propiedades.</param>
+        /// <param name="pageNumber">Pagina o grupo de resultados que se quieren obtener. (Por defecto 1).</param>
+        /// <param name="pageSize">Cantidad de propiedades destacadas que se quieren obtener por página (Por defecto 10).</param>
+        /// <returns>Listado de propiedades que cumplen con los parametros ingresados y que se encuentran publicados y listos para rentar.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// Se le debe enviar los valoes devueltos por el buscador de ubicaciones de google (Country, State, County, City, Street, Latitude y Longitude)
+        /// Si se obtiene un match de las ubicaciones, se realizará una busqueda en base a los id de las ubicaciones recuperadas de la base de datos. 
+        /// En caso de no obtener match en alguna de las ubicaciones, se realizara una busqueda en base a los valores de latitud y longitud, 
+        /// y el radio de busqueda, que será calculado en base a la ubicación que se requiere, inicialmente se consideran estos valores para la radio de busqueda:
+        ///  - Country: 300 km
+        ///  - State: 50 km
+        ///  - County: 20 km
+        ///  - City: 10 km
+        ///  - Street: 2 km
+        ///  - OtherLocations: 1 km
+        ///  
+        /// Tambien considerar que para el macheo primero se busca la concidencia de nombres normalizados de las ubicaciones, y en caso de no encontrar coincidencias
+        /// se busca por aproximación de igualdad de nombres.
+        /// </remarks>
+        [HttpGet("SearchV2")]
+        [Authorize(Policy = "Guest")]
+        public async Task<ReturnModelDTO_Pagination> SearchV2([FromQuery] SearchFilters filters, [FromQuery] int? pageNumber = 1, [FromQuery] int? pageSize = 10)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+            var properties = await _searchService.SearchPropertiesV2(filters, pageNumber ?? 1, pageSize ?? 10, userId, requestInfo, true);
+
+            //return properties;
+            return new ReturnModelDTO_Pagination
+            {
+                Data = properties.Data.data,
+                pagination = properties.Data.pagination,
+                HasError = properties.HasError,
+                ResultError = properties.ResultError,
+                StatusCode = properties.StatusCode
+            };
+        }
+
         /// <summary>
         /// Servicio que devuelve un listado de las propiedades recien visitadas por el usuario
         /// </summary>

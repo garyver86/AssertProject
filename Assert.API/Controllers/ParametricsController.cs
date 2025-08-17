@@ -147,6 +147,24 @@ namespace Assert.API.Controllers
         }
 
         /// <summary>
+        /// Servicio que devuelve la lista de tipos de reservación.
+        /// </summary>
+        /// <returns>Listado de tipos de amenities.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// Solo se consideraran los tipos de amenities que no se encuentren deshabilitadas.
+        /// </remarks>
+        [HttpGet("ReservationTypes")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO<List<ApprovalPolicyDTO>>> ReservationTypes()
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            ReturnModelDTO<List<ApprovalPolicyDTO>> amenities = await _parametricService.GetReservationTypes(requestInfo, true);
+
+            return amenities;
+        }
+
+        /// <summary>
         /// Servicio que devuelve la lista de tipos de alojamientos activos.
         /// </summary>
         /// <returns>Listado de tipos de alojamientos.</returns>

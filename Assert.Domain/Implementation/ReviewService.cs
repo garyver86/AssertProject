@@ -38,8 +38,8 @@ namespace Assert.Domain.Implementation
         public async Task<TlListingReview> GetReviewDetailsAsync(long bookId)
         {
             var review = await _reviewRepository.GetReviewByBookingAsync(bookId);
-            if (review == null)
-                throw new KeyNotFoundException("Review not found");
+            //if (review == null)
+            //    throw new KeyNotFoundException("Review not found");
 
             return review;
         }
@@ -105,7 +105,10 @@ namespace Assert.Domain.Implementation
                 ReviewQuestionId = x.ReviewQuestionId
             }).ToList();
 
-            await _reviewRepository.SaveAnswersAsync(answers);
+            if (answers.Count > 0)
+            {
+                await _reviewRepository.SaveAnswersAsync(answers);
+            }
 
             // Calcular promedio y actualizar review
             var average = await CalculateReviewAverageAsync(review.ListingReviewId);

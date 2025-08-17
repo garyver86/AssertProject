@@ -278,5 +278,27 @@ namespace Assert.Application.Services
                 StatusCode = ResultStatusCode.OK
             };
         }
+
+        public async Task<ReturnModelDTO<List<ApprovalPolicyDTO>>> GetReservationTypes(Dictionary<string, string> requestInfo, bool useTechnicalMessages)
+        {
+            try
+            {
+                ReturnModel<List<TApprovalPolicyType>> result = await _parametricService.GetApprobalPolicyTypes(useTechnicalMessages);
+                if (result.HasError)
+                {
+                    return CreateErrorResult<List<ApprovalPolicyDTO>>(result.StatusCode, result.ResultError, useTechnicalMessages);
+                }
+                return new ReturnModelDTO<List<ApprovalPolicyDTO>>
+                {
+                    Data = _mapper.Map<List<ApprovalPolicyDTO>>(result.Data),
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            catch (Exception ex)
+            {
+                return HandleException<List<ApprovalPolicyDTO>>("AppParametricService.GetReservationTypes", ex, null, useTechnicalMessages);
+            }
+        }
     }
 }
