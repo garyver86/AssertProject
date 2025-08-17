@@ -2,6 +2,7 @@
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
+using Assert.Domain.Utils;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics.Metrics;
 
@@ -274,6 +275,90 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .FirstOrDefault();
 
             return bestMatch?.CityId;
+        }
+
+        public TCity RegisterLocation(string country, string state, string county, string city, string? street, LocationModel result)
+        {
+            if (result.CityId > 0)
+            {
+                return _context.TCities.Where(x => x.CityId == result.CityId).Include(x => x.County).ThenInclude(x => x.State).FirstOrDefault();
+            }
+            else
+            {
+                TCity newCity = new TCity
+                {
+                    Name = city,
+                    NormalizedName = NormalizeText(city),
+                    CountyId = result.CountyId > 0 ? result.CountyId ?? -1 : -1,
+                    //Street = street,
+                    IsDisabled = false
+                };
+                // Si el condado no existe, lo creamos
+                if (result.CountyId <= 0)
+                {
+                    TCounty newCounty = new TCounty
+                    {
+                        Name = county,
+                        NormalizedName = NormalizeText(county),
+                        StateId = result.StateId > 0 ? result.StateId : null,
+                        IsDisabled = false
+                    };
+                    // Si el estado no existe, lo creamos
+                    if (result.StateId <= 0)
+                    {
+                        TState newState = new TState
+                        {
+                            Name = state,
+                            NormalizedName = NormalizeText(state),
+                            CountryId = result.CountryId > 0 ? result.CountryId ?? -1 : -1,
+                            IsDisabled = false
+                        };
+                        // Si el país no existe, lo creamos
+                        if (result.CountryId <= 0)
+                        {
+                            TCountry newCountryEntity = new TCountry
+                            {
+                                Name = country,
+                                NormalizedName = NormalizeText(country),
+                                IsDisabled = false
+                            };
+                            _context.TCountries.Add(newCountryEntity);
+                            _context.SaveChanges();
+                            newState.CountryId = newCountryEntity.CountryId;
+                        }
+                        _context.TStates.Add(newState);
+                        _context.SaveChanges();
+                        newCounty.StateId = newState.StateId;
+                    }
+                    _context.TCounties.Add(newCounty);
+                    _context.SaveChanges();
+                    newCity.CountyId = newCounty.CountyId;
+                }
+                _context.TCities.Add(newCity);
+                _context.SaveChanges();
+
+                var fullCity = _context.TCities
+                    .Include(c => c.County)
+                        .ThenInclude(cty => cty.State)
+                            .ThenInclude(st => st.Country)
+                    .FirstOrDefault(c => c.CityId == newCity.CityId);
+
+                return fullCity!;
+            }
+        }
+        public static string NormalizeText(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input))
+                return input;
+
+            return input.Trim()
+                .ToLowerInvariant()
+                .RemoveDiacritics() // Eliminar acentos
+                .RemovePunctuation() // Eliminar puntuación
+                .Replace("á", "a").Replace("é", "e").Replace("í", "i")
+                .Replace("ó", "o").Replace("ú", "u")
+                .Replace("-", " ")
+                .Replace("  ", " ");
         }
     }
 }

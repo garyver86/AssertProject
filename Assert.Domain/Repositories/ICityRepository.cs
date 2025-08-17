@@ -21,5 +21,6 @@ namespace Assert.Domain.Repositories
         Task<int?> FindBestStateMatch(string normalizedStateName, int? countryId);
         Task<int?> FindBestCountyMatch(string normalizedCountyName, int? stateId);
         Task<int?> FindBestCityMatch(string normalizedCityName, int? countyId);
+        TCity RegisterLocation(string country, string state, string county, string city, string? street, LocationModel result);
     }
 }

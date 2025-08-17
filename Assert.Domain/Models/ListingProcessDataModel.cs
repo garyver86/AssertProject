@@ -66,6 +66,11 @@
         public int? CityId { get; set; }
         public int? CountyId { get; set; }
         public int? StateId { get; set; }
+        public string Country { get; set; }
+        public string State { get; set; }
+        public string County { get; set; }
+        public string City { get; set; }
+        public string Street { get; set; }
     }
     public class ProcessData_SpaceModel
     {

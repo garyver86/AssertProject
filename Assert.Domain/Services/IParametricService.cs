@@ -15,5 +15,6 @@ namespace Assert.Domain.Services
         Task<ReturnModel<List<TCancelationPolicyType>>> GetCancellationPolicies(bool useTechnicalMessages);
         Task<ReturnModel<List<TpRuleType>>> GetRentRuleTypes(bool useTechnicalMessages);
         Task<ReturnModel<List<TpSecurityItemType>>> GetSecurityItems(bool useTechnicalMessages);
+        Task<ReturnModel<List<TApprovalPolicyType>>> GetApprobalPolicyTypes(bool useTechnicalMessages);
     }
 }
