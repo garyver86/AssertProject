@@ -12,6 +12,7 @@ namespace Assert.Domain.Repositories
     {
         Task<ReturnModel<PayPriceCalculation>> Create(PayPriceCalculation payPriceCalculation);
         Task<PayPriceCalculation> GetByCode(Guid calculationCode);
+        Task<PayPriceCalculation> GetById(long id);
         Task<ReturnModel> SetAsPayed(Guid calculationCode, int paymentProviderId, int methodOfPaymentId,
             long PaymentTransactionId);
     }

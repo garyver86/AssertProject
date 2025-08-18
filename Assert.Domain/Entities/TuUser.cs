@@ -79,6 +79,8 @@ public partial class TuUser
 
     public virtual ICollection<TmNotification> TmNotifications { get; set; } = new List<TmNotification>();
 
+    public virtual ICollection<TnNotification> TnNotifications { get; set; } = new List<TnNotification>();
+
     public virtual ICollection<TuAccount> TuAccounts { get; set; } = new List<TuAccount>();
 
     public virtual ICollection<TuAdditionalProfile> TuAdditionalProfiles { get; set; } = new List<TuAdditionalProfile>();

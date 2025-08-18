@@ -84,6 +84,23 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
+        public async Task<PayPriceCalculation> GetById(long id)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                var priceCalculation = await context.PayPriceCalculations.Where(x => x.PriceCalculationId == id)
+                    .Include(x => x.ListingRent).FirstOrDefaultAsync();
+                if (priceCalculation != null)
+                {
+                    return priceCalculation;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
         public async Task<ReturnModel> SetAsPayed(Guid calculationCode, int paymentProviderId, int methodOfPaymentId,
             long PaymentTransactionId)
         {
