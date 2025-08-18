@@ -5,6 +5,7 @@ using Assert.Domain.Entities;
 using Assert.Domain.Enums;
 using Assert.Domain.Models;
 using Assert.Domain.Models.Review;
+using Assert.Domain.Notifications;
 using Assert.Domain.ValueObjects;
 using Assert.Infrastructure.Utils;
 using AutoMapper;
@@ -31,6 +32,7 @@ namespace Assert.Application.Mappings
             CreateMap<ProcessData_Space, ProcessData_SpaceModel>();
             CreateMap<ProcessData_Photo, ProcessData_PhotoModel>();
             CreateMap<ProcessData_Discount, ProcessData_DiscountModel>();
+            CreateMap<EmailNotificationRequestDTO, EmailNotification>();
 
             CreateMap<TCurrency, CurrencyDTO>().ReverseMap();
             CreateMap<TReviewQuestion, ReviewQuestionDTO>().ReverseMap();

@@ -65,6 +65,7 @@ public class AppUserService(
             int userId;
             int accountId;
             int userRolId;
+            var photo = string.Empty;
 
             var providerUser = (ProviderUser)authenticationResult.Data!;
 
@@ -90,6 +91,7 @@ public class AppUserService(
                     var user = (TuUser)userAccount.Data!;
                     userId = user.UserId;
                     accountId = Convert.ToInt32(user.TuAccounts.First().AccountId);
+                    photo = user.PhotoLink ?? "";
                     if (enumPlatform == Platform.Local)
                         foreach (var role in authenticationResult.ResultError?.Code.Split(','))
                             userRoles.Add(role);
@@ -126,7 +128,7 @@ public class AppUserService(
             var result = new ReturnModelDTO
             {
                 StatusCode = ResultStatusCode.OK,
-                Data = new { jwtToken }
+                Data = new { jwtToken, photo }
             };
 
             return result;
