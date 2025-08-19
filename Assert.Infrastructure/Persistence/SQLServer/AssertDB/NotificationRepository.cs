@@ -13,7 +13,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             _context = context;
         }
 
-        public async Task<TnNotification> GetByIdAsync(int notificationId)
+        public async Task<TnNotification> GetByIdAsync(long notificationId)
         {
             return await _context.TnNotifications
                 .Include(n => n.Type)
@@ -40,7 +40,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .CountAsync(n => n.UserId == userId && !n.IsRead);
         }
 
-        public async Task MarkAsReadAsync(int notificationId)
+        public async Task MarkAsReadAsync(long notificationId)
         {
             var notification = await _context.TnNotifications.FindAsync(notificationId);
             if (notification != null)

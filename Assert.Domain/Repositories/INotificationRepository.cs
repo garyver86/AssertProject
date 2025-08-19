@@ -4,11 +4,11 @@ namespace Assert.Domain.Repositories
 {
     public interface INotificationRepository
     {
-        Task<TnNotification> GetByIdAsync(int notificationId);
+        Task<TnNotification> GetByIdAsync(long notificationId);
         Task<List<TnNotification>> GetUserNotificationsAsync(int userId, int page, int pageSize);
         Task<int> GetUnreadCountAsync(int userId);
         Task<List<TnNotification>> GetUnreadNotificationsAsync(int userId);
-        Task MarkAsReadAsync(int notificationId);
+        Task MarkAsReadAsync(long notificationId);
         Task MarkAllAsReadAsync(int userId);
         Task<TnNotification> CreateNotificationAsync(TnNotification notification);
         Task AddNotificationActionAsync(TnNotificationAction action);

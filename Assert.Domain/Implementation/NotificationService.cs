@@ -41,7 +41,7 @@ namespace Assert.Domain.Implementation
             _priceCalculationRepository = payPriceCalculationRepository;
         }
 
-        public async Task<TnNotification> GetNotificationAsync(int notificationId, int userId)
+        public async Task<TnNotification> GetNotificationAsync(long notificationId, int userId)
         {
             var notification = await _notificationRepository.GetByIdAsync(notificationId);
 
@@ -78,7 +78,7 @@ namespace Assert.Domain.Implementation
             return await _notificationRepository.GetUnreadCountAsync(userId);
         }
 
-        public async Task MarkAsReadAsync(int notificationId, int userId)
+        public async Task MarkAsReadAsync(long notificationId, int userId)
         {
             var notification = await _notificationRepository.GetByIdAsync(notificationId);
             if (notification == null || notification.UserId != userId)
@@ -291,6 +291,37 @@ namespace Assert.Domain.Implementation
                 ActionType = "review",
                 ActionUrl = $"/bookings/{bookId}/message",
                 ActionLabel = "Ver Mensaje",
+                IsPrimary = true
+            });
+
+            // Enviar notificación en tiempo real
+            await _dispatcher.SendNotificationAsync(userIdTo, createdNotification);
+        }
+
+        //Notificación por mensaje recibido
+        public async Task SendNewMessageNotificationAsync(int userIdTo, string messageBody)
+        {
+            //var userOrigin = await _userRepository.Get(userIdOrigin);
+            //var userTo = await _userRepository.Get(userIdTo);
+            var notificationType = await _notificationTypeRepository.GetByNameAsync("UserToUserMessage");
+            var notification = new TnNotification
+            {
+                UserId = userIdTo,
+                TypeId = notificationType.TypeId,
+                Title = "Notificación manual.",
+                MessageBody = messageBody,
+                IsRead = false
+            };
+
+            var createdNotification = await _notificationRepository.CreateNotificationAsync(notification);
+
+            // Añadir acciones
+            await _notificationRepository.AddNotificationActionAsync(new TnNotificationAction
+            {
+                NotificationId = createdNotification.NotificationId,
+                ActionType = "review",
+                ActionUrl = $"/message/{createdNotification.NotificationId}",
+                ActionLabel = "Ver Notificación",
                 IsPrimary = true
             });
 
