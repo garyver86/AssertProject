@@ -22,6 +22,24 @@ namespace Assert.API.Controllers
         }
 
         /// <summary>
+        /// Servicio que retorna listado de alertas no leidas.
+        /// </summary>
+        /// <param name="filter">Filtro para busqueda de Alertas</param>
+        /// <response code="200">Detalle del alertas</response>
+        /// <remarks>
+        /// En el filtro solo funciona la página y el tamaño de la página.
+        /// </remarks>
+        [HttpPost()]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("Alert")]
+        public async Task<ReturnModelDTO> GetNotifications([FromBody] NotificationHistoryFilter filter)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            var result = await _appNotificationService.GetUserNotificationsAsync(_metadata.UserId, filter.Page, filter.PageSize, requestInfo, true);
+            return result;
+        }
+
+        /// <summary>
         /// Servicio que retorna el histórico de Alertas.
         /// </summary>
         /// <param name="filter">Filtro para busqueda de Alertas</param>
