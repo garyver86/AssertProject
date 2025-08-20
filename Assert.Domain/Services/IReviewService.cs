@@ -1,4 +1,5 @@
 ﻿using Assert.Domain.Entities;
+using Assert.Domain.Models.Review;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,5 +14,6 @@ namespace Assert.Domain.Services
         Task<TlListingReview> GetReviewDetailsAsync(long listingReviewId);
         Task<List<TReviewQuestion>> GetReviewsQuestions();
         Task<TlListingReview> SubmitReviewAsync(TlListingReview reviewDto, int userId);
+        Task<ListingReviewResume> GetreviewAverageByListing(long listingId);
     }
 }

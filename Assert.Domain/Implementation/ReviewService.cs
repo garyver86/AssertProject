@@ -1,4 +1,5 @@
 ﻿using Assert.Domain.Entities;
+using Assert.Domain.Models.Review;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Microsoft.IdentityModel.Tokens;
@@ -40,6 +41,12 @@ namespace Assert.Domain.Implementation
             var review = await _reviewRepository.GetReviewByBookingAsync(bookId);
             //if (review == null)
             //    throw new KeyNotFoundException("Review not found");
+
+            return review;
+        }
+        public async Task<ListingReviewResume> GetreviewAverageByListing(long listingId)
+        {
+            var review = await _reviewRepository.GetreviewAverageByListing(listingId);
 
             return review;
         }

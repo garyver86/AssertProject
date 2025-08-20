@@ -13,13 +13,15 @@ namespace Assert.API.Controllers
     public class ListingRentController : Controller
     {
         private readonly IAppListingRentService _appListingRentService;
+        private readonly IAppReviewService _appReviewService;
         private readonly IAppListingFavoriteService _appListingFavoriteService;
         private readonly IAppSearchService _searchService;
-        public ListingRentController(IAppListingRentService appListingRentService, IAppSearchService searchService, IAppListingFavoriteService appListingFavoriteService)
+        public ListingRentController(IAppListingRentService appListingRentService, IAppSearchService searchService, IAppListingFavoriteService appListingFavoriteService, IAppReviewService appReviewService)
         {
             _appListingRentService = appListingRentService;
             _searchService = searchService;
             _appListingFavoriteService = appListingFavoriteService;
+            _appReviewService = appReviewService;
         }
 
 
@@ -39,6 +41,22 @@ namespace Assert.API.Controllers
             var requestInfo = HttpContext.GetRequestInfo();
 
             var result = await _appListingRentService.Get(listinRentId, true, requestInfo, true);
+            return result;
+        }
+
+        /// <summary>
+        /// Servicio que devuelve el resumen completo de los reviews de un listing Rent
+        /// </summary>
+        /// <param name="listinRentId">Id del linsting rent a recuperar.</param>
+        /// <returns>resumen de review listing rent.</returns>
+        /// <response code="200">Detalle del Listing Rent</response>
+        [HttpGet("{listinRentId}/ReviewResume")]
+        [Authorize(Policy = "Guest")]
+        public async Task<ReturnModelDTO> GetreviewAverageByListing(long listinRentId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+
+            var result = await _appReviewService.GetreviewAverageByListing(listinRentId, requestInfo);
             return result;
         }
 

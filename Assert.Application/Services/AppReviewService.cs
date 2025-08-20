@@ -2,6 +2,7 @@
 using Assert.Application.Interfaces;
 using Assert.Domain.Entities;
 using Assert.Domain.Models;
+using Assert.Domain.Models.Review;
 using Assert.Domain.Services;
 using AutoMapper;
 using System;
@@ -69,6 +70,29 @@ namespace Assert.Application.Services
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
                 result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppReviewService.GetBookReviewDetails", ex, new { bookId, clientData }, true));
+            }
+            return result;
+        }
+
+        public async Task<ReturnModelDTO<ListingReviewResumeDTO>> GetreviewAverageByListing(long listingId, Dictionary<string, string> clientData)
+        {
+            ReturnModelDTO<ListingReviewResumeDTO> result = new ReturnModelDTO<ListingReviewResumeDTO>();
+            try
+            {
+                var returnModel = await _reviewService.GetreviewAverageByListing(listingId);
+
+                result = new ReturnModelDTO<ListingReviewResumeDTO>
+                {
+                    Data = _mapper.Map<ListingReviewResumeDTO>(returnModel),
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppReviewService.GetreviewAverageByListing", ex, new { listingId, clientData }, true));
             }
             return result;
         }
