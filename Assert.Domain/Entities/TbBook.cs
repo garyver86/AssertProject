@@ -85,6 +85,8 @@ public partial class TbBook
 
     public virtual ICollection<TlListingReview> TlListingReviews { get; set; } = new List<TlListingReview>();
 
+    public virtual ICollection<TnNotification> TnNotifications { get; set; } = new List<TnNotification>();
+
     public virtual ICollection<TuUserReview> TuUserReviews { get; set; } = new List<TuUserReview>();
 
     public virtual TuUser UserIdRenterNavigation { get; set; } = null!;

@@ -8,6 +8,7 @@ using Assert.Domain.Services;
 using Assert.Infrastructure.Exceptions;
 using Assert.Infrastructure.External.AuthProviderValidator;
 using Assert.Infrastructure.External.Notifications;
+using Assert.Infrastructure.ExternalServices;
 using Assert.Infrastructure.InternalServices;
 using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 using Assert.Infrastructure.Security;
@@ -57,6 +58,12 @@ public static class InfrastructureInjectionDependences
         services.AddScoped<ISearchService, SearchService>();
         services.AddScoped<IImageService, ImageService>();
         services.AddScoped<IFuzzyMatcher, FuzzyMatcher>();
+
+        services.AddSingleton<ISocketIoServer>(provider =>
+            new SocketIoServer(3001)); // Puerto diferente al API
+        services.AddSingleton<IConnectionManager, ConnectionManager>();
+        services.AddSingleton<INotificationDispatcher, SocketIoNotificationDispatcher>();
+        services.AddScoped<INotificationService, NotificationService>();
 
         services.AddScoped<GoogleAuthValidator>();
         services.AddScoped<AppleAuthValidator>();
@@ -140,6 +147,8 @@ public static class InfrastructureInjectionDependences
         services.AddScoped<IAssertFeeRepository, AssertFeeRepository>();
         services.AddScoped<IListingRentReviewRepository, ListingRentReviewRepository>();
         services.AddScoped<IReviewQuestionRepository, ReviewQuestionRepository>();
+        services.AddScoped<INotificationRepository, NotificationRepository>();
+        services.AddScoped<INotificationTypeRepository, NotificationTypeRepository>();
         #endregion
 
         return services;

@@ -205,6 +205,12 @@ public partial class InfraAssertDbContext : DbContext
 
     public virtual DbSet<TmTypeMessage> TmTypeMessages { get; set; }
 
+    public virtual DbSet<TnNotification> TnNotifications { get; set; }
+
+    public virtual DbSet<TnNotificationAction> TnNotificationActions { get; set; }
+
+    public virtual DbSet<TnNotificationType> TnNotificationTypes { get; set; }
+
     public virtual DbSet<TpAmenitiesCategory> TpAmenitiesCategories { get; set; }
 
     public virtual DbSet<TpAmenitiesType> TpAmenitiesTypes { get; set; }
@@ -3066,6 +3072,77 @@ public partial class InfraAssertDbContext : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<TnNotification>(entity =>
+        {
+            entity.HasKey(e => e.NotificationId).HasName("PK__TN_Notif__20CF2E12CEA3D315");
+
+            entity.ToTable("TN_Notification");
+
+            entity.HasIndex(e => e.BookingId, "IX_Notification_BookingId");
+
+            entity.HasIndex(e => e.CreatedAt, "IX_Notification_CreatedAt");
+
+            entity.HasIndex(e => e.IsRead, "IX_Notification_IsRead");
+
+            entity.HasIndex(e => e.ListingRentId, "IX_Notification_PropertyId");
+
+            entity.HasIndex(e => e.UserId, "IX_Notification_UserId");
+
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.ReadAt).HasColumnType("datetime");
+            entity.Property(e => e.Title).HasMaxLength(255);
+
+            entity.HasOne(d => d.Booking).WithMany(p => p.TnNotifications)
+                .HasForeignKey(d => d.BookingId)
+                .HasConstraintName("FK__TN_Notifi__Booki__49E3F248");
+
+            entity.HasOne(d => d.ListingRent).WithMany(p => p.TnNotifications)
+                .HasForeignKey(d => d.ListingRentId)
+                .HasConstraintName("FK__TN_Notifi__Listi__48EFCE0F");
+
+            entity.HasOne(d => d.Type).WithMany(p => p.TnNotifications)
+                .HasForeignKey(d => d.TypeId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__TN_Notifi__TypeI__47FBA9D6");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TnNotifications)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__TN_Notifi__UserI__4707859D");
+        });
+
+        modelBuilder.Entity<TnNotificationAction>(entity =>
+        {
+            entity.HasKey(e => e.ActionId).HasName("PK__TN_Notif__FFE3F4D995A53F65");
+
+            entity.ToTable("TN_NotificationAction");
+
+            entity.Property(e => e.ActionLabel).HasMaxLength(255);
+            entity.Property(e => e.ActionType).HasMaxLength(100);
+            entity.Property(e => e.ActionUrl).HasMaxLength(512);
+
+            entity.HasOne(d => d.Notification).WithMany(p => p.TnNotificationActions)
+                .HasForeignKey(d => d.NotificationId)
+                .HasConstraintName("FK__TN_Notifi__Notif__4DB4832C");
+        });
+
+        modelBuilder.Entity<TnNotificationType>(entity =>
+        {
+            entity.HasKey(e => e.TypeId).HasName("PK__TN_Notif__516F03B597558061");
+
+            entity.ToTable("TN_NotificationType");
+
+            entity.Property(e => e.Icon).HasMaxLength(100);
+            entity.Property(e => e.Ndescription)
+                .HasMaxLength(255)
+                .HasColumnName("NDescription");
+            entity.Property(e => e.Nname)
+                .HasMaxLength(100)
+                .HasColumnName("NName");
         });
 
         modelBuilder.Entity<TpAmenitiesCategory>(entity =>
