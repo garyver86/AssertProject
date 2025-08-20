@@ -14,7 +14,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task<List<TpAmenitiesType>> GetActives()
         {
-            List<TpAmenitiesType> amenities = await _context.TpAmenitiesTypes.Where(x => x.Status ?? false).ToListAsync();
+            List<TpAmenitiesType> amenities = await _context.TpAmenitiesTypes
+                .Where(x => x.Status == true)
+                .ToListAsync();
             return amenities;
         }
     }

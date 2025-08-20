@@ -185,9 +185,12 @@ namespace Assert.Application.Mappings
             CreateMap<TlListingAmenity, AmenityDTO>()
                 .ForMember(dest => dest.TypeCode, opt => opt.MapFrom(src => src.AmenitiesType != null ? src.AmenitiesType.Code : null))
                 .ForMember(dest => dest.IconLink, opt => opt.MapFrom(src => src.AmenitiesType != null ? src.AmenitiesType.IconLink : null))
-                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.AmenitiesType != null ? src.AmenitiesType.Name : null));
+                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.AmenitiesType != null ? src.AmenitiesType.Name : null))
+                .ForMember(dest => dest.ValueString, opt => opt.MapFrom(src => src.AmenitiesType != null ? src.AmenitiesType.Description : null));
             CreateMap<TpAmenitiesType, AmenityDTO>()
                 .ForMember(dest => dest.TypeCode, opt => opt.MapFrom(src => src.Code))
+                .ForMember(dest => dest.Type, opt => opt.MapFrom(src => src.Name))
+                .ForMember(dest => dest.ValueString, opt => opt.MapFrom(src => src.Description))
                 .ForMember(dest => dest.IconLink, opt => opt.MapFrom(src => src.IconLink))
                 .ForMember(dest => dest.AmenitiesTypeId, opt => opt.MapFrom(src => src.AmenitiesTypeId));
             CreateMap<TlListingFeaturedAspect, FeaturedAspectDTO>()
