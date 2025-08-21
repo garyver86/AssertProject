@@ -496,17 +496,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 listing.MaxGuests = maxGuests;
 
                 if (privateBathroom >= 0)
-                {
                     listing.PrivateBathroom = privateBathroom;
-                }
                 if (privateBathroomLodging >= 0)
-                {
                     listing.PrivateBathroomLodging = privateBathroomLodging;
-                }
                 if (sharedBathroom >= 0)
-                {
                     listing.SharedBathroom = sharedBathroom;
-                }
                 await context.SaveChangesAsync();
             }
         }
