@@ -1,5 +1,6 @@
 ﻿using Assert.Domain.Entities;
 using Assert.Domain.Models;
+using Assert.Domain.Models.Review;
 using Assert.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
@@ -54,7 +55,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             using (var dbContext = new InfraAssertDbContext(dbOptions))
             {
                 var averageRating = await dbContext.TlListingReviews
-                    .Where(r => r.ListingReviewId == listingRentId)
+                    .Where(r => r.ListingRentId == listingRentId)
                     .AverageAsync(r => r.Calification);
 
                 TlListingRent listing = await dbContext.TlListingRents
@@ -65,6 +66,49 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 return;
             }
         }
+
+        public async Task<ListingReviewResume> GetreviewAverageByListing(long listingRentId)
+        {
+            using (var dbContext = new InfraAssertDbContext(dbOptions))
+            {
+                var result = await dbContext.TlListingRents.Where(li => li.ListingRentId == listingRentId).
+                    Select(p => new ListingReviewResume
+                    {
+                        Listing = new ListingResume
+                        {
+                            ListingRentId = p.ListingRentId,
+                            Name = p.Name,
+                            AvgReviews = p.AvgReviews,
+                            TotalReviews = p.TlListingReviews.Count()
+                        },
+                        AvgByQuestion = p.TlListingReviews
+                            .SelectMany(r => r.TlListingReviewQuestions)
+                            .GroupBy(q => new
+                            {
+                                q.ReviewQuestionId,
+                                q.ReviewQuestion.QuestionCode,
+                                q.ReviewQuestion.QuestionText
+                            })
+                            .Select(g => new AvgByQuestion
+                            {
+                                QuestionId = g.Key.ReviewQuestionId,
+                                QuestionText = g.Key.QuestionText,
+                                QuestionCode = g.Key.QuestionCode,
+                                AverageRating = (decimal)g.Average(q => q.Rating),
+                                TotalAnswers = g.Count()
+                            }).ToList()
+                    }).FirstOrDefaultAsync();
+                if (result.Listing.AvgReviews == null)
+                {
+                    await UpdateReviewsAverage(listingRentId);
+                    result.Listing.AvgReviews = (decimal)await dbContext.TlListingReviews
+                    .Where(r => r.ListingRentId == listingRentId)
+                    .AverageAsync(r => r.Calification);
+                }
+                return result;
+            }
+        }
+
         public async Task<ListingReviewSummary> GetReviewSummary(long listingRentId, int topCount)
         {
             if (topCount <= 0)

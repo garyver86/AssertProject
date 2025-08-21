@@ -95,6 +95,9 @@ namespace Assert.Application.Mappings
 
 
             CreateMap<ErrorCommon, ErrorCommonDTO>();
+            CreateMap<ListingReviewResume, ListingReviewResumeDTO>();
+            CreateMap<ListingResume, ListingResumeDTO>();
+            CreateMap<AvgByQuestion, AvgByQuestionDTO>();
             CreateMap<TpSecurityItemType, SecurityItemDTO>();
             CreateMap<TDiscountTypeForTypePrice, DiscountDTO>()
                 .ForMember(dest => dest.Code, opt => opt.MapFrom(src => src.Code))

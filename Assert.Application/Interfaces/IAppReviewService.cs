@@ -13,5 +13,6 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<ReviewDTO>> GetBookReviewDetails(long bookId, Dictionary<string, string> clientData);
         Task<ReturnModelDTO<ReviewDTO>> SubmitBookReview(ReviewDTO reviewDto, int userId, Dictionary<string, string> clientData);
         Task<ReturnModelDTO<List<ReviewQuestionDTO>>> GetReviewQuestions(Dictionary<string, string> clientData);
+        Task<ReturnModelDTO<ListingReviewResumeDTO>> GetreviewAverageByListing(long listingId, Dictionary<string, string> clientData);
     }
 }

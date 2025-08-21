@@ -1,5 +1,6 @@
 ﻿using Assert.Domain.Entities;
 using Assert.Domain.Models;
+using Assert.Domain.Models.Review;
 
 namespace Assert.Domain.Repositories
 {
@@ -17,5 +18,6 @@ namespace Assert.Domain.Repositories
         Task<int> GetTotalActiveQuestionsAsync();
         Task<int> GetAnsweredQuestionsCountAsync(long bookid);
         Task UpdateReviewsAverage(long listingRentId);
+        Task<ListingReviewResume> GetreviewAverageByListing(long listingRentId);
     }
 }
