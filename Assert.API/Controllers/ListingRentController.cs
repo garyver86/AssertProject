@@ -15,7 +15,8 @@ namespace Assert.API.Controllers
         private readonly IAppListingRentService _appListingRentService;
         private readonly IAppListingFavoriteService _appListingFavoriteService;
         private readonly IAppSearchService _searchService;
-        public ListingRentController(IAppListingRentService appListingRentService, IAppSearchService searchService, IAppListingFavoriteService appListingFavoriteService)
+        public ListingRentController(IAppListingRentService appListingRentService, 
+            IAppSearchService searchService, IAppListingFavoriteService appListingFavoriteService)
         {
             _appListingRentService = appListingRentService;
             _searchService = searchService;

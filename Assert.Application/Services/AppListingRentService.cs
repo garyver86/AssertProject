@@ -107,7 +107,8 @@ namespace Assert.Application.Services
         }
 
 
-        public async Task<ReturnModelDTO<ListingRentDTO>> Get(long listingRentId, bool onlyActive, Dictionary<string, string> clientData, bool useTechnicalMessages)
+        public async Task<ReturnModelDTO<ListingRentDTO>> Get(long listingRentId, 
+            bool onlyActive, Dictionary<string, string> clientData, bool useTechnicalMessages)
         {
             ReturnModelDTO<ListingRentDTO> result = new ReturnModelDTO<ListingRentDTO>();
             try

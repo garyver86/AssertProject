@@ -378,6 +378,9 @@ namespace Assert.API.Controllers
         /// <param name="beds">Número de camas</param>
         /// <param name="bedrooms">Número de habitaciones</param>
         /// <param name="bathrooms">Número de baños</param>
+        /// <param name="privateBathroom">Cantidad de baños privados disponibles</param>
+        /// <param name="privateBathroomLodging">Cantidad de baños privados exclusivos del alojamiento</param>
+        /// <param name="sharedBathroom">Cantidad de baños compartidos</param>
         /// <param name="maxGuests">Máximo número de huéspedes</param>
         /// <returns>UPDATED</returns>
         /// <response code="200">Detalle del Listing Rent</response>
@@ -388,9 +391,10 @@ namespace Assert.API.Controllers
         [Authorize(Policy = "GuestOrHost")]
         [Route("{listingRentId}/UpdateCapacity")]
         public async Task<ReturnModelDTO> UpdateCapacity([FromRoute] long listingRentId,
-            int beds, int bedrooms, int bathrooms, int maxGuests)
+            int beds, int bedrooms, int bathrooms, int maxGuests,
+            int privateBathroom, int privateBathroomLodging, int sharedBathroom)
         => await _appListingRentService.UpdateCapacity(listingRentId, beds, bedrooms,
-            bathrooms, maxGuests, 0, 0, 0);
+            bathrooms, privateBathroom, privateBathroomLodging, sharedBathroom, maxGuests);
 
         /// <summary>
         /// Servicio que actualiza la ubicación y dirección de un Listing Rent.
