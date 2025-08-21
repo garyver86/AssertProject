@@ -9,12 +9,10 @@ using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Assert.Domain.Utils;
 using Assert.Domain.ValueObjects;
-using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 using Assert.Shared.Extensions;
 using AutoMapper;
-using Azure.Core;
 using Microsoft.AspNetCore.Http;
-using System.Reflection;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Assert.Application.Services
 {
@@ -36,6 +34,7 @@ namespace Assert.Application.Services
         IListingSecurityItemsRepository _listingSecurityItemsRepository,
         IListingDiscountRepository _listingDiscountRepository,
         IListingRentRulesRepository _listingRentRulesRepository,
+        ILocationService _locationService,
         IHttpContextAccessor requestContext)
         : IAppListingRentService
     {
@@ -177,7 +176,7 @@ namespace Assert.Application.Services
             return result;
         }
 
-        public async Task<ReturnModelDTO<ProcessDataResult>> ProcessListingData(long listinRentId, 
+        public async Task<ReturnModelDTO<ProcessDataResult>> ProcessListingData(long listinRentId,
             ProcessDataRequest request, Dictionary<string, string> clientData, bool useTechnicalMessages)
         {
             ReturnModelDTO<ProcessDataResult> result = new ReturnModelDTO<ProcessDataResult>();
@@ -639,7 +638,7 @@ namespace Assert.Application.Services
             return result;
         }
 
-        public async Task<ReturnModelDTO<string>> UpdatePropertyAndAccomodationTypes(long listingRentId, 
+        public async Task<ReturnModelDTO<string>> UpdatePropertyAndAccomodationTypes(long listingRentId,
             int? propertyTypeId, int? accomodationTypeId)
         {
             if (propertyTypeId is not null && propertyTypeId > 0)
@@ -663,11 +662,11 @@ namespace Assert.Application.Services
             };
         }
 
-        public async Task<ReturnModelDTO<string>> UpdateCapacity(long listingRentId, 
-            int beds, int bedrooms, int bathrooms, int maxGuests, 
+        public async Task<ReturnModelDTO<string>> UpdateCapacity(long listingRentId,
+            int beds, int bedrooms, int bathrooms, int maxGuests,
             int privateBathroom, int privateBathroomLodging, int sharedBathroom)
         {
-            await _listingRentRepository.SetCapacity(listingRentId, beds, bedrooms, 
+            await _listingRentRepository.SetCapacity(listingRentId, beds, bedrooms,
                 bathrooms, maxGuests, privateBathroom, privateBathroomLodging, sharedBathroom);
 
             return new ReturnModelDTO<string>
@@ -678,14 +677,61 @@ namespace Assert.Application.Services
             };
         }
 
+        //public async Task<ReturnModelDTO<string>> UpdatePropertyLocation(long listingRentId,
+        //    int cityId, int countyId, int stateId, double latitude, double longitude,
+        //    string address1, string address2, string zipCode, string Country, string State, string County, string City, string Street)
+        //{
+        //    var property = await _propertyRepository.GetFromListingId(listingRentId);
+
+        //    if(property is null)
+        //        throw new ApplicationException("No se ha encontrado el listado de renta, verifica los datos e intenta de nuevo.");
+
+        //    TpPropertyAddress addresInput = new TpPropertyAddress
+        //    {
+        //        Address1 = address1,
+        //        Address2 = address2,
+        //        ZipCode = zipCode,
+        //    };
+
+        //    if (cityId > 0) addresInput.CityId = cityId;
+        //    if (countyId > 0) addresInput.CountyId = countyId;
+        //    if (stateId > 0) addresInput.StateId = stateId;
+
+        //    TpPropertyAddress addressResult = await _propertyAddressRepository.Set(
+        //        addresInput, property.PropertyId);
+
+        //    if (latitude != 0 && longitude != 0)
+        //    {
+        //        if (!GeoUtils.ValidateLatitudLongitude(latitude, longitude))
+        //            throw new ApplicationException("La Latitud o Longitud ingresada no es válida, verifica los datos e intenta de nuevo.");
+
+        //        await _propertyRepository.SetLocation(property.PropertyId, 
+        //            latitude, longitude);
+        //    }
+
+        //    return new ReturnModelDTO<string>
+        //    {
+        //        Data = "UPDATED",
+        //        HasError = false,
+        //        StatusCode = ResultStatusCode.OK
+        //    };
+        //}
+
         public async Task<ReturnModelDTO<string>> UpdatePropertyLocation(long listingRentId,
-            int cityId, int countyId, int stateId, double latitude, double longitude,
-            string address1, string address2, string zipCode)
+            int cityId, int countyId, int stateId, double? latitude, double? longitude,
+            string address1, string address2, string zipCode, string Country, string State, string County, string City, string Street)
         {
             var property = await _propertyRepository.GetFromListingId(listingRentId);
 
-            if(property is null)
+            if (property is null)
                 throw new ApplicationException("No se ha encontrado el listado de renta, verifica los datos e intenta de nuevo.");
+
+            LocationModel? location = null;
+
+            if (!Country.IsNullOrEmpty() || !State.IsNullOrEmpty() || !County.IsNullOrEmpty() || !City.IsNullOrEmpty() || !Street.IsNullOrEmpty())
+            {
+                location = await _locationService.ResolveLocationAdRegister(Country, State, County, City, Street);
+            }
 
             TpPropertyAddress addresInput = new TpPropertyAddress
             {
@@ -693,21 +739,88 @@ namespace Assert.Application.Services
                 Address2 = address2,
                 ZipCode = zipCode,
             };
+            if (location != null)
+            {
+                if (location.CityId > 0)
+                {
+                    addresInput.CityId = location.CityId;
+                    addresInput.CountyId = null;
+                    addresInput.StateId = null;
+                }
+                else
+                {
+                    if (location.CountyId > 0)
+                    {
+                        addresInput.CityId = null;
+                        addresInput.CountyId = location.CountyId;
+                        addresInput.StateId = null;
+                    }
+                    else
+                    {
+                        if (location.StateId > 0)
+                        {
+                            addresInput.CityId = null;
+                            addresInput.CountyId = null;
+                            addresInput.StateId = location.StateId;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                if (cityId > 0)
+                {
+                    addresInput.CityId = cityId;
+                    addresInput.CountyId = null;
+                    addresInput.StateId = null;
+                }
+                else
+                {
+                    if (countyId > 0)
+                    {
+                        addresInput.CityId = null;
+                        addresInput.CountyId = countyId;
+                        addresInput.StateId = null;
+                    }
+                    else
+                    {
+                        if (stateId > 0)
+                        {
+                            addresInput.CityId = null;
+                            addresInput.CountyId = null;
+                            addresInput.StateId = stateId;
+                        }
+                    }
+                }
+            }
 
-            if (cityId > 0) addresInput.CityId = cityId;
-            if (countyId > 0) addresInput.CountyId = countyId;
-            if (stateId > 0) addresInput.StateId = stateId;
-
-            TpPropertyAddress addressResult = await _propertyAddressRepository.Set(
-                addresInput, property.PropertyId);
-
-            if (latitude != 0 && longitude != 0)
+            if (latitude != null && longitude != null && latitude != 0 && longitude != 0)
             {
                 if (!GeoUtils.ValidateLatitudLongitude(latitude, longitude))
-                    throw new ApplicationException("La Latitud o Longitud ingresada no es válida, verifica los datos e intenta de nuevo.");
+                {
+                    return new ReturnModelDTO<string>
+                    {
+                        HasError = true,
+                        StatusCode = ResultStatusCode.BadRequest,
+                        ResultError = new ErrorCommonDTO
+                        {
+                            Code = ResultStatusCode.BadRequest,
+                            Message = "La Latitud o Longitud ingresada no es válida, verifica los datos e intenta de nuevo.",
+                        }
+                    };
+                }
+            }
+            else
+            {
+                latitude = null;
+                longitude = null;
+            }
 
-                await _propertyRepository.SetLocation(property.PropertyId, 
-                    latitude, longitude);
+            TpPropertyAddress addressResult = await _propertyAddressRepository.Set(addresInput, property.PropertyId);
+            if (latitude != 0 && longitude != 0)
+            {
+                Thread.Sleep(1000);
+                await _propertyRepository.SetLocation(property.PropertyId, latitude, longitude);
             }
 
             return new ReturnModelDTO<string>
@@ -723,16 +836,16 @@ namespace Assert.Application.Services
             List<int> securityItems)
         {
             //if (featuredAmenities is { Count: > 0 })
-                await _listingAmenitiesRepository.SetListingAmmenities(listingRentId,
-                    featuredAmenities, clientData, true);
+            await _listingAmenitiesRepository.SetListingAmmenities(listingRentId,
+                featuredAmenities, clientData, true);
 
             //if (featureAspects is { Count: > 0 })
-                await _listingFeaturedAspectRepository.SetListingFeaturesAspects(listingRentId,
-                    featureAspects);
+            await _listingFeaturedAspectRepository.SetListingFeaturesAspects(listingRentId,
+                featureAspects);
 
             //if (securityItems is { Count: > 0 })
-                await _listingSecurityItemsRepository.SetListingSecurityItems(listingRentId,
-                    securityItems);
+            await _listingSecurityItemsRepository.SetListingSecurityItems(listingRentId,
+                securityItems);
 
             return new ReturnModelDTO<string>
             {
@@ -744,7 +857,7 @@ namespace Assert.Application.Services
 
         public async Task<ReturnModelDTO<string>> UpdateCancellationPolicy(long listingRentId,
             int cancellationPolicyId)
-        {   
+        {
             if (cancellationPolicyId <= 0)
                 throw new ApplicationException("El ID de la política de cancelación no es válido, verifica los datos e intenta de nuevo.");
 
@@ -761,10 +874,10 @@ namespace Assert.Application.Services
         public async Task<ReturnModelDTO<string>> UpdateReservation(long listingRentId,
            int approvalPolicyTypeId, int minimunNoticeDays, int preparationDays)
         {
-            if(approvalPolicyTypeId <= 0 || minimunNoticeDays <= 0 || preparationDays <= 0)
+            if (approvalPolicyTypeId <= 0 || minimunNoticeDays <= 0 || preparationDays <= 0)
                 throw new ApplicationException("Los datos de la política de reserva no son válidos, verifica los datos e intenta de nuevo.");
 
-            await _listingRentRepository.SetReservationTypeApprobation(listingRentId, 
+            await _listingRentRepository.SetReservationTypeApprobation(listingRentId,
                 approvalPolicyTypeId, minimunNoticeDays, preparationDays);
 
             return new ReturnModelDTO<string>
@@ -804,8 +917,8 @@ namespace Assert.Application.Services
                 throw new ApplicationException("Debe definir las horas de Checin y checkout.");
 
             await _listingRentRepository.SetCheckInPolicies(listingRentId, checkinTime, checkoutTime, maxCheckinTime, instructions);
-            
-            if(rules is { Count: > 0 })
+
+            if (rules is { Count: > 0 })
                 await _listingRentRulesRepository.Set(listingRentId, rules);
 
             return new ReturnModelDTO<string>
@@ -917,7 +1030,7 @@ namespace Assert.Application.Services
             try
             {
                 List<TlListingRent> listings = await _listingRentRepository.GetUnfinishedList(ownerId);
-               
+
                 result = new ReturnModelDTO<List<ListingRentDTO>>
                 {
                     Data = _mapper.Map<List<ListingRentDTO>>(listings),
@@ -949,7 +1062,7 @@ namespace Assert.Application.Services
                     Data = updateResult
                 };
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 var (className, methodName) = this.GetCallerInfo();
                 _exceptionLoggerService.LogAsync(ex, methodName, className, new { listingRentId, listingPhotoId, newPostition });
@@ -971,7 +1084,7 @@ namespace Assert.Application.Services
                 };
 
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 var (className, methodName) = this.GetCallerInfo();
                 _exceptionLoggerService.LogAsync(ex, methodName, className, 0);

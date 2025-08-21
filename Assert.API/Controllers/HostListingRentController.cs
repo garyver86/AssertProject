@@ -6,6 +6,7 @@ using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
 using Assert.Domain.Common.Metadata;
 using Assert.Domain.Models;
+using Azure.Core;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -414,10 +415,10 @@ namespace Assert.API.Controllers
         [Authorize(Policy = "GuestOrHost")]
         [Route("{listingRentId}/UpdatePropertyLocation")]
         public async Task<ReturnModelDTO> UpdatePropertyLocation([FromRoute] long listingRentId,
-            int cityId, int countyId, int stateId, double latitude, double longitude,
-            string address1, string address2, string zipCode)
+            int cityId, int countyId, int stateId, double Latitude, double Longitude,
+            string address1, string address2, string zipCode, string Country, string State, string County, string City, string Street)
         => await _appListingRentService.UpdatePropertyLocation(listingRentId,
-            cityId, countyId, stateId, latitude, longitude, address1, address2, zipCode);
+            cityId, countyId, stateId, Latitude, Longitude, address1, address2, zipCode, Country, State, County, City, Street);
 
         /// <summary>
         /// Actualiza las características, amenidades y elementos de seguridad de un Listing Rent.

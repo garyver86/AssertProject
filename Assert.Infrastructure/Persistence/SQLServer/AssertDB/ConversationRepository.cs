@@ -85,5 +85,13 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             return conversations;
         }
 
+        public async Task<TmConversation> GetConversation(long conversationId)
+        {
+            var conversations = await _context.TmConversations
+                .Where(c => c.ConversationId == conversationId)
+                .FirstOrDefaultAsync();
+
+            return conversations;
+        }
     }
 }

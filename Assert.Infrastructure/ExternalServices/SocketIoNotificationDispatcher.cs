@@ -26,7 +26,7 @@ namespace Assert.Infrastructure.ExternalServices
                     await _socketIoServer.EmitTo(connectionId, "ReceiveNotification", notification);
                 }
             }
-            await _socketIoServer.To(userId.ToString()).EmitAsync("ReceiveNotification", notification);
+            //await _socketIoServer.To(userId.ToString()).EmitAsync("ReceiveNotification", notification);//Envía la notificación a una sala
         }
 
         public async Task UpdateUnreadCount(int userId, int count)
@@ -41,7 +41,7 @@ namespace Assert.Infrastructure.ExternalServices
                 }
             }
 
-            await _socketIoServer.To(userId.ToString()).EmitAsync("UpdateUnreadCount", count);
+            //await _socketIoServer.To(userId.ToString()).EmitAsync("UpdateUnreadCount", count);
         }
     }
 }

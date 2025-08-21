@@ -93,7 +93,7 @@ namespace Assert.Application.Services.Notifications
                 {
                     StatusCode = ResultStatusCode.OK,
                     HasError = false,
-                    Data = false ? (historical.Item1.Select(n => _mapper.Map<NotificationDTO>(n)).ToList(), _mapper.Map<PaginationMetadataDTO>(historical.Item2)) : (new List<NotificationDTO>(), new PaginationMetadataDTO())
+                    Data = (historical.Item1?.Select(n => _mapper.Map<NotificationDTO>(n)).ToList(), _mapper.Map<PaginationMetadataDTO>(historical.Item2))
                 };
             }
             catch (Exception ex)

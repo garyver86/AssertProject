@@ -158,6 +158,9 @@ namespace Assert.Application.Mappings
             CreateMap<PayPriceCalculation, PayPriceCalculationDTO>();
             CreateMap<PriceBreakdownItem, PriceBreakdownItemDTO>();
             CreateMap<PayMethodOfPayment, PayMethodOfPaymentDTO>();
+            CreateMap<TnNotification, NotificationDTO>();
+            CreateMap<TnNotificationAction, NotificationActionDTO>();
+            CreateMap<TnNotificationType, NotificationTypeDTO>();
             CreateMap<TApprovalPolicyType, ApprovalPolicyDTO>();
             CreateMap<TCancelationPolicyType, CancellationPolicyDTO>();
             CreateMap<TpRuleType, RentRuleDTO>();

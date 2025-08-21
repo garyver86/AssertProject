@@ -36,8 +36,8 @@ namespace Assert.Application.Interfaces
             int privateBathroom, int privateBathroomLodging, int sharedBathroom);
 
         Task<ReturnModelDTO<string>> UpdatePropertyLocation(long listingRentId,
-            int cityId, int countyId, int stateId, double latitude, double longitude,
-            string address1, string address2, string zipCode);
+            int cityId, int countyId, int stateId, double? Latitude, double? Longitude,
+            string address1, string address2, string zipCode, string Country, string State, string County, string City, string Street);
 
         Task<ReturnModelDTO<string>> UpdateCharasteristics(long listingRentId,
             Dictionary<string, string> clientData, List<int> featuredAmenities, List<int> featureAspects,

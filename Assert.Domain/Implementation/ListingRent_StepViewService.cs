@@ -825,7 +825,8 @@ namespace Assert.Domain.Implementation
 
             if (!request_.Address.Country.IsNullOrEmpty() || !request_.Address.State.IsNullOrEmpty() || !request_.Address.County.IsNullOrEmpty() || !request_.Address.City.IsNullOrEmpty() || !request_.Address.Street.IsNullOrEmpty())
             {
-                location = await _locationService.ResolveLocation(request_.Address.Country, request_.Address.State, request_.Address.County, request_.Address.City, request_.Address.Street);
+                //location = await _locationService.ResolveLocation(request_.Address.Country, request_.Address.State, request_.Address.County, request_.Address.City, request_.Address.Street);
+                location = await _locationService.ResolveLocationAdRegister(request_.Address.Country, request_.Address.State, request_.Address.County, request_.Address.City, request_.Address.Street);
             }
 
             TpPropertyAddress addresInput = new TpPropertyAddress

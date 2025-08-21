@@ -24,7 +24,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         public async Task<List<TnNotification>> GetUserNotificationsAsync(int userId, int page, int pageSize)
         {
             return await _context.TnNotifications
-                .Where(n => n.UserId == userId)
+                .Where(n => n.UserId == userId && !n.IsRead)
                 .OrderByDescending(n => n.CreatedAt)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
@@ -42,7 +42,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task MarkAsReadAsync(long notificationId)
         {
-            var notification = await _context.TnNotifications.FindAsync(notificationId);
+            var notification = await _context.TnNotifications
+                .FirstOrDefaultAsync(n => n.NotificationId == notificationId);
             if (notification != null)
             {
                 notification.IsRead = true;

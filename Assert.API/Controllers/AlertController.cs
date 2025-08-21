@@ -32,11 +32,18 @@ namespace Assert.API.Controllers
         [HttpPost()]
         [Authorize(Policy = "GuestOrHost")]
         [Route("Alert")]
-        public async Task<ReturnModelDTO> GetNotifications([FromBody] NotificationHistoryFilter filter)
+        public async Task<ReturnModelDTO_Pagination> GetNotifications([FromBody] NotificationHistoryFilter filter)
         {
             var requestInfo = HttpContext.GetRequestInfo();
             var result = await _appNotificationService.GetUserNotificationsAsync(_metadata.UserId, filter.Page, filter.PageSize, requestInfo, true);
-            return result;
+            return new ReturnModelDTO_Pagination
+            {
+                Data = result.Data.Item1,
+                pagination = result.Data.Item2,
+                HasError = result.HasError,
+                ResultError = result.ResultError,
+                StatusCode = result.StatusCode
+            };
         }
 
         /// <summary>
@@ -49,11 +56,18 @@ namespace Assert.API.Controllers
         [HttpPost()]
         [Authorize(Policy = "GuestOrHost")]
         [Route("Alert/Historical")]
-        public async Task<ReturnModelDTO> GetHistoricalNotifications([FromBody] NotificationHistoryFilter filter)
+        public async Task<ReturnModelDTO_Pagination> GetHistoricalNotifications([FromBody] NotificationHistoryFilter filter)
         {
             var requestInfo = HttpContext.GetRequestInfo();
             var result = await _appNotificationService.GetHistoricalNotificationsAsync(_metadata.UserId, filter, requestInfo, true);
-            return result;
+            return new ReturnModelDTO_Pagination
+            {
+                Data = result.Data.Item1,
+                pagination = result.Data.Item2,
+                HasError = result.HasError,
+                ResultError = result.ResultError,
+                StatusCode = result.StatusCode
+            };
         }
 
         /// <summary>

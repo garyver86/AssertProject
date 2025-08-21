@@ -12,16 +12,18 @@ namespace Assert.Application.Services
     {
         private readonly IMessageRepository _messageRepository;
         private readonly IConversationRepository _conversationRepository;
+        private readonly INotificationService _notificationService;
 
         private readonly IMapper _mapper;
         private readonly IErrorHandler _errorHandler;
         public AppMessagingService(IConversationRepository conversationRepository, IMessageRepository messageRepository,
-            IMapper mapper, IErrorHandler errorHandler)
+            IMapper mapper, IErrorHandler errorHandler, INotificationService notificationService)
         {
             _conversationRepository = conversationRepository;
             _messageRepository = messageRepository;
             _mapper = mapper;
             _errorHandler = errorHandler;
+            _notificationService = notificationService;
         }
         public async Task<ReturnModelDTO<ConversationDTO>> CreateConversation(int renterid, int hostId, int userId, Dictionary<string, string> requestInfo)
         {
@@ -133,6 +135,8 @@ namespace Assert.Application.Services
             try
             {
                 TmMessage result_ = await _messageRepository.Send(conversationId, userId, body, messageTypeId, bookId);
+                var conversation = await _conversationRepository.GetConversation(conversationId);
+                await _notificationService.SendNewMessageNotificationAsync(conversation.UserIdOne == userId ? conversation.UserIdTwo : conversation.UserIdOne, body);
 
                 result = new ReturnModelDTO<MessageDTO>
                 {
