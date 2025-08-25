@@ -5,6 +5,7 @@ using Assert.Domain.Services;
 using Assert.Domain.ValueObjects;
 using Azure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,6 +23,7 @@ namespace Assert.Domain.Implementation
         private readonly IBookRepository _bookingRepository;
         private readonly INotificationDispatcher _dispatcher;
         private readonly IPayPriceCalculationRepository _priceCalculationRepository;
+        private readonly ILogger<NotificationService> _logger;
 
         public NotificationService(
             INotificationRepository notificationRepository,
@@ -30,7 +32,8 @@ namespace Assert.Domain.Implementation
             IBookRepository bookingRepository,
             INotificationDispatcher dispatcher,
             INotificationTypeRepository notificationTypeRepository,
-            IPayPriceCalculationRepository payPriceCalculationRepository)
+            IPayPriceCalculationRepository payPriceCalculationRepository,
+            ILogger<NotificationService> logger)
         {
             _notificationRepository = notificationRepository;
             _userRepository = userRepository;
@@ -39,6 +42,7 @@ namespace Assert.Domain.Implementation
             _dispatcher = dispatcher;
             _notificationTypeRepository = notificationTypeRepository;
             _priceCalculationRepository = payPriceCalculationRepository;
+            _logger = logger;
         }
 
         public async Task<TnNotification> GetNotificationAsync(long notificationId, int userId)
@@ -123,285 +127,331 @@ namespace Assert.Domain.Implementation
             });
         }
 
-        //Solicitud de reserva de propiedad (Booking con aprobación.)
+        // Método helper para enviar notificaciones
+        private async Task<TnNotification> CreateAndSendNotificationAsync(
+            int userId,
+            string notificationTypeName,
+            string title,
+            string messageBody,
+            long? listingRentId = null,
+            long? bookingId = null,
+            List<TnNotificationAction> actions = null)
+        {
+            try
+            {
+                var notificationType = await _notificationTypeRepository.GetByNameAsync(notificationTypeName);
+                var notification = new TnNotification
+                {
+                    UserId = userId,
+                    TypeId = notificationType.TypeId,
+                    ListingRentId = listingRentId,
+                    BookingId = bookingId,
+                    Title = title,
+                    MessageBody = messageBody,
+                    IsRead = false,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                var createdNotification = await _notificationRepository.CreateNotificationAsync(notification);
+
+                // Añadir acciones si se proporcionan
+                if (actions != null)
+                {
+                    foreach (var action in actions)
+                    {
+                        action.NotificationId = createdNotification.NotificationId;
+                        await _notificationRepository.AddNotificationActionAsync(action);
+                    }
+                }
+
+                // Enviar notificación en tiempo real
+                await _dispatcher.SendNotificationAsync(userId, createdNotification);
+
+                _logger.LogInformation("Notificación enviada al usuario {UserId}: {Title}", userId, title);
+
+                return createdNotification;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error enviando notificación al usuario {UserId}", userId);
+                throw;
+            }
+        }
+
+        // Solicitud de reserva de propiedad
         public async Task SendBookingRequestNotificationAsync(int hostId, int listingRentId, int bookingId)
         {
             var property = await _listingRentRepository.Get(listingRentId, hostId);
             var booking = await _bookingRepository.GetByIdAsync(bookingId);
-            var renter = await _userRepository.Get(hostId);
-            var notificationType = await _notificationTypeRepository.GetByNameAsync("BookingRequest");
-            var notification = new TnNotification
-            {
-                UserId = hostId,
-                TypeId = notificationType.TypeId,
-                ListingRentId = listingRentId,
-                BookingId = bookingId,
-                Title = "Nueva solicitud de reserva",
-                MessageBody = $"{renter.Data?.Name} ha solicitado reservar tu propiedad {property.Name}",
-                IsRead = false
-            };
+            var renter = await _userRepository.Get(booking.UserIdRenter);
 
-            var createdNotification = await _notificationRepository.CreateNotificationAsync(notification);
-
-            // Añadir acciones
-            await _notificationRepository.AddNotificationActionAsync(new TnNotificationAction
+            var actions = new List<TnNotificationAction>
+        {
+            new TnNotificationAction
             {
-                NotificationId = createdNotification.NotificationId,
                 ActionType = "approve",
                 ActionUrl = $"/bookings/{bookingId}/approve",
                 ActionLabel = "Aprobar",
                 IsPrimary = true
-            });
-
-            await _notificationRepository.AddNotificationActionAsync(new TnNotificationAction
+            },
+            new TnNotificationAction
             {
-                NotificationId = createdNotification.NotificationId,
                 ActionType = "reject",
                 ActionUrl = $"/bookings/{bookingId}/reject",
                 ActionLabel = "Rechazar",
                 IsPrimary = false
-            });
+            }
+        };
 
-            // Enviar notificación en tiempo real
-            await _dispatcher.SendNotificationAsync(hostId, createdNotification);
+            await CreateAndSendNotificationAsync(
+                hostId,
+                "BookingRequest",
+                "Nueva solicitud de reserva",
+                $"{renter.Data?.Name} ha solicitado reservar tu propiedad {property.Name}",
+                listingRentId,
+                bookingId,
+                actions
+            );
         }
 
-        //Notificación por pago de reserva
+        // Notificación por pago de reserva
         public async Task SendBookingPaymentNotificationAsync(long priceCalculationId)
         {
             var priceCalc = await _priceCalculationRepository.GetById(priceCalculationId);
             var booking = await _bookingRepository.GetByIdAsync(priceCalc.BookId ?? 0);
             var renter = await _userRepository.Get(booking.UserIdRenter);
-            var notificationType = await _notificationTypeRepository.GetByNameAsync("PaymentConfirmation");
-            var notification = new TnNotification
-            {
-                UserId = booking.ListingRent.OwnerUserId,
-                TypeId = notificationType.TypeId,
-                ListingRentId = booking.ListingRentId,
-                BookingId = booking.BookId,
-                Title = "Pago de reserva",
-                MessageBody = $"{renter.Data?.Name} ha realizado el pago de la reserva de la propiedad {booking.ListingRent.Name}",
-                IsRead = false
-            };
 
-            var createdNotification = await _notificationRepository.CreateNotificationAsync(notification);
-
-            // Añadir acciones
-            await _notificationRepository.AddNotificationActionAsync(new TnNotificationAction
+            var actions = new List<TnNotificationAction>
+        {
+            new TnNotificationAction
             {
-                NotificationId = createdNotification.NotificationId,
                 ActionType = "review",
                 ActionUrl = $"/bookings/{booking.BookId}/details",
-                ActionLabel = "Aprobar",
+                ActionLabel = "Ver Detalles",
                 IsPrimary = true
-            });
+            }
+        };
 
-            // Enviar notificación en tiempo real
-            await _dispatcher.SendNotificationAsync(booking.ListingRent.OwnerUserId, createdNotification);
+            await CreateAndSendNotificationAsync(
+                booking.ListingRent.OwnerUserId,
+                "PaymentConfirmation",
+                "Pago de reserva confirmado",
+                $"{renter.Data?.Name} ha realizado el pago de la reserva de la propiedad {booking.ListingRent.Name}",
+                booking.ListingRentId,
+                booking.BookId,
+                actions
+            );
         }
-        //Notificación por pago rchazado de reserva
+
+        // Notificación por pago rechazado de reserva
         public async Task SendBookingPaymentRejectedNotificationAsync(long priceCalculationId)
         {
             var priceCalc = await _priceCalculationRepository.GetById(priceCalculationId);
             var booking = await _bookingRepository.GetByIdAsync(priceCalc.BookId ?? 0);
-            var renter = await _userRepository.Get(booking.UserIdRenter);
-            var notificationType = await _notificationTypeRepository.GetByNameAsync("PaymentRejected");
-            var notification = new TnNotification
-            {
-                UserId = booking.UserIdRenter,
-                TypeId = notificationType.TypeId,
-                ListingRentId = booking.ListingRentId,
-                BookingId = booking.BookId,
-                Title = "Rechazo de pago de reserva",
-                MessageBody = $"Debe realizar el pago de la reserva de la propiedad {booking.ListingRent.Name} para que la reserva sea confirmada.",
-                IsRead = false
-            };
 
-            var createdNotification = await _notificationRepository.CreateNotificationAsync(notification);
-
-            // Añadir acciones
-            await _notificationRepository.AddNotificationActionAsync(new TnNotificationAction
+            var actions = new List<TnNotificationAction>
+        {
+            new TnNotificationAction
             {
-                NotificationId = createdNotification.NotificationId,
                 ActionType = "review",
                 ActionUrl = $"/bookings/{booking.BookId}/payment",
-                ActionLabel = "Aprobar",
+                ActionLabel = "Reintentar Pago",
                 IsPrimary = true
-            });
+            }
+        };
 
-            // Enviar notificación en tiempo real
-            await _dispatcher.SendNotificationAsync(booking.ListingRent.OwnerUserId, createdNotification);
+            await CreateAndSendNotificationAsync(
+                booking.UserIdRenter,
+                "PaymentRejected",
+                "Rechazo de pago de reserva",
+                $"Debe realizar el pago de la reserva de la propiedad {booking.ListingRent.Name} para que la reserva sea confirmada.",
+                booking.ListingRentId,
+                booking.BookId,
+                actions
+            );
         }
-        //Notificación por pago pendiente
+
+        // Notificación por pago pendiente
         public async Task SendBookingPaymentPendingNotificationAsync(int userId, long priceCalculationId)
         {
             var priceCalc = await _priceCalculationRepository.GetById(priceCalculationId);
             var booking = await _bookingRepository.GetByIdAsync(priceCalc.BookId ?? 0);
             var renter = await _userRepository.Get(userId);
-            var notificationType = await _notificationTypeRepository.GetByNameAsync("PaymentPending");
-            var notification = new TnNotification
-            {
-                UserId = booking.ListingRent.OwnerUserId,
-                TypeId = notificationType.TypeId,
-                ListingRentId = booking.ListingRentId,
-                BookingId = booking.BookId,
-                Title = "Pago pendiente para confirmar reserva.",
-                MessageBody = $"{renter.Data?.Name} ha realizado el pago de la reserva de la propiedad {booking.ListingRent.Name}, el cual ha sido rechazado",
-                IsRead = false
-            };
 
-            var createdNotification = await _notificationRepository.CreateNotificationAsync(notification);
-
-            // Añadir acciones
-            await _notificationRepository.AddNotificationActionAsync(new TnNotificationAction
+            var actions = new List<TnNotificationAction>
+        {
+            new TnNotificationAction
             {
-                NotificationId = createdNotification.NotificationId,
                 ActionType = "review",
                 ActionUrl = $"/bookings/{booking.BookId}/details",
-                ActionLabel = "Aprobar",
+                ActionLabel = "Ver Detalles",
                 IsPrimary = true
-            });
+            }
+        };
 
-            // Enviar notificación en tiempo real
-            await _dispatcher.SendNotificationAsync(booking.ListingRent.OwnerUserId, createdNotification);
+            await CreateAndSendNotificationAsync(
+                booking.ListingRent.OwnerUserId,
+                "PaymentPending",
+                "Pago pendiente para confirmar reserva",
+                $"{renter.Data?.Name} ha realizado el pago de la reserva de la propiedad {booking.ListingRent.Name}, el cual ha sido rechazado",
+                booking.ListingRentId,
+                booking.BookId,
+                actions
+            );
         }
 
-        //Notificación por mensaje recibido
+        // Notificación por mensaje recibido
         public async Task SendNewMessageNotificationAsync(int userIdOrigin, int userIdTo, long? bookId)
         {
             var userOrigin = await _userRepository.Get(userIdOrigin);
-            //var userTo = await _userRepository.Get(userIdTo);
-            var notificationType = await _notificationTypeRepository.GetByNameAsync("UserToUserMessage");
-            var notification = new TnNotification
-            {
-                UserId = userIdTo,
-                TypeId = notificationType.TypeId,
-                BookingId = bookId,
-                Title = "Nuevo mensaje recibido.",
-                MessageBody = $"Ha recibido un nuevo mensaje de {userOrigin.Data.Name}",
-                IsRead = false
-            };
 
-            var createdNotification = await _notificationRepository.CreateNotificationAsync(notification);
-
-            // Añadir acciones
-            await _notificationRepository.AddNotificationActionAsync(new TnNotificationAction
+            var actions = new List<TnNotificationAction>
+        {
+            new TnNotificationAction
             {
-                NotificationId = createdNotification.NotificationId,
                 ActionType = "review",
                 ActionUrl = $"/bookings/{bookId}/message",
                 ActionLabel = "Ver Mensaje",
                 IsPrimary = true
-            });
+            }
+        };
 
-            // Enviar notificación en tiempo real
-            await _dispatcher.SendNotificationAsync(userIdTo, createdNotification);
+            await CreateAndSendNotificationAsync(
+                userIdTo,
+                "UserToUserMessage",
+                "Nuevo mensaje recibido",
+                $"Ha recibido un nuevo mensaje de {userOrigin.Data.Name}",
+                null,
+                bookId,
+                actions
+            );
         }
 
-        //Notificación por mensaje recibido
+        // Notificación manual
         public async Task SendNewMessageNotificationAsync(int userIdTo, string messageBody)
         {
-            //var userOrigin = await _userRepository.Get(userIdOrigin);
-            //var userTo = await _userRepository.Get(userIdTo);
-            var notificationType = await _notificationTypeRepository.GetByNameAsync("UserToUserMessage");
-            var notification = new TnNotification
+            var actions = new List<TnNotificationAction>
+        {
+            new TnNotificationAction
             {
-                UserId = userIdTo,
-                TypeId = notificationType.TypeId,
-                Title = "Notificación manual.",
-                MessageBody = messageBody,
-                IsRead = false
-            };
-
-            var createdNotification = await _notificationRepository.CreateNotificationAsync(notification);
-
-            // Añadir acciones
-            await _notificationRepository.AddNotificationActionAsync(new TnNotificationAction
-            {
-                NotificationId = createdNotification.NotificationId,
                 ActionType = "review",
-                ActionUrl = $"/message/{createdNotification.NotificationId}",
+                ActionUrl = $"/notifications",
                 ActionLabel = "Ver Notificación",
                 IsPrimary = true
-            });
+            }
+        };
 
-            // Enviar notificación en tiempo real
-            await _dispatcher.SendNotificationAsync(userIdTo, createdNotification);
+            await CreateAndSendNotificationAsync(
+                userIdTo,
+                "ManualNotification",
+                "Notificación manual",
+                messageBody,
+                null,
+                null,
+                actions
+            );
         }
 
-        /*
-         * Lista de Notificaciones sugeridas:
-         * 
-         * 1. Reservas y Reservaciones
-            ✅ Solicitud de reserva enviada (Inquilino → Anfitrión) ************************
-            ✅ Reserva aprobada (Anfitrión → Inquilino)
-            ✅ Reserva rechazada (Anfitrión → Inquilino)
-            ✅ Reserva cancelada por el inquilino (Inquilino → Anfitrión)
-            ✅ Reserva cancelada por el anfitrión (Anfitrión → Inquilino)
-            ✅ Pago de reserva confirmado (Sistema → Inquilino)******************************
-            ✅ Pago fallido/rechazado (Sistema → Inquilino)******************************
-            ✅ Recordatorio de pago pendiente (Sistema → Inquilino) *************************
-
-            2. Check-in/Check-out y Estadía
-            ✅ Check-in confirmado (Sistema → Anfitrión e Inquilino)
-            ✅ Check-out confirmado (Sistema → Anfitrión e Inquilino)
-            ✅ Recordatorio de check-out próximo (Sistema → Inquilino)
-            ✅ Instrucciones de acceso enviadas (Automático/Sistema → Inquilino)
-
-            3. Mensajería y Comunicación
-            ✅ Nuevo mensaje recibido (Usuario → Usuario) ***********************************
-            ✅ Mensaje no leído después de X tiempo (Sistema → Usuario)
-
-            4. Reseñas y Calificaciones
-            ✅ Solicitud de reseña post-estadía (Sistema → Inquilino)
-            ✅ Solicitud de reseña post-estadía (Sistema → Anfitrión)
-            ✅ Nueva reseña recibida (Sistema → Usuario evaluado)
-            ✅ Respuesta a tu reseña (Sistema → Usuario original)
-
-            5. Alertas de Precios y Disponibilidad
-            ✅ Precio reducido en propiedad favorita (Sistema → Usuario)
-            ✅ Propiedad disponible en fechas deseadas (Sistema → Usuario)
-
-            6. Alertas de Seguridad y Verificación
-            ✅ Verificación de identidad requerida (Sistema → Usuario)
-            ✅ Verificación de identidad aprobada/rechazada (Sistema → Usuario)
-            ✅ Actividad sospechosa detectada (Sistema → Usuario/Admin)
-
-            7. Notificaciones del Anfitrión
-            ✅ Nueva regla/actualización de propiedad (Anfitrión → Inquilinos futuros)
-            ✅ Mantenimiento programado (Anfitrión → Inquilino actual)
-            ✅ Cambio en políticas de cancelación (Sistema → Usuarios afectados)
-
-            8. Notificaciones del Sistema
-            ✅ Actualizaciones importantes de la plataforma (Sistema → Todos usuarios)
-            ✅ Cambios en términos y condiciones (Sistema → Todos usuarios)
-            ✅ Ofertas especiales/promociones (Sistema → Usuarios seleccionados)
-
-            9. Alertas de Emergencia
-            ⚠️ Problema reportado en propiedad (Inquilino → Anfitrión)
-            ⚠️ Emergencia en propiedad (Sistema → Anfitrión e Inquilino)
-            ⚠️ Clima extremo que afecta la reserva (Sistema → Usuarios afectados)
-
-            10. Notificaciones de Soporte
-            ✅ Ticket de soporte creado (Sistema → Usuario)
-            ✅ Respuesta a ticket de soporte (Soporte → Usuario)
-            ✅ Encuesta de satisfacción de soporte (Sistema → Usuario)
-
-            Notas importantes:
-            Cada notificación debe ser configurable (el usuario puede elegir qué notificaciones recibir)
-            Priorizar por urgencia (emergencias vs. informativas)
-
-            Incluir acciones rápidas cuando sea posible (ej: "Aprobar reserva" directamente desde la notificación)
-         * */
-
-        public Task SendBookingApprovedNotificationAsync(int renterId, int propertyId, int bookingId)
+        // Implementación de métodos pendientes
+        public async Task SendBookingApprovedNotificationAsync(int renterId, int propertyId, int bookingId)
         {
-            throw new NotImplementedException();
+            var property = await _listingRentRepository.Get(propertyId, 0); // 0 porque no necesitamos ownerId para lectura
+            var host = await _userRepository.Get((await _bookingRepository.GetByIdAsync(bookingId)).ListingRent.OwnerUserId);
+
+            var actions = new List<TnNotificationAction>
+        {
+            new TnNotificationAction
+            {
+                ActionType = "view",
+                ActionUrl = $"/bookings/{bookingId}/details",
+                ActionLabel = "Ver Reserva",
+                IsPrimary = true
+            }
+        };
+
+            await CreateAndSendNotificationAsync(
+                renterId,
+                "BookingApproved",
+                "Reserva aprobada",
+                $"Tu reserva para {property.Name} ha sido aprobada por {host.Data?.Name}",
+                propertyId,
+                bookingId,
+                actions
+            );
         }
 
-        public Task SendReviewReminderNotificationAsync(int renterId, int propertyId, int bookingId)
+        public async Task SendReviewReminderNotificationAsync(int userId, int propertyId, int bookingId, bool isForHost)
         {
-            throw new NotImplementedException();
+            var property = await _listingRentRepository.Get(propertyId, 0);
+            var booking = await _bookingRepository.GetByIdAsync(bookingId);
+
+            var notificationType = isForHost ? "HostReviewReminder" : "GuestReviewReminder";
+            var title = isForHost ? "Califica a tu huésped" : "Califica tu estancia";
+            var message = isForHost
+                ? $"Por favor califica a tu huésped de {property.Name}"
+                : $"Por favor califica tu estancia en {property.Name}";
+
+            var actions = new List<TnNotificationAction>
+        {
+            new TnNotificationAction
+            {
+                ActionType = "review",
+                ActionUrl = $"/bookings/{bookingId}/review",
+                ActionLabel = "Escribir Reseña",
+                IsPrimary = true
+            }
+        };
+
+            await CreateAndSendNotificationAsync(
+                userId,
+                notificationType,
+                title,
+                message,
+                propertyId,
+                bookingId,
+                actions
+            );
+        }
+
+        // Métodos adicionales para completar tu lista de notificaciones
+        public async Task SendBookingRejectedNotificationAsync(int renterId, int propertyId, int bookingId, string reason)
+        {
+            var property = await _listingRentRepository.Get(propertyId, 0);
+
+            await CreateAndSendNotificationAsync(
+                renterId,
+                "BookingRejected",
+                "Reserva rechazada",
+                $"Tu reserva para {property.Name} ha sido rechazada. Razón: {reason}",
+                propertyId,
+                bookingId
+            );
+        }
+
+        public async Task SendCheckInReminderNotificationAsync(int guestId, int propertyId, int bookingId, DateTime checkInDate)
+        {
+            var property = await _listingRentRepository.Get(propertyId, 0);
+
+            var actions = new List<TnNotificationAction>
+            {
+                new TnNotificationAction
+                {
+                    ActionType = "view",
+                    ActionUrl = $"/bookings/{bookingId}/checkin",
+                    ActionLabel = "Ver Instrucciones",
+                    IsPrimary = true
+                }
+            };
+
+            await CreateAndSendNotificationAsync(
+                guestId,
+                "CheckInReminder",
+                "Recordatorio de check-in",
+                $"Tu check-in para {property.Name} es el {checkInDate:dd/MM/yyyy}. ¡Prepárate para tu viaje!",
+                propertyId,
+                bookingId,
+                actions
+            );
         }
     }
 }

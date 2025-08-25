@@ -1,4 +1,6 @@
-﻿namespace Assert.API.Extensions.Cors;
+﻿using Microsoft.Extensions.Configuration;
+
+namespace Assert.API.Extensions.Cors;
 
 public static class CorsExtensions
 {
@@ -27,6 +29,26 @@ public static class CorsExtensions
 
                 // Si necesitas credenciales (cookies, tokens)
                 // .AllowCredentials();
+            });
+
+            // Política específica para SignalR
+            options.AddPolicy("SignalRCors", builder =>
+            {
+                var allowedOrigins = configuration.GetSection("SignalR:AllowedOrigins").Get<string[]>()
+                    ?? new[]
+                    {
+                        "http://localhost",
+                        "https://localhost:44317",
+                        "http://localhost:3000",
+                        "https://localhost:3000",
+                        "http://127.0.0.1:5500",
+                        "http://localhost/SignalRClient"
+                    };
+
+                builder.WithOrigins(allowedOrigins)
+                       .AllowAnyHeader()
+                       .AllowAnyMethod()
+                       .AllowCredentials();
             });
         });
 

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notificaciones en Tiempo Real - Renta de Propiedades</title>
+    <style>
+        .notification-badge {
+            background-color: #ff4757;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 8px;
+            margin-left: 5px;
+            font-size: 12px;
+            display: none;
+        }
+
+        .notification-item {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+
+        .notification-new {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+        }
+
+        .btn-action {
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+
+            .btn-action:hover {
+                background-color: #1976d2;
+            }
+
+        .btn-control {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+            .btn-control:disabled {
+                background-color: #cccccc;
+                cursor: not-allowed;
+            }
+
+        #connection-status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>Sistema de Renta de Propiedades</h1>
+            <div id="connection-status">
+                <span>🔴 Desconectado</span>
+            </div>
+            <div id="user-info">
+                <span id="username">Usuario no autenticado</span>
+                <span id="unread-count" class="notification-badge">0</span>
+            </div>
+        </header>
+
+        <main>
+            <div id="notifications-container">
+                <h2>Notificaciones en Tiempo Real</h2>
+                <div id="notifications-list">
+                    <p>Conéctate para recibir notificaciones...</p>
+                </div>
+            </div>
+
+            <div id="connection-controls">
+                <button id="connect-btn" class="btn-control">Conectar</button>
+                <button id="disconnect-btn" class="btn-control" disabled>Desconectar</button>
+                <button id="test-notification-btn" class="btn-control" disabled>Probar Notificación</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Incluir SignalR -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.1/signalr.min.js"></script>
+    <script src="SignalR_NotificationClient.js"></script>
+</body>
+</html>

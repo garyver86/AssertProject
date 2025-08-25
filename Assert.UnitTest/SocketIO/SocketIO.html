@@ -1,0 +1,652 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cliente Socket.IO - Notificaciones en Tiempo Real</title>
+    <style>
+        /* [MANTENER TODOS LOS ESTILOS CSS EXISTENTES] */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(90deg, #4b6cb7, #182848);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: flex;
+            flex-wrap: wrap;
+            padding: 20px;
+        }
+
+        .connection-panel {
+            flex: 1;
+            min-width: 300px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            margin-right: 20px;
+            margin-bottom: 20px;
+        }
+
+        .notifications-panel {
+            flex: 2;
+            min-width: 400px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .panel-title {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: #2c3e50;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #34495e;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        button {
+            padding: 12px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+            button:hover {
+                background-color: #2980b9;
+            }
+
+            button.connect {
+                background-color: #2ecc71;
+            }
+
+                button.connect:hover {
+                    background-color: #27ae60;
+                }
+
+            button.disconnect {
+                background-color: #e74c3c;
+            }
+
+                button.disconnect:hover {
+                    background-color: #c0392b;
+                }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            font-weight: 600;
+        }
+
+            .status.connected {
+                background-color: #d4edda;
+                color: #155724;
+            }
+
+            .status.disconnected {
+                background-color: #f8d7da;
+                color: #721c24;
+            }
+
+        .notifications {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: white;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            margin-top: 20px;
+        }
+
+        .notification {
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            background-color: #e3f2fd;
+            border-left: 5px solid #2196f3;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+            .notification .time {
+                font-size: 0.8rem;
+                color: #7f8c8d;
+                margin-bottom: 5px;
+            }
+
+            .notification .message {
+                font-size: 1.1rem;
+                color: #2c3e50;
+            }
+
+            .notification.error {
+                background-color: #ffebee;
+                border-left-color: #f44336;
+            }
+
+            .notification.warning {
+                background-color: #fff8e1;
+                border-left-color: #ffc107;
+            }
+
+            .notification.success {
+                background-color: #e8f5e9;
+                border-left-color: #4caf50;
+            }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .stat-box {
+            background-color: #3498db;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            min-width: 120px;
+        }
+
+            .stat-box .number {
+                font-size: 1.8rem;
+                font-weight: bold;
+            }
+
+            .stat-box .label {
+                font-size: 0.9rem;
+            }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+
+            .connection-panel {
+                margin-right: 0;
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Cliente Socket.IO</h1>
+            <p class="description">Conéctate al servidor y recibe notificaciones en tiempo real</p>
+        </header>
+
+        <div class="main-content">
+            <div class="connection-panel">
+                <h2 class="panel-title">Conexión</h2>
+
+                <div class="form-group">
+                    <label for="serverUrl">URL del Servidor:</label>
+                    <input type="text" id="serverUrl" value="http://localhost:3000" placeholder="Ej: http://localhost:8080">
+                </div>
+
+                <div class="form-group">
+                    <label for="eventName">Evento de Notificación:</label>
+                    <input type="text" id="eventName" value="notification" placeholder="Ej: notification">
+                </div>
+
+                <div class="form-group">
+                    <label for="userId">ID de Usuario (para room):</label>
+                    <input type="text" id="userId" placeholder="Ej: usuario-123">
+                </div>
+
+                <div class="form-group">
+                    <label for="authToken">Token de Autenticación (opcional):</label>
+                    <input type="text" id="authToken" placeholder="Bearer token...">
+                </div>
+
+                <div class="buttons">
+                    <button class="connect" onclick="connect()">Conectar</button>
+                    <button class="disconnect" onclick="disconnect()">Desconectar</button>
+                    <button onclick="testNotification()">Enviar Test</button>
+                    <button onclick="clearNotifications()">Limpiar</button>
+                </div>
+
+                <div class="loading" id="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Cargando biblioteca Socket.IO...</p>
+                </div>
+
+                <div id="connectionStatus" class="status disconnected">
+                    Desconectado
+                </div>
+
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="number" id="messagesReceived">0</div>
+                        <div class="label">Mensajes</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="number" id="connectionStatusIndicator">❌</div>
+                        <div class="label">Estado</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="notifications-panel">
+                <h2 class="panel-title">Notificaciones en Tiempo Real</h2>
+
+                <div class="buttons">
+                    <button onclick="joinRoom()">Unirse a Room</button>
+                    <button onclick="leaveRoom()">Salir de Room</button>
+                </div>
+
+                <div class="notifications" id="notifications">
+                    <div class="notification">
+                        <div class="time" id="currentTime">00:00:00</div>
+                        <div class="message">Conectate al servidor para recibir notificaciones</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>Cliente Socket.IO - Conectando a Assert.Domain.Implementation.SocketIoServer</p>
+        </footer>
+    </div>
+
+    <!-- Cargar Socket.IO desde CDN -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+    <script>
+        let socket = null;
+        let messagesReceived = 0;
+        let isConnected = false;
+        let reconnectAttempts = 0;
+        const maxReconnectAttempts = 5;
+
+        // Actualizar hora actual
+        function updateCurrentTime() {
+            const now = new Date();
+            const timeElement = document.getElementById('currentTime');
+
+            if (timeElement) {
+                timeElement.textContent = now.toLocaleTimeString();
+            }
+        }
+        setInterval(updateCurrentTime, 1000);
+        updateCurrentTime();
+
+        function connect() {
+            const serverUrl = document.getElementById('serverUrl').value;
+            const userId = document.getElementById('userId').value;
+            const authToken = document.getElementById('authToken').value;
+
+            if (!serverUrl) {
+                addNotification('error', 'Error', 'Por favor, ingresa la URL del servidor');
+                return;
+            }
+
+            // Si ya está conectado, desconectar primero
+            if (socket) {
+                disconnect();
+            }
+
+            try {
+                const options = {
+                    transports: ['websocket', 'polling'],
+                    autoConnect: true,
+                    reconnection: true,
+                    reconnectionAttempts: maxReconnectAttempts,
+                    reconnectionDelay: 1000,
+                    timeout: 20000,
+                    //forceNew: true, // ← Forzar nueva conexión
+                    //upgrade: true
+                };
+
+                // Agregar autenticación si existe token
+                if (authToken) {
+                    options.auth = {
+                        token: authToken
+                    };
+                }
+
+                // Agregar query parameters para evitar problemas de versión
+                options.query = {
+                    EIO: "4",
+                    t: Date.now() // ← timestamp para evitar cache
+                };
+
+                socket = io(serverUrl, options);
+
+                // Configurar manejadores de eventos
+                setupSocketHandlers();
+
+                // Guardar userId en socket para usarlo después
+                socket.userId = userId;
+
+                // Agregar listener específico para errores de payload
+                socket.io.on("packet", (packet) => {
+                    console.log("Packet received:", packet);
+                });
+
+                socket.io.on("packetCreate", (packet) => {
+                    console.log("Packet sent:", packet);
+                });
+
+            } catch (error) {
+                addNotification('error', 'Error de conexión', error.message);
+                updateConnectionStatus(false);
+                console.error('Connection error details:', error);
+            }
+        }
+
+        function setupSocketHandlers() {
+            // Debug: Log all engine events
+            socket.io.engine.on("packet", (packet) => {
+                console.log("Engine packet:", packet);
+            });
+
+            socket.io.engine.on("data", (data) => {
+                console.log("Engine raw data:", data);
+            });
+
+            socket.io.engine.on("message", (message) => {
+                console.log("Engine message:", message);
+            });
+
+            // Evento de conexión establecida
+            socket.on('connect', () => {
+                isConnected = true;
+                reconnectAttempts = 0;
+                updateConnectionStatus(true);
+                addNotification('success', 'Conectado', 'Conexión establecida con el servidor');
+                console.log('Socket ID:', socket.id);
+
+                // Unirse automáticamente a la room del usuario si se proporcionó ID
+                const userId = document.getElementById('userId').value;
+                if (userId) {
+                    joinRoom();
+                }
+            });
+
+            // Evento de conexión establecida
+            socket.on('connect', () => {
+                isConnected = true;
+                reconnectAttempts = 0;
+                updateConnectionStatus(true);
+                addNotification('success', 'Conectado', 'Conexión establecida con el servidor');
+
+                // Unirse automáticamente a la room del usuario si se proporcionó ID
+                const userId = document.getElementById('userId').value;
+                if (userId) {
+                    joinRoom();
+                }
+            });
+
+            // Evento de desconexión
+            socket.on('disconnect', (reason) => {
+                isConnected = false;
+                updateConnectionStatus(false);
+                addNotification('warning', 'Desconectado', `Razón: ${reason}`);
+            });
+
+            // Error de conexión
+            socket.on('connect_error', (error) => {
+                reconnectAttempts++;
+                addNotification('error', 'Error de conexión', error.message);
+                console.error('Connection error:', error);
+
+                if (reconnectAttempts >= maxReconnectAttempts) {
+                    addNotification('error', 'Conexión fallida', 'No se pudo reconectar después de varios intentos');
+                }
+            });
+
+            // Reconexión exitosa
+            socket.on('reconnect', (attemptNumber) => {
+                addNotification('success', 'Reconectado', `Reconexión exitosa (intento ${attemptNumber})`);
+                updateConnectionStatus(true);
+            });
+
+            // Escuchar evento genérico de mensajes
+            socket.on('message', (data) => {
+                handleIncomingMessage('Mensaje', data);
+            });
+
+            // Escuchar evento de notificaciones
+            socket.on('notification', (data) => {
+                handleIncomingMessage('Notificación', data);
+            });
+
+            // Escuchar evento de alertas
+            socket.on('alert', (data) => {
+                handleIncomingMessage('Alerta', data);
+            });
+
+            // Escuchar todos los eventos (para debugging)
+            socket.onAny((eventName, data) => {
+                if (!['connect', 'disconnect', 'connect_error'].includes(eventName)) {
+                    handleIncomingMessage(`Evento: ${eventName}`, data);
+                }
+            });
+        }
+
+        function handleIncomingMessage(title, data) {
+            let message = data;
+
+            if (typeof data === 'object') {
+                try {
+                    message = JSON.stringify(data, null, 2);
+                } catch {
+                    message = String(data);
+                }
+            }
+
+            addNotification('info', title, message);
+            messagesReceived++;
+            document.getElementById('messagesReceived').textContent = messagesReceived;
+        }
+
+        function joinRoom() {
+            if (!isConnected || !socket) {
+                addNotification('error', 'Error', 'No conectado al servidor');
+                return;
+            }
+
+            const userId = document.getElementById('userId').value;
+            if (!userId) {
+                addNotification('error', 'Error', 'Ingresa un ID de usuario para unirte a la room');
+                return;
+            }
+
+            socket.emit('join-room', userId);
+            addNotification('info', 'Solicitud', `Solicitando unión a room: ${userId}`);
+        }
+
+        function leaveRoom() {
+            if (!isConnected || !socket) {
+                addNotification('error', 'Error', 'No conectado al servidor');
+                return;
+            }
+
+            const userId = document.getElementById('userId').value;
+            if (userId) {
+                socket.emit('leave-room', userId);
+                addNotification('info', 'Solicitud', `Solicitando salida de room: ${userId}`);
+            }
+        }
+
+        function testNotification() {
+            if (!isConnected || !socket) {
+                addNotification('error', 'Error', 'No conectado al servidor');
+                return;
+            }
+
+            const testData = {
+                message: 'Este es un mensaje de prueba',
+                timestamp: new Date().toISOString(),
+                from: 'Cliente de prueba'
+            };
+
+            socket.emit('test-message', testData);
+            addNotification('info', 'Prueba', 'Mensaje de prueba enviado al servidor');
+        }
+
+        function disconnect() {
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+            isConnected = false;
+            updateConnectionStatus(false);
+            addNotification('warning', 'Desconectado', 'Conexión cerrada manualmente');
+        }
+
+        function updateConnectionStatus(connected) {
+            const statusElement = document.getElementById('connectionStatus');
+            const indicatorElement = document.getElementById('connectionStatusIndicator');
+
+            if (connected) {
+                statusElement.textContent = 'Conectado';
+                statusElement.className = 'status connected';
+                indicatorElement.textContent = '✅';
+                indicatorElement.style.color = 'green';
+            } else {
+                statusElement.textContent = 'Desconectado';
+                statusElement.className = 'status disconnected';
+                indicatorElement.textContent = '❌';
+                indicatorElement.style.color = 'red';
+            }
+        }
+
+        function addNotification(type, title, message) {
+            const notificationsContainer = document.getElementById('notifications');
+            const time = new Date().toLocaleTimeString();
+
+            const notificationElement = document.createElement('div');
+            notificationElement.className = `notification ${type}`;
+            notificationElement.innerHTML = `
+                    <div class="time">${time}</div>
+                    <div class="message"><strong>${title}:</strong> ${message}</div>
+                `;
+
+            // Mantener máximo 50 notificaciones
+            if (notificationsContainer.children.length > 50) {
+                notificationsContainer.removeChild(notificationsContainer.lastChild);
+            }
+
+            notificationsContainer.insertBefore(notificationElement, notificationsContainer.firstChild);
+        }
+
+        function clearNotifications() {
+            const notificationsContainer = document.getElementById('notifications');
+            notificationsContainer.innerHTML = '';
+
+            addNotification('info', 'Sistema', 'Notificaciones limpiadas. Listo para recibir nuevas notificaciones.');
+        }
+
+        // Conectar automáticamente al cargar la página si hay URL
+        window.addEventListener('DOMContentLoaded', function () {
+            const serverUrl = document.getElementById('serverUrl').value;
+            if (serverUrl) {
+                setTimeout(connect, 1000); // Conectar después de 1 segundo
+            }
+        });
+
+        // Manejar reconexión cuando la página vuelve a estar visible
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible' && !isConnected && socket) {
+                setTimeout(connect, 1000);
+            }
+        });
+    </script>
+</body>
+</html>

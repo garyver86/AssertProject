@@ -22,7 +22,7 @@ namespace Assert.Domain.Services
             NotificationHistoryFilter filter);
         Task SendBookingRequestNotificationAsync(int hostId, int propertyId, int bookingId);
         Task SendBookingApprovedNotificationAsync(int renterId, int propertyId, int bookingId);
-        Task SendReviewReminderNotificationAsync(int renterId, int propertyId, int bookingId);
+        Task SendReviewReminderNotificationAsync(int renterId, int propertyId, int bookingId, bool isForHost);
         Task SendNewMessageNotificationAsync(int userIdTo, string messageBody);
         Task SendBookingPaymentNotificationAsync(long priceCalculationId);
         Task SendBookingPaymentRejectedNotificationAsync(long priceCalculationId);

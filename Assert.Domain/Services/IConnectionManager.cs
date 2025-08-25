@@ -9,7 +9,9 @@ namespace Assert.Domain.Services
     public interface IConnectionManager
     {
         void AddConnection(string userId, string connectionId);
-        void RemoveConnection(string userId, string connectionId);
-        List<string> GetConnections(string userId);
+        void RemoveConnection(string connectionId);
+        HashSet<string> GetConnections(string userId);
+        string GetUserId(string connectionId);
+        int GetConnectedUsersCount();
     }
 }

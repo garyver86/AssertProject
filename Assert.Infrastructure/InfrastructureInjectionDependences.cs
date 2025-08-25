@@ -59,11 +59,10 @@ public static class InfrastructureInjectionDependences
         services.AddScoped<IImageService, ImageService>();
         services.AddScoped<IFuzzyMatcher, FuzzyMatcher>();
 
-        services.AddSingleton<ISocketIoServer>(provider =>
-            new SocketIoServer(3001)); // Puerto diferente al API
-        services.AddSingleton<IConnectionManager, ConnectionManager>();
-        services.AddSingleton<INotificationDispatcher, SocketIoNotificationDispatcher>();
+        //services.AddSingleton<ISocketIoService, SocketIoService>(); 
+        services.AddSingleton<IConnectionManager, SignalRConnectionManager>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<INotificationDispatcher, SignalRNotificationDispatcher>();
 
         services.AddScoped<GoogleAuthValidator>();
         services.AddScoped<AppleAuthValidator>();
