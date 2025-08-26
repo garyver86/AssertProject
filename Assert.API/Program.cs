@@ -93,7 +93,7 @@ app.UseStaticFiles(new StaticFileOptions
 app.UseRouting();
 app.UseCors("AllowedOriginsPolicy");
 // Authentication y Authorization
-app.UseAuthentication(); // ← ¡ESTO FALTABA! Es crucial para SignalR con [Authorize]
+//app.UseAuthentication(); // ← ¡ESTO FALTABA! Es crucial para SignalR con [Authorize]
 app.UseAuthorization();
 
 app.UseSwagger();
