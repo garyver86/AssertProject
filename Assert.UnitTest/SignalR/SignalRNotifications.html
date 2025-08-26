@@ -3,93 +3,338 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Notificaciones en Tiempo Real - Renta de Propiedades</title>
+    <title>Notificaciones en Tiempo Real - ASSERT</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --success: #27ae60;
+            --border-radius: 8px;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7f9;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        #app {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        #connection-status {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            padding: 8px 12px;
+            border-radius: 20px;
+            background-color: var(--light);
+            box-shadow: var(--shadow);
+        }
+
+            #connection-status.connected {
+                color: var(--success);
+            }
+
+            #connection-status.disconnected {
+                color: var(--accent);
+            }
+
+        #user-info {
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--secondary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
         .notification-badge {
-            background-color: #ff4757;
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: var(--accent);
             color: white;
             border-radius: 50%;
-            padding: 2px 8px;
-            margin-left: 5px;
-            font-size: 12px;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            box-shadow: 0 0 0 2px white;
+            transition: var(--transition);
             display: none;
         }
 
-        .notification-item {
-            border: 1px solid #ddd;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 8px;
-            background-color: #f9f9f9;
+            .notification-badge.show {
+                display: flex;
+            }
+
+        main {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
         }
 
+        #notifications-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--light-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            #notifications-header h2 {
+                font-size: 1.4rem;
+                font-weight: 500;
+            }
+
+        #notifications-list {
+            min-height: 300px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .notification-item {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--light-gray);
+            transition: var(--transition);
+            display: flex;
+            align-items: flex-start;
+        }
+
+            .notification-item:last-child {
+                border-bottom: none;
+            }
+
+            .notification-item:hover {
+                background-color: #fafbfc;
+            }
+
         .notification-new {
-            background-color: #e3f2fd;
-            border-left: 4px solid #2196f3;
+            background-color: #f0f7ff;
+            border-left: 3px solid var(--secondary);
+        }
+
+        .notification-icon {
+            margin-right: 15px;
+            color: var(--secondary);
+            font-size: 1.2rem;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notification-title {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .notification-time {
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-top: 5px;
+        }
+
+        .notification-actions {
+            margin-top: 10px;
         }
 
         .btn-action {
-            background-color: #2196f3;
-            color: white;
-            border: none;
-            padding: 8px 15px;
+            background-color: transparent;
+            color: var(--secondary);
+            border: 1px solid var(--secondary);
+            padding: 6px 12px;
             border-radius: 4px;
             cursor: pointer;
-            margin-right: 5px;
+            margin-right: 8px;
+            font-size: 0.85rem;
+            transition: var(--transition);
         }
 
             .btn-action:hover {
-                background-color: #1976d2;
+                background-color: var(--secondary);
+                color: white;
             }
 
-        .btn-control {
-            background-color: #4caf50;
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin: 5px;
+        .empty-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--gray);
         }
 
-            .btn-control:disabled {
-                background-color: #cccccc;
-                cursor: not-allowed;
+            .empty-state i {
+                font-size: 3rem;
+                margin-bottom: 15px;
+                color: var(--light-gray);
             }
 
-        #connection-status {
-            margin: 10px 0;
-            padding: 10px;
-            border-radius: 5px;
-            background-color: #f0f0f0;
+        #connection-controls {
+            padding: 20px;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-control {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .btn-connect {
+            background-color: var(--secondary);
+            color: white;
+        }
+
+            .btn-connect:hover {
+                background-color: #2980b9;
+            }
+
+        .btn-disconnect, .btn-test {
+            background-color: white;
+            color: var(--dark);
+            border: 1px solid var(--light-gray);
+        }
+
+            .btn-disconnect:hover, .btn-test:hover {
+                background-color: var(--light);
+            }
+
+        .btn-control:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .jwt-section {
+            padding: 15px 20px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .jwt-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--light-gray);
+            border-radius: var(--border-radius);
+            font-family: monospace;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .jwt-help {
+            font-size: 0.8rem;
+            color: var(--gray);
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: flex-start;
+            }
+
+            #connection-controls {
+                flex-direction: column;
+            }
+
+            .btn-control {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
     <div id="app">
         <header>
-            <h1>Sistema de Renta de Propiedades</h1>
-            <div id="connection-status">
-                <span>🔴 Desconectado</span>
+            <h1>Assert - Notificaciones</h1>
+            <div id="connection-status" class="disconnected">
+                <i class="fas fa-circle"></i>
+                <span>&nbsp;Desconectado</span>
             </div>
             <div id="user-info">
+                <div class="user-avatar">U</div>
                 <span id="username">Usuario no autenticado</span>
-                <span id="unread-count" class="notification-badge">0</span>
+                <div id="unread-count" class="notification-badge">0</div>
             </div>
         </header>
 
         <main>
-            <div id="notifications-container">
-                <h2>Notificaciones en Tiempo Real</h2>
-                <div id="notifications-list">
-                    <p>Conéctate para recibir notificaciones...</p>
+            <div class="jwt-section">
+                <input type="text" id="jwt-token" class="jwt-input" placeholder="Ingresa tu token JWT aquí" >
+                <div class="jwt-help">Pega tu token JWT para autenticarte y recibir notificaciones personalizadas</div>
+            </div>
+
+            <div id="notifications-header">
+                <h2>Notificaciones</h2>
+                <div id="filter-options">
+                    <!-- Opcional: añadir filtros en el futuro -->
+                </div>
+            </div>
+
+            <div id="notifications-list">
+                <div class="empty-state">
+                    <i class="far fa-bell"></i>
+                    <p>Conéctate para recibir notificaciones</p>
                 </div>
             </div>
 
             <div id="connection-controls">
-                <button id="connect-btn" class="btn-control">Conectar</button>
-                <button id="disconnect-btn" class="btn-control" disabled>Desconectar</button>
-                <button id="test-notification-btn" class="btn-control" disabled>Probar Notificación</button>
+                <button id="connect-btn" class="btn-control btn-connect">Conectar</button>
+                <button id="disconnect-btn" class="btn-control btn-disconnect" disabled>Desconectar</button>
+                <!--<button id="test-notification-btn" class="btn-control btn-test" disabled>Probar Notificación</button>-->
             </div>
         </main>
     </div>

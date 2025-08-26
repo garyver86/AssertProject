@@ -32,6 +32,11 @@ public class ExceptionLogBackgroundService(
 
                     var serializedData = JsonConvert.SerializeObject(logModel.Data,
                             new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
+
+                    if (logModel.Module?.Length > 50)
+                    {
+                        logModel.Module = logModel.Module.Substring(0, 50);
+                    }
                     var entity = new TExceptionLog
                     {
                         Action = logModel.Action,
@@ -40,7 +45,7 @@ public class ExceptionLogBackgroundService(
                         BrowseInfo = logModel.BrowseInfo,
                         DateException = DateTime.UtcNow,
                         IpAddress = logModel.IpAddress,
-                        UserId = logModel.UserId,
+                        UserId = logModel.UserId > 0 ? logModel.UserId : null,
                         StackTrace = logModel.Exception.StackTrace,
                         DataRequest = serializedData
                     };

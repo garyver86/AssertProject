@@ -12,7 +12,7 @@ class NotificationClient {
         // Botones de control - Usando addEventListener en lugar de onclick
         document.getElementById('connect-btn').addEventListener('click', () => this.connect());
         document.getElementById('disconnect-btn').addEventListener('click', () => this.disconnect());
-        document.getElementById('test-notification-btn').addEventListener('click', () => this.testNotification());
+        //document.getElementById('test-notification-btn').addEventListener('click', () => this.testNotification());
 
         // Manejar cierre de página
         window.addEventListener('beforeunload', () => this.disconnect());
@@ -39,7 +39,7 @@ class NotificationClient {
 
             // Obtener ID de usuario desde el token
             this.userId = this.getUserIdFromToken(this.authToken);
-            document.getElementById('username').textContent = `Usuario #${this.userId}`;
+            document.getElementById('username').textContent = `Usuario: ${this.userId}`;
 
             // Configurar conexión SignalR
             this.connection = new signalR.HubConnectionBuilder()
@@ -88,6 +88,8 @@ class NotificationClient {
                 this.updateConnectionStatus('🔴 Desconectado');
                 this.updateButtonStates();
                 console.log('Desconectado del hub de notificaciones');
+                document.getElementById('username').textContent = `Usuario no autenticado`;
+
             } catch (error) {
                 console.error('Error desconectando:', error);
                 this.updateConnectionStatus('🔴 Error al desconectar');
@@ -309,14 +311,14 @@ class NotificationClient {
     updateButtonStates() {
         document.getElementById('connect-btn').disabled = this.isConnected;
         document.getElementById('disconnect-btn').disabled = !this.isConnected;
-        document.getElementById('test-notification-btn').disabled = !this.isConnected;
+        //document.getElementById('test-notification-btn').disabled = !this.isConnected;
     }
 
     // Métodos de autenticación (simulados para demo)
     async getAuthToken() {
         // Para demo, simular un token. En producción, obtendrías esto de tu auth system
-        const demoToken = "eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTUxMiIsInR5cCI6IkpXVCJ9.eyJpZGVudGlmaWVyIjoiMjIiLCJ2YWx1ZSI6IjIyIiwic3ViIjoiZ2FyeS52ZXJhLjE5NzZAZ21haWwuY29tIiwicGxhdGZvcm0iOiJsb2NhbCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6WyJIb3N0IiwiR3Vlc3QiXSwibmJmIjoxNzU2MDkxOTA5LCJleHAiOjE3NTYxMDI3MDksImlzcyI6IkFzc2VydC5BUEkiLCJhdWQiOiJBc3NlcnQuQ2xpZW50cyJ9.NOR0rt5p9nMaDdlab8flU0RHkO44Rr3yaJT6b0LOe2CCmGULyq4KWpM9HJWzpgwuImpbPaZQn4CWomrxg5jwBg";
-
+        
+        const demoToken = document.getElementById('jwt-token').value;
         // En producción real:
         // return localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
 
@@ -325,14 +327,43 @@ class NotificationClient {
 
     getUserIdFromToken(token) {
         try {
-            // Simular decodificación de JWT
-            return "12345"; // ID fijo para demo
-        } catch {
+            const parts = token.split('.');
+            if (parts.length !== 3) {
+                showError('El token JWT debe tener 3 partes separadas por puntos.');
+                return;
+            }
+
+            // Decodificar header y payload
+            const header = JSON.parse(base64UrlDecode(parts[0]));
+            const payload = JSON.parse(base64UrlDecode(parts[1]));
+
+            //// Mostrar los resultados formateados
+            //headerResult.textContent = JSON.stringify(header, null, 2);
+            //payloadResult.textContent = JSON.stringify(payload, null, 2);
+
+            //console.log(headerResult.textContent);
+            //console.log(payloadResult.textContent);
+
+            return payload["sub"]; // ID fijo para demo
+        } catch (ex){
             return 'unknown';
         }
     }
+
 }
 
+    function base64UrlDecode(str) {
+        // Convertir base64url a base64
+        let base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+
+        // Añadir padding si es necesario
+        while (base64.length % 4) {
+            base64 += '=';
+        }
+
+        // Decodificar
+        return decodeURIComponent(escape(atob(base64)));
+    }
 // Inicializar el cliente cuando se carga la página
 document.addEventListener('DOMContentLoaded', () => {
     window.notificationClient = new NotificationClient();

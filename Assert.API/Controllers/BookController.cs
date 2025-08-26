@@ -128,6 +128,20 @@ namespace Assert.API.Controllers
         public async Task<ReturnModelDTO> GetBookByIdAsync([FromBody] long bookId)
         => await _bookService.GetBookByIdAsync(bookId);
 
+
+        /// <summary>
+        /// Servicio que recupera una reserva esepecifica por Id.
+        /// </summary>
+        /// <returns>Confirmación de la actualizacion: retorna la informacion completa de la reserva</returns>
+        /// <response code="200">Si se proceso correctamente.</response>
+        /// <remarks>
+        /// En caso de reserva vacia retorna error
+        /// </remarks>
+        [HttpGet("{bookId}")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> GetBookById(long bookId)
+        => await _bookService.GetBookByIdAsync(bookId);
+
         /// <summary>
         /// Servicio que recupera una lista de reservas del usuario que inicio sesion.
         /// </summary>

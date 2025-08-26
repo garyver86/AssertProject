@@ -5,6 +5,7 @@ using Assert.Infrastructure.Exceptions;
 using Assert.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 using static System.Reflection.Metadata.BlobBuilder;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
@@ -22,7 +23,51 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 var book = await _dbContext.TbBooks
                     .Include(lr => lr.ListingRent)
+                    .ThenInclude(pr=>pr.TpProperties)
+                    .Include(pr=>pr.ListingRent.TlListingPrices)
+                    .Include(pr=>pr.ListingRent.TlListingPhotos)
+                    .Include(pr=>pr.ListingRent.OwnerUser)
+                    .Include(pr=>pr.PayPriceCalculations)
                     .FirstOrDefaultAsync(b => b.BookId == bookId);
+
+                if (book?.ListingRent?.TpProperties?.Count > 0)
+                {
+                    TpProperty prop = ((List<TpProperty>)book.ListingRent.TpProperties).FirstOrDefault();
+                    ((List<TpProperty>)book.ListingRent.TpProperties).FirstOrDefault().TpPropertyAddresses = new List<TpPropertyAddress>
+                    {
+                        new TpPropertyAddress
+                        {
+                            Address1 = prop.Address1,
+                            Address2 = prop.Address2,
+                            CityId = prop.CityId,
+                            CountyId = prop.CountyId,
+                            ZipCode = prop.ZipCode,
+                            StateId = prop.StateId,
+                            City = new TCity
+                            {
+                                CityId = prop.CityId??0,
+                                Name = prop.CityName,
+                                CountyId = prop.CountyId??0,
+                                County = new TCounty
+                                {
+                                    CountyId = prop.CountyId ?? 0,
+                                    Name = prop.CountyName,
+                                    StateId = prop.StateId??0,
+                                    State = new TState
+                                    {
+                                        Name = prop.StateName,
+                                        StateId = prop.StateId ?? 0,
+                                        Country = new TCountry
+                                        {
+                                            Name = prop.CountryName,
+                                            CountryId = prop.CountryId ?? 0
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    };
+                }
 
                 return book ??
                     throw new NotFoundException($"La reserva con ID {bookId} no fue encontrada. Verifique e intente nuevamente.");

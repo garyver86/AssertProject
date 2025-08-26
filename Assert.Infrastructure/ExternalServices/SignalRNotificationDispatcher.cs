@@ -24,11 +24,11 @@ namespace Assert.Infrastructure.ExternalServices
             _connectionManager = connectionManager;
         }
 
-        public async Task SendNotificationAsync(int userId, TnNotification notification)
+        public async Task SendNotificationAsync(int userId, TnNotification notification, string notificationType)
         {
             var connections = _connectionManager.GetConnections(userId.ToString());
 
-            NotificationModel notificationData = new NotificationModel(notification);
+            NotificationModel notificationData = new NotificationModel(notification, notificationType);
             if (connections != null && connections.Any())
             {
                 foreach (var connectionId in connections)

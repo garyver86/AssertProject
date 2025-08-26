@@ -165,7 +165,7 @@ namespace Assert.Domain.Implementation
                 }
 
                 // Enviar notificación en tiempo real
-                await _dispatcher.SendNotificationAsync(userId, createdNotification);
+                await _dispatcher.SendNotificationAsync(userId, createdNotification, notificationTypeName);
 
                 _logger.LogInformation("Notificación enviada al usuario {UserId}: {Title}", userId, title);
 
@@ -331,15 +331,15 @@ namespace Assert.Domain.Implementation
         public async Task SendNewMessageNotificationAsync(int userIdTo, string messageBody)
         {
             var actions = new List<TnNotificationAction>
-        {
-            new TnNotificationAction
             {
-                ActionType = "review",
-                ActionUrl = $"/notifications",
-                ActionLabel = "Ver Notificación",
-                IsPrimary = true
-            }
-        };
+                new TnNotificationAction
+                {
+                    ActionType = "review",
+                    ActionUrl = $"/notifications",
+                    ActionLabel = "Ver Notificación",
+                    IsPrimary = true
+                }
+            };
 
             await CreateAndSendNotificationAsync(
                 userIdTo,

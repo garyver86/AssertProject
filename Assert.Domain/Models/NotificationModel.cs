@@ -17,9 +17,10 @@ namespace Assert.Domain.Models
         public bool IsRead { get; set; }
         public long? ListingRentId { get; set; }
         public long? BookingId { get; set; }
+        public string? Type { get; set; }
         public List<NotificationActionModel> Actions { get; set; } = new();
 
-        public NotificationModel(TnNotification notification)
+        public NotificationModel(TnNotification notification, string notificationType)
         {
             NotificationId = notification.NotificationId;
             TypeId = notification.TypeId;
@@ -29,6 +30,7 @@ namespace Assert.Domain.Models
             IsRead = notification.IsRead;
             ListingRentId = notification.ListingRentId;
             BookingId = notification.BookingId;
+            Type = notificationType;
             Actions = notification.TnNotificationActions?.Select(a => new NotificationActionModel
             {
                 ActionType = a.ActionType,

@@ -9,7 +9,7 @@ namespace Assert.Domain.Services
 {
     public interface INotificationDispatcher
     {
-        Task SendNotificationAsync(int userId, TnNotification notification);
+        Task SendNotificationAsync(int userId, TnNotification notification, string notificationType);
         Task UpdateUnreadCount(int userId, int count);
     }
 }
