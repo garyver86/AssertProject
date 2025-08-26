@@ -54,6 +54,10 @@ builder.Services.AddQuequeExtensions();
 
 builder.Services.AddModelsConfigExtension(builder.Configuration);
 
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ListenAnyIP(Int32.Parse(Environment.GetEnvironmentVariable("PORT") ?? "8081"));
+});
 
 var app = builder.Build();
 
