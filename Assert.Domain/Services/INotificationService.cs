@@ -20,9 +20,9 @@ namespace Assert.Domain.Services
         Task<(List<TnNotification>, PaginationMetadata)> GetHistoricalNotificationsAsync(
             int userId,
             NotificationHistoryFilter filter);
-        Task SendBookingRequestNotificationAsync(int hostId, int propertyId, int bookingId);
-        Task SendBookingApprovedNotificationAsync(int renterId, int propertyId, int bookingId);
-        Task SendReviewReminderNotificationAsync(int renterId, int propertyId, int bookingId, bool isForHost);
+        Task SendBookingRequestNotificationAsync(int hostId, long propertyId, long bookingId);
+        Task SendBookingApprovedNotificationAsync(int renterId, long propertyId, long bookingId);
+        Task SendReviewReminderNotificationAsync(int renterId, long propertyId, long bookingId, bool isForHost);
         Task SendNewMessageNotificationAsync(int userIdTo, string messageBody);
         Task SendBookingPaymentNotificationAsync(long priceCalculationId);
         Task SendBookingPaymentRejectedNotificationAsync(long priceCalculationId);

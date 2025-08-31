@@ -15,5 +15,10 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<List<BookDTO>>> GetBooksByUserIdAsync();
         Task<ReturnModelDTO<BookDTO>> SimulatePayment(PaymentModel request, int userId, Dictionary<string, string> requestInfo, bool useTechnicalMessages);
         Task<ReturnModelDTO<List<BookDTO>>> GetBooksWithoutReviewByUser(int userId);
+        Task<ReturnModelDTO<BookDTO>> BookingRequestApproval(Guid CalculationCode,
+            int userId,
+            Dictionary<string, string> clientData,
+            bool useTechnicalMessages);
+        Task<ReturnModelDTO<BookDTO>> CancelBooking(int userId, long bookId);
     }
 }

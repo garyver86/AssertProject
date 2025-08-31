@@ -5,8 +5,6 @@ using Assert.Infrastructure.Exceptions;
 using Assert.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection;
-using static System.Reflection.Metadata.BlobBuilder;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
@@ -23,11 +21,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 var book = await _dbContext.TbBooks
                     .Include(lr => lr.ListingRent)
-                    .ThenInclude(pr=>pr.TpProperties)
-                    .Include(pr=>pr.ListingRent.TlListingPrices)
-                    .Include(pr=>pr.ListingRent.TlListingPhotos)
-                    .Include(pr=>pr.ListingRent.OwnerUser)
-                    .Include(pr=>pr.PayPriceCalculations)
+                    .ThenInclude(pr => pr.TpProperties)
+                    .Include(pr => pr.ListingRent.TlListingPrices)
+                    .Include(pr => pr.ListingRent.TlListingPhotos)
+                    .Include(pr => pr.ListingRent.OwnerUser)
+                    .Include(pr => pr.PayPriceCalculations)
                     .FirstOrDefaultAsync(b => b.BookId == bookId);
 
                 if (book?.ListingRent?.TpProperties?.Count > 0)
@@ -208,7 +206,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 var booksWithoutReview = await context.Set<TbBook>()
                     .Where(b => b.UserIdRenter == userId)
                     //.Where(b => !context.TlListingReviews.Any(r => r.Book != null && r.Book.BookId == b.BookId))
-                    .Where(b => !context.TlListingReviews.Any(r => r.Book != null && r.Book.BookId == b.BookId) || context.TlListingReviews.Where(x=> x.Book != null && x.Book.BookId == b.BookId && x.IsComplete != true).FirstOrDefault() != null)
+                    .Where(b => !context.TlListingReviews.Any(r => r.Book != null && r.Book.BookId == b.BookId) || context.TlListingReviews.Where(x => x.Book != null && x.Book.BookId == b.BookId && x.IsComplete != true).FirstOrDefault() != null)
                     .Include(x => x.ListingRent).ThenInclude(lr => lr.OwnerUser)
                     .Include(x => x.ListingRent.TlListingPhotos)
                     .Include(x => x.ListingRent.TpProperties)
@@ -260,11 +258,29 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         }
                     }
                 }
-
-
                 booksWithoutReview = booksWithoutReview.OrderByDescending(x => x.InitDate).ToList();
                 return booksWithoutReview;
             }
+        }
+
+        public async Task<TbBook> Cancel(int userId, long bookId)
+        {
+            var existingBook = await _dbContext.TbBooks.Include(x => x.ListingRent).Where(x => x.BookId == bookId).FirstOrDefaultAsync();
+            if (existingBook == null)
+                throw new NotFoundException($"No se encontro la reserva con ID {bookId}.");
+
+            if (existingBook.ListingRent.OwnerUserId != userId && existingBook.UserIdRenter != userId)
+                throw new UnauthorizedAccessException($"El usuario con ID {userId} no tiene permiso para cancelar esta reserva.");
+
+            List<int> cancellableStatuses = new List<int> { 1, 2 }; // Ejemplo: 1 = Prebook, 2 = Approved
+
+            if (!cancellableStatuses.Contains(existingBook.BookStatusId))
+                throw new InvalidOperationException($"La reserva con ID {bookId} no puede ser cancelada en su estado actual.");
+
+            existingBook.BookStatusId = 4; // 4 = Cancelled
+
+            await _dbContext.SaveChangesAsync();
+            return existingBook;
         }
     }
 }

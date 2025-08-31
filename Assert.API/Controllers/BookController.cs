@@ -185,6 +185,22 @@ namespace Assert.API.Controllers
         }
 
         /// <summary>
+        /// Servicio que solicita la aprobación de una reserva.
+        /// </summary>
+        /// <param name="cotizationCode">Código de la cotización que se requiere aprobar para posteriormente pagar.</param>
+        /// <returns>Información de la reserva.</returns>
+        /// <response code="200">Si se proceso correctamente.</response>
+        [HttpGet("RequestApproval/{cotizationCode}")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> BookingRequestApproval(string cotizationCode)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            var result = await _bookService.BookingRequestApproval(new Guid(cotizationCode), _metadata.UserId,
+            requestInfo, true);
+            return result;
+        }
+
+        /// <summary>
         /// Servicio registra un review a una propiedad en base a una reserva.
         /// </summary>
         /// <param name="review">Objeto que contiene la información del review.</param>
@@ -201,6 +217,24 @@ namespace Assert.API.Controllers
             return result;
         }
 
+
+        /// <summary>
+        /// Servicio que realiza la cancelación de una reserva.
+        /// </summary>
+        /// <param name="bookId">Id del la reserva.</param>
+        /// <returns>información de la reserva.</returns>
+        /// <response code="200">Si se proceso correctamente.</response>
+        /// <remarks>
+        /// Solo se podrá cancelar  una reserva si la misma se encuentra en estado PREBOOK (1) o APPROVED (2), en los otros casos devolverá error.
+        /// </remarks>
+        [HttpDelete("{bookId}/Cancel")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> Cancel(long bookId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            var result = await _bookService.CancelBooking(_metadata.UserId, bookId);
+            return result;
+        }
 
         /// <summary>
         /// Servicio devuelve el detalle completo de un review.
