@@ -54,6 +54,10 @@ builder.Services.AddQuequeExtensions();
 
 builder.Services.AddModelsConfigExtension(builder.Configuration);
 
+builder.WebHost.ConfigureKestrel(serverOptions =>
+{
+    serverOptions.ListenAnyIP(Int32.Parse(Environment.GetEnvironmentVariable("PORT") ?? "8081"));
+});
 
 var app = builder.Build();
 
@@ -93,7 +97,7 @@ app.UseStaticFiles(new StaticFileOptions
 app.UseRouting();
 app.UseCors("AllowedOriginsPolicy");
 // Authentication y Authorization
-app.UseAuthentication(); // ← ¡ESTO FALTABA! Es crucial para SignalR con [Authorize]
+//app.UseAuthentication(); // ← ¡ESTO FALTABA! Es crucial para SignalR con [Authorize]
 app.UseAuthorization();
 
 app.UseSwagger();
