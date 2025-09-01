@@ -23,5 +23,6 @@ namespace Assert.Domain.Services
             Dictionary<string, string> clientData,
             bool useTechnicalMessages);
         Task<TbBook> Cancel(int userId, long bookId);
+        Task<List<TbBook>> GetPendingAcceptance(int userId);
     }
 }

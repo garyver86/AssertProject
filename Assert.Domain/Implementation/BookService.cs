@@ -653,6 +653,12 @@ namespace Assert.Domain.Implementation
             return result;
         }
 
+        public async Task<List<TbBook>> GetPendingAcceptance(int userId)
+        {
+            var result = await _bookRepository.GetPendingAcceptance(userId);
+            return result;
+        }
+
         private async Task<ReturnModel> CheckAvailability(int listingRentId, DateTime? initBook, DateTime? endBook)
         {
             return new ReturnModel { StatusCode = ResultStatusCode.OK, HasError = false };

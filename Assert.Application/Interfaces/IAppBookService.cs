@@ -20,5 +20,6 @@ namespace Assert.Application.Interfaces
             Dictionary<string, string> clientData,
             bool useTechnicalMessages);
         Task<ReturnModelDTO<BookDTO>> CancelBooking(int userId, long bookId);
+        Task<ReturnModelDTO<List<BookDTO>>> GetPendingAcceptance(int userId);
     }
 }
