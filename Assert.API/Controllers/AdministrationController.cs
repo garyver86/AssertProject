@@ -48,7 +48,7 @@ namespace Assert.API.Controllers
         /// <remarks>
         /// Este servicio devuelve los últimos listing rent que se encuentran publicados. 
         /// </remarks>
-        [HttpGet("Published")]
+        [HttpGet("ListingRent/Published")]
         [Authorize(Policy = "GuestOrHostOrAdmin")]
         public async Task<ReturnModelDTO> GetLatestPublished()
         => await _appListingRentService.GetLatestPublished();
@@ -61,7 +61,7 @@ namespace Assert.API.Controllers
         /// <remarks>
         /// Este servicio devuelve los ListingRent ordenados por mayor alquileres. 
         /// </remarks>
-        [HttpGet("MostRentals")]
+        [HttpGet("ListingRent/MostRentals")]
         [Authorize(Policy = "GuestOrHostOrAdmin")]
         public async Task<ReturnModelDTO> GetSortedByMostRentalsAsync(
             [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
