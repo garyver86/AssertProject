@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http.Json;
 using System.Reflection;
 using System.Text.Json.Serialization;
@@ -29,6 +30,7 @@ namespace Assert.Domain.Implementation
         private readonly IPayTransactionRepository _payTransactionRepository;
         private readonly IListingAdditionalFeeRepository _listingAdditionalFee;
         private readonly IAssertFeeRepository _assertFeeRepository;
+        private readonly INotificationService _notificationService;
 
         public BookService(
             IListingRentRepository listingRentRepository,
@@ -42,7 +44,8 @@ namespace Assert.Domain.Implementation
             ICurrencyRespository currencyrepository,
             IPayTransactionRepository payTransactionRepository,
             IListingAdditionalFeeRepository listingAdditionalFee,
-            IAssertFeeRepository assertFeeRepository)
+            IAssertFeeRepository assertFeeRepository,
+            INotificationService notificationService)
         {
             _listingRentRepository = listingRentRepository;
             _listingCalendarRepository = listingCalendarRepository;
@@ -56,6 +59,7 @@ namespace Assert.Domain.Implementation
             _payTransactionRepository = payTransactionRepository;
             _listingAdditionalFee = listingAdditionalFee;
             _assertFeeRepository = assertFeeRepository;
+            _notificationService = notificationService;
         }
 
 
@@ -340,6 +344,8 @@ namespace Assert.Domain.Implementation
             result.HasError = false;
             return result;
         }
+
+
         public async Task<ReturnModel<TbBook>> RegisterPaymentAndCreateBooking(
             PaymentRequest paymentRequest,
             int userId,
@@ -420,10 +426,176 @@ namespace Assert.Domain.Implementation
                 CreatedAt = DateTime.UtcNow
             };
 
+            TbBook booking = new TbBook();
+            if (priceCalculation.BookId == null)
+            {
+                // 5. Crear la reserva
+
+                booking = new TbBook
+                {
+                    ListingRentId = priceCalculation.ListingRentId ?? 0,
+                    UserIdRenter = userId,
+                    StartDate = priceCalculation.InitBook ?? DateTime.UtcNow,
+                    EndDate = priceCalculation.EndBook ?? DateTime.UtcNow,
+                    AmountTotal = priceCalculation.Amount,
+                    CurrencyId = await _currencyrepository.GetCurrencyId(priceCalculation.CurrencyCode),
+                    NameRenter = clientData.ContainsKey("name") ? clientData["name"] : string.Empty,
+                    LastNameRenter = clientData.ContainsKey("lastName") ? clientData["lastName"] : string.Empty,
+                    TermsAccepted = true, // Asumimos que se aceptaron los términos para llegar aquí
+                    BookStatusId = 3, // Estado inicial (por ejemplo, "Confirmado")
+                    PaymentCode = paymentRequest.OrderCode,
+                    PaymentId = "",
+
+                };
+
+                long bookId = await _bookRepository.UpsertBookAsync(booking);
+
+                if (bookId <= 0)
+                {
+                    result.HasError = true;
+                    result.StatusCode = ResultStatusCode.Conflict;
+                    result.ResultError = _errorHandler.GetError(
+                        ResultStatusCode.Conflict,
+                        "La reserva no ha podido ser creada.",
+                        useTechnicalMessages);
+                    return result;
+                }
+                transaction.BookingId = bookId;
+
+                booking = await _bookRepository.GetByIdAsync(bookId);
+            }
+            else
+            {
+                transaction.BookingId = priceCalculation.BookId;
+                booking = await _bookRepository.GetByIdAsync(transaction.BookingId ?? 0);
+                booking.BookStatusId = 3; // Confirmado
+                booking.PaymentCode = paymentRequest.OrderCode;
+                await _bookRepository.UpsertBookAsync(booking);
+            }
+            long savedTransaction = await _payTransactionRepository.Create(transaction);
+
+            List<DateOnly> dates = new List<DateOnly>();
+
+            for (var date = booking.StartDate; date <= booking.EndDate; date = date.AddDays(1))
+            {
+                dates.Add(DateOnly.FromDateTime(date));
+            }
+
+            var resultBlock = await _listingCalendarRepository.BulkBlockDaysAsync(priceCalculation.ListingRentId ?? 0, dates, 2, "Alquiler de propiedad", priceCalculation.BookId);
+
+            if (priceCalculation.ListingRent?.PreparationDays > 0)
+            {
+                DateTime initPreparation = booking.EndDate.AddDays(1);
+                DateTime endPreparation = booking.EndDate.AddDays(priceCalculation.ListingRent?.PreparationDays ?? 1);
+                List<DateOnly> preparationDates = new List<DateOnly>();
+
+                for (var date = initPreparation; date <= endPreparation; date = date.AddDays(1))
+                {
+                    preparationDates.Add(DateOnly.FromDateTime(date));
+                }
+                var resultBlockPreparation = await _listingCalendarRepository.BulkBlockDaysAsync(priceCalculation.ListingRentId ?? 0, preparationDates, 3, "Preparación", transaction.BookingId);
+            }
+            var resultStatusUpdate = await _payPriceCalculationRepository.SetAsPayed(paymentRequest.CalculationCode, paymentRequest.PaymentProviderId,
+                paymentRequest.MethodOfPaymentId, savedTransaction);
+
+            return new ReturnModel<TbBook>
+            {
+                Data = booking,
+                StatusCode = ResultStatusCode.OK,
+                HasError = false,
+            };
+        }
+
+        public async Task<ReturnModel<TbBook>> BookingRequestApproval(
+            Guid CalculationCode,
+            int userId,
+            Dictionary<string, string> clientData,
+            bool useTechnicalMessages)
+        {
+
+            PayPriceCalculation priceCalculation = await _payPriceCalculationRepository.GetByCode(CalculationCode);
+
+            if (priceCalculation == null)
+            {
+                return new ReturnModel<TbBook>
+                {
+                    HasError = true,
+                    StatusCode = ResultStatusCode.BadRequest,
+                    ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, $"El código de cotización ingresado no puede ser encontrado.", useTechnicalMessages)
+                };
+            }
+
+            var result = new ReturnModel<TbBook>();
+
+            // 1. Validar que la cotización aún sea válida (no haya expirado)
+            if (priceCalculation.ExpirationDate < DateTime.UtcNow)
+            {
+                result.HasError = true;
+                result.StatusCode = ResultStatusCode.BadRequest;
+                result.ResultError = _errorHandler.GetError(
+                    ResultStatusCode.BadRequest,
+                    "La cotización ha expirado. Por favor, solicite una nueva cotización.",
+                    useTechnicalMessages);
+                return result;
+            }
+
+            // 3. Validar disponibilidad nuevamente (en caso de que haya cambiado desde la cotización)
+            ReturnModel avaResult = await CheckAvailability(
+                (int)priceCalculation.ListingRentId,
+                priceCalculation.InitBook,
+                priceCalculation.EndBook);
+
+            if (avaResult.StatusCode != ResultStatusCode.OK)
+            {
+                result.HasError = true;
+                result.StatusCode = ResultStatusCode.Conflict;
+                result.ResultError = _errorHandler.GetError(
+                    ResultStatusCode.Conflict,
+                    "Las fechas seleccionadas ya no están disponibles.",
+                    useTechnicalMessages);
+                return result;
+            }
+
+            var listing = _listingRentRepository.Get((int)priceCalculation.ListingRentId, 0, onlyActive: true).Result;
+            if (listing == null)
+            {
+                result.HasError = true;
+                result.StatusCode = ResultStatusCode.NotFound;
+                result.ResultError = _errorHandler.GetError(
+                    ResultStatusCode.NotFound,
+                    "La propiedad no existe o no está activa.",
+                    useTechnicalMessages);
+                return result;
+            }
+
+            if (listing.ApprovalPolicyTypeId == 2)
+            {
+                result.HasError = true;
+                result.StatusCode = ResultStatusCode.BadRequest;
+                result.ResultError = _errorHandler.GetError(
+                    ResultStatusCode.BadRequest,
+                    "La propiedad no está configurada para reservas con aprobación del anfitrión.",
+                    useTechnicalMessages);
+                return result;
+            }
+
+            if (listing.ApprovalRequestDays > 0)
+            {
+                if (priceCalculation.InitBook.HasValue && priceCalculation.InitBook.Value <= DateTime.UtcNow.AddDays(listing.ApprovalRequestDays.Value))
+                {
+                    result.HasError = true;
+                    result.StatusCode = ResultStatusCode.BadRequest;
+                    result.ResultError = _errorHandler.GetError(
+                        ResultStatusCode.BadRequest,
+                        $"El anfitrión requiere al menos {listing.ApprovalRequestDays.Value} días de anticipación para aprobar la reserva.",
+                        useTechnicalMessages);
+                    return result;
+                }
+            }
+
             // 5. Crear la reserva
 
-
-            var booking = new TbBook
+            TbBook booking = new TbBook
             {
                 ListingRentId = priceCalculation.ListingRentId ?? 0,
                 UserIdRenter = userId,
@@ -434,9 +606,7 @@ namespace Assert.Domain.Implementation
                 NameRenter = clientData.ContainsKey("name") ? clientData["name"] : string.Empty,
                 LastNameRenter = clientData.ContainsKey("lastName") ? clientData["lastName"] : string.Empty,
                 TermsAccepted = true, // Asumimos que se aceptaron los términos para llegar aquí
-                BookStatusId = 1, // Estado inicial (por ejemplo, "Confirmado")
-                PaymentCode = paymentRequest.OrderCode,
-                PaymentId = "",
+                BookStatusId = 1, // Estado inicial (Prebook)
 
             };
 
@@ -452,39 +622,20 @@ namespace Assert.Domain.Implementation
                     useTechnicalMessages);
                 return result;
             }
-            transaction.BookingId = bookId;
-            long savedTransaction = await _payTransactionRepository.Create(transaction);
 
-            List<DateOnly> dates = new List<DateOnly>();
+            booking = await _bookRepository.GetByIdAsync(bookId);
 
-            for (var date = booking.StartDate; date <= booking.EndDate; date = date.AddDays(1))
-            {
-                dates.Add(DateOnly.FromDateTime(date));
-            }
+            //Envío de solicitud de aprobación al anfitrión
+            _notificationService.SendBookingRequestNotificationAsync(
+                listing.OwnerUserId,
+                (long)priceCalculation.ListingRentId,
+                booking.BookId
+            ).Wait();
 
-            var resultBlock = await _listingCalendarRepository.BulkBlockDaysAsync(priceCalculation.ListingRentId ?? 0, dates, 2, "Alquiler de propiedad", bookId);
-
-            if (priceCalculation.ListingRent?.PreparationDays > 0)
-            {
-                DateTime initPreparation = booking.EndDate.AddDays(1);
-                DateTime endPreparation = booking.EndDate.AddDays(priceCalculation.ListingRent?.PreparationDays ?? 1);
-                List<DateOnly> preparationDates = new List<DateOnly>();
-
-                for (var date = initPreparation; date <= endPreparation; date = date.AddDays(1))
-                {
-                    preparationDates.Add(DateOnly.FromDateTime(date));
-                }
-                var resultBlockPreparation = await _listingCalendarRepository.BulkBlockDaysAsync(priceCalculation.ListingRentId ?? 0, preparationDates, 3, "Preparación", bookId);
-            }
-
-            var resultStatusUpdate = await _payPriceCalculationRepository.SetAsPayed(paymentRequest.CalculationCode, paymentRequest.PaymentProviderId,
-                paymentRequest.MethodOfPaymentId, savedTransaction);
-
-            var book = await _bookRepository.GetByIdAsync(bookId);
 
             return new ReturnModel<TbBook>
             {
-                Data = book,
+                Data = booking,
                 StatusCode = ResultStatusCode.OK,
                 HasError = false,
             };
@@ -493,6 +644,12 @@ namespace Assert.Domain.Implementation
         public async Task<List<TbBook>> GetBooksWithoutReviewByUser(int userId)
         {
             var result = await _bookRepository.GetBooksWithoutReviewByUser(userId);
+            return result;
+        }
+
+        public async Task<TbBook> Cancel(int userId, long bookId)
+        {
+            var result = await _bookRepository.Cancel(userId, bookId);
             return result;
         }
 

@@ -16,5 +16,12 @@ namespace Assert.Domain.Services
         Task<ReturnModel<TbBook>> RegisterPaymentAndCreateBooking(PaymentRequest paymentRequest, int userId,
             Dictionary<string, string> clientData, bool useTechnicalMessages);
         Task<List<TbBook>> GetBooksWithoutReviewByUser(int userId);
+
+        Task<ReturnModel<TbBook>> BookingRequestApproval(
+            Guid CalculationCode,
+            int userId,
+            Dictionary<string, string> clientData,
+            bool useTechnicalMessages);
+        Task<TbBook> Cancel(int userId, long bookId);
     }
 }

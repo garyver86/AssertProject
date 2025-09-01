@@ -179,29 +179,29 @@ namespace Assert.Domain.Implementation
         }
 
         // Solicitud de reserva de propiedad
-        public async Task SendBookingRequestNotificationAsync(int hostId, int listingRentId, int bookingId)
+        public async Task SendBookingRequestNotificationAsync(int hostId, long listingRentId, long bookingId)
         {
             var property = await _listingRentRepository.Get(listingRentId, hostId);
             var booking = await _bookingRepository.GetByIdAsync(bookingId);
             var renter = await _userRepository.Get(booking.UserIdRenter);
 
             var actions = new List<TnNotificationAction>
-        {
-            new TnNotificationAction
             {
-                ActionType = "approve",
-                ActionUrl = $"/bookings/{bookingId}/approve",
-                ActionLabel = "Aprobar",
-                IsPrimary = true
-            },
-            new TnNotificationAction
-            {
-                ActionType = "reject",
-                ActionUrl = $"/bookings/{bookingId}/reject",
-                ActionLabel = "Rechazar",
-                IsPrimary = false
-            }
-        };
+                new TnNotificationAction
+                {
+                    ActionType = "approve",
+                    ActionUrl = $"/bookings/{bookingId}/approve",
+                    ActionLabel = "Aprobar",
+                    IsPrimary = true
+                },
+                new TnNotificationAction
+                {
+                    ActionType = "reject",
+                    ActionUrl = $"/bookings/{bookingId}/reject",
+                    ActionLabel = "Rechazar",
+                    IsPrimary = false
+                }
+            };
 
             await CreateAndSendNotificationAsync(
                 hostId,
@@ -353,9 +353,9 @@ namespace Assert.Domain.Implementation
         }
 
         // Implementación de métodos pendientes
-        public async Task SendBookingApprovedNotificationAsync(int renterId, int propertyId, int bookingId)
+        public async Task SendBookingApprovedNotificationAsync(int renterId, long listingRentId, long bookingId)
         {
-            var property = await _listingRentRepository.Get(propertyId, 0); // 0 porque no necesitamos ownerId para lectura
+            var property = await _listingRentRepository.Get(listingRentId, 0); // 0 porque no necesitamos ownerId para lectura
             var host = await _userRepository.Get((await _bookingRepository.GetByIdAsync(bookingId)).ListingRent.OwnerUserId);
 
             var actions = new List<TnNotificationAction>
@@ -374,15 +374,15 @@ namespace Assert.Domain.Implementation
                 "BookingApproved",
                 "Reserva aprobada",
                 $"Tu reserva para {property.Name} ha sido aprobada por {host.Data?.Name}",
-                propertyId,
+                listingRentId,
                 bookingId,
                 actions
             );
         }
 
-        public async Task SendReviewReminderNotificationAsync(int userId, int propertyId, int bookingId, bool isForHost)
+        public async Task SendReviewReminderNotificationAsync(int userId, long listingRentId, long bookingId, bool isForHost)
         {
-            var property = await _listingRentRepository.Get(propertyId, 0);
+            var property = await _listingRentRepository.Get(listingRentId, 0);
             var booking = await _bookingRepository.GetByIdAsync(bookingId);
 
             var notificationType = isForHost ? "HostReviewReminder" : "GuestReviewReminder";
@@ -407,30 +407,30 @@ namespace Assert.Domain.Implementation
                 notificationType,
                 title,
                 message,
-                propertyId,
+                listingRentId,
                 bookingId,
                 actions
             );
         }
 
         // Métodos adicionales para completar tu lista de notificaciones
-        public async Task SendBookingRejectedNotificationAsync(int renterId, int propertyId, int bookingId, string reason)
+        public async Task SendBookingRejectedNotificationAsync(int renterId, long listingRentId, long bookingId, string reason)
         {
-            var property = await _listingRentRepository.Get(propertyId, 0);
+            var property = await _listingRentRepository.Get(listingRentId, 0);
 
             await CreateAndSendNotificationAsync(
                 renterId,
                 "BookingRejected",
                 "Reserva rechazada",
                 $"Tu reserva para {property.Name} ha sido rechazada. Razón: {reason}",
-                propertyId,
+                listingRentId,
                 bookingId
             );
         }
 
-        public async Task SendCheckInReminderNotificationAsync(int guestId, int propertyId, int bookingId, DateTime checkInDate)
+        public async Task SendCheckInReminderNotificationAsync(int guestId, long listingRentId, long bookingId, DateTime checkInDate)
         {
-            var property = await _listingRentRepository.Get(propertyId, 0);
+            var property = await _listingRentRepository.Get(listingRentId, 0);
 
             var actions = new List<TnNotificationAction>
             {
@@ -448,7 +448,7 @@ namespace Assert.Domain.Implementation
                 "CheckInReminder",
                 "Recordatorio de check-in",
                 $"Tu check-in para {property.Name} es el {checkInDate:dd/MM/yyyy}. ¡Prepárate para tu viaje!",
-                propertyId,
+                listingRentId,
                 bookingId,
                 actions
             );

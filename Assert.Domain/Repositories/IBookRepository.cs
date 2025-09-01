@@ -8,4 +8,5 @@ public interface IBookRepository
     Task<TbBook> GetByIdAsync(long bookId);
     Task<long> UpsertBookAsync(TbBook book);
     Task<List<TbBook>> GetBooksWithoutReviewByUser(int userId);
+    Task<TbBook> Cancel(int userId, long bookId);
 }
