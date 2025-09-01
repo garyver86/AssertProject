@@ -9,4 +9,5 @@ public interface IBookRepository
     Task<long> UpsertBookAsync(TbBook book);
     Task<List<TbBook>> GetBooksWithoutReviewByUser(int userId);
     Task<TbBook> Cancel(int userId, long bookId);
+    Task<List<TbBook>> GetPendingAcceptance(int userId);
 }

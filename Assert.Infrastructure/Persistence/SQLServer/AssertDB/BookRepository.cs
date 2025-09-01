@@ -86,6 +86,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Where(b => b.UserIdRenter == userId)
                     .Include(x => x.ListingRent).ThenInclude(lr => lr.OwnerUser)
                     .Include(x => x.ListingRent.TlListingPhotos)
+                    .Include(x => x.ListingRent.ApprovalPolicyType)
+                    .Include(x => x.ListingRent.OwnerUser)
                     .Include(x => x.ListingRent.TpProperties).ToListAsync();
 
                 if (books != null)
@@ -209,7 +211,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Where(b => !context.TlListingReviews.Any(r => r.Book != null && r.Book.BookId == b.BookId) || context.TlListingReviews.Where(x => x.Book != null && x.Book.BookId == b.BookId && x.IsComplete != true).FirstOrDefault() != null)
                     .Include(x => x.ListingRent).ThenInclude(lr => lr.OwnerUser)
                     .Include(x => x.ListingRent.TlListingPhotos)
+                    .Include(x => x.ListingRent.ApprovalPolicyType)
                     .Include(x => x.ListingRent.TpProperties)
+                    .Include(x => x.ListingRent.OwnerUser)
                     .ToListAsync();
 
                 if (booksWithoutReview != null)
@@ -263,6 +267,71 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
+        public async Task<List<TbBook>> GetPendingAcceptance(int userId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                // Recupera los TbBook del usuario que no tienen review asociado
+                var booksWithoutAcceptation = await context.Set<TbBook>()
+                    .Where(b => b.BookStatusId == 1 && b.ListingRent.OwnerUserId == userId)
+                    .Include(x => x.ListingRent).ThenInclude(lr => lr.OwnerUser)
+                    .Include(x => x.ListingRent.TlListingPhotos)
+                    .Include(x => x.ListingRent.ApprovalPolicyType)
+                    .Include(x => x.ListingRent.TpProperties)
+                    .Include(x => x.ListingRent.OwnerUser)
+                    .ToListAsync();
+
+                if (booksWithoutAcceptation != null)
+                {
+                    foreach (var book in booksWithoutAcceptation)
+                    {
+                        if (book?.ListingRent?.TpProperties?.Count > 0)
+                        {
+                            foreach (var prop in book.ListingRent.TpProperties)
+                            {
+                                prop.TpPropertyAddresses = new List<TpPropertyAddress>
+                                {
+                                    new TpPropertyAddress
+                                    {
+                                        Address1 = prop.Address1,
+                                        Address2 = prop.Address2,
+                                        CityId = prop.CityId,
+                                        CountyId = prop.CountyId,
+                                        ZipCode = prop.ZipCode,
+                                        StateId = prop.StateId,
+                                        City = new TCity
+                                        {
+                                            CityId = prop.CityId??0,
+                                            Name = prop.CityName,
+                                            CountyId = prop.CountyId??0,
+                                            County = new TCounty
+                                            {
+                                                CountyId = prop.CountyId ?? 0,
+                                                Name = prop.CountyName,
+                                                StateId = prop.StateId??0,
+                                                State = new TState
+                                                {
+                                                    Name = prop.StateName,
+                                                    StateId = prop.StateId ?? 0,
+                                                    Country = new TCountry
+                                                    {
+                                                        Name = prop.CountryName,
+                                                        CountryId = prop.CountryId ?? 0
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                };
+                            }
+                        }
+                    }
+                }
+                //booksWithoutAcceptation = booksWithoutAcceptation.OrderByDescending(x => x.InitDate).ToList();
+                return booksWithoutAcceptation;
+            }
+        }
+
         public async Task<TbBook> Cancel(int userId, long bookId)
         {
             var existingBook = await _dbContext.TbBooks.Include(x => x.ListingRent).Where(x => x.BookId == bookId).FirstOrDefaultAsync();
@@ -276,6 +345,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
             if (!cancellableStatuses.Contains(existingBook.BookStatusId))
                 throw new InvalidOperationException($"La reserva con ID {bookId} no puede ser cancelada en su estado actual.");
+
+            //TODO:Considerar tambien que es posible realizar la cancelación de una reserva si esta se encuentra en estado 3 (Rented) y
+            //si la fecha de inicio es mayor a la fecha actual, solo que para esto se debe validar la política de cancelación de la propiedad.
 
             existingBook.BookStatusId = 4; // 4 = Cancelled
 
