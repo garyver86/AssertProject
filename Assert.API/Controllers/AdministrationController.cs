@@ -8,14 +8,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Assert.API.Controllers
 {
-    public class AdministrationController : Controller
+    public class AdministrationController(
+        IAppUserService _userService,
+        IAppListingRentService _appListingRentService) : Controller
     {
-
-        private readonly IAppUserService _userService;
-        public AdministrationController(IAppUserService appUserService)
-        {
-            _userService = appUserService;
-        }
         /// <summary>
         /// Servicio que permite la busqueda de usuarios hosts.
         /// </summary>
@@ -43,5 +39,32 @@ namespace Assert.API.Controllers
                 StatusCode = properties.StatusCode
             };
         }
+
+        /// <summary>
+        /// Servicio que devuelve los ultimos ListingRent publicados
+        /// </summary>
+        /// <returns>Detalle del últimos listing rent publicados.</returns>
+        /// <response code="200">Detalle del Listing Rent</response>
+        /// <remarks>
+        /// Este servicio devuelve los últimos listing rent que se encuentran publicados. 
+        /// </remarks>
+        [HttpGet("Published")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> GetLatestPublished()
+        => await _appListingRentService.GetLatestPublished();
+
+        /// <summary>
+        /// Servicio que devuelve los ListingRent ordenados por mayor alquileres
+        /// </summary>
+        /// <returns>Detalle del listing rent con mayor cantidad de alquileres.</returns>
+        /// <response code="200">Lista del Listing Rent</response>
+        /// <remarks>
+        /// Este servicio devuelve los ListingRent ordenados por mayor alquileres. 
+        /// </remarks>
+        [HttpGet("MostRentals")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> GetSortedByMostRentalsAsync(
+            [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
+        => await _appListingRentService.GetSortedByMostRentalsAsync(pageNumber, pageSize);
     }
 }
