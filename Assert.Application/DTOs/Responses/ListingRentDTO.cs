@@ -38,6 +38,7 @@
         public List<SecurityItemDTO> SecurityItems { get; set; }
         public List<SpaceDTO> Spaces { get; set; }
         public List<StayPresenceDTO> StayPresences { get; set; }
+        public List<BookDTO> Books { get; set; }
         public decimal? Valoration { get; set; }
         public DateTime? historyDate { get; set; }
         public bool? isFavorite { get; set; }
