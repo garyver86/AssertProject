@@ -89,6 +89,29 @@ namespace Assert.Application.Services
             return result;
         }
 
+        public async Task<ReturnModelDTO<List<ListingRentDTO>>> GetSortedByMostRentalsAsync(int pageNumber, int pageSize)
+        {
+            var result = new ReturnModelDTO<List<ListingRentDTO>>();
+            try
+            {
+                var listingRentResult = await _listingRentRepository.GetSortedByMostRentalsAsync(pageNumber, pageSize);
+
+                var response = _mapper.Map<List<ListingRentDTO>>(listingRentResult);
+
+                result.StatusCode = ResultStatusCode.OK;
+                result.HasError = false;
+                result.Data = response;
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.GetLatestPublished", ex, "", UseTechnicalMessages));
+            }
+
+            return result;
+        }
+
         public async Task<ReturnModelDTO<List<ListingRentDTO>>> GetAllListingsRentsData(int ownerUserId, Dictionary<string, string> clientData, bool useTechnicalMessages = true)
         {
             ReturnModelDTO<List<ListingRentDTO>> result = new ReturnModelDTO<List<ListingRentDTO>>();

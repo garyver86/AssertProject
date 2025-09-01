@@ -326,7 +326,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 {
                     var publishStatus = await context.TlListingStatuses.Where(x => x.Code == "PUBLISH").FirstOrDefaultAsync();
 
-                    if (publishStatus is null) return null;
+                    if (publishStatus is null)
+                        throw new NotFoundException($"No existe registros de estado PUBLICADO");
 
                     var dateThreshold = DateTime.Now.AddDays(-_paramsData.DaysRecentlyPublished);
 
@@ -344,6 +345,52 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 }
             }
             catch(Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, "");
+
+                throw new InfrastructureException(ex.Message);
+            }
+        }
+
+        public async Task<List<TlListingRent>> GetSortedByMostRentalsAsync(int pageNumber, int pageSize)
+        {
+            try
+            {
+                using (var context = new InfraAssertDbContext(dbOptions))
+                {
+                    var bookRentedStatus = await context.TbBookStatuses
+                        .Where(x => x.Code == "rented")
+                        .FirstOrDefaultAsync();
+
+                    if (bookRentedStatus is null)
+                        throw new NotFoundException($"No existe registros de estado RENTADO");
+
+                    var listingRentsQuery = context.TlListingRents
+                        .Include(x => x.OwnerUser)
+                        //.Include(x => x.TbBooks.Where(b => b.BookStatusId == bookRentedStatus.BookStatusId))
+                        .AsNoTracking()
+                        .Select(lr => new
+                        {
+                            ListingRent = lr,
+                            RentalCount = context.TbBooks
+                                .Count(b => b.ListingRentId == lr.ListingRentId && b.BookStatusId == bookRentedStatus.BookStatusId)
+                        })
+                        .OrderByDescending(x => x.RentalCount)
+                        .Skip((pageNumber - 1) * pageSize)
+                        .Take(pageSize);
+
+                    var result = await listingRentsQuery
+                        .Select(x => x.ListingRent)
+                        .ToListAsync();
+
+                    if (result is not { Count: > 0 })
+                        throw new NotFoundException($"No existen propiedades publicadas con alquileres confirmados.");
+
+                    return result;
+                }
+            }
+            catch (Exception ex)
             {
                 var (className, methodName) = this.GetCallerInfo();
                 _exceptionLoggerService.LogAsync(ex, methodName, className, "");

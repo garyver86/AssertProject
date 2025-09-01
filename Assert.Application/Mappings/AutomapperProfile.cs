@@ -125,6 +125,7 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.ApprovalPolicy, opt => opt.MapFrom(src => src.ApprovalPolicyType))
                 .ForMember(dest => dest.CancelationPolicy, opt => opt.MapFrom(src => src.CancelationPolicyType))
                 .ForMember(dest => dest.Owner, opt => opt.MapFrom(src => src.OwnerUser))
+                .ForMember(dest => dest.Books, opt => opt.MapFrom(src => src.TbBooks))
                 .ForMember(dest => dest.Property, opt => opt.MapFrom(src => src.TpProperties.FirstOrDefault()))
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.TlListingPrices.FirstOrDefault()))
                 .ForMember(dest => dest.CheckInOutPolicies, opt => opt.MapFrom(src => src.TlCheckInOutPolicies))
