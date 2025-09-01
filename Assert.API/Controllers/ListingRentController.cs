@@ -45,6 +45,21 @@ namespace Assert.API.Controllers
         }
 
         /// <summary>
+        /// Servicio que devuelve los ultimos ListingRent publicados
+        /// </summary>
+        /// <returns>Detalle del último listing rent publicado.</returns>
+        /// <response code="200">Detalle del Listing Rent</response>
+        /// <remarks>
+        /// Este servicio devuelve el último listing rent que se encuentra publicado. 
+        /// Al tratarse de un servicio para Guest, solo se recuperará si el listing está disponible públicamente.
+        /// </remarks>
+
+        [HttpGet("Published")]
+        [Authorize(Policy = "Guest")]
+        public async Task<ReturnModelDTO> GetLatestPublished()
+        => await _appListingRentService.GetLatestPublished();
+
+        /// <summary>
         /// Servicio que devuelve el resumen completo de los reviews de un listing Rent
         /// </summary>
         /// <param name="listinRentId">Id del linsting rent a recuperar.</param>

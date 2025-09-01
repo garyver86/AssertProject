@@ -960,11 +960,11 @@ public partial class InfraAssertDbContext : DbContext
 
             entity.Property(e => e.FeaturedAspectType).HasColumnName("featuredAspectType");
             entity.Property(e => e.FeaturedAspectCode)
-                .HasMaxLength(5)
+                .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("featuredAspectCode");
             entity.Property(e => e.FeaturedAspectName)
-                .HasMaxLength(50)
+                .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("featuredAspectName");
             entity.Property(e => e.FeaturedAspectStatus).HasColumnName("featuredAspectStatus");

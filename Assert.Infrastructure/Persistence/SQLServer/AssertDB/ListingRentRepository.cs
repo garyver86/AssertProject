@@ -12,6 +12,7 @@ using System.Linq;
 using System.Diagnostics.Metrics;
 using System.Globalization;
 using Microsoft.IdentityModel.Tokens;
+using Assert.Domain.Common.Params;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
@@ -21,6 +22,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         IExceptionLoggerService _exceptionLoggerService,
         IListingViewHistoryRepository _listingViewHistoryRepository,
         IListingFavoriteRepository _favoritesRepository,
+        ParamsData _paramsData,
         ILogger<ListingRentRepository> _logger, IServiceProvider serviceProvider) : IListingRentRepository
     {
 
@@ -313,6 +315,40 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     }
                 }
                 return result;
+            }
+        }
+
+        public async Task<List<TlListingRent>> GetPublished()
+        {
+            try
+            {
+                using (var context = new InfraAssertDbContext(dbOptions))
+                {
+                    var publishStatus = await context.TlListingStatuses.Where(x => x.Code == "PUBLISH").FirstOrDefaultAsync();
+
+                    if (publishStatus is null) return null;
+
+                    var dateThreshold = DateTime.Now.AddDays(-_paramsData.DaysRecentlyPublished);
+
+                    var listingRents = await context.TlListingRents
+                    .Include(x => x.OwnerUser)
+                    .AsNoTracking()
+                    .Where(x => x.ListingStatusId == publishStatus.ListingStatusId
+                        && x.ListingRentConfirmationDate >= dateThreshold)
+                    .ToListAsync();
+
+                    if(listingRents is not { Count: > 0 })
+                        throw new NotFoundException($"No existen propiedades publicadas en los ultimos {_paramsData.DaysRecentlyPublished}");
+
+                    return listingRents;
+                }
+            }
+            catch(Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, "");
+
+                throw new InfrastructureException(ex.Message);
             }
         }
 
