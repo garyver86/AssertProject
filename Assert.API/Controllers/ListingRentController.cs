@@ -44,8 +44,6 @@ namespace Assert.API.Controllers
             return result;
         }
 
-        
-
         /// <summary>
         /// Servicio que devuelve el resumen completo de los reviews de un listing Rent
         /// </summary>
