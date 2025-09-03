@@ -174,6 +174,7 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.EmergencyContact, opt => opt.MapFrom(src => src.TuEmergencyContacts.FirstOrDefault()))
                 .ForMember(dest => dest.Documents, opt => opt.MapFrom(src => src.TuDocuments))
                 .ForMember(dest => dest.Phones, opt => opt.MapFrom(src => src.TuPhones))
+                .ForMember(dest => dest.CityName, opt => opt.MapFrom(src => GetCityName(src)))
                 .ForMember(dest => dest.ProfilePhotos, opt => opt.MapFrom(src => src.TuProfilePhotos));
             CreateMap<UserDTO, TuUser>();
             CreateMap<TpProperty, PropertyDTO>()
@@ -304,5 +305,15 @@ namespace Assert.Application.Mappings
                 return DateOnly.FromDateTime(source);
             }
         }
+
+        private string? GetCityName(TuUser user)
+        {
+            return user.TuAdditionalProfiles?
+                .FirstOrDefault()?
+                .TuAdditionalProfileLiveAts?
+                .FirstOrDefault()?
+                .CityName ?? string.Empty;
+        }
+
     }
 }

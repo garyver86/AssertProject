@@ -13,6 +13,8 @@ using System.Diagnostics.Metrics;
 using System.Globalization;
 using Microsoft.IdentityModel.Tokens;
 using Assert.Domain.Common.Params;
+using Assert.Domain.Models;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
@@ -318,13 +320,15 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task<List<TlListingRent>> GetPublished()
+        public async Task<List<TlListingRent>> GetPublished(
+            SearchFiltersToListingRent filters, int pageNumber, int pageSize)
         {
             try
             {
                 using (var context = new InfraAssertDbContext(dbOptions))
                 {
-                    var publishStatus = await context.TlListingStatuses.Where(x => x.Code == "PUBLISH").FirstOrDefaultAsync();
+                    var publishStatus = await context.TlListingStatuses.Where(x => x.Code == "PUBLISH")
+                        .FirstOrDefaultAsync();
 
                     if (publishStatus is null)
                         throw new NotFoundException($"No existe registros de estado PUBLICADO");
@@ -332,11 +336,22 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     var dateThreshold = DateTime.Now.AddDays(-_paramsData.DaysRecentlyPublished);
 
                     var listingRents = await context.TlListingRents
-                    .Include(x => x.OwnerUser)
-                    .AsNoTracking()
-                    .Where(x => x.ListingStatusId == publishStatus.ListingStatusId
-                        && x.ListingRentConfirmationDate >= dateThreshold)
-                    .ToListAsync();
+                        .Include(x => x.OwnerUser)
+                            .ThenInclude(us => us.TuAdditionalProfiles)
+                                .ThenInclude(us => us.TuAdditionalProfileLiveAts)
+                        .Include(x => x.TlListingPhotos)
+                        .Include(x => x.TpProperties)
+                        .AsNoTracking()
+                        .Where(x => x.ListingStatusId == publishStatus.ListingStatusId
+                            && x.ListingRentConfirmationDate >= dateThreshold
+                            && (string.IsNullOrEmpty(filters.CityName)
+                                || x.TpProperties.Any(p =>
+                                    (!string.IsNullOrEmpty(p.CityName) && p.CityName.Contains(filters.CityName)) ||
+                                    (!string.IsNullOrEmpty(p.StateName) && p.StateName.Contains(filters.CityName)))))
+                        .OrderByDescending(x => x.ListingRentConfirmationDate)
+                        .Skip((pageNumber - 1) * pageSize)
+                        .Take(pageSize)
+                        .ToListAsync();
 
                     if(listingRents is not { Count: > 0 })
                         throw new NotFoundException($"No existen propiedades publicadas en los ultimos {_paramsData.DaysRecentlyPublished}");
@@ -353,7 +368,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task<List<TlListingRent>> GetSortedByMostRentalsAsync(int pageNumber, int pageSize)
+        public async Task<List<TlListingRent>> GetSortedByMostRentalsAsync(
+            SearchFiltersToListingRent filters, int pageNumber, int pageSize)
         {
             try
             {
@@ -368,22 +384,37 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
                     var listingRentsQuery = context.TlListingRents
                         .Include(x => x.OwnerUser)
-                        //.Include(x => x.TbBooks.Where(b => b.BookStatusId == bookRentedStatus.BookStatusId))
+                        .Include(x => x.TlListingPhotos)
+                        .Include(x => x.TpProperties)
                         .AsNoTracking()
                         .Select(lr => new
                         {
                             ListingRent = lr,
                             RentalCount = context.TbBooks
                                 .Count(b => b.ListingRentId == lr.ListingRentId && b.BookStatusId == bookRentedStatus.BookStatusId)
-                        })
+                        });                        
+
+                    if (!string.IsNullOrEmpty(filters.CityName))
+                    {
+                        listingRentsQuery = listingRentsQuery.Where(x =>
+                            x.ListingRent.TpProperties.Any(p =>
+                                (!string.IsNullOrEmpty(p.CityName) && p.CityName.Contains(filters.CityName)) ||
+                                (!string.IsNullOrEmpty(p.StateName) && p.StateName.Contains(filters.CityName))
+                            )
+                        );
+                    }
+
+                    var result = listingRentsQuery
                         .OrderByDescending(x => x.RentalCount)
                         .Skip((pageNumber - 1) * pageSize)
-                        .Take(pageSize);
-
-                    var result = await listingRentsQuery
-                        .Select(x => x.ListingRent)
-                        .ToListAsync();
-
+                        .Take(pageSize)
+                        .AsEnumerable()
+                        .Select(x =>
+                        {
+                            x.ListingRent.TotalRents = x.RentalCount;
+                            return x.ListingRent;
+                        }).ToList();
+                        
                     if (result is not { Count: > 0 })
                         throw new NotFoundException($"No existen propiedades publicadas con alquileres confirmados.");
 

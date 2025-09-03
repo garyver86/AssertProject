@@ -722,9 +722,12 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         {
             var additionalProfile = await _dbContext.TuUsers
                 .Include(u => u.TuAdditionalProfiles)
-                    .ThenInclude(us => us.TuAdditionalProfileLiveAts)
+                    .ThenInclude(us => us.TuAdditionalProfileLiveAts)                        
                         .ThenInclude(s => s.State)
                             .ThenInclude(c => c.Country)
+                .Include(u => u.TuAdditionalProfiles)
+                    .ThenInclude(us => us.TuAdditionalProfileLiveAts)
+                        .ThenInclude(s => s.City)
                 .Include(u => u.TuAdditionalProfiles)
                     .ThenInclude(ap => ap.TuAdditionalProfileLanguages)
                         .ThenInclude(ad => ad.Language)

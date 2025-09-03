@@ -66,12 +66,14 @@ namespace Assert.Application.Services
             return result;
         }
 
-        public async Task<ReturnModelDTO<List<ListingRentDTO>>> GetLatestPublished()
+        public async Task<ReturnModelDTO<List<ListingRentDTO>>> GetLatestPublished(
+            SearchFiltersToListingRent filters, int pageNumber, int pageSize)
         {
             var result = new ReturnModelDTO<List<ListingRentDTO>>();
             try
             {
-                var listingRentResult = await _listingRentRepository.GetPublished();
+                var listingRentResult = await _listingRentRepository
+                    .GetPublished(filters, pageNumber, pageSize);
 
                 var response = _mapper.Map<List<ListingRentDTO>>(listingRentResult);
 
@@ -89,12 +91,14 @@ namespace Assert.Application.Services
             return result;
         }
 
-        public async Task<ReturnModelDTO<List<ListingRentDTO>>> GetSortedByMostRentalsAsync(int pageNumber, int pageSize)
+        public async Task<ReturnModelDTO<List<ListingRentDTO>>> GetSortedByMostRentalsAsync(
+            SearchFiltersToListingRent filters, int pageNumber, int pageSize)
         {
             var result = new ReturnModelDTO<List<ListingRentDTO>>();
             try
             {
-                var listingRentResult = await _listingRentRepository.GetSortedByMostRentalsAsync(pageNumber, pageSize);
+                var listingRentResult = await _listingRentRepository
+                    .GetSortedByMostRentalsAsync(filters, pageNumber, pageSize);
 
                 var response = _mapper.Map<List<ListingRentDTO>>(listingRentResult);
 

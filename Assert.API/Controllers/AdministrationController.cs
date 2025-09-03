@@ -48,10 +48,11 @@ namespace Assert.API.Controllers
         /// <remarks>
         /// Este servicio devuelve los últimos listing rent que se encuentran publicados. 
         /// </remarks>
-        [HttpGet("ListingRent/Published")]
+        [HttpGet("ListingRent/RecentlyPublished")]
         [Authorize(Policy = "GuestOrHostOrAdmin")]
-        public async Task<ReturnModelDTO> GetLatestPublished()
-        => await _appListingRentService.GetLatestPublished();
+        public async Task<ReturnModelDTO> RecentlyPublished([FromQuery] SearchFiltersToListingRent filters,
+            [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
+        => await _appListingRentService.GetLatestPublished(filters, pageNumber, pageSize);
 
         /// <summary>
         /// Servicio que devuelve los ListingRent ordenados por mayor alquileres
@@ -61,10 +62,10 @@ namespace Assert.API.Controllers
         /// <remarks>
         /// Este servicio devuelve los ListingRent ordenados por mayor alquileres. 
         /// </remarks>
-        [HttpGet("ListingRent/MostRentals")]
+        [HttpGet("ListingRent/MostRented")]
         [Authorize(Policy = "GuestOrHostOrAdmin")]
-        public async Task<ReturnModelDTO> GetSortedByMostRentalsAsync(
+        public async Task<ReturnModelDTO> GetSortedByMostRentalsAsync([FromQuery] SearchFiltersToListingRent filters,
             [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
-        => await _appListingRentService.GetSortedByMostRentalsAsync(pageNumber, pageSize);
+        => await _appListingRentService.GetSortedByMostRentalsAsync(filters, pageNumber, pageSize);
     }
 }

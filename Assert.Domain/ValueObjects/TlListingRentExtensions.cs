@@ -13,5 +13,7 @@ namespace Assert.Domain.Entities
         public bool isFavorite { get; set; }
         [NotMapped]
         public DateTime? historyDate { get; set; }
+        [NotMapped]
+        public int TotalRents { get; set; }
     }
 }
