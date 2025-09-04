@@ -9,6 +9,7 @@ using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Assert.Domain.Utils;
 using Assert.Domain.ValueObjects;
+using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 using Assert.Shared.Extensions;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
@@ -35,6 +36,7 @@ namespace Assert.Application.Services
         IListingSecurityItemsRepository _listingSecurityItemsRepository,
         IListingDiscountRepository _listingDiscountRepository,
         IListingRentRulesRepository _listingRentRulesRepository,
+        IListingStatusRepository _listingStatusRepository,
         ILocationService _locationService,
         IHttpContextAccessor requestContext)
         : IAppListingRentService
@@ -63,6 +65,28 @@ namespace Assert.Application.Services
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
                 result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.ChangeStatus", ex, new { listingRentId, ownerUserId, newStatusCode, clientData }, UseTechnicalMessages));
+            }
+            return result;
+        }
+
+        public async Task<ReturnModelDTO> ChangeStatusByAdmin(long listingRentId, int ownerUserId, 
+            string newStatusCode, Dictionary<string, string> clientData)
+        {
+            ReturnModelDTO result = new ReturnModelDTO();
+            try
+            {
+                var status = await _listingStatusRepository.Get(newStatusCode);
+
+                var changeResult = await _listingRentRepository.ChangeStatus(listingRentId, ownerUserId, 
+                    status.ListingStatusId, clientData);
+
+                result.Data = "UPDATED";
+                result.StatusCode = ResultStatusCode.OK;
+                result.HasError = false;
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException(ex.Message);
             }
             return result;
         }

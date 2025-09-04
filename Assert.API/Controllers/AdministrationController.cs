@@ -1,6 +1,7 @@
 ﻿using Assert.API.Helpers;
 using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
+using Assert.Domain.Common.Metadata;
 using Assert.Domain.Models;
 using Assert.Domain.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -10,7 +11,8 @@ namespace Assert.API.Controllers
 {
     public class AdministrationController(
         IAppUserService _userService,
-        IAppListingRentService _appListingRentService) : Controller
+        IAppListingRentService _appListingRentService,
+        RequestMetadata _metadata) : Controller
     {
         /// <summary>
         /// Servicio que permite la busqueda de usuarios hosts.
@@ -67,5 +69,43 @@ namespace Assert.API.Controllers
         public async Task<ReturnModelDTO_Pagination> GetSortedByMostRentalsAsync([FromQuery] SearchFiltersToListingRent filters,
             [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
         => await _appListingRentService.GetSortedByMostRentalsAsync(filters, pageNumber, pageSize);
+
+        /// <summary>
+        /// Servicio que bloquea un ListingRent específico.
+        /// </summary>
+        /// <param name="listingRentId">ID del ListingRent a bloquear.</param>
+        /// <returns>Resultado de la operación de bloqueo.</returns>
+        /// <response code="200">ListingRent bloqueado exitosamente.</response>
+        /// <response code="404">No se encontró el ListingRent especificado.</response>
+        /// <remarks>
+        /// Este servicio permite a un administrador cambiar el estado de un ListingRent a "BLOCKED".
+        /// Se registra la acción en el log con la información del usuario.
+        /// </remarks>
+        [HttpPut("ListingRent/Blocked")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> Blocked(int listingRentId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            return await _appListingRentService.ChangeStatusByAdmin(listingRentId, _metadata.UserId, "BLOCKED", requestInfo);
+        }
+
+        /// <summary>
+        /// Servicio que desbloquea un ListingRent previamente bloqueado.
+        /// </summary>
+        /// <param name="listingRentId">ID del ListingRent a desbloquear.</param>
+        /// <returns>Resultado de la operación de desbloqueo.</returns>
+        /// <response code="200">ListingRent publicado exitosamente.</response>
+        /// <response code="404">No se encontró el ListingRent especificado.</response>
+        /// <remarks>
+        /// Este servicio permite a un usuaerio Administrador cambiar el estado de un ListingRent a "PUBLISH", reactivando su visibilidad.
+        /// Se registra la acción en el log con la información del usuario.
+        /// </remarks>
+        [HttpPut("ListingRent/Unblocked")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> Unblocked(int listingRentId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            return await _appListingRentService.ChangeStatusByAdmin(listingRentId, _metadata.UserId, "PUBLISH", requestInfo);
+        }
     }
 }

@@ -8,6 +8,12 @@ namespace Assert.Application.Interfaces
 {
     public interface IAppListingRentService
     {
+        Task<ReturnModelDTO> ChangeStatus(long listingRentId, int ownerUserId, 
+            string newStatusCode, Dictionary<string, string> clientData,
+            bool useTechnicalMessages);
+
+        Task<ReturnModelDTO> ChangeStatusByAdmin(long listingRentId, int ownerUserId,
+            string newStatusCode, Dictionary<string, string> clientData);
         Task<ReturnModelDTO<List<ListingRentDTO>>> GetAllListingsRentsData(int ownerUserId, Dictionary<string, string> clientData, bool useTechnicalMessages);
         Task<ReturnModelDTO<ListingRentDTO>> Get(long istingRentId, bool onlyActive, Dictionary<string, string> clientData, bool useTechnicalMessages);
         Task<ReturnModelDTO_Pagination> GetLatestPublished(SearchFiltersToListingRent filers, int pageNumber, int pageSize);

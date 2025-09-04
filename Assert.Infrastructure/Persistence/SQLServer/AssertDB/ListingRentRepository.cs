@@ -35,14 +35,20 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         {
             using (var context = new InfraAssertDbContext(dbOptions))
             {
-                var listing = context.TlListingRents.Where(x => x.ListingRentId == id).FirstOrDefault();
-                listing.ListingStatusId = newStatus;
-                var result = await context.SaveChangesAsync();
+                var listing = await context.TlListingRents.FirstOrDefaultAsync(x => x.ListingRentId == id);
+                if(listing is null) throw new NotFoundException($"No se encontró el listing con ID {id}");
 
-                var statusListing = await _listingStatusRepository.Get(newStatus);
+                if (listing.ListingStatusId != newStatus)
+                {
+                    listing.ListingStatusId = newStatus;
+                    context.Attach(listing); 
 
-                _logRepository.RegisterLog(id, "Update Status " + statusListing.Code + " (StatusId:" + statusListing.ListingStatusId.ToString() + ")", userInfo["BrowserInfo"], userInfo["IsMobile"] == "True", userInfo["IpAddress"], null, userInfo["ApplicationCode"]);
+                    var result = await context.SaveChangesAsync();
 
+                    var statusListing = await _listingStatusRepository.Get(newStatus);
+
+                    await _logRepository.RegisterLog(id, "Update Status " + statusListing.Code + " (StatusId:" + statusListing.ListingStatusId.ToString() + ")", userInfo["BrowserInfo"], userInfo["IsMobile"] == "True", userInfo["IpAddress"], null, userInfo["ApplicationCode"]);
+                }
                 return listing;
             }
         }
