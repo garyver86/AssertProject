@@ -50,7 +50,7 @@ namespace Assert.API.Controllers
         /// </remarks>
         [HttpGet("ListingRent/RecentlyPublished")]
         [Authorize(Policy = "GuestOrHostOrAdmin")]
-        public async Task<ReturnModelDTO> RecentlyPublished([FromQuery] SearchFiltersToListingRent filters,
+        public async Task<ReturnModelDTO_Pagination> RecentlyPublished([FromQuery] SearchFiltersToListingRent filters,
             [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
         => await _appListingRentService.GetLatestPublished(filters, pageNumber, pageSize);
 
@@ -64,7 +64,7 @@ namespace Assert.API.Controllers
         /// </remarks>
         [HttpGet("ListingRent/MostRented")]
         [Authorize(Policy = "GuestOrHostOrAdmin")]
-        public async Task<ReturnModelDTO> GetSortedByMostRentalsAsync([FromQuery] SearchFiltersToListingRent filters,
+        public async Task<ReturnModelDTO_Pagination> GetSortedByMostRentalsAsync([FromQuery] SearchFiltersToListingRent filters,
             [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 20)
         => await _appListingRentService.GetSortedByMostRentalsAsync(filters, pageNumber, pageSize);
     }

@@ -25,7 +25,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         IListingViewHistoryRepository _listingViewHistoryRepository,
         IListingFavoriteRepository _favoritesRepository,
         ParamsData _paramsData,
-        ILogger<ListingRentRepository> _logger, IServiceProvider serviceProvider) : IListingRentRepository
+        ILogger<ListingRentRepository> _logger, IServiceProvider serviceProvider) 
+        : IListingRentRepository
     {
 
         private readonly DbContextOptions<InfraAssertDbContext> dbOptions = serviceProvider.GetRequiredService<DbContextOptions<InfraAssertDbContext>>();
@@ -320,7 +321,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task<List<TlListingRent>> GetPublished(
+        public async Task<(List<TlListingRent>, PaginationMetadata)> GetPublished(
             SearchFiltersToListingRent filters, int pageNumber, int pageSize)
         {
             try
@@ -335,19 +336,24 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
                     var dateThreshold = DateTime.Now.AddDays(-_paramsData.DaysRecentlyPublished);
 
-                    var listingRents = await context.TlListingRents
+                    var query = context.TlListingRents
                         .Include(x => x.OwnerUser)
                             .ThenInclude(us => us.TuAdditionalProfiles)
                                 .ThenInclude(us => us.TuAdditionalProfileLiveAts)
                         .Include(x => x.TlListingPhotos)
                         .Include(x => x.TpProperties)
                         .AsNoTracking()
-                        .Where(x => x.ListingStatusId == publishStatus.ListingStatusId
-                            && x.ListingRentConfirmationDate >= dateThreshold
-                            && (string.IsNullOrEmpty(filters.CityName)
-                                || x.TpProperties.Any(p =>
-                                    (!string.IsNullOrEmpty(p.CityName) && p.CityName.Contains(filters.CityName)) ||
-                                    (!string.IsNullOrEmpty(p.StateName) && p.StateName.Contains(filters.CityName)))))
+                        .Where(x => x.ListingStatusId == publishStatus.ListingStatusId &&
+                                    x.ListingRentConfirmationDate >= dateThreshold &&
+                                    (string.IsNullOrEmpty(filters.CityName) ||
+                                     x.TpProperties.Any(p =>
+                                         (!string.IsNullOrEmpty(p.CityName) && p.CityName.Contains(filters.CityName)) ||
+                                         (!string.IsNullOrEmpty(p.StateName) && p.StateName.Contains(filters.CityName)))));
+
+                    var totalItemCount = await query.CountAsync();
+                    var skipAmount = (pageNumber - 1) * pageSize;
+
+                    var listingRents = await query
                         .OrderByDescending(x => x.ListingRentConfirmationDate)
                         .Skip((pageNumber - 1) * pageSize)
                         .Take(pageSize)
@@ -356,7 +362,15 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     if(listingRents is not { Count: > 0 })
                         throw new NotFoundException($"No existen propiedades publicadas en los ultimos {_paramsData.DaysRecentlyPublished}");
 
-                    return listingRents;
+                    var pagination = new PaginationMetadata
+                    {
+                        CurrentPage = pageNumber,
+                        PageSize = pageSize,
+                        TotalItemCount = totalItemCount,
+                        TotalPageCount = (int)Math.Ceiling((double)totalItemCount / pageSize)
+                    };
+
+                    return (listingRents, pagination);
                 }
             }
             catch(Exception ex)
@@ -368,7 +382,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task<List<TlListingRent>> GetSortedByMostRentalsAsync(
+        public async Task<(List<TlListingRent>, PaginationMetadata)> GetSortedByMostRentalsAsync(
             SearchFiltersToListingRent filters, int pageNumber, int pageSize)
         {
             try
@@ -382,31 +396,39 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     if (bookRentedStatus is null)
                         throw new NotFoundException($"No existe registros de estado RENTADO");
 
-                    var listingRentsQuery = context.TlListingRents
+                    var baseQuery = context.TlListingRents
                         .Include(x => x.OwnerUser)
                         .Include(x => x.TlListingPhotos)
                         .Include(x => x.TpProperties)
-                        .AsNoTracking()
+                        .AsNoTracking();
+
+                    if (!string.IsNullOrEmpty(filters.CityName))
+                    {
+                        baseQuery = baseQuery.Where(x =>
+                            x.TpProperties.Any(p =>
+                                (!string.IsNullOrEmpty(p.CityName) && p.CityName.Contains(filters.CityName)) ||
+                                (!string.IsNullOrEmpty(p.StateName) && p.StateName.Contains(filters.CityName))
+                            ));
+                    }
+
+                    var listingRentsWithCount = await baseQuery
                         .Select(lr => new
                         {
                             ListingRent = lr,
                             RentalCount = context.TbBooks
-                                .Count(b => b.ListingRentId == lr.ListingRentId && b.BookStatusId == bookRentedStatus.BookStatusId)
-                        });                        
+                                .Count(b => b.ListingRentId == lr.ListingRentId &&
+                                            b.BookStatusId == bookRentedStatus.BookStatusId)
+                        }).ToListAsync();
 
-                    if (!string.IsNullOrEmpty(filters.CityName))
-                    {
-                        listingRentsQuery = listingRentsQuery.Where(x =>
-                            x.ListingRent.TpProperties.Any(p =>
-                                (!string.IsNullOrEmpty(p.CityName) && p.CityName.Contains(filters.CityName)) ||
-                                (!string.IsNullOrEmpty(p.StateName) && p.StateName.Contains(filters.CityName))
-                            )
-                        );
-                    }
+                    if (listingRentsWithCount is not { Count: > 0 })
+                        throw new NotFoundException($"No existen propiedades publicadas con alquileres confirmados.");
 
-                    var result = listingRentsQuery
+                    var totalItemCount = listingRentsWithCount.Count;
+                    var skipAmount = (pageNumber - 1) * pageSize;
+
+                    var pagedResult = listingRentsWithCount
                         .OrderByDescending(x => x.RentalCount)
-                        .Skip((pageNumber - 1) * pageSize)
+                        .Skip(skipAmount)
                         .Take(pageSize)
                         .AsEnumerable()
                         .Select(x =>
@@ -414,11 +436,16 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                             x.ListingRent.TotalRents = x.RentalCount;
                             return x.ListingRent;
                         }).ToList();
-                        
-                    if (result is not { Count: > 0 })
-                        throw new NotFoundException($"No existen propiedades publicadas con alquileres confirmados.");
 
-                    return result;
+                    var pagination = new PaginationMetadata
+                    {
+                        CurrentPage = pageNumber,
+                        PageSize = pageSize,
+                        TotalItemCount = totalItemCount,
+                        TotalPageCount = (int)Math.Ceiling((double)totalItemCount / pageSize)
+                    };
+
+                    return (pagedResult, pagination);
                 }
             }
             catch (Exception ex)

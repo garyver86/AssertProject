@@ -11,8 +11,8 @@ namespace Assert.Domain.Repositories
         Task<TlListingRent> ChangeStatus(long id, int ownerID, int newStatus, Dictionary<string, string> userInfo);
         Task<List<TlListingRent>> GetAll(int ownerUserId);
 
-        Task<List<TlListingRent>> GetPublished(SearchFiltersToListingRent filters, int pageNumber, int pageSize);
-        Task<List<TlListingRent>> GetSortedByMostRentalsAsync(SearchFiltersToListingRent filters, int pageNumber, int pageSize);
+        Task<(List<TlListingRent>, PaginationMetadata)> GetPublished(SearchFiltersToListingRent filters, int pageNumber, int pageSize);
+        Task<(List<TlListingRent>, PaginationMetadata)> GetSortedByMostRentalsAsync(SearchFiltersToListingRent filters, int pageNumber, int pageSize);
         Task<TlListingRent> Register(TlListingRent listingRent, Dictionary<string, string> clientData);
         Task<bool> HasStepInProcess(long listingRentId);
         Task<TlListingRent> SetAccomodationType(long listingRentId, int? subtypeId);
