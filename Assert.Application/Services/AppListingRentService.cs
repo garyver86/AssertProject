@@ -91,6 +91,26 @@ namespace Assert.Application.Services
             return result;
         }
 
+        public async Task<ReturnModelDTO> ChangeListingRentStatusByOwnerId(
+            int ownerId, string statusCode, Dictionary<string, string> userInfo)
+        {
+            ReturnModelDTO result = new ReturnModelDTO();
+            try
+            {
+                var response = await _listingRentRepository.ChangeStatusByOwnerIdAsync(
+                    ownerId, statusCode, userInfo);
+
+                result.Data = response;
+                result.StatusCode = ResultStatusCode.OK;
+                result.HasError = false;
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException(ex.Message);
+            }
+            return result;
+        }
+
         public async Task<ReturnModelDTO_Pagination> GetLatestPublished(
             SearchFiltersToListingRent filters, int pageNumber, int pageSize)
         {

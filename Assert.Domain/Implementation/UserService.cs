@@ -44,6 +44,7 @@ namespace Assert.Domain.Implementation
             try
             {
                 var result_data = await _userRoleRepository.EnableHostPermission(userId);
+                
                 return new ReturnModel
                 {
                     StatusCode = ResultStatusCode.OK,

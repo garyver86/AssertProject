@@ -10,6 +10,8 @@ public interface IAppUserService
 {
 
     Task<ReturnModelDTO> LoginAndEnrollment(string platform, string token, string user, string password);
+
+    Task<ReturnModelDTO<string>> ChangeUserStatus(int userId, string statusCode);
     Task<ReturnModelDTO> EnableHostRole(long userId, Dictionary<string, string> clientData, bool useTechnicalMessages);
     Task<ReturnModelDTO> DisableHostRole(long userId, Dictionary<string, string> clientData, bool useTechnicalMessages);
     Task<ReturnModelDTO> RenewJwtToken(string expiredToken);
@@ -26,4 +28,6 @@ public interface IAppUserService
     Task<ReturnModelDTO> BlockAsHost(int userBlockedid, int userId, Dictionary<string, string> clientData, bool useTechnicalMessages);
     Task<ReturnModelDTO> UnblockAsHost(int userBlockedid, int userId, Dictionary<string, string> clientData, bool useTechnicalMessages); 
     Task<ReturnModelDTO<(List<ProfileDTO>, PaginationMetadataDTO)>> SearchHosts(SearchFilters filters, int pageNumber, int pageSize, int userId, Dictionary<string, string> requestInfo, bool useTechnicalMessages);
+    Task<ReturnModelDTO_Pagination> GetUserByRoleCode(
+            SearchFiltersToUser filters, string roleCode, int pageNumber, int pageSize);
 }

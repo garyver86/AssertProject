@@ -15,6 +15,7 @@ using Microsoft.IdentityModel.Tokens;
 using Assert.Domain.Common.Params;
 using Assert.Domain.Models;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using System.Reflection;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
@@ -51,6 +52,60 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 }
                 return listing;
             }
+        }
+
+        public async Task<string> ChangeStatusByOwnerIdAsync(
+            int ownerId, string statusCode, Dictionary<string, string> userInfo)
+        {
+            using var context = new InfraAssertDbContext(dbOptions);
+
+            var listings = await context.TlListingRents
+                .Where(x => x.OwnerUserId == ownerId)
+                .ToListAsync();
+
+            if (!listings.Any())
+                throw new NotFoundException($"No se encontraron listings para el OwnerId: {ownerId}");
+
+            var newStatus = await _listingStatusRepository.Get(statusCode);
+            TlListingStatus oldStatus;
+            switch (statusCode)
+            {
+                case "BLOCKED":
+                    oldStatus = await _listingStatusRepository.Get("PUBLISH");
+                    break;
+
+                case "PUBLISH":
+                    oldStatus = await _listingStatusRepository.Get("BLOCKED");
+                    break;
+
+                default:
+                    throw new NotFoundException($"El código de estado '{statusCode}' no es válido.");
+            }
+
+            var updatedListings = new List<TlListingRent>();
+            var affectedIds = await context.TlListingRents
+                .Where(x => x.OwnerUserId == ownerId && x.ListingStatusId == oldStatus.ListingStatusId)
+                .Select(x => x.ListingRentId)
+                .ToListAsync();
+
+            await context.TlListingRents
+                .Where(x => affectedIds.Contains(x.ListingRentId))
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(x => x.ListingStatusId, x => newStatus.ListingStatusId));
+
+            await _logRepository.RegisterBulkLog(
+                        affectedIds,
+                        $"Update Status: {oldStatus.Code} > {newStatus.Code}",
+                        userInfo["BrowserInfo"],
+                        userInfo["IsMobile"] == "True",
+                        userInfo["IpAddress"],
+                        null,
+                        userInfo["ApplicationCode"]);
+
+            if (updatedListings.Any())
+                await context.SaveChangesAsync();
+
+            return "UPDATED";
         }
 
         public async Task<TlListingRent> Get(long id, int guestid, bool onlyActive)

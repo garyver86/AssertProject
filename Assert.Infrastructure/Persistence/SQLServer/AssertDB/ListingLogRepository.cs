@@ -26,5 +26,32 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             _context.TlListingRentChanges.Add(change);
             await _context.SaveChangesAsync();
         }
+
+        public async Task RegisterBulkLog(List<long> listingRentIds, 
+            string action, string browserInfo, bool? isMobile, string ipAddress, 
+            string additionalData, string applicationCode)
+        {
+            if (listingRentIds == null || !listingRentIds.Any())
+                return;
+
+            var now = DateTime.UtcNow;
+
+            var changes = listingRentIds.Select(id => new TlListingRentChange
+            {
+                ListingRentId = id,
+                ActionChange = action ?? "Undefined",
+                BrowserInfoInfo = browserInfo,
+                IsMobile = isMobile,
+                IpAddress = ipAddress ?? string.Empty,
+                AdditionalData = additionalData,
+                ApplicationCode = applicationCode,
+                DateTimeChange = now
+            }).ToList();
+
+            _context.TlListingRentChanges.AddRange(changes);
+            await _context.SaveChangesAsync();
+        }
+
+
     }
 }

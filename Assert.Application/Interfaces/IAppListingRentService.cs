@@ -14,6 +14,9 @@ namespace Assert.Application.Interfaces
 
         Task<ReturnModelDTO> ChangeStatusByAdmin(long listingRentId, int ownerUserId,
             string newStatusCode, Dictionary<string, string> clientData);
+
+        Task<ReturnModelDTO> ChangeListingRentStatusByOwnerId(
+            int ownerId, string statusCode, Dictionary<string, string> userInfo);
         Task<ReturnModelDTO<List<ListingRentDTO>>> GetAllListingsRentsData(int ownerUserId, Dictionary<string, string> clientData, bool useTechnicalMessages);
         Task<ReturnModelDTO<ListingRentDTO>> Get(long istingRentId, bool onlyActive, Dictionary<string, string> clientData, bool useTechnicalMessages);
         Task<ReturnModelDTO_Pagination> GetLatestPublished(SearchFiltersToListingRent filers, int pageNumber, int pageSize);

@@ -10,6 +10,8 @@ namespace Assert.Domain.Repositories
     {
         Task<ReturnModel<TuUser>> Get(int ownerUserId);
         Task<ReturnModel> Login(string username, string password);
+
+        Task<string> ChangeUserStatusAsync(int userId, string statusCode);
         Task<ReturnModel> ValidateUserName(string userName, 
             bool validateStatusActive, Platform platform);
         Task<int> Create(string userName, Platform platform, string name,
@@ -39,5 +41,7 @@ namespace Assert.Domain.Repositories
         Task<ReturnModel> BlockAsHost(int userId, int id);
         Task<ReturnModel> UnblockAsHost(int userId, int id);
         Task<ReturnModel<(List<Profile>, PaginationMetadata)>> SearchHostAsync(SearchFilters filters, int pageNumber, int pageSize);
+        Task<ReturnModel<(List<TuUser>, PaginationMetadata)>> GetUserByRoleCodeAsync(
+            SearchFiltersToUser filters, string roleCode, int pageNumber, int pageSize);
     }
 }
