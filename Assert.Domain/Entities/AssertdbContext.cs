@@ -964,11 +964,11 @@ public partial class AssertDbContext : DbContext
 
             entity.Property(e => e.FeaturedAspectType).HasColumnName("featuredAspectType");
             entity.Property(e => e.FeaturedAspectCode)
-                .HasMaxLength(5)
+                .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("featuredAspectCode");
             entity.Property(e => e.FeaturedAspectName)
-                .HasMaxLength(50)
+                .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("featuredAspectName");
             entity.Property(e => e.FeaturedAspectStatus).HasColumnName("featuredAspectStatus");
@@ -1350,6 +1350,22 @@ public partial class AssertDbContext : DbContext
                 .HasMaxLength(500)
                 .IsUnicode(false);
             entity.Property(e => e.BookStatusId).HasColumnName("bookStatusId");
+            entity.Property(e => e.Cancellation)
+                .HasColumnType("datetime")
+                .HasColumnName("cancellation");
+            entity.Property(e => e.CancellationEnd)
+                .HasColumnType("datetime")
+                .HasColumnName("cancellationEnd");
+            entity.Property(e => e.CancellationStart)
+                .HasColumnType("datetime")
+                .HasColumnName("cancellationStart");
+            entity.Property(e => e.CancellationUserId).HasColumnName("cancellationUserId");
+            entity.Property(e => e.Checkin)
+                .HasColumnType("datetime")
+                .HasColumnName("checkin");
+            entity.Property(e => e.Checkout)
+                .HasColumnType("datetime")
+                .HasColumnName("checkout");
             entity.Property(e => e.CurrencyId).HasColumnName("currencyId");
             entity.Property(e => e.DepositSec)
                 .HasColumnType("decimal(18, 2)")
@@ -1357,6 +1373,12 @@ public partial class AssertDbContext : DbContext
             entity.Property(e => e.EndDate)
                 .HasColumnType("datetime")
                 .HasColumnName("endDate");
+            entity.Property(e => e.GuestCheckin)
+                .HasColumnType("datetime")
+                .HasColumnName("guest_checkin");
+            entity.Property(e => e.GuestCheckout)
+                .HasColumnType("datetime")
+                .HasColumnName("guest_checkout");
             entity.Property(e => e.InitDate)
                 .HasColumnType("datetime")
                 .HasColumnName("initDate");
@@ -1366,6 +1388,9 @@ public partial class AssertDbContext : DbContext
                 .HasMaxLength(100)
                 .IsUnicode(false)
                 .HasColumnName("lastName_renter");
+            entity.Property(e => e.MaxCheckin)
+                .HasColumnType("datetime")
+                .HasColumnName("maxCheckin");
             entity.Property(e => e.MountPerNight)
                 .HasColumnType("decimal(6, 2)")
                 .HasColumnName("mount_per_night");
@@ -2431,6 +2456,8 @@ public partial class AssertDbContext : DbContext
 
             entity.ToTable("TL_ListingRent");
 
+            entity.HasIndex(e => e.Name, "NonClusteredIndex-Listing_Name");
+
             entity.Property(e => e.ListingRentId).HasColumnName("listingRentId");
             entity.Property(e => e.AccomodationTypeId).HasColumnName("accomodationTypeId");
             entity.Property(e => e.AllDoorsLocked).HasColumnName("allDoorsLocked");
@@ -2564,6 +2591,10 @@ public partial class AssertDbContext : DbContext
 
             entity.ToTable("TL_ListingReview");
 
+            entity.HasIndex(e => e.BookId, "NonClusteredIndex-BookId");
+
+            entity.HasIndex(e => e.ListingRentId, "NonClusteredIndex-ListingRentId");
+
             entity.Property(e => e.ListingReviewId).HasColumnName("listingReviewId");
             entity.Property(e => e.BookId).HasColumnName("bookId");
             entity.Property(e => e.Calification).HasColumnName("calification");
@@ -2598,6 +2629,10 @@ public partial class AssertDbContext : DbContext
             entity.HasKey(e => e.ListingReviewQuestionId);
 
             entity.ToTable("TL_ListingReviewQuestion");
+
+            entity.HasIndex(e => e.ListingReviewId, "NonClusteredIndex-Question_ReviewId");
+
+            entity.HasIndex(e => e.ReviewQuestionId, "NonClusteredIndex-question_QuestionId");
 
             entity.Property(e => e.ListingReviewQuestionId).HasColumnName("listingReviewQuestionId");
             entity.Property(e => e.ListingReviewId).HasColumnName("listingReviewId");

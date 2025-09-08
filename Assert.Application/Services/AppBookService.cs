@@ -211,15 +211,15 @@ namespace Assert.Application.Services
 
                 string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
                 _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
-                
-                    if (book.ListingRent?.TlListingPhotos?.Count > 0)
-                    {
-                        foreach (var item in book.ListingRent?.TlListingPhotos)
-                        {
-                            item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
-                        }
 
+                if (book.ListingRent?.TlListingPhotos?.Count > 0)
+                {
+                    foreach (var item in book.ListingRent?.TlListingPhotos)
+                    {
+                        item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
                     }
+
+                }
 
                 var bookDtos = _mapper.Map<BookDTO>(book);
                 return new ReturnModelDTO<BookDTO>
@@ -276,6 +276,156 @@ namespace Assert.Application.Services
                 return result;
             }
         }
+
+        public async Task<ReturnModelDTO<List<BookDTO>>> GetPendingAcceptanceForRenter(int userId)
+        {
+            try
+            {
+                var books = await _bookService.GetPendingAcceptanceForRenter(userId);
+
+                string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+                _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+
+                foreach (var book in books)
+                {
+                    if (book.ListingRent?.TlListingPhotos?.Count > 0)
+                    {
+                        foreach (var item in book.ListingRent?.TlListingPhotos)
+                        {
+                            item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                        }
+
+                    }
+                }
+                var bookDtos = _mapper.Map<List<BookDTO>>(books);
+                return new ReturnModelDTO<List<BookDTO>>
+                {
+                    Data = bookDtos,
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            catch (Exception ex)
+            {
+                ReturnModelDTO<List<BookDTO>> result = new ReturnModelDTO<List<BookDTO>>();
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppBookService.GetPendingAcceptanceForRenter", ex, new { userId }, true));
+                return result;
+            }
+        }
+
+        public async Task<ReturnModelDTO<List<BookDTO>>> GetCancelablesBookings(int userId)
+        {
+            try
+            {
+                var books = await _bookService.GetCancelablesBookings(userId);
+
+                string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+                _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+
+                foreach (var book in books)
+                {
+                    if (book.ListingRent?.TlListingPhotos?.Count > 0)
+                    {
+                        foreach (var item in book.ListingRent?.TlListingPhotos)
+                        {
+                            item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                        }
+
+                    }
+                }
+                var bookDtos = _mapper.Map<List<BookDTO>>(books);
+                return new ReturnModelDTO<List<BookDTO>>
+                {
+                    Data = bookDtos,
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            catch (Exception ex)
+            {
+                ReturnModelDTO<List<BookDTO>> result = new ReturnModelDTO<List<BookDTO>>();
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppBookService.GetCancelablesBookings", ex, new { userId }, true));
+                return result;
+            }
+        }
+
+        public async Task<ReturnModelDTO<List<BookDTO>>> GetApprovedsWOInit(int userId)
+        {
+            try
+            {
+                var books = await _bookService.GetApprovedsWOInit(userId);
+
+                string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+                _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+
+                foreach (var book in books)
+                {
+                    if (book.ListingRent?.TlListingPhotos?.Count > 0)
+                    {
+                        foreach (var item in book.ListingRent?.TlListingPhotos)
+                        {
+                            item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                        }
+
+                    }
+                }
+                var bookDtos = _mapper.Map<List<BookDTO>>(books);
+                return new ReturnModelDTO<List<BookDTO>>
+                {
+                    Data = bookDtos,
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            catch (Exception ex)
+            {
+                ReturnModelDTO<List<BookDTO>> result = new ReturnModelDTO<List<BookDTO>>();
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppBookService.GetApprovedsWOInit", ex, new { userId }, true));
+                return result;
+            }
+        }
+
+
+        public async Task<ReturnModelDTO<BookDTO>> AuthorizationResponse(int userId, long bookId, bool isApproval)
+        {
+            try
+            {
+                var book = await _bookService.AuthorizationResponse(userId, bookId, isApproval);
+
+                string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+                _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+
+                if (book.ListingRent?.TlListingPhotos?.Count > 0)
+                {
+                    foreach (var item in book.ListingRent?.TlListingPhotos)
+                    {
+                        item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                    }
+
+                }
+                var bookDtos = _mapper.Map<BookDTO>(book);
+                return new ReturnModelDTO<BookDTO>
+                {
+                    Data = bookDtos,
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            catch (Exception ex)
+            {
+                ReturnModelDTO<BookDTO> result = new ReturnModelDTO<BookDTO>();
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppBookService.AuthorizationResponse", ex, new { userId }, true));
+                return result;
+            }
+        }
         public async Task<ReturnModelDTO<BookDTO>> BookingRequestApproval(Guid CalculationCode,
             int userId,
             Dictionary<string, string> clientData,
@@ -290,15 +440,15 @@ namespace Assert.Application.Services
 
                 string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
                 _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
-                
-                    if (books.Data?.ListingRent?.TlListingPhotos?.Count > 0)
-                    {
-                        foreach (var item in books.Data.ListingRent?.TlListingPhotos)
-                        {
-                            item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
-                        }
 
+                if (books.Data?.ListingRent?.TlListingPhotos?.Count > 0)
+                {
+                    foreach (var item in books.Data.ListingRent?.TlListingPhotos)
+                    {
+                        item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
                     }
+
+                }
 
                 var bookDtos = _mapper.Map<BookDTO>(books.Data);
                 return new ReturnModelDTO<BookDTO>

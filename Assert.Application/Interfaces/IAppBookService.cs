@@ -21,5 +21,9 @@ namespace Assert.Application.Interfaces
             bool useTechnicalMessages);
         Task<ReturnModelDTO<BookDTO>> CancelBooking(int userId, long bookId);
         Task<ReturnModelDTO<List<BookDTO>>> GetPendingAcceptance(int userId);
+        Task<ReturnModelDTO<List<BookDTO>>> GetCancelablesBookings(int userId);
+        Task<ReturnModelDTO<List<BookDTO>>> GetApprovedsWOInit(int userId);
+        Task<ReturnModelDTO<List<BookDTO>>> GetPendingAcceptanceForRenter(int userId);
+        Task<ReturnModelDTO<BookDTO>> AuthorizationResponse(int userId, long bookId, bool isApproval);
     }
 }

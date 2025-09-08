@@ -2,6 +2,7 @@
 using Assert.Application.DTOs.Requests;
 using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
+using Assert.Application.Services;
 using Assert.Domain.Common.Metadata;
 using Assert.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
@@ -248,6 +249,23 @@ namespace Assert.API.Controllers
         {
             var requestInfo = HttpContext.GetRequestInfo();
             var result = await _reviewService.GetBookReviewDetails(bookId, requestInfo);
+            return result;
+        }
+
+        /// <summary>
+        /// Servicio que devuelve la lista de reservas pendientes de aceptación
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200"></response>
+        /// <remarks>
+        /// 
+        /// </remarks>
+        [HttpGet]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("PendingAcceptance")]
+        public async Task<ReturnModelDTO<List<BookDTO>>> GetUnfinished()
+        {
+            var result = await _bookService.GetPendingAcceptanceForRenter(_metadata.UserId);
             return result;
         }
     }

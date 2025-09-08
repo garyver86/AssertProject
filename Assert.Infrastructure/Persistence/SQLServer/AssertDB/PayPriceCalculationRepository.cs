@@ -72,7 +72,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 var priceCalculation = await context.PayPriceCalculations.Where(x => x.CalculationCode == calculationCode)
-                    .Include(x => x.ListingRent).FirstOrDefaultAsync();
+                    .Include(x => x.ListingRent).Include(x => x.ListingRent.TlCheckInOutPolicies).FirstOrDefaultAsync();
                 if (priceCalculation != null)
                 {
                     return priceCalculation;

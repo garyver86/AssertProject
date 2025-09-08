@@ -431,12 +431,15 @@ namespace Assert.Domain.Implementation
             {
                 // 5. Crear la reserva
 
+                CheckinValuesModel checInOutValues = CalculateCheckInOutValues(priceCalculation);
+                CheckinValuesModel CancellationValues = CalculateCancellationValues(priceCalculation, (DateTime)checInOutValues.CheckIn);
+
                 booking = new TbBook
                 {
                     ListingRentId = priceCalculation.ListingRentId ?? 0,
                     UserIdRenter = userId,
-                    StartDate = priceCalculation.InitBook ?? DateTime.UtcNow,
-                    EndDate = priceCalculation.EndBook ?? DateTime.UtcNow,
+                    StartDate = (DateTime)priceCalculation.InitBook?.Date,
+                    EndDate = (DateTime)priceCalculation.EndBook?.Date,
                     AmountTotal = priceCalculation.Amount,
                     CurrencyId = await _currencyrepository.GetCurrencyId(priceCalculation.CurrencyCode),
                     NameRenter = clientData.ContainsKey("name") ? clientData["name"] : string.Empty,
@@ -444,7 +447,12 @@ namespace Assert.Domain.Implementation
                     TermsAccepted = true, // Asumimos que se aceptaron los términos para llegar aquí
                     BookStatusId = 3, // Estado inicial (por ejemplo, "Confirmado")
                     PaymentCode = paymentRequest.OrderCode,
+                    Checkin = checInOutValues.CheckIn,
+                    Checkout = checInOutValues.CheckOut,
+                    MaxCheckin = checInOutValues.MaxCheckIn,
                     PaymentId = "",
+                    CancellationStart = checInOutValues.CancellationStart,
+                    CancellationEnd = checInOutValues.CancellationEnd
 
                 };
 
@@ -504,6 +512,94 @@ namespace Assert.Domain.Implementation
                 StatusCode = ResultStatusCode.OK,
                 HasError = false,
             };
+        }
+
+        private CheckinValuesModel CalculateCheckInOutValues(PayPriceCalculation priceCalculation)
+        {
+            if (priceCalculation.ListingRent?.TlCheckInOutPolicies == null || priceCalculation.ListingRent?.TlCheckInOutPolicies.Count == 0)
+            {
+                return new CheckinValuesModel
+                {
+                    CheckIn = null,
+                    CheckOut = null,
+                    MaxCheckIn = null
+                };
+            }
+            var policy = priceCalculation.ListingRent?.TlCheckInOutPolicies.FirstOrDefault();
+            if (policy == null)
+            {
+                return new CheckinValuesModel
+                {
+                    CheckIn = null,
+                    CheckOut = null,
+                    MaxCheckIn = null
+                };
+            }
+            else
+            {
+                DateTime? _checkIn = null;
+                if (priceCalculation.InitBook.HasValue && policy.CheckInTime.HasValue)
+                {
+                    _checkIn = ((DateTime)priceCalculation.InitBook?.Date) + ((TimeOnly)policy.CheckInTime).ToTimeSpan();
+                }
+                DateTime? _checkOut = null;
+                if (priceCalculation.EndBook.HasValue && policy.CheckOutTime.HasValue)
+                {
+                    _checkOut = ((DateTime)priceCalculation.EndBook?.Date) + ((TimeOnly)policy.CheckOutTime).ToTimeSpan();
+                }
+                DateTime? _maxCheckIn = null;
+                if (_checkIn.HasValue && policy.MaxCheckInTime.HasValue)
+                {
+                    _maxCheckIn = ((DateTime)priceCalculation.InitBook?.Date) + ((TimeOnly)policy.MaxCheckInTime).ToTimeSpan();
+                }
+                return new CheckinValuesModel
+                {
+                    CheckIn = _checkIn,
+                    CheckOut = _checkOut,
+                    MaxCheckIn = _maxCheckIn
+                };
+            }
+        }
+
+        private CheckinValuesModel CalculateCancellationValues(PayPriceCalculation priceCalculation, DateTime checkIn)
+        {
+            if (priceCalculation.ListingRent?.CancelationPolicyType == null)
+            {
+                return new CheckinValuesModel
+                {
+                    CheckIn = null,
+                    CheckOut = null,
+                    MaxCheckIn = null
+                };
+            }
+            var policy = priceCalculation.ListingRent?.CancelationPolicyType;
+            if (policy == null)
+            {
+                return new CheckinValuesModel
+                {
+                    CheckIn = null,
+                    CheckOut = null,
+                    MaxCheckIn = null
+                };
+            }
+            else
+            {
+                DateTime? _cancellationEnd = null;
+                if (priceCalculation.InitBook.HasValue && policy.HoursBeforeCheckIn != null)
+                {
+                    _cancellationEnd = (checkIn).AddHours(((double)policy.HoursBeforeCheckIn) * -1);
+                }
+                DateTime? _cancellationStart = null;
+                if (priceCalculation.InitBook.HasValue && policy.HoursAfetrBooking != null)
+                {
+                    _cancellationStart = ((DateTime)priceCalculation.InitBook?.Date).AddHours(((double)policy.HoursAfetrBooking) * -1);
+                }
+                return new CheckinValuesModel
+                {
+                    CancellationEnd = _cancellationEnd,
+                    CancellationStart = _cancellationStart
+                };
+            }
         }
 
         public async Task<ReturnModel<TbBook>> BookingRequestApproval(
@@ -594,19 +690,25 @@ namespace Assert.Domain.Implementation
             }
 
             // 5. Crear la reserva
-
+            CheckinValuesModel checInOutValues = CalculateCheckInOutValues(priceCalculation);
+            CheckinValuesModel CancellationValues = CalculateCancellationValues(priceCalculation, (DateTime)checInOutValues.CheckIn);
             TbBook booking = new TbBook
             {
                 ListingRentId = priceCalculation.ListingRentId ?? 0,
                 UserIdRenter = userId,
-                StartDate = priceCalculation.InitBook ?? DateTime.UtcNow,
-                EndDate = priceCalculation.EndBook ?? DateTime.UtcNow,
+                StartDate = (DateTime)priceCalculation.InitBook?.Date,
+                EndDate = (DateTime)priceCalculation.EndBook?.Date,
                 AmountTotal = priceCalculation.Amount,
                 CurrencyId = await _currencyrepository.GetCurrencyId(priceCalculation.CurrencyCode),
                 NameRenter = clientData.ContainsKey("name") ? clientData["name"] : string.Empty,
                 LastNameRenter = clientData.ContainsKey("lastName") ? clientData["lastName"] : string.Empty,
                 TermsAccepted = true, // Asumimos que se aceptaron los términos para llegar aquí
                 BookStatusId = 1, // Estado inicial (Prebook)
+                Checkin = checInOutValues.CheckIn,
+                Checkout = checInOutValues.CheckOut,
+                MaxCheckin = checInOutValues.MaxCheckIn,
+                CancellationStart = checInOutValues.CancellationStart,
+                CancellationEnd = checInOutValues.CancellationEnd
 
             };
 
@@ -659,9 +761,35 @@ namespace Assert.Domain.Implementation
             return result;
         }
 
+        public async Task<List<TbBook>> GetPendingAcceptanceForRenter(int userId)
+        {
+            var result = await _bookRepository.GetPendingAcceptanceForRenter(userId);
+            return result;
+        }
+
+        public async Task<List<TbBook>> GetCancelablesBookings(int userId)
+        {
+            var result = await _bookRepository.GetCancelablesBookings(userId);
+            return result;
+        }
+
+        public async Task<List<TbBook>> GetApprovedsWOInit(int userId)
+        {
+            var result = await _bookRepository.GetApprovedsWOInit(userId);
+            return result;
+        }
+
+        public async Task<TbBook> AuthorizationResponse(int userId, long bookId, bool isApproval)
+        {
+            var result = await _bookRepository.AuthorizationResponse(userId, bookId, isApproval);
+            return result;
+        }
+
         private async Task<ReturnModel> CheckAvailability(int listingRentId, DateTime? initBook, DateTime? endBook)
         {
             return new ReturnModel { StatusCode = ResultStatusCode.OK, HasError = false };
         }
+
+
     }
 }
