@@ -9,10 +9,12 @@ using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Assert.Domain.Utils;
 using Assert.Domain.ValueObjects;
+using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 using Assert.Shared.Extensions;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
+using System.CodeDom;
 
 namespace Assert.Application.Services
 {
@@ -34,6 +36,7 @@ namespace Assert.Application.Services
         IListingSecurityItemsRepository _listingSecurityItemsRepository,
         IListingDiscountRepository _listingDiscountRepository,
         IListingRentRulesRepository _listingRentRulesRepository,
+        IListingStatusRepository _listingStatusRepository,
         ILocationService _locationService,
         IHttpContextAccessor requestContext)
         : IAppListingRentService
@@ -66,50 +69,108 @@ namespace Assert.Application.Services
             return result;
         }
 
-        public async Task<ReturnModelDTO<List<ListingRentDTO>>> GetLatestPublished()
+        public async Task<ReturnModelDTO> ChangeStatusByAdmin(long listingRentId, int ownerUserId, 
+            string newStatusCode, Dictionary<string, string> clientData)
         {
-            var result = new ReturnModelDTO<List<ListingRentDTO>>();
+            ReturnModelDTO result = new ReturnModelDTO();
             try
             {
-                var listingRentResult = await _listingRentRepository.GetPublished();
+                var status = await _listingStatusRepository.Get(newStatusCode);
 
-                var response = _mapper.Map<List<ListingRentDTO>>(listingRentResult);
+                var changeResult = await _listingRentRepository.ChangeStatus(listingRentId, ownerUserId, 
+                    status.ListingStatusId, clientData);
 
+                result.Data = "UPDATED";
                 result.StatusCode = ResultStatusCode.OK;
                 result.HasError = false;
-                result.Data = response;
             }
             catch (Exception ex)
             {
-                result.StatusCode = ResultStatusCode.InternalError;
-                result.HasError = true;
-                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.GetLatestPublished", ex, "", UseTechnicalMessages));
+                throw new ApplicationException(ex.Message);
             }
-
             return result;
         }
 
-        public async Task<ReturnModelDTO<List<ListingRentDTO>>> GetSortedByMostRentalsAsync(int pageNumber, int pageSize)
+        public async Task<ReturnModelDTO> ChangeListingRentStatusByOwnerId(
+            int ownerId, string statusCode, Dictionary<string, string> userInfo)
         {
-            var result = new ReturnModelDTO<List<ListingRentDTO>>();
+            ReturnModelDTO result = new ReturnModelDTO();
             try
             {
-                var listingRentResult = await _listingRentRepository.GetSortedByMostRentalsAsync(pageNumber, pageSize);
+                var response = await _listingRentRepository.ChangeStatusByOwnerIdAsync(
+                    ownerId, statusCode, userInfo);
 
-                var response = _mapper.Map<List<ListingRentDTO>>(listingRentResult);
-
+                result.Data = response;
                 result.StatusCode = ResultStatusCode.OK;
                 result.HasError = false;
-                result.Data = response;
             }
             catch (Exception ex)
             {
-                result.StatusCode = ResultStatusCode.InternalError;
-                result.HasError = true;
-                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingRentService.GetLatestPublished", ex, "", UseTechnicalMessages));
+                throw new ApplicationException(ex.Message);
             }
-
             return result;
+        }
+
+        public async Task<ReturnModelDTO_Pagination> GetLatestPublished(
+            SearchFiltersToListingRent filters, int pageNumber, int pageSize)
+        {
+            try
+            {
+                var listingRentResult = await _listingRentRepository
+                    .GetPublished(filters, pageNumber, pageSize);
+
+                var result = new ReturnModelDTO<(List<ListingRentDTO>, PaginationMetadataDTO)>
+                {
+                    Data = (_mapper.Map<List<ListingRentDTO>>(listingRentResult.Item1),
+                            _mapper.Map<PaginationMetadataDTO>(listingRentResult.Item2)),
+                    StatusCode = ResultStatusCode.OK,
+                    HasError = false
+                };
+
+                return new ReturnModelDTO_Pagination
+                {
+                    Data = result.Data.Item1,
+                    pagination = result.Data.Item2,
+                    HasError = result.HasError,
+                    ResultError = result.ResultError,
+                    StatusCode = result.StatusCode
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException(ex.Message); 
+            }
+        }
+
+        public async Task<ReturnModelDTO_Pagination> GetSortedByMostRentalsAsync(
+            SearchFiltersToListingRent filters, int pageNumber, int pageSize)
+        {
+            try
+            {
+                var listingRentResult = await _listingRentRepository
+                    .GetSortedByMostRentalsAsync(filters, pageNumber, pageSize);
+
+                var result = new ReturnModelDTO<(List<ListingRentDTO>, PaginationMetadataDTO)>
+                {
+                    Data = (_mapper.Map<List<ListingRentDTO>>(listingRentResult.Item1),
+                            _mapper.Map<PaginationMetadataDTO>(listingRentResult.Item2)),
+                    StatusCode = ResultStatusCode.OK,
+                    HasError = false
+                };
+
+                return new ReturnModelDTO_Pagination
+                {
+                    Data = result.Data.Item1,
+                    pagination = result.Data.Item2,
+                    HasError = result.HasError,
+                    ResultError = result.ResultError,
+                    StatusCode = result.StatusCode
+                };
+            }
+            catch (Exception ex)
+            {
+                throw new ApplicationException(ex.Message);
+            }
         }
 
         public async Task<ReturnModelDTO<List<ListingRentDTO>>> GetAllListingsRentsData(int ownerUserId, Dictionary<string, string> clientData, bool useTechnicalMessages = true)

@@ -78,88 +78,101 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public ReturnModel ChangeStatusUser(int userId, int id, string status)
+        public async Task<string> ChangeUserStatusAsync(int userId, string statusCode)
         {
-            TuUser? user = _dbContext.TuUsers.Where(x => x.UserId == id).FirstOrDefault();
-            if (user != null)
+            try
             {
-                user.Status = status == "AC" ? "IN" : "AC";
+                var status = await _dbContext.TuUserStatusTypes.FirstOrDefaultAsync(x => x.Code == statusCode);
+                if (status is null) throw new NotFoundException($"El estado proporcionado no es válido: {statusCode}");
+
+                var user = _dbContext.TuUsers.Where(x => x.UserId == userId).FirstOrDefault();
+                if (user is null) throw new NotFoundException("El usuario no fue encontrado.");
+
+                user.Status = statusCode;
+                user.UserStatusTypeId = status.UserStatusTypeId;
 
                 _dbContext.SaveChanges();
-                return new ReturnModel
-                {
-                    StatusCode = ResultStatusCode.OK
-                };
-
+                return "UPDATED";
             }
-            else
+            catch(Exception ex)
             {
-
-                return new ReturnModel
-                {
-                    StatusCode = ResultStatusCode.NotFound,
-                    ResultError = new ErrorCommon
-                    {
-                        Message = "El registro no ha sido encontrado."
-                    }
-                };
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { userId, statusCode });
+                throw new InfrastructureException(ex.Message);
             }
         }
 
-
         public async Task<ReturnModel> BlockAsHost(int userId, int id)
         {
-            TuUser? user = _dbContext.TuUsers.Where(x => x.UserId == id).FirstOrDefault();
-            if (user != null)
+            try
             {
-                user.BlockAsHost = true;
-
-                await _dbContext.SaveChangesAsync();
-                return new ReturnModel
+                TuUser? user = _dbContext.TuUsers.Where(x => x.UserId == id).FirstOrDefault();
+                if (user != null)
                 {
-                    StatusCode = ResultStatusCode.OK
-                };
+                    user.BlockAsHost = true;
 
-            }
-            else
-            {
-
-                return new ReturnModel
-                {
-                    StatusCode = ResultStatusCode.NotFound,
-                    ResultError = new ErrorCommon
+                    await _dbContext.SaveChangesAsync();
+                    return new ReturnModel
                     {
-                        Message = "El registro no ha sido encontrado."
-                    }
-                };
+                        StatusCode = ResultStatusCode.OK
+                    };
+
+                }
+                else
+                {
+
+                    return new ReturnModel
+                    {
+                        StatusCode = ResultStatusCode.NotFound,
+                        ResultError = new ErrorCommon
+                        {
+                            Message = "El registro no ha sido encontrado."
+                        }
+                    };
+                }
+            }
+            catch(Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { userId, id });
+                throw new InfrastructureException(ex.Message);
             }
         }
 
         public async Task<ReturnModel> UnblockAsHost(int userId, int id)
         {
-            TuUser? user = _dbContext.TuUsers.Where(x => x.UserId == id).FirstOrDefault();
-            if (user != null)
+            try
             {
-                user.BlockAsHost = false;
-
-                await _dbContext.SaveChangesAsync();
-                return new ReturnModel
+                TuUser? user = _dbContext.TuUsers.Where(x => x.UserId == id).FirstOrDefault();
+                if (user != null)
                 {
-                    StatusCode = ResultStatusCode.OK
-                };
+                    user.BlockAsHost = false;
 
-            }
-            else
-            {
-
-                return new ReturnModel
-                {
-                    StatusCode = ResultStatusCode.NotFound,
-                    ResultError = new ErrorCommon
+                    await _dbContext.SaveChangesAsync();
+                    return new ReturnModel
                     {
-                        Message = "El registro no ha sido encontrado."
-                    }
-                };
+                        StatusCode = ResultStatusCode.OK
+                    };
+
+                }
+                else
+                {
+
+                    return new ReturnModel
+                    {
+                        StatusCode = ResultStatusCode.NotFound,
+                        ResultError = new ErrorCommon
+                        {
+                            Message = "El registro no ha sido encontrado."
+                        }
+                    };
+                }
+            }
+            catch(Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { userId, id });
+                throw new InfrastructureException(ex.Message);
             }
         }
         public async Task<ReturnModel<bool>> ExistLocalUser(string userName)
@@ -362,7 +375,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task<ReturnModel<(List<Profile>, PaginationMetadata)>> SearchHostAsync(SearchFilters filters, int pageNumber, int pageSize)
+        public async Task<ReturnModel<(List<Profile>, PaginationMetadata)>> SearchHostAsync(
+            SearchFilters filters, int pageNumber, int pageSize)
         {
             using (var context = new InfraAssertDbContext(dbOptions))
             {
@@ -398,8 +412,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                        HostRentalCount = u.TlListingRents
                             .SelectMany(l => l.TbBooks)
                             .Count(b => b.BookStatus != null),
-                            //.Count(b => b.BookStatus != null &&
-                            //          (b.BookStatus.Code == "approved" || b.BookStatus.Code == "completed")),
+                       //.Count(b => b.BookStatus != null &&
+                       //          (b.BookStatus.Code == "approved" || b.BookStatus.Code == "completed")),
                        HostReviewCalification = u.TlListingRents
                             .SelectMany(l => l.TlListingReviews)
                             .Where(r => r.Calification != null)
@@ -444,6 +458,57 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 {
                     StatusCode = ResultStatusCode.OK,
                     Data = (result, pagination)
+                };
+            }
+        }
+
+        public async Task<ReturnModel<(List<TuUser>, PaginationMetadata)>> GetUserByRoleCodeAsync(
+            SearchFiltersToUser filters, string roleCode, int pageNumber, int pageSize)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                pageNumber = pageNumber < 1 ? 1 : pageNumber;
+                pageSize = pageSize <= 0 ? 10 : pageSize;
+
+                var role = await context.TuUserTypes
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(u => u.Code == roleCode);
+                if (role is null) throw new NotFoundException($"No existe reigstros de rol con el codigo: {roleCode}");
+
+                var skipAmount = (pageNumber - 1) * pageSize;
+
+                var query = context.TuUsers
+                    .Include(u => u.TuUserRoles)
+                    .Include(u => u.TuAccounts)
+                    .Include(u => u.TuAdditionalProfiles)
+                        .ThenInclude(ap => ap.TuAdditionalProfileLiveAts)
+                    .AsNoTracking()
+                    .Where(u => u.TuUserRoles.Any(ur => ur.UserTypeId == role.UserTypeId));
+
+                if (filters is not null && !string.IsNullOrWhiteSpace(filters.NameOrSurname))
+                    query = query.Where(u =>
+                        u.Name.Contains(filters.NameOrSurname) ||
+                        u.LastName.Contains(filters.NameOrSurname));
+
+                query = query.OrderBy(u => u.LastName);
+                var totalItemCount = await query.CountAsync();
+
+                var users = await query
+                    .Skip(skipAmount)
+                    .Take(pageSize)
+                    .ToListAsync();
+                var pagination = new PaginationMetadata
+                {
+                    CurrentPage = pageNumber,
+                    PageSize = pageSize,
+                    TotalItemCount = totalItemCount,
+                    TotalPageCount = (int)Math.Ceiling((double)totalItemCount / pageSize)
+                };
+
+                return new ReturnModel<(List<TuUser>, PaginationMetadata)>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    Data = (users, pagination)
                 };
             }
         }
@@ -725,6 +790,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .ThenInclude(us => us.TuAdditionalProfileLiveAts)
                         .ThenInclude(s => s.State)
                             .ThenInclude(c => c.Country)
+                .Include(u => u.TuAdditionalProfiles)
+                    .ThenInclude(us => us.TuAdditionalProfileLiveAts)
+                        .ThenInclude(s => s.City)
                 .Include(u => u.TuAdditionalProfiles)
                     .ThenInclude(ap => ap.TuAdditionalProfileLanguages)
                         .ThenInclude(ad => ad.Language)

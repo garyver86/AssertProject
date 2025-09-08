@@ -153,6 +153,14 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         {
             try
             {
+                var user = await _dbContext.TuUsers.FirstOrDefaultAsync(x => x.UserId == incomingBook.UserIdRenter);
+                if (user is null) throw new NotFoundException("El usuario no existe");
+                if (user.Status == "UN")
+                    throw new UnauthorizedException("El usuario se encuentra bloqueado, no puede realizar reservas.");
+                if (user.Status == "IN")
+                    throw new UnauthorizedException("El usuario se encuentra inactivo, no puede realizar reservas.");
+
+
                 if (incomingBook.BookId > 0) //update
                 {
                     var existingBook = await _dbContext.TbBooks.FindAsync(incomingBook.BookId);

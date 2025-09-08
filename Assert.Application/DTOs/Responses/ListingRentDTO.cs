@@ -23,6 +23,7 @@
         public bool? ExternalCameras { get; set; }
         public bool? PresenceOfWeapons { get; set; }
         public bool? NoiseDesibelesMonitor { get; set; }
+        public DateTime? ListingRentConfirmationDate { get; set; }
         public AccomodationTypeDTO? AccomodationType { get; set; }
         public ApprovalPolicyDTO? ApprovalPolicy { get; set; }
         public CancellationPolicyDTO? CancelationPolicy { get; set; }
@@ -38,9 +39,10 @@
         public List<SecurityItemDTO> SecurityItems { get; set; }
         public List<SpaceDTO> Spaces { get; set; }
         public List<StayPresenceDTO> StayPresences { get; set; }
-        public List<BookDTO> Books { get; set; }
+        //public List<BookDTO> Books { get; set; }
         public decimal? Valoration { get; set; }
-        public DateTime? historyDate { get; set; }
+        public DateTime? TotalRents { get; set; }
+        public int MyProperty { get; set; }
         public bool? isFavorite { get; set; }
         public int? PrivateBathroom { get; set; }
         public int? PrivateBathroomLodging { get; set; }

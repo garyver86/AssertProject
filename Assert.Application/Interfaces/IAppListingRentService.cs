@@ -2,17 +2,25 @@
 using Assert.Application.DTOs.Requests;
 using Assert.Application.DTOs.Responses;
 using Assert.Domain.Models;
-using Assert.Domain.ValueObjects;
 using Microsoft.AspNetCore.Http;
 
 namespace Assert.Application.Interfaces
 {
     public interface IAppListingRentService
     {
+        Task<ReturnModelDTO> ChangeStatus(long listingRentId, int ownerUserId, 
+            string newStatusCode, Dictionary<string, string> clientData,
+            bool useTechnicalMessages);
+
+        Task<ReturnModelDTO> ChangeStatusByAdmin(long listingRentId, int ownerUserId,
+            string newStatusCode, Dictionary<string, string> clientData);
+
+        Task<ReturnModelDTO> ChangeListingRentStatusByOwnerId(
+            int ownerId, string statusCode, Dictionary<string, string> userInfo);
         Task<ReturnModelDTO<List<ListingRentDTO>>> GetAllListingsRentsData(int ownerUserId, Dictionary<string, string> clientData, bool useTechnicalMessages);
         Task<ReturnModelDTO<ListingRentDTO>> Get(long istingRentId, bool onlyActive, Dictionary<string, string> clientData, bool useTechnicalMessages);
-        Task<ReturnModelDTO<List<ListingRentDTO>>> GetLatestPublished();
-        Task<ReturnModelDTO<List<ListingRentDTO>>> GetSortedByMostRentalsAsync(int pageNumber, int pageSize);
+        Task<ReturnModelDTO_Pagination> GetLatestPublished(SearchFiltersToListingRent filers, int pageNumber, int pageSize);
+        Task<ReturnModelDTO_Pagination> GetSortedByMostRentalsAsync(SearchFiltersToListingRent filters, int pageNumber, int pageSize);
         Task<ReturnModelDTO<ProcessDataResult>> ProcessListingData(long listinRentId, ProcessDataRequest request, Dictionary<string, string> clientData, bool useTechnicalMessages);
         Task<List<ReturnModelDTO>> UploadImages(IEnumerable<IFormFile> imageFiles, Dictionary<string, string> clientData);
         Task<(ReturnModelDTO<List<ListingRentDTO>>, PaginationMetadataDTO)> GetFeaturedListings(long userId, int? countryId, int pageNumber, int pageSize, Dictionary<string, string> requestInfo);

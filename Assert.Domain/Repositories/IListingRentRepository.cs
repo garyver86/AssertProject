@@ -1,4 +1,5 @@
 ﻿using Assert.Domain.Entities;
+using Assert.Domain.Models;
 using Assert.Domain.ValueObjects;
 
 namespace Assert.Domain.Repositories
@@ -8,10 +9,12 @@ namespace Assert.Domain.Repositories
         Task<TlListingRent> Get(long id, int guestId, bool onlyActive);
         Task<TlListingRent> Get(long id, long ownerID);
         Task<TlListingRent> ChangeStatus(long id, int ownerID, int newStatus, Dictionary<string, string> userInfo);
+        Task<string> ChangeStatusByOwnerIdAsync(
+            int ownerId, string statusCode, Dictionary<string, string> userInfo);
         Task<List<TlListingRent>> GetAll(int ownerUserId);
 
-        Task<List<TlListingRent>> GetPublished();
-        Task<List<TlListingRent>> GetSortedByMostRentalsAsync(int pageNumber, int pageSize);
+        Task<(List<TlListingRent>, PaginationMetadata)> GetPublished(SearchFiltersToListingRent filters, int pageNumber, int pageSize);
+        Task<(List<TlListingRent>, PaginationMetadata)> GetSortedByMostRentalsAsync(SearchFiltersToListingRent filters, int pageNumber, int pageSize);
         Task<TlListingRent> Register(TlListingRent listingRent, Dictionary<string, string> clientData);
         Task<bool> HasStepInProcess(long listingRentId);
         Task<TlListingRent> SetAccomodationType(long listingRentId, int? subtypeId);

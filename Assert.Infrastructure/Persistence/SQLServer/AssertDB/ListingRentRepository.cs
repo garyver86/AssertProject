@@ -13,6 +13,9 @@ using System.Diagnostics.Metrics;
 using System.Globalization;
 using Microsoft.IdentityModel.Tokens;
 using Assert.Domain.Common.Params;
+using Assert.Domain.Models;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
+using System.Reflection;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
@@ -23,7 +26,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         IListingViewHistoryRepository _listingViewHistoryRepository,
         IListingFavoriteRepository _favoritesRepository,
         ParamsData _paramsData,
-        ILogger<ListingRentRepository> _logger, IServiceProvider serviceProvider) : IListingRentRepository
+        ILogger<ListingRentRepository> _logger, IServiceProvider serviceProvider) 
+        : IListingRentRepository
     {
 
         private readonly DbContextOptions<InfraAssertDbContext> dbOptions = serviceProvider.GetRequiredService<DbContextOptions<InfraAssertDbContext>>();
@@ -32,16 +36,76 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         {
             using (var context = new InfraAssertDbContext(dbOptions))
             {
-                var listing = context.TlListingRents.Where(x => x.ListingRentId == id).FirstOrDefault();
-                listing.ListingStatusId = newStatus;
-                var result = await context.SaveChangesAsync();
+                var listing = await context.TlListingRents.FirstOrDefaultAsync(x => x.ListingRentId == id);
+                if(listing is null) throw new NotFoundException($"No se encontró el listing con ID {id}");
 
-                var statusListing = await _listingStatusRepository.Get(newStatus);
+                if (listing.ListingStatusId != newStatus)
+                {
+                    listing.ListingStatusId = newStatus;
+                    context.Attach(listing); 
 
-                _logRepository.RegisterLog(id, "Update Status " + statusListing.Code + " (StatusId:" + statusListing.ListingStatusId.ToString() + ")", userInfo["BrowserInfo"], userInfo["IsMobile"] == "True", userInfo["IpAddress"], null, userInfo["ApplicationCode"]);
+                    var result = await context.SaveChangesAsync();
 
+                    var statusListing = await _listingStatusRepository.Get(newStatus);
+
+                    await _logRepository.RegisterLog(id, "Update Status " + statusListing.Code + " (StatusId:" + statusListing.ListingStatusId.ToString() + ")", userInfo["BrowserInfo"], userInfo["IsMobile"] == "True", userInfo["IpAddress"], null, userInfo["ApplicationCode"]);
+                }
                 return listing;
             }
+        }
+
+        public async Task<string> ChangeStatusByOwnerIdAsync(
+            int ownerId, string statusCode, Dictionary<string, string> userInfo)
+        {
+            using var context = new InfraAssertDbContext(dbOptions);
+
+            var listings = await context.TlListingRents
+                .Where(x => x.OwnerUserId == ownerId)
+                .ToListAsync();
+
+            if (!listings.Any())
+                throw new NotFoundException($"No se encontraron listings para el OwnerId: {ownerId}");
+
+            var newStatus = await _listingStatusRepository.Get(statusCode);
+            TlListingStatus oldStatus;
+            switch (statusCode)
+            {
+                case "BLOCKED":
+                    oldStatus = await _listingStatusRepository.Get("PUBLISH");
+                    break;
+
+                case "PUBLISH":
+                    oldStatus = await _listingStatusRepository.Get("BLOCKED");
+                    break;
+
+                default:
+                    throw new NotFoundException($"El código de estado '{statusCode}' no es válido.");
+            }
+
+            var updatedListings = new List<TlListingRent>();
+            var affectedIds = await context.TlListingRents
+                .Where(x => x.OwnerUserId == ownerId && x.ListingStatusId == oldStatus.ListingStatusId)
+                .Select(x => x.ListingRentId)
+                .ToListAsync();
+
+            await context.TlListingRents
+                .Where(x => affectedIds.Contains(x.ListingRentId))
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(x => x.ListingStatusId, x => newStatus.ListingStatusId));
+
+            await _logRepository.RegisterBulkLog(
+                        affectedIds,
+                        $"Update Status: {oldStatus.Code} > {newStatus.Code}",
+                        userInfo["BrowserInfo"],
+                        userInfo["IsMobile"] == "True",
+                        userInfo["IpAddress"],
+                        null,
+                        userInfo["ApplicationCode"]);
+
+            if (updatedListings.Any())
+                await context.SaveChangesAsync();
+
+            return "UPDATED";
         }
 
         public async Task<TlListingRent> Get(long id, int guestid, bool onlyActive)
@@ -318,30 +382,56 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task<List<TlListingRent>> GetPublished()
+        public async Task<(List<TlListingRent>, PaginationMetadata)> GetPublished(
+            SearchFiltersToListingRent filters, int pageNumber, int pageSize)
         {
             try
             {
                 using (var context = new InfraAssertDbContext(dbOptions))
                 {
-                    var publishStatus = await context.TlListingStatuses.Where(x => x.Code == "PUBLISH").FirstOrDefaultAsync();
+                    var publishStatus = await context.TlListingStatuses.Where(x => x.Code == "PUBLISH")
+                        .FirstOrDefaultAsync();
 
                     if (publishStatus is null)
                         throw new NotFoundException($"No existe registros de estado PUBLICADO");
 
                     var dateThreshold = DateTime.Now.AddDays(-_paramsData.DaysRecentlyPublished);
 
-                    var listingRents = await context.TlListingRents
-                    .Include(x => x.OwnerUser)
-                    .AsNoTracking()
-                    .Where(x => x.ListingStatusId == publishStatus.ListingStatusId
-                        && x.ListingRentConfirmationDate >= dateThreshold)
-                    .ToListAsync();
+                    var query = context.TlListingRents
+                        .Include(x => x.OwnerUser)
+                            .ThenInclude(us => us.TuAdditionalProfiles)
+                                .ThenInclude(us => us.TuAdditionalProfileLiveAts)
+                        .Include(x => x.TlListingPhotos)
+                        .Include(x => x.TpProperties)
+                        .AsNoTracking()
+                        .Where(x => x.ListingStatusId == publishStatus.ListingStatusId &&
+                                    x.ListingRentConfirmationDate >= dateThreshold &&
+                                    (string.IsNullOrEmpty(filters.CityName) ||
+                                     x.TpProperties.Any(p =>
+                                         (!string.IsNullOrEmpty(p.CityName) && p.CityName.Contains(filters.CityName)) ||
+                                         (!string.IsNullOrEmpty(p.StateName) && p.StateName.Contains(filters.CityName)))));
+
+                    var totalItemCount = await query.CountAsync();
+                    var skipAmount = (pageNumber - 1) * pageSize;
+
+                    var listingRents = await query
+                        .OrderByDescending(x => x.ListingRentConfirmationDate)
+                        .Skip((pageNumber - 1) * pageSize)
+                        .Take(pageSize)
+                        .ToListAsync();
 
                     if(listingRents is not { Count: > 0 })
                         throw new NotFoundException($"No existen propiedades publicadas en los ultimos {_paramsData.DaysRecentlyPublished}");
 
-                    return listingRents;
+                    var pagination = new PaginationMetadata
+                    {
+                        CurrentPage = pageNumber,
+                        PageSize = pageSize,
+                        TotalItemCount = totalItemCount,
+                        TotalPageCount = (int)Math.Ceiling((double)totalItemCount / pageSize)
+                    };
+
+                    return (listingRents, pagination);
                 }
             }
             catch(Exception ex)
@@ -353,7 +443,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task<List<TlListingRent>> GetSortedByMostRentalsAsync(int pageNumber, int pageSize)
+        public async Task<(List<TlListingRent>, PaginationMetadata)> GetSortedByMostRentalsAsync(
+            SearchFiltersToListingRent filters, int pageNumber, int pageSize)
         {
             try
             {
@@ -366,28 +457,56 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     if (bookRentedStatus is null)
                         throw new NotFoundException($"No existe registros de estado RENTADO");
 
-                    var listingRentsQuery = context.TlListingRents
+                    var baseQuery = context.TlListingRents
                         .Include(x => x.OwnerUser)
-                        //.Include(x => x.TbBooks.Where(b => b.BookStatusId == bookRentedStatus.BookStatusId))
-                        .AsNoTracking()
+                        .Include(x => x.TlListingPhotos)
+                        .Include(x => x.TpProperties)
+                        .AsNoTracking();
+
+                    if (!string.IsNullOrEmpty(filters.CityName))
+                    {
+                        baseQuery = baseQuery.Where(x =>
+                            x.TpProperties.Any(p =>
+                                (!string.IsNullOrEmpty(p.CityName) && p.CityName.Contains(filters.CityName)) ||
+                                (!string.IsNullOrEmpty(p.StateName) && p.StateName.Contains(filters.CityName))
+                            ));
+                    }
+
+                    var listingRentsWithCount = await baseQuery
                         .Select(lr => new
                         {
                             ListingRent = lr,
                             RentalCount = context.TbBooks
-                                .Count(b => b.ListingRentId == lr.ListingRentId && b.BookStatusId == bookRentedStatus.BookStatusId)
-                        })
-                        .OrderByDescending(x => x.RentalCount)
-                        .Skip((pageNumber - 1) * pageSize)
-                        .Take(pageSize);
+                                .Count(b => b.ListingRentId == lr.ListingRentId &&
+                                            b.BookStatusId == bookRentedStatus.BookStatusId)
+                        }).ToListAsync();
 
-                    var result = await listingRentsQuery
-                        .Select(x => x.ListingRent)
-                        .ToListAsync();
-
-                    if (result is not { Count: > 0 })
+                    if (listingRentsWithCount is not { Count: > 0 })
                         throw new NotFoundException($"No existen propiedades publicadas con alquileres confirmados.");
 
-                    return result;
+                    var totalItemCount = listingRentsWithCount.Count;
+                    var skipAmount = (pageNumber - 1) * pageSize;
+
+                    var pagedResult = listingRentsWithCount
+                        .OrderByDescending(x => x.RentalCount)
+                        .Skip(skipAmount)
+                        .Take(pageSize)
+                        .AsEnumerable()
+                        .Select(x =>
+                        {
+                            x.ListingRent.TotalRents = x.RentalCount;
+                            return x.ListingRent;
+                        }).ToList();
+
+                    var pagination = new PaginationMetadata
+                    {
+                        CurrentPage = pageNumber,
+                        PageSize = pageSize,
+                        TotalItemCount = totalItemCount,
+                        TotalPageCount = (int)Math.Ceiling((double)totalItemCount / pageSize)
+                    };
+
+                    return (pagedResult, pagination);
                 }
             }
             catch (Exception ex)

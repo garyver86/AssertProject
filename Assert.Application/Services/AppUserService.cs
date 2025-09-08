@@ -9,6 +9,7 @@ using Assert.Domain.Interfaces.Infraestructure.External;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
+using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 using Assert.Infrastructure.Security;
 using AutoMapper;
 using FluentValidation;
@@ -165,6 +166,18 @@ public class AppUserService(
         {
             return HandleException<ReturnModelDTO>("AppUserService.DisableHostRole", ex, new { userId }, useTechnicalMessages);
         }
+    }
+
+    public async Task<ReturnModelDTO<string>> ChangeUserStatus(int userId, string statusCode)
+    {
+        var response = await _userRepository.ChangeUserStatusAsync(
+            userId, statusCode);
+
+        return new ReturnModelDTO<string>
+        {
+            StatusCode = ResultStatusCode.OK,
+            Data = response
+        };
     }
 
     public async Task<ReturnModelDTO> BlockAsHost(int userBlockedid, int userId, Dictionary<string, string> clientData, bool useTechnicalMessages)
@@ -424,6 +437,37 @@ public class AppUserService(
             Data = emergencyContactSuccess
         };
 
+    }
+
+    public async Task<ReturnModelDTO_Pagination> GetUserByRoleCode(
+            SearchFiltersToUser filters, string roleCode, int pageNumber, int pageSize)
+    {
+        try
+        {
+            var userResult = await _userRepository
+                .GetUserByRoleCodeAsync(filters, roleCode, pageNumber, pageSize);
+
+            var result = new ReturnModelDTO<(List<UserDTO>, PaginationMetadataDTO)>
+            {
+                Data = (_mapper.Map<List<UserDTO>>(userResult.Data.Item1),
+                        _mapper.Map<PaginationMetadataDTO>(userResult.Data.Item2)),
+                StatusCode = ResultStatusCode.OK,
+                HasError = false
+            };
+
+            return new ReturnModelDTO_Pagination
+            {
+                Data = result.Data.Item1,
+                pagination = result.Data.Item2,
+                HasError = result.HasError,
+                ResultError = result.ResultError,
+                StatusCode = result.StatusCode
+            };
+        }
+        catch (Exception ex)
+        {
+            throw new ApplicationException(ex.Message);
+        }
     }
 
     #region profile & reviews

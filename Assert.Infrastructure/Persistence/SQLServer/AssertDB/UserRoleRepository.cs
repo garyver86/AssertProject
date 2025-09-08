@@ -1,5 +1,6 @@
 ﻿using Assert.Domain.Entities;
 using Assert.Domain.Repositories;
+using Assert.Infrastructure.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
@@ -34,6 +35,13 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task<bool> EnableHostPermission(long userId)
         {
+            var user = await _context.TuUsers.FirstOrDefaultAsync(x => x.UserId == userId);
+            if (user is null) throw new NotFoundException("El usuario no existe");
+            if(user.Status == "UN")
+                throw new UnauthorizedException("El usuario se encuentra bloqueado, no puede ser anfitrion.");
+            if (user.Status == "IN")
+                throw new UnauthorizedException("El usuario se encuentra inactivo, no puede realizar ninguna accion.");
+
             var permission = await _context.TuUserRoles
                  .Where(x => x.UserId == userId && x.UserType.Code == "HO").FirstOrDefaultAsync();
 
