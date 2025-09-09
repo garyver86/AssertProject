@@ -28,7 +28,11 @@ namespace Assert.Application.Mappings
 
             CreateMap<ProcessDataRequest, ListingProcessDataModel>();
             CreateMap<AddressDTO, ProcessData_AddressModel>();
-            CreateMap<ProcessData_Address, ProcessData_AddressModel>();
+            CreateMap<ProcessData_Address, ProcessData_AddressModel>()
+                .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City!=null? src.City.City:null))
+                .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.City!=null? src.City.State:null))
+                .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.City!=null? src.City.Country:null))
+                .ForMember(dest => dest.County, opt => opt.MapFrom(src => src.City!=null? src.City.County:null));
             CreateMap<ProcessData_Space, ProcessData_SpaceModel>();
             CreateMap<ProcessData_Photo, ProcessData_PhotoModel>();
             CreateMap<ProcessData_Discount, ProcessData_DiscountModel>();
