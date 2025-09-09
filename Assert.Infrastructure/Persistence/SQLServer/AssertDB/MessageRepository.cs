@@ -24,7 +24,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
 
             // Inicia la consulta obteniendo los mensajes de la conversación.
-            IQueryable<TmMessage> query = _context.TmMessages
+            IQueryable<TmMessage> query = _context.TmMessages.Include(x=>x.MessageType)
                 .Where(m => m.ConversationId == conversationId && (m.Conversation.UserIdOne == userId || m.Conversation.UserIdTwo == userId));
 
             // Aplica el ordenamiento.

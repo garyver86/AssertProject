@@ -1,5 +1,6 @@
 ﻿using Assert.Domain.Entities;
 using Assert.Domain.Models;
+using Assert.Domain.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,5 +25,9 @@ namespace Assert.Domain.Services
             bool useTechnicalMessages);
         Task<TbBook> Cancel(int userId, long bookId);
         Task<List<TbBook>> GetPendingAcceptance(int userId);
+        Task<List<TbBook>> GetPendingAcceptanceForRenter(int userId);
+        Task<List<TbBook>> GetCancelablesBookings(int userId);
+        Task<List<TbBook>> GetApprovedsWOInit(int userId);
+        Task<TbBook> AuthorizationResponse(int userId, long bookId, bool isApproval);
     }
 }

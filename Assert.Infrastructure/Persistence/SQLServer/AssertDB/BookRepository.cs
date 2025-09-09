@@ -192,6 +192,10 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     if (!string.IsNullOrWhiteSpace(incomingBook.PickUpLocation)) existingBook.PickUpLocation = incomingBook.PickUpLocation;
                     if (incomingBook.VggFee.HasValue) existingBook.VggFee = incomingBook.VggFee;
                     if (incomingBook.VggFeePercent.HasValue) existingBook.VggFeePercent = incomingBook.VggFeePercent;
+                    if (incomingBook.Checkin.HasValue) existingBook.Checkin = incomingBook.Checkin;
+                    if (incomingBook.Checkout.HasValue) existingBook.Checkout = incomingBook.Checkout;
+                    if (incomingBook.CancellationStart.HasValue) existingBook.CancellationStart = incomingBook.CancellationStart;
+                    if (incomingBook.CancellationEnd.HasValue) existingBook.CancellationEnd = incomingBook.CancellationEnd;
                 }
                 else //insert
                     _dbContext.TbBooks.Add(incomingBook);
@@ -340,6 +344,207 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
+
+        public async Task<List<TbBook>> GetPendingAcceptanceForRenter(int userId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                // Recupera los TbBook del usuario que no tienen review asociado
+                var booksWithoutAcceptation = await context.Set<TbBook>()
+                    .Where(b => b.BookStatusId == 1 && b.UserIdRenter == userId)
+                    .Include(x => x.ListingRent).ThenInclude(lr => lr.OwnerUser)
+                    .Include(x => x.ListingRent.TlListingPhotos)
+                    .Include(x => x.ListingRent.ApprovalPolicyType)
+                    .Include(x => x.ListingRent.TpProperties)
+                    .Include(x => x.ListingRent.OwnerUser)
+                    .ToListAsync();
+
+                if (booksWithoutAcceptation != null)
+                {
+                    foreach (var book in booksWithoutAcceptation)
+                    {
+                        if (book?.ListingRent?.TpProperties?.Count > 0)
+                        {
+                            foreach (var prop in book.ListingRent.TpProperties)
+                            {
+                                prop.TpPropertyAddresses = new List<TpPropertyAddress>
+                                {
+                                    new TpPropertyAddress
+                                    {
+                                        Address1 = prop.Address1,
+                                        Address2 = prop.Address2,
+                                        CityId = prop.CityId,
+                                        CountyId = prop.CountyId,
+                                        ZipCode = prop.ZipCode,
+                                        StateId = prop.StateId,
+                                        City = new TCity
+                                        {
+                                            CityId = prop.CityId??0,
+                                            Name = prop.CityName,
+                                            CountyId = prop.CountyId??0,
+                                            County = new TCounty
+                                            {
+                                                CountyId = prop.CountyId ?? 0,
+                                                Name = prop.CountyName,
+                                                StateId = prop.StateId??0,
+                                                State = new TState
+                                                {
+                                                    Name = prop.StateName,
+                                                    StateId = prop.StateId ?? 0,
+                                                    Country = new TCountry
+                                                    {
+                                                        Name = prop.CountryName,
+                                                        CountryId = prop.CountryId ?? 0
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                };
+                            }
+                        }
+                    }
+                }
+                //booksWithoutAcceptation = booksWithoutAcceptation.OrderByDescending(x => x.InitDate).ToList();
+                return booksWithoutAcceptation;
+            }
+        }
+
+
+        public async Task<List<TbBook>> GetApprovedsWOInit(int userId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                // Recupera los TbBook del usuario que no tienen review asociado
+                var booksWithoutAcceptation = await context.Set<TbBook>()
+                    .Where(b => b.BookStatusId == 2 && b.ListingRent.OwnerUserId == userId &&
+                        (b.Checkin != null && ((DateTime)b.Checkin).AddHours(+4) > DateTime.UtcNow))
+                    .Include(x => x.ListingRent).ThenInclude(lr => lr.OwnerUser)
+                    .Include(x => x.ListingRent.TlListingPhotos)
+                    .Include(x => x.ListingRent.ApprovalPolicyType)
+                    .Include(x => x.ListingRent.TpProperties)
+                    .Include(x => x.ListingRent.OwnerUser)
+                    .ToListAsync();
+
+                if (booksWithoutAcceptation != null)
+                {
+                    foreach (var book in booksWithoutAcceptation)
+                    {
+                        if (book?.ListingRent?.TpProperties?.Count > 0)
+                        {
+                            foreach (var prop in book.ListingRent.TpProperties)
+                            {
+                                prop.TpPropertyAddresses = new List<TpPropertyAddress>
+                                {
+                                    new TpPropertyAddress
+                                    {
+                                        Address1 = prop.Address1,
+                                        Address2 = prop.Address2,
+                                        CityId = prop.CityId,
+                                        CountyId = prop.CountyId,
+                                        ZipCode = prop.ZipCode,
+                                        StateId = prop.StateId,
+                                        City = new TCity
+                                        {
+                                            CityId = prop.CityId??0,
+                                            Name = prop.CityName,
+                                            CountyId = prop.CountyId??0,
+                                            County = new TCounty
+                                            {
+                                                CountyId = prop.CountyId ?? 0,
+                                                Name = prop.CountyName,
+                                                StateId = prop.StateId??0,
+                                                State = new TState
+                                                {
+                                                    Name = prop.StateName,
+                                                    StateId = prop.StateId ?? 0,
+                                                    Country = new TCountry
+                                                    {
+                                                        Name = prop.CountryName,
+                                                        CountryId = prop.CountryId ?? 0
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                };
+                            }
+                        }
+                    }
+                }
+                //booksWithoutAcceptation = booksWithoutAcceptation.OrderByDescending(x => x.InitDate).ToList();
+                return booksWithoutAcceptation;
+            }
+        }
+
+        public async Task<List<TbBook>> GetCancelablesBookings(int userId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                // Recupera los TbBook del usuario que no tienen review asociado
+                var booksWithoutAcceptation = await context.Set<TbBook>()
+                    .Where(b => b.BookStatusId == 3 && b.ListingRent.OwnerUserId == userId &&
+                    (b.Checkin != null && ((DateTime)b.Checkin).AddHours(+4) > DateTime.UtcNow) && //Devolver las reservas que todavia no pasaron el checkin
+                    ((b.CancellationEnd != null && ((DateTime)b.CancellationEnd).AddHours(+4) > DateTime.UtcNow) || b.CancellationEnd == null) &&
+                    ((b.CancellationStart != null && ((DateTime)b.CancellationStart).AddHours(+4) < DateTime.UtcNow) || b.CancellationStart == null))
+                    .Include(x => x.ListingRent).ThenInclude(lr => lr.OwnerUser)
+                    .Include(x => x.ListingRent.TlListingPhotos)
+                    .Include(x => x.ListingRent.ApprovalPolicyType)
+                    .Include(x => x.ListingRent.TpProperties)
+                    .Include(x => x.ListingRent.OwnerUser)
+                    .ToListAsync();
+
+                if (booksWithoutAcceptation != null)
+                {
+                    foreach (var book in booksWithoutAcceptation)
+                    {
+                        if (book?.ListingRent?.TpProperties?.Count > 0)
+                        {
+                            foreach (var prop in book.ListingRent.TpProperties)
+                            {
+                                prop.TpPropertyAddresses = new List<TpPropertyAddress>
+                                {
+                                    new TpPropertyAddress
+                                    {
+                                        Address1 = prop.Address1,
+                                        Address2 = prop.Address2,
+                                        CityId = prop.CityId,
+                                        CountyId = prop.CountyId,
+                                        ZipCode = prop.ZipCode,
+                                        StateId = prop.StateId,
+                                        City = new TCity
+                                        {
+                                            CityId = prop.CityId??0,
+                                            Name = prop.CityName,
+                                            CountyId = prop.CountyId??0,
+                                            County = new TCounty
+                                            {
+                                                CountyId = prop.CountyId ?? 0,
+                                                Name = prop.CountyName,
+                                                StateId = prop.StateId??0,
+                                                State = new TState
+                                                {
+                                                    Name = prop.StateName,
+                                                    StateId = prop.StateId ?? 0,
+                                                    Country = new TCountry
+                                                    {
+                                                        Name = prop.CountryName,
+                                                        CountryId = prop.CountryId ?? 0
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                };
+                            }
+                        }
+                    }
+                }
+                //booksWithoutAcceptation = booksWithoutAcceptation.OrderByDescending(x => x.InitDate).ToList();
+                return booksWithoutAcceptation;
+            }
+        }
+
         public async Task<TbBook> Cancel(int userId, long bookId)
         {
             var existingBook = await _dbContext.TbBooks.Include(x => x.ListingRent).Where(x => x.BookId == bookId).FirstOrDefaultAsync();
@@ -349,17 +554,61 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             if (existingBook.ListingRent.OwnerUserId != userId && existingBook.UserIdRenter != userId)
                 throw new UnauthorizedAccessException($"El usuario con ID {userId} no tiene permiso para cancelar esta reserva.");
 
-            List<int> cancellableStatuses = new List<int> { 1, 2 }; // Ejemplo: 1 = Prebook, 2 = Approved
+            List<int> cancellableStatuses = new List<int> { 1, 2, 3 }; // Ejemplo: 1 = Prebook, 2 = Approved
 
             if (!cancellableStatuses.Contains(existingBook.BookStatusId))
                 throw new InvalidOperationException($"La reserva con ID {bookId} no puede ser cancelada en su estado actual.");
 
-            //TODO:Considerar tambien que es posible realizar la cancelación de una reserva si esta se encuentra en estado 3 (Rented) y
-            //si la fecha de inicio es mayor a la fecha actual, solo que para esto se debe validar la política de cancelación de la propiedad.
+            if (existingBook.CancellationEnd != null && existingBook.CancellationEnd?.AddHours(4) > DateTime.UtcNow &&
+                (existingBook.CancellationStart == null || (existingBook.CancellationStart?.AddHours(4) < DateTime.UtcNow)))
+            {
+                existingBook.BookStatusId = 4;
+                existingBook.CancellationUserId = userId;
+                existingBook.Cancellation = DateTime.UtcNow;
+                await _dbContext.SaveChangesAsync();
 
-            existingBook.BookStatusId = 4; // 4 = Cancelled
+                return existingBook;
+            }
+            else if (existingBook.BookStatusId == 1)
+            {
+                existingBook.BookStatusId = 4;
+                existingBook.CancellationUserId = userId;
+                existingBook.Cancellation = DateTime.UtcNow;
+                await _dbContext.SaveChangesAsync();
+            }
 
-            await _dbContext.SaveChangesAsync();
+            throw new InvalidOperationException($"La reserva con ID {bookId} no puede ser cancelada por las políticas de cancelación.");
+
+        }
+
+
+        public async Task<TbBook> AuthorizationResponse(int userId, long bookId, bool isApproval)
+        {
+            var existingBook = await _dbContext.TbBooks.Include(x => x.ListingRent).Where(x => x.BookId == bookId).FirstOrDefaultAsync();
+            if (existingBook == null)
+                throw new NotFoundException($"No se encontro la reserva con ID {bookId}.");
+
+            if (existingBook.ListingRent.OwnerUserId != userId)
+                throw new UnauthorizedAccessException($"El usuario con ID {userId} no tiene permiso para autorizar/rechazar esta reserva.");
+
+            List<int> cancellableStatuses = new List<int> { 1 }; // Ejemplo: 1 = Prebook
+
+            if (!cancellableStatuses.Contains(existingBook.BookStatusId))
+                throw new InvalidOperationException($"La reserva con ID {bookId} no puede ser aprobada/rechazada en su estado actual.");
+
+            if (isApproval)
+            {
+                existingBook.BookStatusId = 2;
+                existingBook.IsApprobal = true;
+                await _dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                existingBook.BookStatusId = 5;
+                existingBook.IsApprobal = false;
+                await _dbContext.SaveChangesAsync();
+            }
+
             return existingBook;
         }
     }

@@ -57,6 +57,24 @@ public partial class TbBook
 
     public decimal? VggFeePercent { get; set; }
 
+    public DateTime? Checkin { get; set; }
+
+    public DateTime? Checkout { get; set; }
+
+    public DateTime? MaxCheckin { get; set; }
+
+    public DateTime? GuestCheckin { get; set; }
+
+    public DateTime? GuestCheckout { get; set; }
+
+    public DateTime? CancellationStart { get; set; }
+
+    public DateTime? CancellationEnd { get; set; }
+
+    public DateTime? Cancellation { get; set; }
+
+    public int? CancellationUserId { get; set; }
+
     public virtual TbBookStatus BookStatus { get; set; } = null!;
 
     public virtual TCurrency Currency { get; set; } = null!;

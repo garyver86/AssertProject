@@ -63,4 +63,13 @@ public class BookDTO
     public UserDTO? Owner { get; set; }
     public List<PhotoDTO>? Photos { get; set; }
     public ListingRentDTO? ListingRent { get; set; }
+    public DateTime? Checkin { get; set; }
+
+    public DateTime? Checkout { get; set; }
+
+    public DateTime? MaxCheckin { get; set; }
+
+    public DateTime? GuestCheckin { get; set; }
+
+    public DateTime? GuestCheckout { get; set; }
 }
