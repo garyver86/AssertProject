@@ -6,8 +6,11 @@ Scaffold-DbContext "Server=35.193.165.194;Database=assertDB;uid=assertdb-user;pw
 update tables:
 Scaffold-DbContext "Server=35.193.165.194;Database=assertdb;User Id=assertdb-user;Password=Fdgsh2025%;Trusted_Connection=False;TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Flag -Force -Tables TU_User, T_Language, TU_EmergencyContact
 
-update tables //new ip:
+update tables //old ip:
 Scaffold-DbContext "Server=34.58.179.9;Database=assertdb;User Id=assertdb-user;Password=Fdiah2025%$;Trusted_Connection=False;TrustServerCertificate=True;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Flag -Force -Tables TU_User, TU_EmergencyContact, T_Language
 
-update all //new ip
+update all //old ip
 Scaffold-DbContext "Server=34.58.179.9;Database=assertDB;uid=assertdb-user;pwd=Fdiah2025%$;Trusted_Connection=False;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Entities -force
+
+update all //new ip
+Scaffold-DbContext "Server=20.185.235.42,14331;Database=assertDB;uid=assertdb-user;pwd=Passw0rd;Trusted_Connection=False;TrustServerCertificate=True" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Entities -force

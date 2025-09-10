@@ -7,6 +7,7 @@ using Assert.Domain.Entities;
 using Assert.Domain.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 namespace Assert.API.Controllers
 {
@@ -38,7 +39,7 @@ namespace Assert.API.Controllers
             var requestInfo = HttpContext.GetRequestInfo();
             int userId = 0;
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);
-            ReturnModelDTO<ConversationDTO> result = await _messagingService.CreateConversation(request.RenterId, request.HostId, userId, requestInfo);
+            ReturnModelDTO<ConversationDTO> result = await _messagingService.CreateConversation(request.RenterId, request.HostId, userId, request.bookId, request.priceCalculationId, request.listingId, requestInfo);
             return result;
         }
 
@@ -60,11 +61,11 @@ namespace Assert.API.Controllers
         }
 
         /// <summary>
-        /// Servicio que crea una converzación entre un renter y un host
+        /// Servicio que devuelve los mensajes de una converzación
         /// </summary>
-        /// <param name="conversationId">Información de la converzación.</param>
-        /// <returns>Converzación creada.</returns>
-        /// <response code="200">Confirmación de la converrzación.</response>
+        /// <param name="conversationId">Id de la converzación.</param>
+        /// <returns>Lista de mensajes.</returns>
+        /// <response code="200">Confirmación de la converzación.</response>
         /// <remarks>
         /// Se valida que el usuario logueado sea el host o el renter.
         /// </remarks>
@@ -79,6 +80,28 @@ namespace Assert.API.Controllers
             int userId = 0;
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);
             ReturnModelDTO<List<MessageDTO>> result = await _messagingService.GetConversationMessages(conversationId, userId, page, pageSize, orderBy, requestInfo);
+            return result;
+        }
+
+
+
+        /// <summary>
+        /// Servicio que devuelve el detalle de una converzación
+        /// </summary>
+        /// <param name="conversationId">Id de la converzación.</param>
+        /// <returns>Converzación creada.</returns>
+        /// <response code="200">Confirmación de la converrzación.</response>
+        /// <remarks>
+        /// Se valida que el usuario logueado sea el host o el renter.
+        /// </remarks>
+        [HttpGet("Conversations/{conversationId}")]
+        [Authorize(Policy = "GuestOrHost")]
+        public async Task<ReturnModelDTO<ConversationDTO>> GetConversation(long conversationId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+            ReturnModelDTO<ConversationDTO> result = await _messagingService.GetConversation(conversationId, userId, requestInfo);
             return result;
         }
 
@@ -99,7 +122,7 @@ namespace Assert.API.Controllers
             var requestInfo = HttpContext.GetRequestInfo();
             int userId = 0;
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);
-            ReturnModelDTO result = await _messagingService.SendMessage(conversationId, userId, request.Body, request.MessageTypeId, request.BookId, requestInfo);
+            ReturnModelDTO result = await _messagingService.SendMessage(conversationId, userId, request.Body, request.MessageTypeId, requestInfo);
             return result;
         }
 

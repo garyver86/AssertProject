@@ -252,7 +252,12 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.TypeMessageCode, opt => opt.MapFrom(src => src.MessageType != null ? src.MessageType.Code : null))
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.MessageStatus != null ? src.MessageStatus.Name : null))
                 .ForMember(dest => dest.StatusCode, opt => opt.MapFrom(src => src.MessageStatus != null ? src.MessageStatus.Code : null));
-            CreateMap<TmConversation, ConversationDTO>();
+            CreateMap<TmConversation, ConversationDTO>()
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status != null ? src.Status.Name : null))
+                .ForMember(dest => dest.StatusCode, opt => opt.MapFrom(src => src.Status != null ? src.Status.Code : null))
+                .ForMember(dest => dest.ListingRent, opt => opt.MapFrom(src => src.ListingRent))
+                .ForMember(dest => dest.Booking, opt => opt.MapFrom(src => src.Book))
+                .ForMember(dest => dest.PriceCalculation, opt => opt.MapFrom(src => src.PriceCalculation));
             CreateMap<TpPropertySubtype, PropertyTypeDTO>()
                 .ForMember(dest => dest.SubTypeCode, opt => opt.MapFrom(src => src.Code))
                 .ForMember(dest => dest.SubTypeIcon, opt => opt.MapFrom(src => src.Icon))

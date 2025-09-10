@@ -25,7 +25,7 @@ namespace Assert.Application.Services
             _errorHandler = errorHandler;
             _notificationService = notificationService;
         }
-        public async Task<ReturnModelDTO<ConversationDTO>> CreateConversation(int renterid, int hostId, int userId, Dictionary<string, string> requestInfo)
+        public async Task<ReturnModelDTO<ConversationDTO>> CreateConversation(int renterid, int hostId, int userId, long? bookId, long? priceCalculationId, long? listingId, Dictionary<string, string> requestInfo)
         {
             ReturnModelDTO<ConversationDTO> result = new ReturnModelDTO<ConversationDTO>();
             try
@@ -41,7 +41,7 @@ namespace Assert.Application.Services
                 }
                 else
                 {
-                    var result_ = await _conversationRepository.Create(renterid, hostId);
+                    var result_ = await _conversationRepository.Create(renterid, hostId, bookId, priceCalculationId, listingId);
 
                     result = new ReturnModelDTO<ConversationDTO>
                     {
@@ -56,6 +56,34 @@ namespace Assert.Application.Services
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
                 result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppMessagingService.CreateConversation", ex, new { renterid, hostId, userId, requestInfo }, false));
+            }
+            return result;
+        }
+
+        public async Task<ReturnModelDTO<ConversationDTO>> GetConversation(long conversationId, int userId, Dictionary<string, string> requestInfo)
+        {
+            ReturnModelDTO<ConversationDTO> result = new ReturnModelDTO<ConversationDTO>();
+            try
+            {
+                TmConversation result_ = await _conversationRepository.GetConversation(conversationId);
+
+                if (result_ != null && result_.UserIdOne != userId && result_.UserIdTwo != userId)
+                {
+                    throw new Exception("No cuenta con los permisos para recuperar esta converzación.");
+                }
+
+                result = new ReturnModelDTO<ConversationDTO>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    HasError = false,
+                    Data = _mapper.Map<ConversationDTO>(result_)
+                };
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppMessagingService.GetConversations", ex, new { userId, requestInfo }, false));
             }
             return result;
         }
@@ -129,12 +157,12 @@ namespace Assert.Application.Services
             return result;
         }
 
-        public async Task<ReturnModelDTO<MessageDTO>> SendMessage(int conversationId, int userId, string body, int messageTypeId, int? bookId, Dictionary<string, string> requestInfo)
+        public async Task<ReturnModelDTO<MessageDTO>> SendMessage(int conversationId, int userId, string body, int messageTypeId, Dictionary<string, string> requestInfo)
         {
             ReturnModelDTO<MessageDTO> result = new ReturnModelDTO<MessageDTO>();
             try
             {
-                TmMessage result_ = await _messageRepository.Send(conversationId, userId, body, messageTypeId, bookId);
+                TmMessage result_ = await _messageRepository.Send(conversationId, userId, body, messageTypeId);
                 var conversation = await _conversationRepository.GetConversation(conversationId);
                 await _notificationService.SendNewMessageNotificationAsync(conversation.UserIdOne == userId ? conversation.UserIdTwo : conversation.UserIdOne, body);
 

@@ -58,12 +58,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         }
 
         // Envía un nuevo mensaje a una conversación.
-        public async Task<TmMessage> Send(int conversationId, int userId, string body, int messageType, long? bookId)
+        public async Task<TmMessage> Send(int conversationId, int userId, string body, int messageType)
         {
-            if (bookId == 0)
-            {
-                bookId = null;
-            }
             // Valida los parámetros de entrada
             if (string.IsNullOrWhiteSpace(body))
             {
@@ -79,7 +75,6 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 CreationDate = DateTime.UtcNow, // Usa UtcNow para consistencia.
                 ReadDate = null, // El mensaje se crea como no leído.
                 MessageTypeId = messageType,
-                BookId = bookId,
                 IsRead = false,
                 MessageStatusId = 1
             };

@@ -17,8 +17,6 @@ public partial class TmMessage
 
     public int MessageTypeId { get; set; }
 
-    public long? BookId { get; set; }
-
     public DateTime? ExpiryDate { get; set; }
 
     public bool IsRead { get; set; }
