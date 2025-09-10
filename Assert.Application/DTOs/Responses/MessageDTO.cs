@@ -35,7 +35,12 @@ namespace Assert.Application.DTOs.Responses
         public string? IpAddress { get; set; }
 
         public string? AdditionalData { get; set; }
-
         public int MessageStatusId { get; set; }
+        //public virtual MessageStatusDTO MessageStatus { get; set; } = null!;
+        //public virtual TypeMessageDTO MessageType { get; set; } = null!;
+        public string? TypeMessage { get; set; }
+        public string? TypeMessageCode { get; set; }
+        public string? Status { get; set; }
+        public string? StatusCode { get; set; }
     }
 }

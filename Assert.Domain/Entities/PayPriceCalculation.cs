@@ -50,4 +50,6 @@ public partial class PayPriceCalculation
     public virtual PayProvider? PaymentProvider { get; set; }
 
     public virtual PayTransaction? PaymentTransaction { get; set; }
+
+    public virtual ICollection<TmConversation> TmConversations { get; set; } = new List<TmConversation>();
 }
