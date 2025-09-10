@@ -20,5 +20,6 @@
         public int? RegisterDateMonths { get; set; }
         public int? RegisterDateYears { get; set; }
         public string? CityName { get; set; }
+        public string? Status { get; set; }
     }
 }
