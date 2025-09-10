@@ -29,10 +29,10 @@ namespace Assert.Application.Mappings
             CreateMap<ProcessDataRequest, ListingProcessDataModel>();
             CreateMap<AddressDTO, ProcessData_AddressModel>();
             CreateMap<ProcessData_Address, ProcessData_AddressModel>()
-                .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City!=null? src.City.City:null))
-                .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.City!=null? src.City.State:null))
-                .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.City!=null? src.City.Country:null))
-                .ForMember(dest => dest.County, opt => opt.MapFrom(src => src.City!=null? src.City.County:null));
+                .ForMember(dest => dest.City, opt => opt.MapFrom(src => src.City != null ? src.City.City : null))
+                .ForMember(dest => dest.State, opt => opt.MapFrom(src => src.City != null ? src.City.State : null))
+                .ForMember(dest => dest.Country, opt => opt.MapFrom(src => src.City != null ? src.City.Country : null))
+                .ForMember(dest => dest.County, opt => opt.MapFrom(src => src.City != null ? src.City.County : null));
             CreateMap<ProcessData_Space, ProcessData_SpaceModel>();
             CreateMap<ProcessData_Photo, ProcessData_PhotoModel>();
             CreateMap<ProcessData_Discount, ProcessData_DiscountModel>();
@@ -247,7 +247,11 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.CountyId, opt => opt.MapFrom(src => src.City != null ? src.City.CountyId : 0))
                 .ForMember(dest => dest.StateId, opt => opt.MapFrom(src => src.City != null && src.City.County != null ? src.City.County.StateId : 0));
 
-            CreateMap<TmMessage, MessageDTO>();
+            CreateMap<TmMessage, MessageDTO>()
+                .ForMember(dest => dest.TypeMessage, opt => opt.MapFrom(src => src.MessageType != null ? src.MessageType.Name : null))
+                .ForMember(dest => dest.TypeMessageCode, opt => opt.MapFrom(src => src.MessageType != null ? src.MessageType.Code : null))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.MessageStatus != null ? src.MessageStatus.Name : null))
+                .ForMember(dest => dest.StatusCode, opt => opt.MapFrom(src => src.MessageStatus != null ? src.MessageStatus.Code : null));
             CreateMap<TmConversation, ConversationDTO>();
             CreateMap<TpPropertySubtype, PropertyTypeDTO>()
                 .ForMember(dest => dest.SubTypeCode, opt => opt.MapFrom(src => src.Code))
