@@ -1,4 +1,5 @@
-﻿using Assert.Application.DTOs.Responses;
+﻿using Assert.Application.DTOs.Requests;
+using Assert.Application.DTOs.Responses;
 
 namespace Assert.Application.Interfaces
 {
@@ -12,5 +13,6 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<MessageDTO>> SendMessage(int conversationId, int userId, string body, int messageTypeId, Dictionary<string, string> requestInfo);
         Task<ReturnModelDTO> SetAsRead(int conversationId, int userId, List<long> messageIds, Dictionary<string, string> requestInfo);
         Task<ReturnModelDTO> SetAsUnread(int conversationId, int userId, List<long> messageIds, Dictionary<string, string> requestInfo);
+        Task<(ReturnModelDTO<List<ConversationDTO>>, PaginationMetadataDTO)> SearchConversations(ConversationFilterDTO filter, Dictionary<string, string> requestInfo);
     }
 }

@@ -1,5 +1,7 @@
 ﻿using Assert.Domain.Entities;
 using Assert.Domain.Repositories;
+using Assert.Domain.Utils;
+using Azure.Core;
 using Microsoft.EntityFrameworkCore;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
@@ -7,9 +9,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
     public class MessageRepository : IMessageRepository
     {
         private readonly InfraAssertDbContext _context;
+        private readonly MessageValidator _validator;
         public MessageRepository(InfraAssertDbContext context)
         {
             _context = context;
+            _validator = new MessageValidator();
         }
         public async Task<List<TmMessage>> Get(int conversationId, int page, int pageSize, string orderBy, int userId)
         {
@@ -24,7 +28,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
 
             // Inicia la consulta obteniendo los mensajes de la conversación.
-            IQueryable<TmMessage> query = _context.TmMessages.Include(x=>x.MessageType)
+            IQueryable<TmMessage> query = _context.TmMessages.Include(x => x.MessageType)
                 .Where(m => m.ConversationId == conversationId && (m.Conversation.UserIdOne == userId || m.Conversation.UserIdTwo == userId));
 
             // Aplica el ordenamiento.
@@ -64,6 +68,12 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             if (string.IsNullOrWhiteSpace(body))
             {
                 throw new ArgumentException("Message body cannot be empty.", nameof(body));
+            }
+
+            var validationResult = _validator.ValidateMessage(body);
+            if (!validationResult.IsValid)
+            {
+                throw new Exception(validationResult.Message);
             }
 
             // Crea el nuevo mensaje.

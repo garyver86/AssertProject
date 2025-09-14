@@ -1,9 +1,11 @@
-﻿using Assert.Application.DTOs.Responses;
+﻿using Assert.Application.DTOs.Requests;
+using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
 using Assert.Domain.Entities;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
+using Assert.Domain.ValueObjects;
 using AutoMapper;
 
 namespace Assert.Application.Services
@@ -132,6 +134,33 @@ namespace Assert.Application.Services
                 result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppMessagingService.GetConversations", ex, new { userId, requestInfo }, false));
             }
             return result;
+        }
+
+
+        public async Task<(ReturnModelDTO<List<ConversationDTO>>, PaginationMetadataDTO)> SearchConversations(ConversationFilterDTO filter, Dictionary<string, string> requestInfo)
+        {
+            ReturnModelDTO<List<ConversationDTO>> result = new ReturnModelDTO<List<ConversationDTO>>();
+            PaginationMetadataDTO pagination = null;
+            try
+            {
+                ConversationFilter _filter = _mapper.Map<ConversationFilter>(filter);
+                (List<TmConversation>, PaginationMetadata) result_ = await _conversationRepository.SearchConversations(_filter);
+
+                result = new ReturnModelDTO<List<ConversationDTO>>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    HasError = false,
+                    Data = _mapper.Map<List<ConversationDTO>>(result_.Item1)
+                };
+                pagination = _mapper.Map<PaginationMetadataDTO>(result_.Item2);
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppMessagingService.SearchConversations", ex, new { filter, requestInfo }, false));
+            }
+            return (result, pagination);
         }
 
         public async Task<ReturnModelDTO> GetUnreadCount(int userId, Dictionary<string, string> requestInfo)

@@ -1,4 +1,6 @@
 ﻿using Assert.Domain.Entities;
+using Assert.Domain.Models;
+using Assert.Domain.ValueObjects;
 
 namespace Assert.Domain.Repositories
 {
@@ -8,5 +10,6 @@ namespace Assert.Domain.Repositories
         //Task<List<TmMessage>> Get(long conversationId, int page, int pageSize, string orderBy);
         Task<List<TmConversation>> Get(int userId);
         Task<TmConversation> GetConversation(long conversationId);
+        Task<(List<TmConversation> Conversations, PaginationMetadata pagination)> SearchConversations(ConversationFilter filter);
     }
 }

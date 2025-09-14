@@ -1,5 +1,7 @@
 ﻿using Assert.Domain.Entities;
+using Assert.Domain.Models;
 using Assert.Domain.Repositories;
+using Assert.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
@@ -122,39 +124,6 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             return conversation;
         }
 
-        //public async Task<List<TmMessage>> Get(long conversationId, int page, int pageSize, string orderBy)
-        //{
-        //    if (page <= 0)
-        //    {
-        //        throw new ArgumentException("Page must be greater than zero.", nameof(page));
-        //    }
-        //    if (pageSize <= 0)
-        //    {
-        //        throw new ArgumentException("Page size must be greater than zero.", nameof(pageSize));
-        //    }
-
-        //    IQueryable<TmMessage> query = _context.TmMessages
-        //        .Where(m => m.ConversationId == conversationId);
-
-        //    switch (orderBy?.ToLower())
-        //    {
-        //        case "dateasc":
-        //            query = query.OrderBy(m => m.CreationDate);
-        //            break;
-        //        case "datedesc":
-        //            query = query.OrderByDescending(m => m.CreationDate);
-        //            break;
-        //        default:
-        //            query = query.OrderByDescending(m => m.CreationDate);
-        //            break;
-        //    }
-
-        //    query = query.Skip((page - 1) * pageSize)
-        //                 .Take(pageSize);
-
-        //    return await query.ToListAsync();
-        //}
-
         public async Task<List<TmConversation>> Get(int userId)
         {
             if (userId <= 0)
@@ -198,6 +167,90 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .FirstOrDefaultAsync();
 
             return conversations;
+        }
+
+        public async Task<(List<TmConversation> Conversations, PaginationMetadata pagination)> SearchConversations(ConversationFilter filter)
+        {
+            if (filter.UserId <= 0)
+            {
+                throw new ArgumentException("User ID must be greater than zero.", nameof(filter.UserId));
+            }
+
+            var query = _context.TmConversations
+            .Include(c => c.TmMessages)
+            .AsQueryable();
+
+            // Filtrar por estado (archivadas)
+            if (filter.statusId.HasValue)
+            {
+                query = query.Where(c => c.StatusId == filter.statusId);
+            }
+
+            //// Filtrar por conversaciones abiertas
+            //if (filter.OpenOnly.HasValue && filter.OpenOnly.Value)
+            //{
+            //    // Asumiendo que statusId para abiertas es 1
+            //    query = query.Where(c => c.StatusId == 1);
+            //}
+
+            // Filtrar por palabras clave en los mensajes
+            if (filter.Keywords != null && filter.Keywords.Any())
+            {
+                query = query.Where(c => c.TmMessages.Any(m =>
+                    filter.Keywords.Any(keyword => m.Body.Contains(keyword))));
+            }
+
+            // Filtrar por conversaciones no leídas
+            if (filter.UnreadOnly.HasValue && filter.UnreadOnly.Value)
+            {
+                query = query.Where(c => c.TmMessages.Any(m => !m.IsRead));
+            }
+
+            // Filtrar por usuario específico
+            if (filter.UserId.HasValue)
+            {
+                query = query.Where(c => c.UserIdOne == filter.UserId.Value || c.UserIdTwo == filter.UserId.Value);
+            }
+
+            // Obtener conteo total
+            var totalCount = await query.CountAsync();
+
+            // Aplicar paginación
+            //var conversations = await query
+            //    .OrderByDescending(c => c.TmMessages.Max(m => m.CreationDate))
+            //    .Skip((filter.PageNumber - 1) * filter.PageSize)
+            //    .Take(filter.PageSize)
+            //    .Select(c => new ConversationResultDto
+            //    {
+            //        ConversationId = c.ConversationId,
+            //        UserIdOne = c.UserIdOne,
+            //        UserIdTwo = c.UserIdTwo,
+            //        StatusId = c.StatusId,
+            //        CreationDate = c.CreationDate,
+            //        BookId = c.BookId,
+            //        PriceCalculationId = c.PriceCalculationId,
+            //        ListingRentId = c.ListingRentId,
+            //        HasUnreadMessages = c.Messages.Any(m => !m.IsRead),
+            //        UnreadCount = c.Messages.Count(m => !m.IsRead),
+            //        LastMessageDate = c.Messages.OrderByDescending(m => m.CreationDate).FirstOrDefault().CreationDate,
+            //        LastMessagePreview = c.Messages.OrderByDescending(m => m.CreationDate).FirstOrDefault().Body
+            //    })
+            //    .ToListAsync();
+            var conversations = await query
+               .OrderByDescending(c => c.TmMessages.Max(m => m.CreationDate))
+               .Skip((filter.PageNumber - 1) * filter.PageSize)
+               .Take(filter.PageSize)
+               .ToListAsync();
+
+            PaginationMetadata pagination = new PaginationMetadata
+            {
+                CurrentPage = filter.PageNumber,
+                PageSize = filter.PageSize,
+                TotalItemCount = await query.CountAsync(),
+                TotalPageCount = totalCount / filter.PageSize
+            };
+
+            return (conversations, pagination);
         }
     }
 }

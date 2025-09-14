@@ -1,5 +1,6 @@
 ﻿using Assert.API.Helpers;
 using Assert.API.Models;
+using Assert.Application.DTOs.Requests;
 using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
 using Assert.Application.Services;
@@ -58,6 +59,33 @@ namespace Assert.API.Controllers
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);
             ReturnModelDTO<List<ConversationDTO>> result = await _messagingService.GetConversations(userId, requestInfo);
             return result;
+        }
+
+
+        /// <summary>
+        /// Servicio que devuelve la lista de converzaciones del usuario logueado en base a filtros
+        /// </summary>
+        /// <returns>Lista de converzaciones.</returns>
+        /// <remarks>
+        /// </remarks>
+        [HttpPost("Conversations/Search")]
+        [Authorize(Policy = "GuestOrHost")]
+        public async Task<ReturnModelDTO_Pagination> SearchConversation([FromBody] ConversationFilterDTO filter)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+            filter.UserId = userId;
+            (ReturnModelDTO<List<ConversationDTO>>, PaginationMetadataDTO) result = await _messagingService.SearchConversations(filter, requestInfo);
+            ReturnModelDTO_Pagination _result = new ReturnModelDTO_Pagination
+            {
+                StatusCode = result.Item1.StatusCode,
+                Data = result.Item1.Data,
+                HasError = result.Item1.HasError,
+                ResultError = result.Item1.ResultError,
+                pagination = result.Item2
+            };
+            return _result;
         }
 
         /// <summary>
