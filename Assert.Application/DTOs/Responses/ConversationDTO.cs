@@ -26,5 +26,6 @@ namespace Assert.Application.DTOs.Responses
         public ListingRentDTO? ListingRent { get; internal set; }
         public BookDTO? Booking { get; internal set; }
         public PayPriceCalculationCompleteDTO? PriceCalculation { get; internal set; }
+        public List<MessageDTO> TmMessages { get; set; }
     }
 }

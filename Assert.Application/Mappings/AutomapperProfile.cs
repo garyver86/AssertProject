@@ -25,6 +25,7 @@ namespace Assert.Application.Mappings
             CreateMap<DateTime, DateOnly>().ConvertUsing<DateTimeToDateOnlyConverter>();
 
             CreateMap<ReturnModel, ReturnModelDTO>();
+            CreateMap<ConversationFilter, ConversationFilterDTO>().ReverseMap();
 
             CreateMap<ProcessDataRequest, ListingProcessDataModel>();
             CreateMap<AddressDTO, ProcessData_AddressModel>();

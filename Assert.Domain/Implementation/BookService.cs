@@ -163,6 +163,15 @@ namespace Assert.Domain.Implementation
             var priceInfo = await _listingPricingRepository.GetByListingRent(listingRentId);
             var discounts = await _listingDiscountForRateRepository.GetByListingRentId(listingRentId);
 
+
+            if(priceInfo == null)
+            {
+                result.HasError = true;
+                result.StatusCode = ResultStatusCode.BadRequest;
+                result.ResultError = new ErrorCommon { Message = $"La propiedad no cuenta con precios." };
+                return result;
+            }
+
             // 6. Calcular precio por día considerando tarifas especiales
             decimal total = 0;
             decimal totalDiscount = 0;

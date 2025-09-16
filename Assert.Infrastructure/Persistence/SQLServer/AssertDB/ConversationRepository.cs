@@ -177,27 +177,13 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
 
             var query = _context.TmConversations
-            .Include(c => c.TmMessages)
-            .AsQueryable();
+                .Include(c => c.TmMessages)
+                .AsQueryable();
 
             // Filtrar por estado (archivadas)
             if (filter.statusId.HasValue)
             {
                 query = query.Where(c => c.StatusId == filter.statusId);
-            }
-
-            //// Filtrar por conversaciones abiertas
-            //if (filter.OpenOnly.HasValue && filter.OpenOnly.Value)
-            //{
-            //    // Asumiendo que statusId para abiertas es 1
-            //    query = query.Where(c => c.StatusId == 1);
-            //}
-
-            // Filtrar por palabras clave en los mensajes
-            if (filter.Keywords != null && filter.Keywords.Any())
-            {
-                query = query.Where(c => c.TmMessages.Any(m =>
-                    filter.Keywords.Any(keyword => m.Body.Contains(keyword))));
             }
 
             // Filtrar por conversaciones no leídas
@@ -212,42 +198,52 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 query = query.Where(c => c.UserIdOne == filter.UserId.Value || c.UserIdTwo == filter.UserId.Value);
             }
 
-            // Obtener conteo total
+            // Obtener conteo total ANTES de filtrar por keywords
             var totalCount = await query.CountAsync();
 
-            // Aplicar paginación
-            //var conversations = await query
-            //    .OrderByDescending(c => c.TmMessages.Max(m => m.CreationDate))
-            //    .Skip((filter.PageNumber - 1) * filter.PageSize)
-            //    .Take(filter.PageSize)
-            //    .Select(c => new ConversationResultDto
-            //    {
-            //        ConversationId = c.ConversationId,
-            //        UserIdOne = c.UserIdOne,
-            //        UserIdTwo = c.UserIdTwo,
-            //        StatusId = c.StatusId,
-            //        CreationDate = c.CreationDate,
-            //        BookId = c.BookId,
-            //        PriceCalculationId = c.PriceCalculationId,
-            //        ListingRentId = c.ListingRentId,
-            //        HasUnreadMessages = c.Messages.Any(m => !m.IsRead),
-            //        UnreadCount = c.Messages.Count(m => !m.IsRead),
-            //        LastMessageDate = c.Messages.OrderByDescending(m => m.CreationDate).FirstOrDefault().CreationDate,
-            //        LastMessagePreview = c.Messages.OrderByDescending(m => m.CreationDate).FirstOrDefault().Body
-            //    })
-            //    .ToListAsync();
-            var conversations = await query
-               .OrderByDescending(c => c.TmMessages.Max(m => m.CreationDate))
-               .Skip((filter.PageNumber - 1) * filter.PageSize)
-               .Take(filter.PageSize)
-               .ToListAsync();
+            // Aplicar filtro de palabras clave y procesar los resultados
+            List<TmConversation> conversations;
+
+            if (filter.Keywords != null && filter.Keywords.Any())
+            {
+                // Primero obtenemos las conversaciones con paginación
+                var conversationQuery = query
+                    .OrderByDescending(c => c.TmMessages.Max(m => m.CreationDate))
+                    .Skip((filter.PageNumber - 1) * filter.PageSize)
+                    .Take(filter.PageSize);
+
+                conversations = await conversationQuery.ToListAsync();
+
+                // Filtrar los mensajes dentro de cada conversación
+                foreach (var conversation in conversations)
+                {
+                    conversation.TmMessages = conversation.TmMessages
+                        .Where(m => filter.Keywords.Any(keyword =>
+                            m.Body != null && m.Body.Contains(keyword, StringComparison.OrdinalIgnoreCase)))
+                        .ToList();
+                }
+
+                // Remover conversaciones que no tienen mensajes después del filtrado
+                conversations = conversations
+                    .Where(c => c.TmMessages.Any())
+                    .ToList();
+            }
+            else
+            {
+                // Si no hay keywords, devolver todas las conversaciones normalmente
+                conversations = await query
+                    .OrderByDescending(c => c.TmMessages.Max(m => m.CreationDate))
+                    .Skip((filter.PageNumber - 1) * filter.PageSize)
+                    .Take(filter.PageSize)
+                    .ToListAsync();
+            }
 
             PaginationMetadata pagination = new PaginationMetadata
             {
                 CurrentPage = filter.PageNumber,
                 PageSize = filter.PageSize,
-                TotalItemCount = await query.CountAsync(),
-                TotalPageCount = totalCount / filter.PageSize
+                TotalItemCount = totalCount,
+                TotalPageCount = (int)Math.Ceiling(totalCount / (double)filter.PageSize)
             };
 
             return (conversations, pagination);
