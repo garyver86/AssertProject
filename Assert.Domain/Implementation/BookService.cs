@@ -344,6 +344,7 @@ namespace Assert.Domain.Implementation
                 EndBook = endDate,
                 ListingRentId = listingRentId,
                 BreakdownInfo = JsonConvert.SerializeObject(breakdown),
+                CalculationStatusId = 1
             };
 
             var resultCalculation = await _payPriceCalculationRepository.Create(payPriceCalculation);

@@ -248,5 +248,86 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
             return (conversations, pagination);
         }
+
+        public async Task<TmConversation> SetArchived(long conversationId, int userid, bool isArchived)
+        {
+            var conversations = await _context.TmConversations
+               .FirstOrDefaultAsync(x => x.ConversationId == conversationId);
+
+            if (conversations == null)
+            {
+                throw new ArgumentException("La converzación no existe.", nameof(conversationId));
+            }
+            if (conversations.UserIdOne != userid && conversations.UserIdTwo != userid)
+            {
+                throw new ArgumentException("El usuario no es parte de la converzación.", nameof(userid));
+            }
+            if (conversations.UserIdOne == userid)
+            {
+                conversations.UserOneArchived = isArchived;
+                conversations.UserOneArchivedDateTime = DateTime.UtcNow;
+            }
+            else
+            {
+                conversations.UserTwoArchived = isArchived;
+                conversations.UserTwoArchivedDateTime = DateTime.UtcNow;
+            }
+            await _context.SaveChangesAsync();
+            return conversations;
+        }
+
+        public async Task<TmConversation> SetFeatured(long conversationId, int userid, bool isFeatured)
+        {
+            var conversations = await _context.TmConversations
+               .FirstOrDefaultAsync(x => x.ConversationId == conversationId);
+
+            if (conversations == null)
+            {
+                throw new ArgumentException("La converzación no existe.", nameof(conversationId));
+            }
+            if (conversations.UserIdOne != userid && conversations.UserIdTwo != userid)
+            {
+                throw new ArgumentException("El usuario no es parte de la converzación.", nameof(userid));
+            }
+            if (conversations.UserIdOne == userid)
+            {
+                conversations.UserOneFeatured = isFeatured;
+                conversations.UserOneFeaturedDateTime = DateTime.UtcNow;
+            }
+            else
+            {
+                conversations.UserTwoFeatured = isFeatured;
+                conversations.UserTwoFeaturedDateTime = DateTime.UtcNow;
+            }
+            await _context.SaveChangesAsync();
+            return conversations;
+        }
+
+        public async Task<TmConversation> SetSilent(long conversationId, int userid, bool isSilent)
+        {
+            var conversations = await _context.TmConversations
+               .FirstOrDefaultAsync(x => x.ConversationId == conversationId);
+
+            if (conversations == null)
+            {
+                throw new ArgumentException("La converzación no existe.", nameof(conversationId));
+            }
+            if (conversations.UserIdOne != userid && conversations.UserIdTwo != userid)
+            {
+                throw new ArgumentException("El usuario no es parte de la converzación.", nameof(userid));
+            }
+            if (conversations.UserIdOne == userid)
+            {
+                conversations.UserOneSilent = isSilent;
+                conversations.UserOneSilentDateTime = DateTime.UtcNow;
+            }
+            else
+            {
+                conversations.UserTwoSilent = isSilent;
+                conversations.UserTwoSilentDateTime = DateTime.UtcNow;
+            }
+            await _context.SaveChangesAsync();
+            return conversations;
+        }
     }
 }

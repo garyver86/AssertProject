@@ -5,7 +5,7 @@ namespace Assert.Domain.Entities;
 
 public partial class TnNotification
 {
-    public int NotificationId { get; set; }
+    public long NotificationId { get; set; }
 
     public int UserId { get; set; }
 

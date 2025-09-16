@@ -7,7 +7,7 @@ public partial class TnNotificationAction
 {
     public int ActionId { get; set; }
 
-    public int NotificationId { get; set; }
+    public long NotificationId { get; set; }
 
     public string ActionType { get; set; } = null!;
 

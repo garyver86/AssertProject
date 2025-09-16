@@ -64,7 +64,8 @@ namespace Assert.Infrastructure.InternalServices
             return new ErrorCommon
             {
                 Code = error?.Code ?? ConstantsHelp.ERR_1,
-                Message = string.Format(isTechnical ? error?.TechnicalMessage ?? "Internal Error" : error?.Message ?? "Internal Error", exception?.Message),
+                //Message = string.Format(isTechnical ? error?.TechnicalMessage ?? "Internal Error" : error?.Message ?? "Internal Error", exception?.Message),
+                Message = exception?.Message ?? error?.Message ?? "Excepción interna.",
                 Title = error?.Title ?? "Error"
             };
         }

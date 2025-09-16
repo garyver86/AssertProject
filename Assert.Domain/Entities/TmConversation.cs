@@ -21,6 +21,30 @@ public partial class TmConversation
 
     public long? ListingRentId { get; set; }
 
+    public bool? UserOneFeatured { get; set; }
+
+    public bool? UserOneArchived { get; set; }
+
+    public bool? UserOneSilent { get; set; }
+
+    public bool? UserTwoFeatured { get; set; }
+
+    public bool? UserTwoArchived { get; set; }
+
+    public bool? UserTwoSilent { get; set; }
+
+    public DateTime? UserOneFeaturedDateTime { get; set; }
+
+    public DateTime? UserOneArchivedDateTime { get; set; }
+
+    public DateTime? UserOneSilentDateTime { get; set; }
+
+    public DateTime? UserTwoFeaturedDateTime { get; set; }
+
+    public DateTime? UserTwoArchivedDateTime { get; set; }
+
+    public DateTime? UserTwoSilentDateTime { get; set; }
+
     public virtual TbBook? Book { get; set; }
 
     public virtual TlListingRent? ListingRent { get; set; }

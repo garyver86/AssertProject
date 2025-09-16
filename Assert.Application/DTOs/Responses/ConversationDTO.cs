@@ -23,9 +23,22 @@ namespace Assert.Application.DTOs.Responses
         public UserDTO UserIdOneNavigation { get; set; } = null!;
 
         public UserDTO UserIdTwoNavigation { get; set; } = null!;
-        public ListingRentDTO? ListingRent { get; internal set; }
-        public BookDTO? Booking { get; internal set; }
-        public PayPriceCalculationCompleteDTO? PriceCalculation { get; internal set; }
+        public ListingRentDTO? ListingRent { get; set; }
+        public BookDTO? Booking { get; set; }
+        public PayPriceCalculationCompleteDTO? PriceCalculation { get; set; }
+
         public List<MessageDTO> TmMessages { get; set; }
+
+        public bool? Featured { get; set; }
+
+        public bool? Archived { get; set; }
+
+        public bool? Silent { get; set; }
+
+        public DateTime? FeaturedDateTime { get; set; }
+
+        public DateTime? ArchivedDateTime { get; set; }
+
+        public DateTime? SilentDateTime { get; set; }
     }
 }

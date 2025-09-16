@@ -195,6 +195,125 @@ namespace Assert.API.Controllers
         }
 
         /// <summary>
+        /// Servicio que marca una converzación como archivada
+        /// </summary>
+        /// <param name="conversationId">Id de la converzación.</param>
+        /// <response code="200">Confirmación del marcado como archivado.</response>
+        /// <remarks>
+        /// 
+        /// </remarks>
+        [HttpPut("Conversations/{conversationId}/Archived")]
+        [Authorize(Policy = "GuestOrHost")]
+        public async Task<ReturnModelDTO> SetArchived(int conversationId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+            ReturnModelDTO result = await _messagingService.SetArchived(conversationId, userId, true);
+            return result;
+        }
+
+
+        ///// <summary>
+        ///// Servicio que marca una converzación como no archivada
+        ///// </summary>
+        ///// <param name="conversationId">Id de la converzación.</param>
+        ///// <response code="200">Confirmación del marcado como no archivado.</response>
+        ///// <remarks>
+        ///// 
+        ///// </remarks>
+        //[HttpDelete("Conversations/{conversationId}/Unarchived")]
+        //[Authorize(Policy = "GuestOrHost")]
+        //public async Task<ReturnModelDTO> SetUnarchived(int conversationId)
+        //{
+        //    var requestInfo = HttpContext.GetRequestInfo();
+        //    int userId = 0;
+        //    int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+        //    ReturnModelDTO result = await _messagingService.SetArchived(conversationId, userId, false);
+        //    return result;
+        //}
+
+
+        /// <summary>
+        /// Servicio que marca una converzación como destacado
+        /// </summary>
+        /// <param name="conversationId">Id de la converzación.</param>
+        /// <response code="200">Confirmación del marcado como destacado.</response>
+        /// <remarks>
+        /// 
+        /// </remarks>
+        [HttpPut("Conversations/{conversationId}/Featured")]
+        [Authorize(Policy = "GuestOrHost")]
+        public async Task<ReturnModelDTO> SetFeatured(int conversationId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+            ReturnModelDTO result = await _messagingService.SetFeatured(conversationId, userId, true);
+            return result;
+        }
+
+
+        /// <summary>
+        /// Servicio que marca una converzación como no destacado
+        /// </summary>
+        /// <param name="conversationId">Id de la converzación.</param>
+        /// <response code="200">Confirmación del marcado como no destacado.</response>
+        /// <remarks>
+        /// 
+        /// </remarks>
+        [HttpDelete("Conversations/{conversationId}/Unfeatured")]
+        [Authorize(Policy = "GuestOrHost")]
+        public async Task<ReturnModelDTO> SetUnfeatured(int conversationId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+            ReturnModelDTO result = await _messagingService.SetFeatured(conversationId, userId, false);
+            return result;
+        }
+
+
+        /// <summary>
+        /// Servicio que marca una converzación como silenciada
+        /// </summary>
+        /// <param name="conversationId">Id de la converzación.</param>
+        /// <response code="200">Confirmación del marcado como silenciado.</response>
+        /// <remarks>
+        /// 
+        /// </remarks>
+        [HttpPut("Conversations/{conversationId}/Silent")]
+        [Authorize(Policy = "GuestOrHost")]
+        public async Task<ReturnModelDTO> SetSilent(int conversationId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+            ReturnModelDTO result = await _messagingService.SetSilent(conversationId, userId, true);
+            return result;
+        }
+
+
+        /// <summary>
+        /// Servicio que marca una converzación como no silenciada
+        /// </summary>
+        /// <param name="conversationId">Id de la converzación.</param>
+        /// <response code="200">Confirmación del marcado como no silenciada.</response>
+        /// <remarks>
+        /// 
+        /// </remarks>
+        [HttpDelete("Conversations/{conversationId}/Unsilent")]
+        [Authorize(Policy = "GuestOrHost")]
+        public async Task<ReturnModelDTO> SetUnsilent(int conversationId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+            ReturnModelDTO result = await _messagingService.SetSilent(conversationId, userId, false);
+            return result;
+        }
+
+        /// <summary>
         /// Servicio que devuelve la cantidad de mensaje no leidos del usuario
         /// </summary>
         /// <response code="200">Cantidad de mensajes no leidos.</response>

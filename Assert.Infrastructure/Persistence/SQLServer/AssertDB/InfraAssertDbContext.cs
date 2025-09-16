@@ -14,7 +14,6 @@ public partial class InfraAssertDbContext : DbContext
         : base(options)
     {
     }
-
     public virtual DbSet<CitySearchTable> CitySearchTables { get; set; }
 
     public virtual DbSet<PayCountryConfiguration> PayCountryConfigurations { get; set; }
@@ -22,6 +21,8 @@ public partial class InfraAssertDbContext : DbContext
     public virtual DbSet<PayMethodOfPayment> PayMethodOfPayments { get; set; }
 
     public virtual DbSet<PayPriceCalculation> PayPriceCalculations { get; set; }
+
+    public virtual DbSet<PayPriceCalculationStatus> PayPriceCalculationStatuses { get; set; }
 
     public virtual DbSet<PayProvider> PayProviders { get; set; }
 
@@ -202,6 +203,8 @@ public partial class InfraAssertDbContext : DbContext
     public virtual DbSet<TmMessageStatus> TmMessageStatuses { get; set; }
 
     public virtual DbSet<TmNotification> TmNotifications { get; set; }
+
+    public virtual DbSet<TmPredefinedMessage> TmPredefinedMessages { get; set; }
 
     public virtual DbSet<TmTypeMessage> TmTypeMessages { get; set; }
 
@@ -404,6 +407,11 @@ public partial class InfraAssertDbContext : DbContext
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasColumnName("calculationStatue");
+            entity.Property(e => e.CalculationStatusId).HasColumnName("calculationStatusId");
+            entity.Property(e => e.ConsultAccepted).HasColumnName("consultAccepted");
+            entity.Property(e => e.ConsultResponse)
+                .HasColumnType("datetime")
+                .HasColumnName("consultResponse");
             entity.Property(e => e.CreationDate)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
@@ -436,6 +444,11 @@ public partial class InfraAssertDbContext : DbContext
                 .HasForeignKey(d => d.BookId)
                 .HasConstraintName("FK_Pay_PriceCalculation_TB_Book");
 
+            entity.HasOne(d => d.CalculationStatus).WithMany(p => p.PayPriceCalculations)
+                .HasForeignKey(d => d.CalculationStatusId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Pay_PriceCalculation_Pay_PriceCalculationStatus");
+
             entity.HasOne(d => d.ListingRent).WithMany(p => p.PayPriceCalculations)
                 .HasForeignKey(d => d.ListingRentId)
                 .HasConstraintName("FK_Pay_PriceCalculation_TL_ListingRent");
@@ -451,6 +464,23 @@ public partial class InfraAssertDbContext : DbContext
             entity.HasOne(d => d.PaymentTransaction).WithMany(p => p.PayPriceCalculations)
                 .HasForeignKey(d => d.PaymentTransactionId)
                 .HasConstraintName("FK_Pay_PriceCalculation_Pay_Transaction");
+        });
+
+        modelBuilder.Entity<PayPriceCalculationStatus>(entity =>
+        {
+            entity.HasKey(e => e.PayPriceCalculationStatus1);
+
+            entity.ToTable("Pay_PriceCalculationStatus");
+
+            entity.Property(e => e.PayPriceCalculationStatus1).HasColumnName("Pay_PriceCalculationStatus");
+            entity.Property(e => e.PriceCalculationStatusCode)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("priceCalculationStatusCode");
+            entity.Property(e => e.PriceCalculationStatusDescription)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("priceCalculationStatusDescription");
         });
 
         modelBuilder.Entity<PayProvider>(entity =>
@@ -2958,6 +2988,24 @@ public partial class InfraAssertDbContext : DbContext
 
             entity.ToTable("TM_Conversation");
 
+            entity.HasIndex(e => e.CreationDate, "IX_TM_Conversation_CreationDate").IsDescending();
+
+            entity.HasIndex(e => e.StatusId, "IX_TM_Conversation_StatusId");
+
+            entity.HasIndex(e => new { e.StatusId, e.CreationDate }, "IX_TM_Conversation_Status_Date").IsDescending(false, true);
+
+            entity.HasIndex(e => new { e.UserIdOne, e.UserIdTwo }, "IX_TM_Conversation_Users");
+
+            entity.HasIndex(e => e.BookId, "IX_TM_Conversation_bookId");
+
+            entity.HasIndex(e => e.ListingRentId, "IX_TM_Conversation_listingRentId");
+
+            entity.HasIndex(e => e.PriceCalculationId, "IX_TM_Conversation_priceCalculationId");
+
+            entity.HasIndex(e => e.UserIdOne, "IX_TM_Conversation_userone");
+
+            entity.HasIndex(e => e.UserIdTwo, "IX_TM_Conversation_usertwo");
+
             entity.Property(e => e.ConversationId).HasColumnName("conversationId");
             entity.Property(e => e.BookId).HasColumnName("bookId");
             entity.Property(e => e.CreationDate).HasColumnType("datetime");
@@ -2966,6 +3014,30 @@ public partial class InfraAssertDbContext : DbContext
             entity.Property(e => e.StatusId).HasColumnName("statusId");
             entity.Property(e => e.UserIdOne).HasColumnName("userId_one");
             entity.Property(e => e.UserIdTwo).HasColumnName("userId_two");
+            entity.Property(e => e.UserOneArchived).HasColumnName("userOne_archived");
+            entity.Property(e => e.UserOneArchivedDateTime)
+                .HasColumnType("datetime")
+                .HasColumnName("userOne_archivedDateTime");
+            entity.Property(e => e.UserOneFeatured).HasColumnName("userOne_featured");
+            entity.Property(e => e.UserOneFeaturedDateTime)
+                .HasColumnType("datetime")
+                .HasColumnName("userOne_featuredDateTime");
+            entity.Property(e => e.UserOneSilent).HasColumnName("userOne_silent");
+            entity.Property(e => e.UserOneSilentDateTime)
+                .HasColumnType("datetime")
+                .HasColumnName("userOne_silentDateTime");
+            entity.Property(e => e.UserTwoArchived).HasColumnName("userTwo_archived");
+            entity.Property(e => e.UserTwoArchivedDateTime)
+                .HasColumnType("datetime")
+                .HasColumnName("userTwo_archivedDateTime");
+            entity.Property(e => e.UserTwoFeatured).HasColumnName("userTwo_featured");
+            entity.Property(e => e.UserTwoFeaturedDateTime)
+                .HasColumnType("datetime")
+                .HasColumnName("userTwo_featuredDateTime");
+            entity.Property(e => e.UserTwoSilent).HasColumnName("userTwo_silent");
+            entity.Property(e => e.UserTwoSilentDateTime)
+                .HasColumnType("datetime")
+                .HasColumnName("userTwo_silentDateTime");
 
             entity.HasOne(d => d.Book).WithMany(p => p.TmConversations)
                 .HasForeignKey(d => d.BookId)
@@ -3016,6 +3088,8 @@ public partial class InfraAssertDbContext : DbContext
             entity.HasKey(e => e.MessageId);
 
             entity.ToTable("TM_Message");
+
+            entity.HasIndex(e => e.ConversationId, "IX_TM_Message_ConversationId");
 
             entity.Property(e => e.MessageId).HasColumnName("messageId");
             entity.Property(e => e.AdditionalData)
@@ -3105,6 +3179,17 @@ public partial class InfraAssertDbContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__TM_Notifi__UserI__5E54FF49");
+        });
+
+        modelBuilder.Entity<TmPredefinedMessage>(entity =>
+        {
+            entity.HasKey(e => e.PredefinedMessageId).HasName("PK__TM_Prede__7844DD3639280BF2");
+
+            entity.ToTable("TM_PredefinedMessage");
+
+            entity.Property(e => e.Code).HasMaxLength(10);
+            entity.Property(e => e.MessageActions).HasMaxLength(500);
+            entity.Property(e => e.Title).HasMaxLength(255);
         });
 
         modelBuilder.Entity<TmTypeMessage>(entity =>

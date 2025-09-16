@@ -41,7 +41,15 @@ public partial class PayPriceCalculation
 
     public string? BreakdownInfo { get; set; }
 
+    public int CalculationStatusId { get; set; }
+
+    public bool? ConsultAccepted { get; set; }
+
+    public DateTime? ConsultResponse { get; set; }
+
     public virtual TbBook? Book { get; set; }
+
+    public virtual PayPriceCalculationStatus CalculationStatus { get; set; } = null!;
 
     public virtual TlListingRent? ListingRent { get; set; }
 

@@ -74,11 +74,32 @@ namespace Assert.Application.Services
                     throw new Exception("No cuenta con los permisos para recuperar esta converzación.");
                 }
 
+                ConversationDTO conversation = _mapper.Map<ConversationDTO>(result_);
+
+                if (conversation != null && userId == conversation.UserIdOne)
+                {
+                    conversation.Archived = result_.UserOneArchived;
+                    conversation.Silent = result_.UserOneSilent;
+                    conversation.Featured = result_.UserOneFeatured;
+                    conversation.ArchivedDateTime = result_.UserOneArchivedDateTime;
+                    conversation.FeaturedDateTime = result_.UserOneFeaturedDateTime;
+                    conversation.SilentDateTime = result_.UserOneSilentDateTime;
+                }
+                else if (conversation != null && userId == conversation.UserIdTwo)
+                {
+                    conversation.Archived = result_.UserTwoArchived;
+                    conversation.Silent = result_.UserTwoSilent;
+                    conversation.Featured = result_.UserTwoFeatured;
+                    conversation.FeaturedDateTime = result_.UserTwoFeaturedDateTime;
+                    conversation.ArchivedDateTime = result_.UserTwoArchivedDateTime;
+                    conversation.SilentDateTime = result_.UserTwoSilentDateTime;
+                }
+
                 result = new ReturnModelDTO<ConversationDTO>
                 {
                     StatusCode = ResultStatusCode.OK,
                     HasError = false,
-                    Data = _mapper.Map<ConversationDTO>(result_)
+                    Data = conversation
                 };
             }
             catch (Exception ex)
@@ -120,11 +141,38 @@ namespace Assert.Application.Services
             {
                 List<TmConversation> result_ = await _conversationRepository.Get(userId);
 
+                List<ConversationDTO> conversations = _mapper.Map<List<ConversationDTO>>(result_);
+
+                if (conversations.Count > 0)
+                {
+                    foreach (var conversation in conversations)
+                    {
+                        var conv = result_.FirstOrDefault(c => c.ConversationId == conversation.ConversationId);
+                        if (conversation != null && userId == conversation.UserIdOne)
+                        {
+                            conversation.Archived = conv.UserOneArchived;
+                            conversation.Silent = conv.UserOneSilent;
+                            conversation.Featured = conv.UserOneFeatured;
+                            conversation.ArchivedDateTime = conv.UserOneArchivedDateTime;
+                            conversation.FeaturedDateTime = conv.UserOneFeaturedDateTime;
+                            conversation.SilentDateTime = conv.UserOneSilentDateTime;
+                        }
+                        else if (conversation != null && userId == conversation.UserIdTwo)
+                        {
+                            conversation.Archived = conv.UserTwoArchived;
+                            conversation.Silent = conv.UserTwoSilent;
+                            conversation.Featured = conv.UserTwoFeatured;
+                            conversation.FeaturedDateTime = conv.UserTwoFeaturedDateTime;
+                            conversation.ArchivedDateTime = conv.UserTwoArchivedDateTime;
+                            conversation.SilentDateTime = conv.UserTwoSilentDateTime;
+                        }
+                    }
+                }
                 result = new ReturnModelDTO<List<ConversationDTO>>
                 {
                     StatusCode = ResultStatusCode.OK,
                     HasError = false,
-                    Data = _mapper.Map<List<ConversationDTO>>(result_)
+                    Data = conversations
                 };
             }
             catch (Exception ex)
@@ -146,11 +194,38 @@ namespace Assert.Application.Services
                 ConversationFilter _filter = _mapper.Map<ConversationFilter>(filter);
                 (List<TmConversation>, PaginationMetadata) result_ = await _conversationRepository.SearchConversations(_filter);
 
+                List<ConversationDTO> conversations = _mapper.Map<List<ConversationDTO>>(result_.Item1);
+                
+                if (conversations.Count > 0)
+                {
+                    foreach (var conversation in conversations)
+                    {
+                        var conv= result_.Item1.FirstOrDefault(c => c.ConversationId == conversation.ConversationId);
+                        if (conversation != null && filter.UserId == conversation.UserIdOne)
+                        {
+                            conversation.Archived = conv.UserOneArchived;
+                            conversation.Silent = conv.UserOneSilent;
+                            conversation.Featured = conv.UserOneFeatured;
+                            conversation.ArchivedDateTime = conv.UserOneArchivedDateTime;
+                            conversation.FeaturedDateTime = conv.UserOneFeaturedDateTime;
+                            conversation.SilentDateTime = conv.UserOneSilentDateTime;
+                        }
+                        else if (conversation != null && filter.UserId == conversation.UserIdTwo)
+                        {
+                            conversation.Archived = conv.UserTwoArchived;
+                            conversation.Silent = conv.UserTwoSilent;
+                            conversation.Featured = conv.UserTwoFeatured;
+                            conversation.FeaturedDateTime = conv.UserTwoFeaturedDateTime;
+                            conversation.ArchivedDateTime = conv.UserTwoArchivedDateTime;
+                            conversation.SilentDateTime = conv.UserTwoSilentDateTime;
+                        }
+                    }
+                }
                 result = new ReturnModelDTO<List<ConversationDTO>>
                 {
                     StatusCode = ResultStatusCode.OK,
                     HasError = false,
-                    Data = _mapper.Map<List<ConversationDTO>>(result_.Item1)
+                    Data = conversations
                 };
                 pagination = _mapper.Map<PaginationMetadataDTO>(result_.Item2);
             }
@@ -251,6 +326,138 @@ namespace Assert.Application.Services
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
                 result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppMessagingService.SetAsRead", ex, new { conversationId, messageIds, userId, requestInfo }, false));
+            }
+            return result;
+        }
+
+        public async Task<ReturnModelDTO<ConversationDTO>> SetFeatured(long conversationId, int userid, bool isFeatured)
+        {
+            ReturnModelDTO<ConversationDTO> result = new ReturnModelDTO<ConversationDTO>();
+            try
+            {
+                TmConversation result_ = await _conversationRepository.SetFeatured(conversationId, userid, isFeatured);
+
+                ConversationDTO conversation = _mapper.Map<ConversationDTO>(result_);
+
+                if (conversation != null && userid == conversation.UserIdOne)
+                {
+                    conversation.Archived = result_.UserOneArchived;
+                    conversation.Silent = result_.UserOneSilent;
+                    conversation.Featured = result_.UserOneFeatured;
+                    conversation.ArchivedDateTime = result_.UserOneArchivedDateTime;
+                    conversation.FeaturedDateTime = result_.UserOneFeaturedDateTime;
+                    conversation.SilentDateTime = result_.UserOneSilentDateTime;
+                }
+                else if (conversation != null && userid == conversation.UserIdTwo)
+                {
+                    conversation.Archived = result_.UserTwoArchived;
+                    conversation.Silent = result_.UserTwoSilent;
+                    conversation.Featured = result_.UserTwoFeatured;
+                    conversation.FeaturedDateTime = result_.UserTwoFeaturedDateTime;
+                    conversation.ArchivedDateTime = result_.UserTwoArchivedDateTime;
+                    conversation.SilentDateTime = result_.UserTwoSilentDateTime;
+                }
+
+                result = new ReturnModelDTO<ConversationDTO>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    HasError = false,
+                    Data = conversation
+                };
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppMessagingService.SetFeatured", ex, new { conversationId, userid, isFeatured }, false));
+            }
+            return result;
+        }
+
+        public async Task<ReturnModelDTO<ConversationDTO>> SetArchived(long conversationId, int userid, bool isArchived)
+        {
+            ReturnModelDTO<ConversationDTO> result = new ReturnModelDTO<ConversationDTO>();
+            try
+            {
+                TmConversation result_ = await _conversationRepository.SetArchived(conversationId, userid, isArchived);
+
+                ConversationDTO conversation = _mapper.Map<ConversationDTO>(result_);
+
+                if (conversation != null && userid == conversation.UserIdOne)
+                {
+                    conversation.Archived = result_.UserOneArchived;
+                    conversation.Silent = result_.UserOneSilent;
+                    conversation.Featured = result_.UserOneFeatured;
+                    conversation.ArchivedDateTime = result_.UserOneArchivedDateTime;
+                    conversation.FeaturedDateTime = result_.UserOneFeaturedDateTime;
+                    conversation.SilentDateTime = result_.UserOneSilentDateTime;
+                }
+                else if (conversation != null && userid == conversation.UserIdTwo)
+                {
+                    conversation.Archived = result_.UserTwoArchived;
+                    conversation.Silent = result_.UserTwoSilent;
+                    conversation.Featured = result_.UserTwoFeatured;
+                    conversation.FeaturedDateTime = result_.UserTwoFeaturedDateTime;
+                    conversation.ArchivedDateTime = result_.UserTwoArchivedDateTime;
+                    conversation.SilentDateTime = result_.UserTwoSilentDateTime;
+                }
+
+                result = new ReturnModelDTO<ConversationDTO>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    HasError = false,
+                    Data = conversation
+                };
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppMessagingService.SetArchived", ex, new { conversationId, userid, isArchived }, false));
+            }
+            return result;
+        }
+
+        public async Task<ReturnModelDTO<ConversationDTO>> SetSilent(long conversationId, int userid, bool isSilent)
+        {
+            ReturnModelDTO<ConversationDTO> result = new ReturnModelDTO<ConversationDTO>();
+            try
+            {
+                TmConversation result_ = await _conversationRepository.SetSilent(conversationId, userid, isSilent);
+
+                ConversationDTO conversation = _mapper.Map<ConversationDTO>(result_);
+
+                if (conversation != null && userid == conversation.UserIdOne)
+                {
+                    conversation.Archived = result_.UserOneArchived;
+                    conversation.Silent = result_.UserOneSilent;
+                    conversation.Featured = result_.UserOneFeatured;
+                    conversation.ArchivedDateTime = result_.UserOneArchivedDateTime;
+                    conversation.FeaturedDateTime = result_.UserOneFeaturedDateTime;
+                    conversation.SilentDateTime = result_.UserOneSilentDateTime;
+                }
+                else if (conversation != null && userid == conversation.UserIdTwo)
+                {
+                    conversation.Archived = result_.UserTwoArchived;
+                    conversation.Silent = result_.UserTwoSilent;
+                    conversation.Featured = result_.UserTwoFeatured;
+                    conversation.FeaturedDateTime = result_.UserTwoFeaturedDateTime;
+                    conversation.ArchivedDateTime = result_.UserTwoArchivedDateTime;
+                    conversation.SilentDateTime = result_.UserTwoSilentDateTime;
+                }
+
+                result = new ReturnModelDTO<ConversationDTO>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    HasError = false,
+                    Data = conversation
+                };
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppMessagingService.SetSilent", ex, new { conversationId, userid, isSilent }, false));
             }
             return result;
         }

@@ -1,5 +1,6 @@
 ﻿using Assert.Application.DTOs.Requests;
 using Assert.Application.DTOs.Responses;
+using Assert.Domain.Entities;
 
 namespace Assert.Application.Interfaces
 {
@@ -14,5 +15,9 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO> SetAsRead(int conversationId, int userId, List<long> messageIds, Dictionary<string, string> requestInfo);
         Task<ReturnModelDTO> SetAsUnread(int conversationId, int userId, List<long> messageIds, Dictionary<string, string> requestInfo);
         Task<(ReturnModelDTO<List<ConversationDTO>>, PaginationMetadataDTO)> SearchConversations(ConversationFilterDTO filter, Dictionary<string, string> requestInfo);
+
+        Task<ReturnModelDTO<ConversationDTO>> SetFeatured(long conversationId, int userid, bool isFeatured);
+        Task<ReturnModelDTO<ConversationDTO>> SetArchived(long conversationId, int userid, bool isArchived);
+        Task<ReturnModelDTO<ConversationDTO>> SetSilent(long conversationId, int userid, bool isSilent);
     }
 }

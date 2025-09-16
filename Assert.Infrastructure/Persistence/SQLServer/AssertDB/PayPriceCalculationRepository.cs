@@ -108,6 +108,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             if (priceCalculation != null)
             {
                 priceCalculation.CalculationStatue = "PAYED";
+                priceCalculation.CalculationStatusId = 2;
                 priceCalculation.PaymentProviderId = paymentProviderId;
                 priceCalculation.MethodOfPaymentId = methodOfPaymentId;
                 priceCalculation.PaymentTransactionId = PaymentTransactionId;

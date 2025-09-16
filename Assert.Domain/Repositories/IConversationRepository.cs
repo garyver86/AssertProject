@@ -11,5 +11,8 @@ namespace Assert.Domain.Repositories
         Task<List<TmConversation>> Get(int userId);
         Task<TmConversation> GetConversation(long conversationId);
         Task<(List<TmConversation> Conversations, PaginationMetadata pagination)> SearchConversations(ConversationFilter filter);
+        Task<TmConversation> SetFeatured(long conversationId, int userid, bool isFeatured);
+        Task<TmConversation> SetArchived(long conversationId, int userid, bool isArchived);
+        Task<TmConversation> SetSilent(long conversationId, int userid, bool isSilent);
     }
 }
