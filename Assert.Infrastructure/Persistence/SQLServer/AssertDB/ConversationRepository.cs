@@ -33,6 +33,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 //Buscamos una converzación entre estas dos personas con ese mismo bookId
                 var existingConversationWithBook = await _context.TmConversations
+                    .Include(x => x.PriceCalculation)
+                    .Include(x => x.Book)
                     .FirstOrDefaultAsync(c => ((c.UserIdOne == renterId && c.UserIdTwo == hostId) ||
                                               (c.UserIdOne == hostId && c.UserIdTwo == renterId)) &&
                                               c.BookId == bookId);
@@ -45,6 +47,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 //Buscamos una converzación entre estas dos personas con ese mismo priceCalculationId
                 var existingConversationWithPriceCalculation = await _context.TmConversations
+                    .Include(x=>x.PriceCalculation)
                     .FirstOrDefaultAsync(c => ((c.UserIdOne == renterId && c.UserIdTwo == hostId) ||
                                               (c.UserIdOne == hostId && c.UserIdTwo == renterId)) &&
                                               c.PriceCalculationId == priceCalculationId);
