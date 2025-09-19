@@ -392,11 +392,11 @@ namespace Assert.Application.Services
         }
 
 
-        public async Task<ReturnModelDTO<BookDTO>> AuthorizationResponse(int userId, long bookId, bool isApproval)
+        public async Task<ReturnModelDTO<BookDTO>> AuthorizationResponse(int userId, long bookId, bool isApproval, int? reasonRefused)
         {
             try
             {
-                var book = await _bookService.AuthorizationResponse(userId, bookId, isApproval);
+                var book = await _bookService.AuthorizationResponse(userId, bookId, isApproval, reasonRefused);
 
                 string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
                 _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");

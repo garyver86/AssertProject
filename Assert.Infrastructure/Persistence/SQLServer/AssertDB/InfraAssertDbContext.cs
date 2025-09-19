@@ -68,6 +68,8 @@ public partial class InfraAssertDbContext : DbContext
 
     public virtual DbSet<TQuickTipType> TQuickTipTypes { get; set; }
 
+    public virtual DbSet<TReasonRefusedBook> TReasonRefusedBooks { get; set; }
+
     public virtual DbSet<TRentPriceSuggestion> TRentPriceSuggestions { get; set; }
 
     public virtual DbSet<TResource> TResources { get; set; }
@@ -277,6 +279,8 @@ public partial class InfraAssertDbContext : DbContext
     public virtual DbSet<TuUserLog> TuUserLogs { get; set; }
 
     public virtual DbSet<TuUserOtp> TuUserOtps { get; set; }
+
+    public virtual DbSet<TuUserOtpCreate> TuUserOtpCreates { get; set; }
 
     public virtual DbSet<TuUserReview> TuUserReviews { get; set; }
 
@@ -1088,6 +1092,27 @@ public partial class InfraAssertDbContext : DbContext
                 .HasColumnName("descriptionType");
         });
 
+        modelBuilder.Entity<TReasonRefusedBook>(entity =>
+        {
+            entity.HasKey(e => e.ReasonRefusedId);
+
+            entity.ToTable("T_ReasonRefusedBook");
+
+            entity.Property(e => e.ReasonRefusedId).HasColumnName("reasonRefusedId");
+            entity.Property(e => e.ReasonRefusedCode)
+                .HasMaxLength(5)
+                .IsUnicode(false)
+                .HasColumnName("reasonRefusedCode");
+            entity.Property(e => e.ReasonRefusedName)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("reasonRefusedName");
+            entity.Property(e => e.ReasonRefusedText)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("reasonRefusedText");
+        });
+
         modelBuilder.Entity<TRentPriceSuggestion>(entity =>
         {
             entity.HasKey(e => e.RentPriceSuggestionId);
@@ -1442,6 +1467,7 @@ public partial class InfraAssertDbContext : DbContext
                 .HasMaxLength(200)
                 .IsUnicode(false)
                 .HasColumnName("PK");
+            entity.Property(e => e.ReasonRefusedId).HasColumnName("reasonRefusedId");
             entity.Property(e => e.StartDate)
                 .HasColumnType("datetime")
                 .HasColumnName("startDate");
@@ -1468,6 +1494,10 @@ public partial class InfraAssertDbContext : DbContext
                 .HasForeignKey(d => d.ListingRentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TB_Book_TL_ListingRent");
+
+            entity.HasOne(d => d.ReasonRefused).WithMany(p => p.TbBooks)
+                .HasForeignKey(d => d.ReasonRefusedId)
+                .HasConstraintName("FK_TB_Book_T_ReasonRefusedBook");
 
             entity.HasOne(d => d.UserIdRenterNavigation).WithMany(p => p.TbBooks)
                 .HasForeignKey(d => d.UserIdRenter)
@@ -3112,6 +3142,7 @@ public partial class InfraAssertDbContext : DbContext
                 .HasColumnName("ipAddress");
             entity.Property(e => e.IsRead).HasColumnName("isRead");
             entity.Property(e => e.MessageStatusId).HasColumnName("messageStatusId");
+            entity.Property(e => e.OnlyUserId).HasColumnName("onlyUserId");
             entity.Property(e => e.ReadDate).HasColumnType("datetime");
             entity.Property(e => e.UserId).HasColumnName("userId");
 
@@ -3191,6 +3222,12 @@ public partial class InfraAssertDbContext : DbContext
 
             entity.Property(e => e.Code).HasMaxLength(10);
             entity.Property(e => e.MessageActions).HasMaxLength(500);
+            entity.Property(e => e.MessageBody)
+                .HasMaxLength(500)
+                .IsUnicode(false);
+            entity.Property(e => e.MessageBodyDest)
+                .HasMaxLength(500)
+                .IsUnicode(false);
             entity.Property(e => e.Title).HasMaxLength(255);
         });
 
@@ -4282,6 +4319,35 @@ public partial class InfraAssertDbContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TU_UserOtp_TU_User");
+        });
+
+        modelBuilder.Entity<TuUserOtpCreate>(entity =>
+        {
+            entity.HasKey(e => e.UserOtpCreateId);
+
+            entity.ToTable("TU_UserOtpCreate");
+
+            entity.Property(e => e.UserOtpCreateId).HasColumnName("userOtpCreateId");
+            entity.Property(e => e.Email)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("email");
+            entity.Property(e => e.LastName)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("lastName");
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("name");
+            entity.Property(e => e.OtpCode)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("otpCode");
+            entity.Property(e => e.Status)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("status");
         });
 
         modelBuilder.Entity<TuUserReview>(entity =>

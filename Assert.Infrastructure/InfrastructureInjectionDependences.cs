@@ -148,6 +148,7 @@ public static class InfrastructureInjectionDependences
         services.AddScoped<IReviewQuestionRepository, ReviewQuestionRepository>();
         services.AddScoped<INotificationRepository, NotificationRepository>();
         services.AddScoped<INotificationTypeRepository, NotificationTypeRepository>();
+        services.AddScoped<IMessagePredefinedRepository, MessagePredefinedRepository>();
         #endregion
 
         return services;

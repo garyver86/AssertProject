@@ -582,7 +582,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         }
 
 
-        public async Task<TbBook> AuthorizationResponse(int userId, long bookId, bool isApproval)
+        public async Task<TbBook> AuthorizationResponse(int userId, long bookId, bool isApproval, int? reasonRefused)
         {
             var existingBook = await _dbContext.TbBooks.Include(x => x.ListingRent).Where(x => x.BookId == bookId).FirstOrDefaultAsync();
             if (existingBook == null)

@@ -75,6 +75,8 @@ public partial class TbBook
 
     public int? CancellationUserId { get; set; }
 
+    public int? ReasonRefusedId { get; set; }
+
     public virtual TbBookStatus BookStatus { get; set; } = null!;
 
     public virtual TCurrency Currency { get; set; } = null!;
@@ -82,6 +84,8 @@ public partial class TbBook
     public virtual TlListingRent ListingRent { get; set; } = null!;
 
     public virtual ICollection<PayPriceCalculation> PayPriceCalculations { get; set; } = new List<PayPriceCalculation>();
+
+    public virtual TReasonRefusedBook? ReasonRefused { get; set; }
 
     public virtual ICollection<TbBookChange> TbBookChanges { get; set; } = new List<TbBookChange>();
 

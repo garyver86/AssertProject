@@ -789,9 +789,9 @@ namespace Assert.Domain.Implementation
             return result;
         }
 
-        public async Task<TbBook> AuthorizationResponse(int userId, long bookId, bool isApproval)
+        public async Task<TbBook> AuthorizationResponse(int userId, long bookId, bool isApproval, int? reasonRefused)
         {
-            var result = await _bookRepository.AuthorizationResponse(userId, bookId, isApproval);
+            var result = await _bookRepository.AuthorizationResponse(userId, bookId, isApproval,reasonRefused);
             return result;
         }
 

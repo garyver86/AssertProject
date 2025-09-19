@@ -80,7 +80,7 @@ namespace Assert.API.Controllers
         [Route("{bookId}/Approve")]
         public async Task<ReturnModelDTO<BookDTO>> Approved(long bookId)
         {
-            var result = await _appBookService.AuthorizationResponse(_metadata.UserId, bookId, true);
+            var result = await _appBookService.AuthorizationResponse(_metadata.UserId, bookId, true, null);
             return result;
         }
 
@@ -95,9 +95,9 @@ namespace Assert.API.Controllers
         [HttpPut]
         [Authorize(Policy = "GuestOrHost")]
         [Route("{bookId}/Refuse")]
-        public async Task<ReturnModelDTO<BookDTO>> Refuse(long bookId)
+        public async Task<ReturnModelDTO<BookDTO>> Refuse(long bookId, [FromBody] int reasonRefused)
         {
-            var result = await _appBookService.AuthorizationResponse(_metadata.UserId, bookId, false);
+            var result = await _appBookService.AuthorizationResponse(_metadata.UserId, bookId, false,reasonRefused);
             return result;
         }
     }

@@ -266,7 +266,7 @@ namespace Assert.Application.Services
             ReturnModelDTO<MessageDTO> result = new ReturnModelDTO<MessageDTO>();
             try
             {
-                TmMessage result_ = await _messageRepository.Send(conversationId, userId, body, messageTypeId);
+                TmMessage result_ = await _messageRepository.Send(conversationId, userId, body, messageTypeId, null);
                 var conversation = await _conversationRepository.GetConversation(conversationId);
                 await _notificationService.SendNewMessageNotificationAsync(conversation.UserIdOne == userId ? conversation.UserIdTwo : conversation.UserIdOne, body);
 
