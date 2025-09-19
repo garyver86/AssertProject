@@ -35,6 +35,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 var existingConversationWithBook = await _context.TmConversations
                     .Include(x => x.PriceCalculation)
                     .Include(x => x.Book)
+                    .Include(x => x.ListingRent)
                     .FirstOrDefaultAsync(c => ((c.UserIdOne == renterId && c.UserIdTwo == hostId) ||
                                               (c.UserIdOne == hostId && c.UserIdTwo == renterId)) &&
                                               c.BookId == bookId);
@@ -47,7 +48,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 //Buscamos una converzación entre estas dos personas con ese mismo priceCalculationId
                 var existingConversationWithPriceCalculation = await _context.TmConversations
-                    .Include(x=>x.PriceCalculation)
+                    .Include(x => x.PriceCalculation)
+                    .Include(x => x.ListingRent)
                     .FirstOrDefaultAsync(c => ((c.UserIdOne == renterId && c.UserIdTwo == hostId) ||
                                               (c.UserIdOne == hostId && c.UserIdTwo == renterId)) &&
                                               c.PriceCalculationId == priceCalculationId);
@@ -140,10 +142,51 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .Include(x => x.ListingRent)
                 .Include(x => x.Book)
                 .Include(x => x.PriceCalculation)
-                .Include(x => x.ListingRent.TpProperties)
+                //.Include(x => x.ListingRent.TpProperties)
                 .Include(x => x.ListingRent.TlListingPhotos)
-                .Include(x => x.ListingRent.AccomodationType)
+                //.Include(x => x.ListingRent.AccomodationType)
                 .Where(c => c.UserIdOne == userId || c.UserIdTwo == userId)
+                .Select(c => new TmConversation
+                {
+                    // Mapear todas las propiedades que necesitas
+                    ConversationId = c.ConversationId,
+                    UserIdOne = c.UserIdOne,
+                    UserIdTwo = c.UserIdTwo,
+                    UserIdOneNavigation = c.UserIdOneNavigation,
+                    UserIdTwoNavigation = c.UserIdTwoNavigation,
+                    //ListingRent = c.ListingRent,
+                    Book = c.Book,
+                    PriceCalculation = c.PriceCalculation,
+
+                    // Cargar solo la foto principal (asumiendo que hay una propiedad IsPrimary)
+                    ListingRent = c.ListingRent != null ? new TlListingRent
+                    {
+                        ListingRentId = c.ListingRent.ListingRentId,
+                        TpProperties = c.ListingRent.TpProperties,
+                        AccomodationType = c.ListingRent.AccomodationType,
+                        Name = c.ListingRent.Name,
+                        Description = c.ListingRent.Description,
+                        TlListingPhotos = c.ListingRent.TlListingPhotos.Where(p => p.IsPrincipal != null ? (bool)p.IsPrincipal : false) // Asumiendo que hay un campo IsPrimary
+                        .Take(1)
+                        .ToList()
+                    } : c.ListingRent == null && c.PriceCalculation != null ? new TlListingRent
+                    {
+                        ListingRentId = c.PriceCalculation.ListingRent.ListingRentId,
+                        TpProperties = c.PriceCalculation.ListingRent.TpProperties,
+                        AccomodationType = c.PriceCalculation.ListingRent.AccomodationType,
+                        Name = c.PriceCalculation.ListingRent.Name,
+                        Description = c.PriceCalculation.ListingRent.Description,
+                        TlListingPhotos = c.PriceCalculation.ListingRent.TlListingPhotos.Where(p => p.IsPrincipal != null ? (bool)p.IsPrincipal : false) // Asumiendo que hay un campo IsPrimary
+                        .Take(1)
+                        .ToList()
+                    } : null,
+
+                    // Cargar solo el último mensaje
+                    TmMessages = c.TmMessages
+                .OrderByDescending(m => m.CreationDate)
+                .Take(1)
+                .ToList()
+                })
                 .ToListAsync();
             foreach (var con in conversations)
             {
