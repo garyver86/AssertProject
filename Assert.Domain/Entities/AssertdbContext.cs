@@ -279,6 +279,8 @@ public partial class AssertDbContext : DbContext
 
     public virtual DbSet<TuUserOtp> TuUserOtps { get; set; }
 
+    public virtual DbSet<TuUserOtpCreate> TuUserOtpCreates { get; set; }
+
     public virtual DbSet<TuUserReview> TuUserReviews { get; set; }
 
     public virtual DbSet<TuUserRole> TuUserRoles { get; set; }
@@ -4287,6 +4289,35 @@ public partial class AssertDbContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TU_UserOtp_TU_User");
+        });
+
+        modelBuilder.Entity<TuUserOtpCreate>(entity =>
+        {
+            entity.HasKey(e => e.UserOtpCreateId);
+
+            entity.ToTable("TU_UserOtpCreate");
+
+            entity.Property(e => e.UserOtpCreateId).HasColumnName("userOtpCreateId");
+            entity.Property(e => e.Email)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("email");
+            entity.Property(e => e.LastName)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("lastName");
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("name");
+            entity.Property(e => e.OtpCode)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("otpCode");
+            entity.Property(e => e.Status)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("status");
         });
 
         modelBuilder.Entity<TuUserReview>(entity =>
