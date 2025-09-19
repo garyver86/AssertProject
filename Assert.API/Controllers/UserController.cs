@@ -189,6 +189,24 @@ public class UserController : Controller
     => await _userService.ChangePassword(pwd);
 
     /// <summary>
+    /// Endpoint para restablecer la contraseña de un usuario local mediante código OTP.
+    /// </summary>
+    /// <param name="pwd">Modelo con credenciales y código OTP.</param>
+    /// <returns>Objeto <see cref="ReturnModelDTO"/> con el resultado de la operación.</returns>
+    /// <response code="200">La contraseña fue actualizada correctamente.</response>
+    /// <response code="400">Solicitud inválida o código OTP incorrecto.</response>
+    /// <response code="404">Usuario no encontrado.</response>
+    /// <remarks>
+    /// Este servicio solo aplica a usuarios locales registrados en ASSERT.
+    /// No está disponible para cuentas federadas como Google, Facebook o Apple.
+    /// Requiere un código OTP válido previamente generado y enviado por correo electronico.
+    /// </remarks>
+
+    [HttpPost("ForgotPassword")]
+    public async Task<ReturnModelDTO> ForgotPasswordToLocalUser([FromBody] ForgotPasswordRequest pwd)
+    => await _userService.ForgotPassword(pwd);
+
+    /// <summary>
     /// Servicio que retorna el perfil del usuario logeado contemplando resenas de huespedes y anfitriones.
     /// </summary>
     /// <returns>Confirmación de la actualizacion: UPDATED.</returns>

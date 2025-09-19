@@ -103,6 +103,8 @@ public partial class TuUser
 
     public virtual ICollection<TuUserLog> TuUserLogs { get; set; } = new List<TuUserLog>();
 
+    public virtual ICollection<TuUserOtp> TuUserOtps { get; set; } = new List<TuUserOtp>();
+
     public virtual ICollection<TuUserReview> TuUserReviewUserIdReviewerNavigations { get; set; } = new List<TuUserReview>();
 
     public virtual ICollection<TuUserReview> TuUserReviewUsers { get; set; } = new List<TuUserReview>();
