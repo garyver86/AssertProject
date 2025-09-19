@@ -1,4 +1,6 @@
 ﻿using Assert.Domain.Entities;
+using System.Net;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -33,5 +35,30 @@ namespace Assert.Infrastructure.Utils
             }
             return hash;
         }
+
+        public static string GetOTPCode()
+        {
+            Random r = new Random();
+            return r.Next(100000, 999999).ToString();
+        }
+
+        public static string LoadOtpTemplate(string user, string otpCode)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var resourceName = "Assert.Infrastructure.External.Notifications.Templates.otpNotification.html";
+
+            using var stream = assembly.GetManifestResourceStream(resourceName)
+                ?? throw new FileNotFoundException($"No se encontró el recurso embebido: {resourceName}");
+
+            using var reader = new StreamReader(stream);
+            var html = reader.ReadToEnd();
+
+            return html?
+                .Replace("{user}", WebUtility.HtmlEncode(user))
+                .Replace("{otpCode}", WebUtility.HtmlEncode(otpCode)) ?? $"Estimado {user},\n\nUtilice el siguiente codigo en la plataforma Assert: {otpCode}";
+        }
+
+
+
     }
 }

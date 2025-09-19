@@ -276,6 +276,8 @@ public partial class InfraAssertDbContext : DbContext
 
     public virtual DbSet<TuUserLog> TuUserLogs { get; set; }
 
+    public virtual DbSet<TuUserOtp> TuUserOtps { get; set; }
+
     public virtual DbSet<TuUserReview> TuUserReviews { get; set; }
 
     public virtual DbSet<TuUserRole> TuUserRoles { get; set; }
@@ -4252,6 +4254,34 @@ public partial class InfraAssertDbContext : DbContext
             entity.HasOne(d => d.User).WithMany(p => p.TuUserLogs)
                 .HasForeignKey(d => d.UserId)
                 .HasConstraintName("FK_TU_UserLog_TU_User");
+        });
+
+        modelBuilder.Entity<TuUserOtp>(entity =>
+        {
+            entity.HasKey(e => e.UserOtpId);
+
+            entity.ToTable("TU_UserOtp");
+
+            entity.Property(e => e.UserOtpId).HasColumnName("userOtpId");
+            entity.Property(e => e.DateLastGen)
+                .HasColumnType("datetime")
+                .HasColumnName("dateLastGen");
+            entity.Property(e => e.OtpCode)
+                .HasMaxLength(100)
+                .IsUnicode(false)
+                .HasColumnName("otpCode");
+            entity.Property(e => e.Status)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("status");
+            entity.Property(e => e.UseNewPassword).HasColumnName("useNewPassword");
+            entity.Property(e => e.UseOldPassword).HasColumnName("useOldPassword");
+            entity.Property(e => e.UserId).HasColumnName("userId");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TuUserOtps)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_TU_UserOtp_TU_User");
         });
 
         modelBuilder.Entity<TuUserReview>(entity =>

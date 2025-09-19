@@ -142,9 +142,20 @@ public class AppUserService(
         }
     }
 
+    public async Task<ReturnModelDTO> ForgotPassword(ForgotPasswordRequest forgotPwd)
+    {
+        var responseStr = await _accountRepository.ForgotPassword(forgotPwd.UserName, forgotPwd.OtpCode, forgotPwd.NewPassword);
+
+        return new ReturnModelDTO
+        {
+            StatusCode = ResultStatusCode.OK,
+            Data = responseStr
+        };
+    }
+
     public async Task<ReturnModelDTO> ChangePassword(ChangePasswordRequest pwd)
     {
-        var responseStr = await _accountRepository.ChangePassword(pwd.NewPassword);
+        var responseStr = await _accountRepository.ChangePassword(pwd.OldPassword, pwd.NewPassword, pwd.OtpCode);
 
         return new ReturnModelDTO
         {
