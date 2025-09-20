@@ -606,6 +606,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 existingBook.BookStatusId = 5;
                 existingBook.IsApprobal = false;
+                existingBook.ReasonRefusedId = reasonRefused;
                 await _dbContext.SaveChangesAsync();
             }
 

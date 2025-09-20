@@ -97,7 +97,42 @@ namespace Assert.API.Controllers
         [Route("{bookId}/Refuse")]
         public async Task<ReturnModelDTO<BookDTO>> Refuse(long bookId, [FromBody] int reasonRefused)
         {
-            var result = await _appBookService.AuthorizationResponse(_metadata.UserId, bookId, false,reasonRefused);
+            var result = await _appBookService.AuthorizationResponse(_metadata.UserId, bookId, false, reasonRefused);
+            return result;
+        }
+
+
+        /// <summary>
+        /// Servicio que devuelve autoriza una solicitud de reserva
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200"></response>
+        /// <remarks>
+        /// 
+        /// </remarks>
+        [HttpPut]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("Consulting/{priceCalculationId}/Approve")]
+        public async Task<ReturnModelDTO<PayPriceCalculationDTO>> ApproveConsulting(long priceCalculationId)
+        {
+            var result = await _appBookService.ConsultingResponse(_metadata.UserId, priceCalculationId, true, null);
+            return result;
+        }
+
+        /// <summary>
+        /// Servicio que devuelve rechaza una solicitud de reserva
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200"></response>
+        /// <remarks>
+        /// 
+        /// </remarks>
+        [HttpPut]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("Consulting/{priceCalculationId}/Refuse")]
+        public async Task<ReturnModelDTO<PayPriceCalculationDTO>> RefuseConsulting(long priceCalculationId, [FromBody] int reasonRefused)
+        {
+            var result = await _appBookService.ConsultingResponse(_metadata.UserId, priceCalculationId, false, reasonRefused);
             return result;
         }
     }

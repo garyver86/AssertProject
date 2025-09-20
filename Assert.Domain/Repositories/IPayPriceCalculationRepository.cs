@@ -15,5 +15,6 @@ namespace Assert.Domain.Repositories
         Task<PayPriceCalculation> GetById(long id);
         Task<ReturnModel> SetAsPayed(Guid calculationCode, int paymentProviderId, int methodOfPaymentId,
             long PaymentTransactionId);
+        Task<PayPriceCalculation> ConsultingResponse(int userId, long priceCalculationId, bool isApproval, int? reasonRefused);
     }
 }

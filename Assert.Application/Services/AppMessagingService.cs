@@ -6,7 +6,9 @@ using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Assert.Domain.ValueObjects;
+using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 using AutoMapper;
+using Microsoft.VisualBasic;
 
 namespace Assert.Application.Services
 {
@@ -15,17 +17,19 @@ namespace Assert.Application.Services
         private readonly IMessageRepository _messageRepository;
         private readonly IConversationRepository _conversationRepository;
         private readonly INotificationService _notificationService;
+        private readonly IMessagePredefinedRepository _messagePredefinedRepository;
 
         private readonly IMapper _mapper;
         private readonly IErrorHandler _errorHandler;
         public AppMessagingService(IConversationRepository conversationRepository, IMessageRepository messageRepository,
-            IMapper mapper, IErrorHandler errorHandler, INotificationService notificationService)
+            IMapper mapper, IErrorHandler errorHandler, INotificationService notificationService, IMessagePredefinedRepository messagePredefinedRepository)
         {
             _conversationRepository = conversationRepository;
             _messageRepository = messageRepository;
             _mapper = mapper;
             _errorHandler = errorHandler;
             _notificationService = notificationService;
+            _messagePredefinedRepository = messagePredefinedRepository;
         }
         public async Task<ReturnModelDTO<ConversationDTO>> CreateConversation(int renterid, int hostId, int userId, long? bookId, long? priceCalculationId, long? listingId, Dictionary<string, string> requestInfo)
         {
@@ -51,6 +55,20 @@ namespace Assert.Application.Services
                         HasError = false,
                         Data = _mapper.Map<ConversationDTO>(result_)
                     };
+
+                    if (result_.PriceCalculation?.CalculationStatusId == 4)
+                    {
+                        var messagePredefined = await _messagePredefinedRepository.GetByCode("CON_WORES");
+                        if (messagePredefined != null)
+                        {
+                            string messageHost = string.Format(messagePredefined.MessageBody, result_.ListingRent?.MaxGuests > 1 ? result_.ListingRent?.MaxGuests.ToString() + " huespedes" : result_.ListingRent?.MaxGuests.ToString() + " huesped", result_.PriceCalculation?.InitBook?.ToString("dd/MM/yyyy") + " al " + result_.PriceCalculation?.EndBook?.ToString("dd/MM/yyyy"));
+                            await SendMessage(result_.ConversationId, null, messageHost, 4, requestInfo, hostId);
+
+
+                            string messageRenter = string.Format(messagePredefined.MessageBodyDest ?? messagePredefined.MessageBody, result_.ListingRent?.MaxGuests > 1 ? result_.ListingRent?.MaxGuests.ToString() + " huespedes" : result_.ListingRent?.MaxGuests.ToString() + " huesped", result_.PriceCalculation?.InitBook?.ToString("dd/MM/yyyy") + " al " + result_.PriceCalculation?.EndBook?.ToString("dd/MM/yyyy"));
+                            await SendMessage(result_.ConversationId, null, messageRenter, 4, requestInfo, renterid);
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -195,12 +213,12 @@ namespace Assert.Application.Services
                 (List<TmConversation>, PaginationMetadata) result_ = await _conversationRepository.SearchConversations(_filter);
 
                 List<ConversationDTO> conversations = _mapper.Map<List<ConversationDTO>>(result_.Item1);
-                
+
                 if (conversations.Count > 0)
                 {
                     foreach (var conversation in conversations)
                     {
-                        var conv= result_.Item1.FirstOrDefault(c => c.ConversationId == conversation.ConversationId);
+                        var conv = result_.Item1.FirstOrDefault(c => c.ConversationId == conversation.ConversationId);
                         if (conversation != null && filter.UserId == conversation.UserIdOne)
                         {
                             conversation.Archived = conv.UserOneArchived;
@@ -261,14 +279,14 @@ namespace Assert.Application.Services
             return result;
         }
 
-        public async Task<ReturnModelDTO<MessageDTO>> SendMessage(int conversationId, int userId, string body, int messageTypeId, Dictionary<string, string> requestInfo)
+        public async Task<ReturnModelDTO<MessageDTO>> SendMessage(long conversationId, int? userId, string body, int messageTypeId, Dictionary<string, string> requestInfo, int? onlyForUserId)
         {
             ReturnModelDTO<MessageDTO> result = new ReturnModelDTO<MessageDTO>();
             try
             {
-                TmMessage result_ = await _messageRepository.Send(conversationId, userId, body, messageTypeId, null);
+                TmMessage result_ = await _messageRepository.Send(conversationId, userId, body, messageTypeId, onlyForUserId);
                 var conversation = await _conversationRepository.GetConversation(conversationId);
-                await _notificationService.SendNewMessageNotificationAsync(conversation.UserIdOne == userId ? conversation.UserIdTwo : conversation.UserIdOne, body);
+                await _notificationService.SendNewMessageNotificationAsync(onlyForUserId ?? (conversation.UserIdOne == userId ? conversation.UserIdTwo : conversation.UserIdOne), body);
 
                 result = new ReturnModelDTO<MessageDTO>
                 {

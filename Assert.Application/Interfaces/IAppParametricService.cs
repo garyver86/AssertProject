@@ -15,5 +15,6 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<List<CurrencyDTO>>> GetCurrencies();
         Task<ReturnModelDTO<List<SecurityItemDTO>>> GetSecurityItems(Dictionary<string, string> requestInfo, bool v);
         Task<ReturnModelDTO<List<ApprovalPolicyDTO>>> GetReservationTypes(Dictionary<string, string> requestInfo, bool v);
+        Task<ReturnModelDTO<List<ReasonRefusedBookDTO>>> GetReasonRefusedBook(Dictionary<string, string> requestInfo, bool v);
     }
 }

@@ -71,6 +71,8 @@ public partial class AssertDbContext : DbContext
 
     public virtual DbSet<TReasonRefusedBook> TReasonRefusedBooks { get; set; }
 
+    public virtual DbSet<TReasonRefusedPriceCalculation> TReasonRefusedPriceCalculations { get; set; }
+
     public virtual DbSet<TRentPriceSuggestion> TRentPriceSuggestions { get; set; }
 
     public virtual DbSet<TResource> TResources { get; set; }
@@ -447,9 +449,11 @@ public partial class AssertDbContext : DbContext
             entity.Property(e => e.MethodOfPaymentId).HasColumnName("methodOfPaymentId");
             entity.Property(e => e.PaymentProviderId).HasColumnName("paymentProviderId");
             entity.Property(e => e.PaymentTransactionId).HasColumnName("paymentTransactionId");
+            entity.Property(e => e.ReasonRefusedId).HasColumnName("reasonRefusedId");
             entity.Property(e => e.UserAgent)
                 .HasMaxLength(256)
                 .HasColumnName("userAgent");
+            entity.Property(e => e.UserId).HasColumnName("userId");
 
             entity.HasOne(d => d.Book).WithMany(p => p.PayPriceCalculations)
                 .HasForeignKey(d => d.BookId)
@@ -475,6 +479,14 @@ public partial class AssertDbContext : DbContext
             entity.HasOne(d => d.PaymentTransaction).WithMany(p => p.PayPriceCalculations)
                 .HasForeignKey(d => d.PaymentTransactionId)
                 .HasConstraintName("FK_Pay_PriceCalculation_Pay_Transaction");
+
+            entity.HasOne(d => d.ReasonRefused).WithMany(p => p.PayPriceCalculations)
+                .HasForeignKey(d => d.ReasonRefusedId)
+                .HasConstraintName("FK_Pay_PriceCalculation_T_ReasonRefusedPriceCalculation");
+
+            entity.HasOne(d => d.User).WithMany(p => p.PayPriceCalculations)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_Pay_PriceCalculation_TU_User");
         });
 
         modelBuilder.Entity<PayPriceCalculationStatus>(entity =>
@@ -1102,6 +1114,27 @@ public partial class AssertDbContext : DbContext
             entity.HasKey(e => e.ReasonRefusedId);
 
             entity.ToTable("T_ReasonRefusedBook");
+
+            entity.Property(e => e.ReasonRefusedId).HasColumnName("reasonRefusedId");
+            entity.Property(e => e.ReasonRefusedCode)
+                .HasMaxLength(5)
+                .IsUnicode(false)
+                .HasColumnName("reasonRefusedCode");
+            entity.Property(e => e.ReasonRefusedName)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("reasonRefusedName");
+            entity.Property(e => e.ReasonRefusedText)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("reasonRefusedText");
+        });
+
+        modelBuilder.Entity<TReasonRefusedPriceCalculation>(entity =>
+        {
+            entity.HasKey(e => e.ReasonRefusedId);
+
+            entity.ToTable("T_ReasonRefusedPriceCalculation");
 
             entity.Property(e => e.ReasonRefusedId).HasColumnName("reasonRefusedId");
             entity.Property(e => e.ReasonRefusedCode)

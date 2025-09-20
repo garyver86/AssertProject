@@ -47,6 +47,8 @@ public partial class TuUser
 
     public virtual TuGenderType? GenderType { get; set; }
 
+    public virtual ICollection<PayPriceCalculation> PayPriceCalculations { get; set; } = new List<PayPriceCalculation>();
+
     public virtual TuPlatform? Platform { get; set; }
 
     public virtual ICollection<TExceptionLog> TExceptionLogs { get; set; } = new List<TExceptionLog>();

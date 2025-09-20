@@ -164,7 +164,7 @@ namespace Assert.Domain.Implementation
             var discounts = await _listingDiscountForRateRepository.GetByListingRentId(listingRentId);
 
 
-            if(priceInfo == null)
+            if (priceInfo == null)
             {
                 result.HasError = true;
                 result.StatusCode = ResultStatusCode.BadRequest;
@@ -791,7 +791,13 @@ namespace Assert.Domain.Implementation
 
         public async Task<TbBook> AuthorizationResponse(int userId, long bookId, bool isApproval, int? reasonRefused)
         {
-            var result = await _bookRepository.AuthorizationResponse(userId, bookId, isApproval,reasonRefused);
+            var result = await _bookRepository.AuthorizationResponse(userId, bookId, isApproval, reasonRefused);
+            return result;
+        }
+
+        public async Task<PayPriceCalculation> ConsultingResponse(int userId, long priceCalculationId, bool isApproval, int? reasonRefused)
+        {
+            var result = await _payPriceCalculationRepository.ConsultingResponse(userId, priceCalculationId, isApproval, reasonRefused);
             return result;
         }
 

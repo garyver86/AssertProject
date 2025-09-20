@@ -9,12 +9,10 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
     public class ConversationRepository : IConversationRepository
     {
         private readonly InfraAssertDbContext _context;
-        private readonly IMessagePredefinedRepository _messagePredefinedRepository;
         private readonly IMessageRepository _messageRepository;
-        public ConversationRepository(InfraAssertDbContext context, IMessagePredefinedRepository messagePredefinedRepository, IMessageRepository messageRepository)
+        public ConversationRepository(InfraAssertDbContext context, IMessageRepository messageRepository)
         {
             _context = context;
-            _messagePredefinedRepository = messagePredefinedRepository;
             _messageRepository = messageRepository;
         }
         public async Task<TmConversation> Create(int renterId, int hostId, long? bookId, long? priceCalculationId, long? listingId)
@@ -102,7 +100,6 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 {
                     //Si está pendiente, la convertimos en una converzación de consulta
                     priceCalculation.CalculationStatusId = 4; //Estado de consulta
-                    messagePredefined = await _messagePredefinedRepository.GetByCode("CON_WORES");
                 }
             }
             else if (bookId > 0)
@@ -137,14 +134,6 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
             _context.TmConversations.Add(conversation);
             await _context.SaveChangesAsync();
-
-            if (messagePredefined != null)
-            {
-                string messageHost = string.Format(messagePredefined.MessageBody, priceCalculation.ListingRent?.MaxGuests > 1 ? priceCalculation.ListingRent?.MaxGuests.ToString() + " huespedes" : priceCalculation.ListingRent?.MaxGuests.ToString() + " huesped", priceCalculation.InitBook?.ToString("dd/MM/yyyy") + " al " + priceCalculation.EndBook?.ToString("dd/MM/yyyy"));
-                await _messageRepository.Send(conversation.ConversationId, null, messageHost, 4, hostId);
-                string messageRenter = string.Format(messagePredefined.MessageBodyDest ?? messagePredefined.MessageBody, priceCalculation.ListingRent?.MaxGuests > 1 ? priceCalculation.ListingRent?.MaxGuests.ToString() + " huespedes" : priceCalculation.ListingRent?.MaxGuests.ToString() + " huesped", priceCalculation.InitBook?.ToString("dd/MM/yyyy") + " al " + priceCalculation.EndBook?.ToString("dd/MM/yyyy"));
-                await _messageRepository.Send(conversation.ConversationId, null, messageRenter, 4, renterId);
-            }
 
             return conversation;
         }

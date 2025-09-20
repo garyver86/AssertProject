@@ -29,5 +29,6 @@ namespace Assert.Domain.Services
         Task<List<TbBook>> GetCancelablesBookings(int userId);
         Task<List<TbBook>> GetApprovedsWOInit(int userId);
         Task<TbBook> AuthorizationResponse(int userId, long bookId, bool isApproval, int? reasonRefused);
+        Task<PayPriceCalculation> ConsultingResponse(int userId, long priceCalculationId, bool isApproval, int? reasonRefused);
     }
 }
