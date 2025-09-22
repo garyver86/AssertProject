@@ -2,6 +2,8 @@
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -9,6 +11,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http.Json;
 using System.Reflection;
+using System.Runtime;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Transactions;
@@ -113,7 +116,13 @@ namespace Assert.Domain.Implementation
                 result.ResultError = new ErrorCommon { Message = "La propiedad no está disponible para reservas (bl)." };
                 return result;
             }
-
+            else if (listing.OwnerUserId == guestId)
+            {
+                result.HasError = true;
+                result.StatusCode = ResultStatusCode.BadRequest;
+                result.ResultError = new ErrorCommon { Message = "No se puede reservar una propiedad propia." };
+                return result;
+            }
             // 2. Validar fechas
             if (startDate >= endDate)
             {
@@ -344,7 +353,8 @@ namespace Assert.Domain.Implementation
                 EndBook = endDate,
                 ListingRentId = listingRentId,
                 BreakdownInfo = JsonConvert.SerializeObject(breakdown),
-                CalculationStatusId = 1
+                CalculationStatusId = 1,
+                UserId = guestId
             };
 
             var resultCalculation = await _payPriceCalculationRepository.Create(payPriceCalculation);
@@ -372,6 +382,15 @@ namespace Assert.Domain.Implementation
                     HasError = true,
                     StatusCode = ResultStatusCode.BadRequest,
                     ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, $"El código de cotización ingresado no puede ser encontrado.", useTechnicalMessages)
+                };
+            }
+            if (priceCalculation.UserId != userId)
+            {
+                return new ReturnModel<TbBook>
+                {
+                    HasError = true,
+                    StatusCode = ResultStatusCode.BadRequest,
+                    ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, $"El código de cotización ingresado no pertenece al usuario autenticado.", useTechnicalMessages)
                 };
             }
 
@@ -604,6 +623,12 @@ namespace Assert.Domain.Implementation
                 {
                     _cancellationStart = ((DateTime)priceCalculation.InitBook?.Date).AddHours(((double)policy.HoursAfetrBooking) * -1);
                 }
+
+                if (_cancellationStart.HasValue && _cancellationEnd.HasValue && _cancellationStart > _cancellationEnd)
+                {
+                    _cancellationStart = null;
+                }
+
                 return new CheckinValuesModel
                 {
                     CancellationEnd = _cancellationEnd,
@@ -718,8 +743,8 @@ namespace Assert.Domain.Implementation
                 Checkout = checInOutValues.CheckOut,
                 MaxCheckin = checInOutValues.MaxCheckIn,
                 CancellationStart = checInOutValues.CancellationStart,
-                CancellationEnd = checInOutValues.CancellationEnd
-
+                CancellationEnd = checInOutValues.CancellationEnd,
+                RequestDateTime = DateTime.UtcNow
             };
 
             long bookId = await _bookRepository.UpsertBookAsync(booking);
@@ -806,6 +831,42 @@ namespace Assert.Domain.Implementation
             return new ReturnModel { StatusCode = ResultStatusCode.OK, HasError = false };
         }
 
+        public async Task CheckAndExpireReservation(DateTime expirationThreshold)
+        {
+            try
+            {
+                await _bookRepository.CheckAndExpireReservation(expirationThreshold);
 
+            }
+            catch (DbUpdateException dbEx)
+            {
+                //Guardar en log
+                throw;
+            }
+            catch (Exception ex)
+            {
+                //Guardar en log
+                throw;
+            }
+        }
+
+        public async Task CheckAndFinishReservation(DateTime expirationThreshold)
+        {
+            try
+            {
+                await _bookRepository.CheckAndFinishReservation(expirationThreshold);
+
+            }
+            catch (DbUpdateException dbEx)
+            {
+                //Guardar en log
+                throw;
+            }
+            catch (Exception ex)
+            {
+                //Guardar en log
+                throw;
+            }
+        }
     }
 }

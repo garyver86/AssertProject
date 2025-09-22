@@ -8,6 +8,7 @@ using Assert.API.Filters;
 using Assert.API.Middleware;
 using Assert.Application;
 using Assert.Domain.Implementation;
+using Assert.Domain.Models;
 using Assert.Domain.Services;
 using Assert.Infrastructure;
 using Assert.Infrastructure.Common;
@@ -49,6 +50,12 @@ builder.Services.AddSignalRServices();
 builder.Logging.ClearProviders()
                .AddConsole(options => options.IncludeScopes = true)
                .AddDebug();
+
+builder.Services.Configure<AutomaticExecutingConfiguration>(
+    builder.Configuration.GetSection("AutomaticExecution"));
+
+// Registrar el servicio
+builder.Services.AddHostedService<ReservationExpiryService>();
 
 builder.Services.AddQuequeExtensions();
 

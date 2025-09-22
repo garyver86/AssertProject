@@ -15,4 +15,6 @@ public interface IBookRepository
     Task<List<TbBook>> GetApprovedsWOInit(int userId);
     Task<List<TbBook>> GetPendingAcceptanceForRenter(int userId);
     Task<TbBook> AuthorizationResponse(int userId, long bookId, bool isApproval, int? reasonRefused);
+    Task CheckAndExpireReservation(DateTime expirationThreshold);
+    Task CheckAndFinishReservation(DateTime expirationThreshold);
 }

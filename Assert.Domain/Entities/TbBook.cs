@@ -77,7 +77,13 @@ public partial class TbBook
 
     public int? ReasonRefusedId { get; set; }
 
+    public DateTime? RequestDateTime { get; set; }
+
+    public DateTime? ExpiredDateTime { get; set; }
+
     public virtual TbBookStatus BookStatus { get; set; } = null!;
+
+    public virtual TuUser? CancellationUser { get; set; }
 
     public virtual TCurrency Currency { get; set; } = null!;
 

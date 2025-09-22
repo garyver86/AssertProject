@@ -1464,6 +1464,9 @@ public partial class AssertDbContext : DbContext
             entity.Property(e => e.EndDate)
                 .HasColumnType("datetime")
                 .HasColumnName("endDate");
+            entity.Property(e => e.ExpiredDateTime)
+                .HasColumnType("datetime")
+                .HasColumnName("expiredDateTime");
             entity.Property(e => e.GuestCheckin)
                 .HasColumnType("datetime")
                 .HasColumnName("guest_checkin");
@@ -1506,6 +1509,9 @@ public partial class AssertDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("PK");
             entity.Property(e => e.ReasonRefusedId).HasColumnName("reasonRefusedId");
+            entity.Property(e => e.RequestDateTime)
+                .HasColumnType("datetime")
+                .HasColumnName("requestDateTime");
             entity.Property(e => e.StartDate)
                 .HasColumnType("datetime")
                 .HasColumnName("startDate");
@@ -1523,6 +1529,10 @@ public partial class AssertDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TB_Book_TB_BookStatus");
 
+            entity.HasOne(d => d.CancellationUser).WithMany(p => p.TbBookCancellationUsers)
+                .HasForeignKey(d => d.CancellationUserId)
+                .HasConstraintName("FK_TB_Book_TU_User1");
+
             entity.HasOne(d => d.Currency).WithMany(p => p.TbBooks)
                 .HasForeignKey(d => d.CurrencyId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -1537,7 +1547,7 @@ public partial class AssertDbContext : DbContext
                 .HasForeignKey(d => d.ReasonRefusedId)
                 .HasConstraintName("FK_TB_Book_T_ReasonRefusedBook");
 
-            entity.HasOne(d => d.UserIdRenterNavigation).WithMany(p => p.TbBooks)
+            entity.HasOne(d => d.UserIdRenterNavigation).WithMany(p => p.TbBookUserIdRenterNavigations)
                 .HasForeignKey(d => d.UserIdRenter)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TB_Book_TU_User");
