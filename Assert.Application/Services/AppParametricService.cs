@@ -305,7 +305,7 @@ namespace Assert.Application.Services
         {
             try
             {
-                var result = await _parametricService.GetAccomodationTypesActives();
+                var result = await _parametricService.GetReasonRefusedBook(v);
                 if (result.HasError)
                 {
                     return CreateErrorResult<List<ReasonRefusedBookDTO>>(result.StatusCode, result.ResultError, v);
