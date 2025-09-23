@@ -83,7 +83,6 @@ namespace Assert.API.Controllers
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);
             var properties = await _searchService.SearchProperties(filters, pageNumber ?? 1, pageSize ?? 10, userId, requestInfo, true);
 
-            //return properties;
             return new ReturnModelDTO_Pagination
             {
                 Data = properties.Data.data,

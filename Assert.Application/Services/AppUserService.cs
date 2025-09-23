@@ -6,14 +6,18 @@ using Assert.Domain.Common.Metadata;
 using Assert.Domain.Entities;
 using Assert.Domain.Enums;
 using Assert.Domain.Interfaces.Infraestructure.External;
+using Assert.Domain.Interfaces.Notifications;
 using Assert.Domain.Models;
+using Assert.Domain.Notifications;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 using Assert.Infrastructure.Security;
+using Assert.Infrastructure.Utils;
 using AutoMapper;
 using FluentValidation;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -30,6 +34,7 @@ public class AppUserService(
         IImageService _imageService,
         Func<Platform, IAuthProviderValidator> _authValidatorFactory, IUserService _userService,
         IValidator<UpdatePersonalInformationRequest> _validator,
+        IEmailNotification _emailNotifications,
         IErrorHandler _errorHandler, ILogger<AppUserService> _logger,
         CustomProfileMapper _customMapper)
         : IAppUserService
@@ -246,9 +251,27 @@ public class AppUserService(
             throw new ApplicationException($"El usuario ya se encuentra registrado en Assert: {userRequest.Email}");
         }
 
+        if (string.IsNullOrWhiteSpace(userRequest.OtpCode))
+        {
+            var otpGeneratedResult = await _accountRepository.GenerateOtpToCreateUser(
+                userRequest.Email, userRequest.Name, userRequest.LastName);
+            return new ReturnModelDTO
+            {
+                Data = otpGeneratedResult,
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
+        }
+
+        var responseToValidateOtp = await _accountRepository.ValidateOtpToCreateUser(
+            userRequest.Email, userRequest.OtpCode);
+
+        if (responseToValidateOtp != "VALIDATED")
+            throw new InvalidTokenException("El codigo OTP ingresado es incorrecto. Verifique e itente nuevamente.");
+
         var userId = await _userRepository.Create(userRequest.Email, Platform.Local,
-            userRequest.Name, userRequest.LastName, 3, null, "", 1, "",
-        userRequest.CountryId, userRequest.PhoneNumber);
+        userRequest.Name, userRequest.LastName, 3, null, "", 1, "",
+    userRequest.CountryId, userRequest.PhoneNumber);
         var accountId = await _accountRepository.Create(userId, userRequest.Password);
         var userRolId = await _userRolRespository.CreateGuest(userId);
 

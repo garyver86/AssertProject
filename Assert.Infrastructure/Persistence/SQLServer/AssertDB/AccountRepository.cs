@@ -19,6 +19,78 @@ public class AccountRepository
     RequestMetadata _metadata)
     : IAccountRepository
 {
+    public async Task<string> GenerateOtpToCreateUser(string email, 
+        string name, string lastName)
+    {
+        try 
+        {
+            #region otp code process
+            string newOtp = UtilsMgr.GetOTPCode();
+            string body = UtilsMgr.LoadOtpTemplate(
+                $"{name}", newOtp);
+            await _emailNotifications.SendAsync(new EmailNotification
+            {
+                Body = body,
+                Subject = "Codigo OTP - Recuperacion de contrasena",
+                To = new List<string> { email }
+            });
+
+            await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+                    UPDATE assertdb.dbo.TU_UserOtpCreate
+                    SET assertdb.dbo.TU_UserOtpCreate.Status = 'IN'
+                    WHERE assertdb.dbo.TU_UserOtpCreate.Email = {email} 
+                    AND assertdb.dbo.TU_UserOtpCreate.Status = 'AC'");
+
+            var newUserOtpCreate = new TuUserOtpCreate
+            {
+                Email = email,
+                Name = name,
+                LastName = lastName,
+                OtpCode = newOtp,
+                Status = "AC"
+            };
+            await _dbContext.TuUserOtpCreates.AddAsync(newUserOtpCreate);
+            await _dbContext.SaveChangesAsync();
+            #endregion
+
+            return "OTP_SENT";
+        }
+        catch (Exception ex)
+        {
+            var (className, methodName) = this.GetCallerInfo();
+            _exceptionLoggerService.LogAsync(ex, methodName, className, new { _metadata.UserId });
+            throw new InfrastructureException(ex.Message);
+        }
+    }
+
+    public async Task<string> ValidateOtpToCreateUser(
+        string email, string otpCode)
+    {
+        try
+        {
+            var latestOtpForCreateUser = await _dbContext.TuUserOtpCreates
+                    .Where(x => x.Email == email && x.Status == "AC")
+                    .FirstOrDefaultAsync();
+
+            if (latestOtpForCreateUser is null)
+                throw new NotFoundException($"No existe codigo OTP generado para crear nuevo usuaerio: {email}");
+
+            if (latestOtpForCreateUser.OtpCode != otpCode)
+                throw new UnauthorizedException("El codigo OTP no es correcto para creacion de usuario. Verifique e intente nuevamente.");
+
+            latestOtpForCreateUser.Status = "IN";
+            await _dbContext.SaveChangesAsync();
+
+            return "VALIDATED";
+        }
+        catch (Exception ex)
+        {
+            var (className, methodName) = this.GetCallerInfo();
+            _exceptionLoggerService.LogAsync(ex, methodName, className, new { _metadata.UserId });
+            throw new InfrastructureException(ex.Message);
+        }
+    }
+
     public async Task<string> ForgotPassword(string userName, string otpCode, string newPassword)
     {
         try

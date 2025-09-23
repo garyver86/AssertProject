@@ -35,5 +35,8 @@ namespace Assert.Domain.Repositories
         Task<List<TlListingRent>> GetAllResumed(int userID, bool onlyPublish);
         Task<List<TlListingRent>> GetCalendarData(int userID);
         Task<List<TlListingRent>> GetUnfinishedList(int ownerId);
+
+        Task<string> ChangeMaxMinStay(int listingRentId, bool setMaxStay, int maxStayValue,
+            bool setMinStay, int minStayValue);
     }
 }

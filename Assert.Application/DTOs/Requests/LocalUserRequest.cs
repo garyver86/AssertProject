@@ -15,4 +15,6 @@ public class LocalUserRequest
     public int CountryId { get; set; }
     public string PhoneNumber { get; set; } = string.Empty;
 
+    public string OtpCode { get; set; } = string.Empty;
+
 }
