@@ -28,6 +28,8 @@ namespace Assert.Application.Mappings
             CreateMap<ReturnModel, ReturnModelDTO>();
             CreateMap<ConversationFilter, ConversationFilterDTO>().ReverseMap();
             CreateMap<TReasonRefusedBook, ReasonRefusedBookDTO>();
+            CreateMap<TReasonRefusedPriceCalculation, ReasonRefusedConsultDTO>();
+            CreateMap<TbBookStatus, BookStatusDTO>();
 
             CreateMap<ProcessDataRequest, ListingProcessDataModel>();
             CreateMap<AddressDTO, ProcessData_AddressModel>();

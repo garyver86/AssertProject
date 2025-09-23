@@ -154,7 +154,7 @@ namespace Assert.API.Controllers
         [HttpPost("GetBookByUserIdAsync")]
         [Authorize(Policy = "GuestOrHostOrAdmin")]
         public async Task<ReturnModelDTO> GetBookByUserIdAsync()
-        => await _bookService.GetBooksByUserIdAsync();
+        => await _bookService.GetBooksByUserIdAsync(null);
 
         /// <summary>
         /// Servicio que recupera una lista de reservas del usuario que inicio sesion.
@@ -167,7 +167,20 @@ namespace Assert.API.Controllers
         [HttpGet("GetBooks")]
         [Authorize(Policy = "GuestOrHostOrAdmin")]
         public async Task<ReturnModelDTO> GetBooks()
-        => await _bookService.GetBooksByUserIdAsync();
+        => await _bookService.GetBooksByUserIdAsync(null);
+
+        /// <summary>
+        /// Servicio que recupera una lista de reservas del usuario que inicio sesion (Pasando como filtro el estado de las reservas).
+        /// </summary>
+        /// <returns>Confirmación de la actualizacion: retorna la informacion completa de las reservas del usuario</returns>
+        /// <response code="200">Si se proceso correctamente.</response>
+        /// <remarks>
+        /// En caso que no existan reservas para el usuario retorna error
+        /// </remarks>
+        [HttpGet("GetBooks/{statusCode}")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> GetBooks(string statusCode)
+        => await _bookService.GetBooksByUserIdAsync(statusCode);
 
         /// <summary>
         /// Servicio que recupera una lista de reservas del usuario que no cuentan con un review.

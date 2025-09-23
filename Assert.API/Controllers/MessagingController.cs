@@ -214,24 +214,24 @@ namespace Assert.API.Controllers
         }
 
 
-        ///// <summary>
-        ///// Servicio que marca una converzación como no archivada
-        ///// </summary>
-        ///// <param name="conversationId">Id de la converzación.</param>
-        ///// <response code="200">Confirmación del marcado como no archivado.</response>
-        ///// <remarks>
-        ///// 
-        ///// </remarks>
-        //[HttpDelete("Conversations/{conversationId}/Unarchived")]
-        //[Authorize(Policy = "GuestOrHost")]
-        //public async Task<ReturnModelDTO> SetUnarchived(int conversationId)
-        //{
-        //    var requestInfo = HttpContext.GetRequestInfo();
-        //    int userId = 0;
-        //    int.TryParse(User.FindFirst("identifier")?.Value, out userId);
-        //    ReturnModelDTO result = await _messagingService.SetArchived(conversationId, userId, false);
-        //    return result;
-        //}
+        /// <summary>
+        /// Servicio que marca una converzación como no archivada
+        /// </summary>
+        /// <param name="conversationId">Id de la converzación.</param>
+        /// <response code="200">Confirmación del marcado como no archivado.</response>
+        /// <remarks>
+        /// 
+        /// </remarks>
+        [HttpDelete("Conversations/{conversationId}/Unarchived")]
+        [Authorize(Policy = "GuestOrHost")]
+        public async Task<ReturnModelDTO> SetUnarchived(int conversationId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+            ReturnModelDTO result = await _messagingService.SetArchived(conversationId, userId, false);
+            return result;
+        }
 
 
         /// <summary>

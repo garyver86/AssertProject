@@ -21,6 +21,7 @@ namespace Assert.Application.Services
     public class AppBookService(
         IBookService _bookService,
         IBookRepository _bookRespository,
+        IBookStatusRepository _bookStatusRepository,
         IMapper _mapper,
         IErrorHandler _errorHandler,
         RequestMetadata _metadata,
@@ -79,9 +80,11 @@ namespace Assert.Application.Services
             };
         }
 
-        public async Task<ReturnModelDTO<List<BookDTO>>> GetBooksByUserIdAsync()
+        public async Task<ReturnModelDTO<List<BookDTO>>> GetBooksByUserIdAsync(string statusCode)
         {
-            var books = await _bookRespository.GetByUserId(_metadata.UserId);
+            TbBookStatus statusList = await _bookStatusRepository.GetStatusByCode(statusCode);
+
+            var books = await _bookRespository.GetByUserId(_metadata.UserId, statusList.BookStatusId);
 
             if (!(books is { Count: > 0 }))
                 throw new KeyNotFoundException($"No existen reservas para el usuario con ID {_metadata.UserId}.");

@@ -286,8 +286,31 @@ namespace Assert.Application.Services
             {
                 TmMessage result_ = await _messageRepository.Send(conversationId, userId, body, messageTypeId, onlyForUserId);
                 var conversation = await _conversationRepository.GetConversation(conversationId);
-                await _notificationService.SendNewMessageNotificationAsync(onlyForUserId ?? (conversation.UserIdOne == userId ? conversation.UserIdTwo : conversation.UserIdOne), body);
 
+                bool sendNotification = true;
+
+                // Determinar quién envía y quién recibe
+                bool isSenderUserOne = conversation.UserIdOne == userId;
+                bool isSenderUserTwo = conversation.UserIdTwo == userId;
+
+                if (isSenderUserOne)
+                {
+                    if ((conversation.UserTwoSilent ?? false) || (conversation.UserTwoArchived ?? false))
+                    {
+                        sendNotification = false;
+                    }
+                }
+                else if (isSenderUserTwo)
+                {
+                    if ((conversation.UserOneSilent ?? false) || (conversation.UserOneArchived ?? false))
+                    {
+                        sendNotification = false;
+                    }
+                }
+                if (sendNotification)
+                {
+                    await _notificationService.SendNewMessageNotificationAsync(onlyForUserId ?? (isSenderUserOne ? conversation.UserIdTwo : conversation.UserIdOne), body);
+                }
                 result = new ReturnModelDTO<MessageDTO>
                 {
                     StatusCode = ResultStatusCode.OK,
