@@ -288,20 +288,28 @@ namespace Assert.Application.Services
                 var conversation = await _conversationRepository.GetConversation(conversationId);
 
                 bool sendNotification = true;
-                if(
-                    ((conversation.UserOneSilent??false) && (conversation.UserTwoSilent ?? false)) ||
-                    ((conversation.UserOneSilent ?? false) && conversation.UserIdOne == userId) ||
-                    ((conversation.UserTwoSilent ?? false) && conversation.UserIdTwo == userId) ||
-                    ((conversation.UserOneArchived ?? false) && (conversation.UserTwoArchived ?? false)) ||
-                    ((conversation.UserOneArchived ?? false) && conversation.UserIdOne == userId) ||
-                    ((conversation.UserTwoArchived ?? false) && conversation.UserIdTwo == userId)
-                 )
+
+                // Determinar quién envía y quién recibe
+                bool isSenderUserOne = conversation.UserIdOne == userId;
+                bool isSenderUserTwo = conversation.UserIdTwo == userId;
+
+                if (isSenderUserOne)
                 {
-                    sendNotification = false;
+                    if ((conversation.UserTwoSilent ?? false) || (conversation.UserTwoArchived ?? false))
+                    {
+                        sendNotification = false;
+                    }
+                }
+                else if (isSenderUserTwo)
+                {
+                    if ((conversation.UserOneSilent ?? false) || (conversation.UserOneArchived ?? false))
+                    {
+                        sendNotification = false;
+                    }
                 }
                 if (sendNotification)
                 {
-                    await _notificationService.SendNewMessageNotificationAsync(onlyForUserId ?? (conversation.UserIdOne == userId ? conversation.UserIdTwo : conversation.UserIdOne), body);
+                    await _notificationService.SendNewMessageNotificationAsync(onlyForUserId ?? (isSenderUserOne ? conversation.UserIdTwo : conversation.UserIdOne), body);
                 }
                 result = new ReturnModelDTO<MessageDTO>
                 {

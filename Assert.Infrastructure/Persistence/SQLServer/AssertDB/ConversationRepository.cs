@@ -173,7 +173,24 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     //ListingRent = c.ListingRent,
                     Book = c.Book,
                     PriceCalculation = c.PriceCalculation,
-
+                    BookId = c.BookId,
+                    CreationDate = c.CreationDate,
+                    ListingRentId = c.ListingRentId,
+                    PriceCalculationId = c.PriceCalculationId,
+                    StatusId = c.StatusId,
+                    Status = c.Status,
+                    UserOneArchived = c.UserOneArchived,
+                    UserOneArchivedDateTime = c.UserOneArchivedDateTime,
+                    UserOneFeatured = c.UserOneFeatured,
+                    UserOneFeaturedDateTime = c.UserOneFeaturedDateTime,
+                    UserOneSilent = c.UserOneSilent,
+                    UserOneSilentDateTime = c.UserOneSilentDateTime,
+                    UserTwoArchived = c.UserTwoArchived,
+                    UserTwoArchivedDateTime = c.UserTwoArchivedDateTime,
+                    UserTwoFeatured = c.UserTwoFeatured,
+                    UserTwoFeaturedDateTime = c.UserTwoFeaturedDateTime,
+                    UserTwoSilent = c.UserTwoSilent,
+                    UserTwoSilentDateTime = c.UserTwoFeaturedDateTime,
                     // Cargar solo la foto principal (asumiendo que hay una propiedad IsPrimary)
                     ListingRent = c.ListingRent != null ? new TlListingRent
                     {
@@ -203,10 +220,23 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .Take(1)
                 .ToList()
                 })
-                .ToListAsync()).Where(c => (c.UserTwoArchived == false && c.UserOneArchived == false) ||
-                        (c.UserOneArchived == false && c.UserIdOne == userId) ||
-                        (c.UserTwoArchived == false && c.UserIdTwo == userId)
-                 );
+                .ToListAsync());
+
+            //conversations = conversations.Where(c => (c.UserTwoArchived == false && c.UserOneArchived == false) ||
+            //            (c.UserTwoArchived == null && c.UserOneArchived == null) ||
+            //            (c.UserOneArchived == false && c.UserIdOne == userId) ||
+            //            (c.UserOneArchived == null && c.UserIdOne == userId) ||
+            //            (c.UserTwoArchived == false && c.UserIdTwo == userId) ||
+            //            (c.UserTwoArchived == null && c.UserIdTwo == userId)
+            //     ).ToList();
+
+            conversations = conversations.Where(c => (c.UserTwoArchived == false && c.UserOneArchived == false) ||
+                        // El usuario es UserOne Y NO está archivado
+                        (c.UserIdOne == userId && c.UserOneArchived != true) ||
+                        // El usuario es UserTwo Y NO está archivado  
+                        (c.UserIdTwo == userId && c.UserTwoArchived != true)
+                 ).ToList();
+
             foreach (var con in conversations)
             {
                 if (con.Book?.ListingRent != null)
@@ -263,9 +293,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 query = query.Where(c => c.UserIdOne == filter.UserId.Value || c.UserIdTwo == filter.UserId.Value);
             }
 
-            query = query.Where(c => (c.UserTwoArchived == false && c.UserOneArchived == false) ||
-                    (c.UserOneArchived == false && c.UserIdOne == filter.UserId) ||
-                    (c.UserTwoArchived == false && c.UserIdTwo == filter.UserId)
+            query = query.Where(c =>
+                    // El usuario es UserOne Y NO está archivado
+                    (c.UserIdOne == filter.UserId && c.UserOneArchived != true) ||
+                    // El usuario es UserTwo Y NO está archivado  
+                    (c.UserIdTwo == filter.UserId && c.UserTwoArchived != true)
                 );
 
             // Obtener conteo total ANTES de filtrar por keywords
