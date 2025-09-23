@@ -933,6 +933,28 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
+        //public async Task<string> ChangeMaxMinStay(bool setMaxStay, int maxStayValue, 
+        //    bool setMinStay, int  minStayValue)
+        //{
+        //    try
+        //    {
+        //        var minStayDefault = _paramsData?.MinStayDefault ?? 1;
+        //        var maxStayDefault = _paramsData?.MaxStayDefault ?? 365;
+        //        if(setMaxStay)
+        //        {
+
+        //        }
+
+
+        //    }
+        //    catch(Exception ex)
+        //    {
+        //        var (className, methodName) = this.GetCallerInfo();
+        //        _exceptionLoggerService.LogAsync(ex, methodName, className, new { userName });
+        //        throw new InfrastructureException(ex.Message);
+        //    }
+        //}
+
         #region Métodos auxiliares para cargar cada relación
         private async Task<List<TlListingAmenity>> LoadAmenitiesAsync(InfraAssertDbContext _context, long listingId)
         {
