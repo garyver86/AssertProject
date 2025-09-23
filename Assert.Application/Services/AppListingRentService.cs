@@ -12,6 +12,7 @@ using Assert.Domain.ValueObjects;
 using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 using Assert.Shared.Extensions;
 using AutoMapper;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
 using System.CodeDom;
@@ -1196,6 +1197,22 @@ namespace Assert.Application.Services
                 _exceptionLoggerService.LogAsync(ex, methodName, className, 0);
                 throw new Exceptions.ApplicationException(ex.Message);
             }
+        }
+
+        public async Task<ReturnModelDTO<string>> UpsertMaxMinStay(UpsertMaxMinStayRequestDTO request)
+        {
+            if(!request.SetMaxStay && !request.SetMinStay)
+                throw new ApplicationException("Requiere modificar al menos minimo o maximo de estancia.");
+
+            var result = await _listingRentRepository.ChangeMaxMinStay(request.ListingRentId, request.SetMaxStay,
+                request.MaxStay, request.SetMinStay, request.MinStay);
+
+            return new ReturnModelDTO<string>
+            {
+                HasError = false,
+                StatusCode = ResultStatusCode.OK,
+                Data = result
+            };
         }
     }
 }

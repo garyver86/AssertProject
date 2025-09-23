@@ -1,4 +1,5 @@
-﻿using Assert.Domain.Entities;
+﻿using Assert.Domain.Common.Params;
+using Assert.Domain.Entities;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
@@ -15,12 +16,16 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         private readonly ICityRepository _cityRepository;
         private readonly IListingFavoriteRepository _favoritesRepository;
         private readonly ILocationService _locationService;
-        public SearchService(InfraAssertDbContext dbContext, ICityRepository cityRepository, IListingFavoriteRepository listingFavoriteRepository, ILocationService locationService)
+        private readonly ParamsData _paramsData;
+        public SearchService(InfraAssertDbContext dbContext, 
+            ICityRepository cityRepository, IListingFavoriteRepository listingFavoriteRepository, 
+            ILocationService locationService, ParamsData paramsData)
         {
             _context = dbContext;
             _cityRepository = cityRepository;
             _favoritesRepository = listingFavoriteRepository;
             _locationService = locationService;
+            _paramsData = paramsData;
         }
 
         public async Task<ReturnModel<List<TCity>>> SearchCities(string filter, int filterType)
@@ -379,6 +384,14 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 query = query.Where(p => !p.TbBooks.Any(b =>
                     (b.StartDate <= filters.CheckOutDate.Value && b.EndDate >= filters.CheckInDate.Value)));
+
+                var stayLength = (filters.CheckOutDate.Value - filters.CheckInDate.Value).Days;
+                int defaultMinStay = _paramsData?.MinStayDefault ?? 1;
+                int defaultMaxStay = _paramsData?.MaxStayDefault ?? 365;
+                query = query.Where(p =>
+                        (stayLength >= (p.MinimunStay ?? defaultMinStay)) &&
+                        (stayLength <= (p.MaximumStay ?? defaultMaxStay)));
+
             }
 
             if (filters?.Rules?.AllowedPets != null)

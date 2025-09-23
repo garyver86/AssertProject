@@ -1,5 +1,7 @@
-﻿using Assert.Domain.Entities;
+﻿using Assert.Domain.Common.Params;
+using Assert.Domain.Entities;
 using Assert.Domain.Interfaces.Logging;
+using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.ValueObjects;
 using Assert.Infrastructure.Exceptions;
@@ -7,15 +9,7 @@ using Assert.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Linq;
-using System.Diagnostics.Metrics;
-using System.Globalization;
 using Microsoft.IdentityModel.Tokens;
-using Assert.Domain.Common.Params;
-using Assert.Domain.Models;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
-using System.Reflection;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
@@ -933,27 +927,52 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        //public async Task<string> ChangeMaxMinStay(bool setMaxStay, int maxStayValue, 
-        //    bool setMinStay, int  minStayValue)
-        //{
-        //    try
-        //    {
-        //        var minStayDefault = _paramsData?.MinStayDefault ?? 1;
-        //        var maxStayDefault = _paramsData?.MaxStayDefault ?? 365;
-        //        if(setMaxStay)
-        //        {
+        public async Task<string> ChangeMaxMinStay(int listingRentId, bool setMaxStay, int maxStayValue,
+            bool setMinStay, int minStayValue)
+        {
+            try
+            {
+                using (var context = new InfraAssertDbContext(dbOptions))
+                {
+                    var listingRent = await context.TlListingRents
+                        .FirstOrDefaultAsync(l => l.ListingRentId == listingRentId);
 
-        //        }
+                    if (listingRent is null)
+                        throw new NotFoundException($"No se encontró el listing con ID: {listingRentId}");
 
+                    bool updated = false;
 
-        //    }
-        //    catch(Exception ex)
-        //    {
-        //        var (className, methodName) = this.GetCallerInfo();
-        //        _exceptionLoggerService.LogAsync(ex, methodName, className, new { userName });
-        //        throw new InfrastructureException(ex.Message);
-        //    }
-        //}
+                    if (setMaxStay)
+                    {
+                        var maxStayDefault = _paramsData?.MaxStayDefault ?? 365;
+                        listingRent.MaximumStay = maxStayValue >= maxStayDefault ? maxStayValue : maxStayDefault;
+                        updated = true;
+                    }
+
+                    if (setMinStay)
+                    {
+                        var minStayDefault = _paramsData?.MinStayDefault ?? 1;
+                        listingRent.MinimunStay = minStayValue >= minStayDefault ? minStayValue : minStayDefault;
+                        updated = true;
+                    }
+
+                    if (updated)
+                    {
+                        await context.SaveChangesAsync();
+                        return "UPDATED";
+                    }
+
+                    return "NO CHANGES";
+                }
+
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { listingRentId, setMaxStay, maxStayValue, setMinStay, minStayValue });
+                throw new InfrastructureException(ex.Message);
+            }
+        }
 
         #region Métodos auxiliares para cargar cada relación
         private async Task<List<TlListingAmenity>> LoadAmenitiesAsync(InfraAssertDbContext _context, long listingId)

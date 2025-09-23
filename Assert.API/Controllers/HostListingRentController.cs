@@ -593,5 +593,34 @@ namespace Assert.API.Controllers
         [Route("SortListingRentPhotos")]
         public async Task<ReturnModelDTO> SortListingRentPhotos()
         => await _appListingRentService.SortListingRentPhotos();
+
+        /// <summary>
+        /// Actualiza los valores de estadía mínima y/o máxima para un Listing Rent específico.
+        /// </summary>
+        /// <param name="request">
+        /// Objeto que contiene los parámetros necesarios para la operación:
+        /// - <see cref="UpsertMaxMinStayRequestDTO.ListingRentId"/>: Identificador del Listing Rent.
+        /// - <see cref="UpsertMaxMinStayRequestDTO.SetMinStay"/> y <see cref="UpsertMaxMinStayRequestDTO.MinStay"/>: Indican si se debe actualizar la estadía mínima y su nuevo valor.
+        /// - <see cref="UpsertMaxMinStayRequestDTO.SetMaxStay"/> y <see cref="UpsertMaxMinStayRequestDTO.MaxStay"/>: Indican si se debe actualizar la estadía máxima y su nuevo valor.
+        /// </param>
+        /// <returns>
+        /// Un modelo con los detalles actualizados del Listing Rent, incluyendo los valores aplicados.
+        /// </returns>
+        /// <response code="200">UPDATED: La estadía mínima y/o máxima fueron actualizadas exitosamente.</response>
+        /// <response code="404">NOT FOUND: No se encontró el Listing Rent con el ID especificado.</response>
+        /// <response code="400">BAD REQUEST: Los valores proporcionados no cumplen con las reglas de negocio (por ejemplo, valores por debajo del mínimo permitido).</response>
+        /// <response code="500">INTERNAL SERVER ERROR: Error inesperado durante la operación.</response>
+        /// <remarks>
+        /// Requisitos y validaciones:
+        /// - El <c>ListingRentId</c> debe ser valido y existir en el sistema.
+        /// - Si <c>SetMinStay</c> o <c>SetMaxStay</c> son <c>true</c>, se validarán los valores contra los mínimos definidos por configuración.
+        /// - La operación es idempotente: si no se solicita ningún cambio, se retorna "NO CHANGES".
+        /// - Se registra cualquier excepción con contexto completo para trazabilidad.
+        /// </remarks>
+        [HttpPut()]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("UpsertMaxMinStay")]
+        public async Task<ReturnModelDTO> UpsertMaxMinStay(UpsertMaxMinStayRequestDTO request)
+        => await _appListingRentService.UpsertMaxMinStay(request);
     }
 }
