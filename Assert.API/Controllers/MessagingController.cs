@@ -150,7 +150,7 @@ namespace Assert.API.Controllers
             var requestInfo = HttpContext.GetRequestInfo();
             int userId = 0;
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);
-            ReturnModelDTO result = await _messagingService.SendMessage(conversationId, userId, request.Body, request.MessageTypeId, requestInfo);
+            ReturnModelDTO result = await _messagingService.SendMessage(conversationId, userId, request.Body, request.MessageTypeId, requestInfo, null);
             return result;
         }
 

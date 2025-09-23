@@ -20,6 +20,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             try
             {
                 var book = await _dbContext.TbBooks
+                    .Include(us => us.CancellationUser)
                     .Include(lr => lr.ListingRent)
                     .ThenInclude(pr => pr.TpProperties)
                     .Include(pr => pr.ListingRent.TlListingPrices)
@@ -575,6 +576,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 existingBook.CancellationUserId = userId;
                 existingBook.Cancellation = DateTime.UtcNow;
                 await _dbContext.SaveChangesAsync();
+                return existingBook;
             }
 
             throw new InvalidOperationException($"La reserva con ID {bookId} no puede ser cancelada por las políticas de cancelación.");
@@ -582,7 +584,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         }
 
 
-        public async Task<TbBook> AuthorizationResponse(int userId, long bookId, bool isApproval)
+        public async Task<TbBook> AuthorizationResponse(int userId, long bookId, bool isApproval, int? reasonRefused)
         {
             var existingBook = await _dbContext.TbBooks.Include(x => x.ListingRent).Where(x => x.BookId == bookId).FirstOrDefaultAsync();
             if (existingBook == null)
@@ -606,10 +608,60 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 existingBook.BookStatusId = 5;
                 existingBook.IsApprobal = false;
+                existingBook.ReasonRefusedId = reasonRefused;
                 await _dbContext.SaveChangesAsync();
             }
 
             return existingBook;
+        }
+
+        public async Task CheckAndExpireReservation(DateTime expirationThreshold)
+        {
+            using (var dbContext = new InfraAssertDbContext(dbOptions))
+            {
+                var expiredReservations = await dbContext.TbBooks
+                    .Where(r => r.BookStatusId == 1 &&
+                               r.RequestDateTime <= expirationThreshold)
+                    .Take(100) // Límite por batch para no sobrecargar
+                    .ToListAsync();
+
+                if (!expiredReservations.Any())
+                {
+                    return;
+                }
+
+                foreach (var reservation in expiredReservations)
+                {
+                    reservation.BookStatusId = 7;
+                    reservation.ExpiredDateTime = DateTime.UtcNow;
+                }
+
+                await dbContext.SaveChangesAsync();
+            }
+        }
+
+        public async Task CheckAndFinishReservation(DateTime expirationThreshold)
+        {
+            using (var dbContext = new InfraAssertDbContext(dbOptions))
+            {
+                var expiredReservations = await dbContext.TbBooks
+                    .Where(r => r.BookStatusId == 3 &&
+                               r.EndDate <= expirationThreshold)
+                    .Take(100) // Límite por batch para no sobrecargar
+                    .ToListAsync();
+
+                if (!expiredReservations.Any())
+                {
+                    return;
+                }
+
+                foreach (var reservation in expiredReservations)
+                {
+                    reservation.BookStatusId = 6;
+                }
+
+                await dbContext.SaveChangesAsync();
+            }
         }
     }
 }

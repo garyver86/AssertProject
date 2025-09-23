@@ -14,4 +14,6 @@ public partial class TmPredefinedMessage
     public string MessageBody { get; set; } = null!;
 
     public string? MessageActions { get; set; }
+
+    public string? MessageBodyDest { get; set; }
 }

@@ -69,6 +69,10 @@ public partial class AssertDbContext : DbContext
 
     public virtual DbSet<TQuickTipType> TQuickTipTypes { get; set; }
 
+    public virtual DbSet<TReasonRefusedBook> TReasonRefusedBooks { get; set; }
+
+    public virtual DbSet<TReasonRefusedPriceCalculation> TReasonRefusedPriceCalculations { get; set; }
+
     public virtual DbSet<TRentPriceSuggestion> TRentPriceSuggestions { get; set; }
 
     public virtual DbSet<TResource> TResources { get; set; }
@@ -445,9 +449,11 @@ public partial class AssertDbContext : DbContext
             entity.Property(e => e.MethodOfPaymentId).HasColumnName("methodOfPaymentId");
             entity.Property(e => e.PaymentProviderId).HasColumnName("paymentProviderId");
             entity.Property(e => e.PaymentTransactionId).HasColumnName("paymentTransactionId");
+            entity.Property(e => e.ReasonRefusedId).HasColumnName("reasonRefusedId");
             entity.Property(e => e.UserAgent)
                 .HasMaxLength(256)
                 .HasColumnName("userAgent");
+            entity.Property(e => e.UserId).HasColumnName("userId");
 
             entity.HasOne(d => d.Book).WithMany(p => p.PayPriceCalculations)
                 .HasForeignKey(d => d.BookId)
@@ -473,6 +479,14 @@ public partial class AssertDbContext : DbContext
             entity.HasOne(d => d.PaymentTransaction).WithMany(p => p.PayPriceCalculations)
                 .HasForeignKey(d => d.PaymentTransactionId)
                 .HasConstraintName("FK_Pay_PriceCalculation_Pay_Transaction");
+
+            entity.HasOne(d => d.ReasonRefused).WithMany(p => p.PayPriceCalculations)
+                .HasForeignKey(d => d.ReasonRefusedId)
+                .HasConstraintName("FK_Pay_PriceCalculation_T_ReasonRefusedPriceCalculation");
+
+            entity.HasOne(d => d.User).WithMany(p => p.PayPriceCalculations)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_Pay_PriceCalculation_TU_User");
         });
 
         modelBuilder.Entity<PayPriceCalculationStatus>(entity =>
@@ -1095,6 +1109,48 @@ public partial class AssertDbContext : DbContext
                 .HasColumnName("descriptionType");
         });
 
+        modelBuilder.Entity<TReasonRefusedBook>(entity =>
+        {
+            entity.HasKey(e => e.ReasonRefusedId);
+
+            entity.ToTable("T_ReasonRefusedBook");
+
+            entity.Property(e => e.ReasonRefusedId).HasColumnName("reasonRefusedId");
+            entity.Property(e => e.ReasonRefusedCode)
+                .HasMaxLength(5)
+                .IsUnicode(false)
+                .HasColumnName("reasonRefusedCode");
+            entity.Property(e => e.ReasonRefusedName)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("reasonRefusedName");
+            entity.Property(e => e.ReasonRefusedText)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("reasonRefusedText");
+        });
+
+        modelBuilder.Entity<TReasonRefusedPriceCalculation>(entity =>
+        {
+            entity.HasKey(e => e.ReasonRefusedId);
+
+            entity.ToTable("T_ReasonRefusedPriceCalculation");
+
+            entity.Property(e => e.ReasonRefusedId).HasColumnName("reasonRefusedId");
+            entity.Property(e => e.ReasonRefusedCode)
+                .HasMaxLength(5)
+                .IsUnicode(false)
+                .HasColumnName("reasonRefusedCode");
+            entity.Property(e => e.ReasonRefusedName)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("reasonRefusedName");
+            entity.Property(e => e.ReasonRefusedText)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("reasonRefusedText");
+        });
+
         modelBuilder.Entity<TRentPriceSuggestion>(entity =>
         {
             entity.HasKey(e => e.RentPriceSuggestionId);
@@ -1408,6 +1464,9 @@ public partial class AssertDbContext : DbContext
             entity.Property(e => e.EndDate)
                 .HasColumnType("datetime")
                 .HasColumnName("endDate");
+            entity.Property(e => e.ExpiredDateTime)
+                .HasColumnType("datetime")
+                .HasColumnName("expiredDateTime");
             entity.Property(e => e.GuestCheckin)
                 .HasColumnType("datetime")
                 .HasColumnName("guest_checkin");
@@ -1449,6 +1508,10 @@ public partial class AssertDbContext : DbContext
                 .HasMaxLength(200)
                 .IsUnicode(false)
                 .HasColumnName("PK");
+            entity.Property(e => e.ReasonRefusedId).HasColumnName("reasonRefusedId");
+            entity.Property(e => e.RequestDateTime)
+                .HasColumnType("datetime")
+                .HasColumnName("requestDateTime");
             entity.Property(e => e.StartDate)
                 .HasColumnType("datetime")
                 .HasColumnName("startDate");
@@ -1466,6 +1529,10 @@ public partial class AssertDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TB_Book_TB_BookStatus");
 
+            entity.HasOne(d => d.CancellationUser).WithMany(p => p.TbBookCancellationUsers)
+                .HasForeignKey(d => d.CancellationUserId)
+                .HasConstraintName("FK_TB_Book_TU_User1");
+
             entity.HasOne(d => d.Currency).WithMany(p => p.TbBooks)
                 .HasForeignKey(d => d.CurrencyId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
@@ -1476,7 +1543,11 @@ public partial class AssertDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TB_Book_TL_ListingRent");
 
-            entity.HasOne(d => d.UserIdRenterNavigation).WithMany(p => p.TbBooks)
+            entity.HasOne(d => d.ReasonRefused).WithMany(p => p.TbBooks)
+                .HasForeignKey(d => d.ReasonRefusedId)
+                .HasConstraintName("FK_TB_Book_T_ReasonRefusedBook");
+
+            entity.HasOne(d => d.UserIdRenterNavigation).WithMany(p => p.TbBookUserIdRenterNavigations)
                 .HasForeignKey(d => d.UserIdRenter)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TB_Book_TU_User");
@@ -3119,6 +3190,7 @@ public partial class AssertDbContext : DbContext
                 .HasColumnName("ipAddress");
             entity.Property(e => e.IsRead).HasColumnName("isRead");
             entity.Property(e => e.MessageStatusId).HasColumnName("messageStatusId");
+            entity.Property(e => e.OnlyUserId).HasColumnName("onlyUserId");
             entity.Property(e => e.ReadDate).HasColumnType("datetime");
             entity.Property(e => e.UserId).HasColumnName("userId");
 
@@ -3198,6 +3270,12 @@ public partial class AssertDbContext : DbContext
 
             entity.Property(e => e.Code).HasMaxLength(10);
             entity.Property(e => e.MessageActions).HasMaxLength(500);
+            entity.Property(e => e.MessageBody)
+                .HasMaxLength(500)
+                .IsUnicode(false);
+            entity.Property(e => e.MessageBodyDest)
+                .HasMaxLength(500)
+                .IsUnicode(false);
             entity.Property(e => e.Title).HasMaxLength(255);
         });
 

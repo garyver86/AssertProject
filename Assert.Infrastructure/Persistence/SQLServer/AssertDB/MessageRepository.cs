@@ -15,7 +15,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             _context = context;
             _validator = new MessageValidator();
         }
-        public async Task<List<TmMessage>> Get(int conversationId, int page, int pageSize, string orderBy, int userId)
+        public async Task<List<TmMessage>> Get(long conversationId, int page, int pageSize, string orderBy, int userId)
         {
             // Valida los parámetros de entrada.
             if (page <= 0)
@@ -29,7 +29,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
             // Inicia la consulta obteniendo los mensajes de la conversación.
             IQueryable<TmMessage> query = _context.TmMessages.Include(x => x.MessageType)
-                .Where(m => m.ConversationId == conversationId && (m.Conversation.UserIdOne == userId || m.Conversation.UserIdTwo == userId));
+                .Where(m => m.ConversationId == conversationId && (m.Conversation.UserIdOne == userId || m.Conversation.UserIdTwo == userId) && (m.OnlyUserId == null || m.OnlyUserId == userId));
 
             // Aplica el ordenamiento.
             switch (orderBy?.ToLower())
@@ -62,7 +62,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         }
 
         // Envía un nuevo mensaje a una conversación.
-        public async Task<TmMessage> Send(int conversationId, int userId, string body, int messageType)
+        public async Task<TmMessage> Send(long conversationId, int? userId, string body, int messageType, int? onlyForUserId)
         {
             // Valida los parámetros de entrada
             if (string.IsNullOrWhiteSpace(body))
@@ -86,7 +86,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 ReadDate = null, // El mensaje se crea como no leído.
                 MessageTypeId = messageType,
                 IsRead = false,
-                MessageStatusId = 1
+                MessageStatusId = 1,
+                OnlyUserId = onlyForUserId
             };
 
             // Agrega el mensaje al contexto y guarda los cambios.
@@ -98,7 +99,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         }
 
         // Marca uno o varios mensajes como leídos.
-        public async Task<TmMessage> SetAsRead(int conversationId, List<long>? messageIds)
+        public async Task<TmMessage> SetAsRead(long conversationId, List<long>? messageIds)
         {
             if (messageIds == null || messageIds?.Count == 0)
             {
@@ -129,7 +130,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         }
 
         // Marca uno o varios mensajes como no leídos.
-        public async Task<TmMessage> SetAsUnread(int conversationId, List<long>? messageIds)
+        public async Task<TmMessage> SetAsUnread(long conversationId, List<long>? messageIds)
         {
             if (messageIds == null || messageIds.Count() == 0)
             {

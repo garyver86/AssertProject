@@ -680,7 +680,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                             .Where(name => name != null)
                             .ToList(),
 
-                        GuestBooksCount = u.TbBooks
+                        GuestBooksCount = u.TbBookUserIdRenterNavigations
                             .Count(b => b.UserIdRenter == u.UserId &&
                                       b.BookStatus != null &&
                                       (b.BookStatus.Code == "approved" || b.BookStatus.Code == "completed")),

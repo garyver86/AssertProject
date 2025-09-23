@@ -47,6 +47,10 @@ public partial class PayPriceCalculation
 
     public DateTime? ConsultResponse { get; set; }
 
+    public int? ReasonRefusedId { get; set; }
+
+    public int? UserId { get; set; }
+
     public virtual TbBook? Book { get; set; }
 
     public virtual PayPriceCalculationStatus CalculationStatus { get; set; } = null!;
@@ -59,5 +63,9 @@ public partial class PayPriceCalculation
 
     public virtual PayTransaction? PaymentTransaction { get; set; }
 
+    public virtual TReasonRefusedPriceCalculation? ReasonRefused { get; set; }
+
     public virtual ICollection<TmConversation> TmConversations { get; set; } = new List<TmConversation>();
+
+    public virtual TuUser? User { get; set; }
 }

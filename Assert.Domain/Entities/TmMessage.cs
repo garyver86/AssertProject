@@ -33,6 +33,8 @@ public partial class TmMessage
 
     public int MessageStatusId { get; set; }
 
+    public int? OnlyUserId { get; set; }
+
     public virtual TmConversation Conversation { get; set; } = null!;
 
     public virtual TmMessageStatus MessageStatus { get; set; } = null!;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assert.Domain.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -72,4 +73,21 @@ public class BookDTO
     public DateTime? GuestCheckin { get; set; }
 
     public DateTime? GuestCheckout { get; set; }
+
+    public DateTime? CancellationStart { get; set; }
+
+    public DateTime? CancellationEnd { get; set; }
+
+    public DateTime? Cancellation { get; set; }
+
+    public int? CancellationUserId { get; set; }
+
+    public int? ReasonRefusedId { get; set; }
+
+    public TbBookStatus BookStatus { get; set; } = null!;
+
+    public TuUser? CancellationUser { get; set; }
+
+    public TCurrency Currency { get; set; } = null!;
+    public ReasonRefusedBookDTO? ReasonRefused { get; set; }
 }

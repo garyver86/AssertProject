@@ -40,6 +40,8 @@ namespace Assert.Application.DTOs.Responses
         public int? PaymentProviderId { get; set; }
 
         public long? PaymentTransactionId { get; set; }
+        public DateTime? InitBook { get; set; }
+        public DateTime? EndBook { get; set; }
     }
     public class PriceBreakdownItemDTO
     {

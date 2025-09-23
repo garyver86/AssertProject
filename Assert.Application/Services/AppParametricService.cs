@@ -300,5 +300,27 @@ namespace Assert.Application.Services
                 return HandleException<List<ApprovalPolicyDTO>>("AppParametricService.GetReservationTypes", ex, null, useTechnicalMessages);
             }
         }
+
+        public async Task<ReturnModelDTO<List<ReasonRefusedBookDTO>>> GetReasonRefusedBook(Dictionary<string, string> requestInfo, bool v)
+        {
+            try
+            {
+                var result = await _parametricService.GetReasonRefusedBook(v);
+                if (result.HasError)
+                {
+                    return CreateErrorResult<List<ReasonRefusedBookDTO>>(result.StatusCode, result.ResultError, v);
+                }
+                return new ReturnModelDTO<List<ReasonRefusedBookDTO>>
+                {
+                    Data = _mapper.Map<List<ReasonRefusedBookDTO>>(result.Data),
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            catch (Exception ex)
+            {
+                return HandleException<List<ReasonRefusedBookDTO>>("AppParametricService.GetReasonRefusedBook", ex, null, v);
+            }
+        }
     }
 }

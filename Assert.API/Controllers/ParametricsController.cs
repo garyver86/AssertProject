@@ -331,5 +331,23 @@ namespace Assert.API.Controllers
 
             return discountTypesResult;
         }
+
+        /// <summary>
+        /// Servicio que devuelve la lista de razones de rechazo para la aprobación de reservas.
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200"></response>
+        /// <remarks>
+        /// 
+        /// </remarks>
+        [HttpGet("ReasonRefused")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO<List<ReasonRefusedBookDTO>>> ReasonRefusedBook()
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            ReturnModelDTO<List<ReasonRefusedBookDTO>> amenities = await _parametricService.GetReasonRefusedBook(requestInfo, true);
+
+            return amenities;
+        }
     }
 }

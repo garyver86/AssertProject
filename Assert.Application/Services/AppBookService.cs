@@ -12,7 +12,9 @@ using AutoMapper;
 using Azure;
 using Azure.Core;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 
 namespace Assert.Application.Services
 {
@@ -23,6 +25,8 @@ namespace Assert.Application.Services
         IErrorHandler _errorHandler,
         RequestMetadata _metadata,
         ISystemConfigurationRepository _systemConfigurationRepository,
+        IMessagePredefinedRepository _messagePredefinedRepository,
+        IAppMessagingService _appMessagingService,
         IHttpContextAccessor requestContext) : IAppBookService
     {
         public async Task<ReturnModelDTO<(PayPriceCalculationDTO, List<PriceBreakdownItemDTO>)>> CalculatePrice(
@@ -392,11 +396,11 @@ namespace Assert.Application.Services
         }
 
 
-        public async Task<ReturnModelDTO<BookDTO>> AuthorizationResponse(int userId, long bookId, bool isApproval)
+        public async Task<ReturnModelDTO<BookDTO>> AuthorizationResponse(int userId, long bookId, bool isApproval, int? reasonRefused)
         {
             try
             {
-                var book = await _bookService.AuthorizationResponse(userId, bookId, isApproval);
+                var book = await _bookService.AuthorizationResponse(userId, bookId, isApproval, reasonRefused);
 
                 string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
                 _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
@@ -423,6 +427,62 @@ namespace Assert.Application.Services
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
                 result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppBookService.AuthorizationResponse", ex, new { userId }, true));
+                return result;
+            }
+        }
+        public async Task<ReturnModelDTO<PayPriceCalculationDTO>> ConsultingResponse(int userId, long priceCalculationId, bool isApproval, int? reasonRefused)
+        {
+            try
+            {
+                var result = await _bookService.ConsultingResponse(userId, priceCalculationId, isApproval, reasonRefused);
+
+                if ((result.CalculationStatusId == 1 && isApproval) || (result.CalculationStatusId == 5 && !isApproval))
+                {
+                    TmPredefinedMessage messagePredefined = null;
+                    if (result.CalculationStatusId == 1 && isApproval)
+                    {
+                        messagePredefined = await _messagePredefinedRepository.GetByCode("CON_ACC");
+                    }
+                    else
+                    {
+                        messagePredefined = await _messagePredefinedRepository.GetByCode("CON_REF");
+                    }
+                    if (messagePredefined != null)
+                    {
+                        string messageHost = string.Format(messagePredefined.MessageBody, result.ListingRent?.MaxGuests > 1 ? result.ListingRent?.MaxGuests.ToString() + " huespedes" : result.ListingRent?.MaxGuests.ToString() + " huesped", result.InitBook?.ToString("dd/MM/yyyy") + " al " + result.EndBook?.ToString("dd/MM/yyyy"));
+                        await _appMessagingService.SendMessage(result.TmConversations?.FirstOrDefault().ConversationId ?? 0, null, messageHost, 4, null, result.ListingRent.OwnerUserId);
+
+                        string messageRenter = string.Format(messagePredefined.MessageBodyDest ?? messagePredefined.MessageBody, result.ListingRent?.MaxGuests > 1 ? result.ListingRent?.MaxGuests.ToString() + " huespedes" : result.ListingRent?.MaxGuests.ToString() + " huesped", result.InitBook?.ToString("dd/MM/yyyy") + " al " + result.EndBook?.ToString("dd/MM/yyyy"));
+                        await _appMessagingService.SendMessage(result.TmConversations?.FirstOrDefault().ConversationId ?? 0, null, messageRenter, 4, null, result.UserId ?? ((result.ListingRent.OwnerUserId == result.TmConversations.FirstOrDefault().UserIdTwo) ? result.TmConversations.FirstOrDefault().UserIdOne : result.TmConversations.FirstOrDefault().UserIdTwo));
+                    }
+                }
+
+
+                string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+                _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+
+                if (result.ListingRent?.TlListingPhotos?.Count > 0)
+                {
+                    foreach (var item in result.ListingRent?.TlListingPhotos)
+                    {
+                        item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                    }
+
+                }
+                var bookDtos = _mapper.Map<PayPriceCalculationDTO>(result);
+                return new ReturnModelDTO<PayPriceCalculationDTO>
+                {
+                    Data = bookDtos,
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            catch (Exception ex)
+            {
+                ReturnModelDTO<PayPriceCalculationDTO> result = new ReturnModelDTO<PayPriceCalculationDTO>();
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppBookService.ConsultingResponse", ex, new { userId }, true));
                 return result;
             }
         }

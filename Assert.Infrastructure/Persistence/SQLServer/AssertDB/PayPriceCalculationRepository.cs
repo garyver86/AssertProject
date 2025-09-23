@@ -2,12 +2,15 @@
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
+using Assert.Infrastructure.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,6 +22,35 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         IExceptionLoggerService _exceptionLoggerService, IServiceProvider serviceProvider) : IPayPriceCalculationRepository
     {
         private readonly DbContextOptions<InfraAssertDbContext> dbOptions = serviceProvider.GetRequiredService<DbContextOptions<InfraAssertDbContext>>();
+
+        public async Task<PayPriceCalculation> ConsultingResponse(int userId, long priceCalculationId, bool isApproval, int? reasonRefused)
+        {
+            var existingCalc = await _context.PayPriceCalculations.Include(x => x.ListingRent).Include(c=>c.TmConversations).Where(x => x.PriceCalculationId == priceCalculationId).FirstOrDefaultAsync();
+            if (existingCalc == null)
+                throw new NotFoundException($"No se encontro la cotización con ID {priceCalculationId}.");
+
+            if (existingCalc.ListingRent.OwnerUserId != userId)
+                throw new UnauthorizedAccessException($"El usuario con ID {userId} no tiene permiso para autorizar/rechazar esta consulta.");
+
+            List<int> cancellableStatuses = new List<int> { 4 };
+
+            if (!cancellableStatuses.Contains(existingCalc.CalculationStatusId))
+                throw new InvalidOperationException($"La consulta de la cotización con ID {priceCalculationId} no puede ser aprobada/rechazada en su estado actual.");
+
+            if (isApproval)
+            {
+                existingCalc.CalculationStatusId = 1;
+                await _context.SaveChangesAsync();               
+            }
+            else
+            {
+                existingCalc.CalculationStatusId = 5;
+                existingCalc.ReasonRefusedId = reasonRefused;
+                await _context.SaveChangesAsync();
+            }
+
+            return existingCalc;
+        }
 
         public async Task<ReturnModel<PayPriceCalculation>> Create(PayPriceCalculation payPriceCalculation)
         {

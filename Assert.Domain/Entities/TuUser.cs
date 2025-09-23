@@ -47,13 +47,17 @@ public partial class TuUser
 
     public virtual TuGenderType? GenderType { get; set; }
 
+    public virtual ICollection<PayPriceCalculation> PayPriceCalculations { get; set; } = new List<PayPriceCalculation>();
+
     public virtual TuPlatform? Platform { get; set; }
 
     public virtual ICollection<TExceptionLog> TExceptionLogs { get; set; } = new List<TExceptionLog>();
 
+    public virtual ICollection<TbBook> TbBookCancellationUsers { get; set; } = new List<TbBook>();
+
     public virtual ICollection<TbBookInsuranceClaim> TbBookInsuranceClaims { get; set; } = new List<TbBookInsuranceClaim>();
 
-    public virtual ICollection<TbBook> TbBooks { get; set; } = new List<TbBook>();
+    public virtual ICollection<TbBook> TbBookUserIdRenterNavigations { get; set; } = new List<TbBook>();
 
     public virtual ICollection<TiIssue> TiIssueRelatedUsers { get; set; } = new List<TiIssue>();
 
