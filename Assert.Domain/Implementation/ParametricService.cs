@@ -25,13 +25,16 @@ namespace Assert.Domain.Implementation
         private readonly ISecurityItemsRepository _securityItemsRepository;
         private readonly IApprovalPolityTypeRepository _approvalPolicyTypeRepository;
         private readonly IReasonRefuseBookRepository _reasonRefusedBookRepository;
+        private readonly IReasonRefusedPriceCalculationRepository _reasonRefusedPriceCalculationRepository;
+        private readonly IBookStatusRepository _bookStatusRepository;
         public ParametricService(IAccommodationTypeRepository accommodationTypeRepository, IErrorHandler errorHandler,
             IFeaturesAspectsRepository featuredAspectsRepository, IDiscountTypeRepository discountTypeRepository,
             IPropertySubTypeRepository propertySubTypeRepository, ISpaceTypeRepository spaceTypeRepository,
             ILanguageRepository languageRepository, IExceptionLoggerService exceptionLoggerService,
             IAmenitiesRepository amenitiesRepository, ICancelationPoliciesTypesRepository cancelationPoliciesTypesRepository,
-            IRulesTypeRepository rulesTypeRepository, ISecurityItemsRepository securityItemsRepository, 
-            IApprovalPolityTypeRepository approvalPolicyTypeRepository, IReasonRefuseBookRepository reasonRefusedBookRepository)
+            IRulesTypeRepository rulesTypeRepository, ISecurityItemsRepository securityItemsRepository,
+            IApprovalPolityTypeRepository approvalPolicyTypeRepository, IReasonRefuseBookRepository reasonRefusedBookRepository,
+            IReasonRefusedPriceCalculationRepository reasonRefusedPriceCalculationRepository, IBookStatusRepository bookStatusRepository)
         {
             _accommodationTypeRepository = accommodationTypeRepository;
             _errorHandler = errorHandler;
@@ -47,6 +50,8 @@ namespace Assert.Domain.Implementation
             _securityItemsRepository = securityItemsRepository;
             _approvalPolicyTypeRepository = approvalPolicyTypeRepository;
             _reasonRefusedBookRepository = reasonRefusedBookRepository;
+            _reasonRefusedPriceCalculationRepository = reasonRefusedPriceCalculationRepository;
+            _bookStatusRepository = bookStatusRepository;
         }
 
         public async Task<ReturnModel<List<TlAccommodationType>>> GetAccomodationTypesActives()
@@ -315,6 +320,51 @@ namespace Assert.Domain.Implementation
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
                 result.ResultError = _errorHandler.GetErrorException("IParametricService.GetReasonRefusedBook", ex, null, true);
+            }
+            return result;
+        }
+
+        public async Task<ReturnModel<List<TReasonRefusedPriceCalculation>>> GetReasonRefusedPriceCalculation(bool useTechnicalMessages)
+        {
+
+            ReturnModel<List<TReasonRefusedPriceCalculation>> result = new ReturnModel<List<TReasonRefusedPriceCalculation>>();
+            try
+            {
+                var result_data = await _reasonRefusedPriceCalculationRepository.GetActives();
+                return new ReturnModel<List<TReasonRefusedPriceCalculation>>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    Data = result_data,
+                    HasError = false
+                };
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _errorHandler.GetErrorException("IParametricService.GetReasonRefusedBook", ex, null, true);
+            }
+            return result;
+        }
+
+        public async Task<ReturnModel<List<TbBookStatus>>> GetBookStatuses(bool useTechnicalMessages)
+        {
+            ReturnModel<List<TbBookStatus>> result = new ReturnModel<List<TbBookStatus>>();
+            try
+            {
+                var result_data = await _bookStatusRepository.Get();
+                return new ReturnModel<List<TbBookStatus>>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    Data = result_data,
+                    HasError = false
+                };
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _errorHandler.GetErrorException("IParametricService.GetBookStatuses", ex, null, true);
             }
             return result;
         }

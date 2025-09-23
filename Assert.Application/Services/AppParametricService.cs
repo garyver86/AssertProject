@@ -322,5 +322,27 @@ namespace Assert.Application.Services
                 return HandleException<List<ReasonRefusedBookDTO>>("AppParametricService.GetReasonRefusedBook", ex, null, v);
             }
         }
+
+        public async Task<ReturnModelDTO<List<BookStatusDTO>>> GetBookStatuses(Dictionary<string, string> requestInfo, bool v)
+        {
+            try
+            {
+                var result = await _parametricService.GetBookStatuses(v);
+                if (result.HasError)
+                {
+                    return CreateErrorResult<List<BookStatusDTO>>(result.StatusCode, result.ResultError, v);
+                }
+                return new ReturnModelDTO<List<BookStatusDTO>>
+                {
+                    Data = _mapper.Map<List<BookStatusDTO>>(result.Data),
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            catch (Exception ex)
+            {
+                return HandleException<List<BookStatusDTO>>("AppParametricService.GetBookStatuses", ex, null, v);
+            }
+        }
     }
 }

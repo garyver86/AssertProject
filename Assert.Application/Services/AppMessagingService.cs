@@ -286,8 +286,23 @@ namespace Assert.Application.Services
             {
                 TmMessage result_ = await _messageRepository.Send(conversationId, userId, body, messageTypeId, onlyForUserId);
                 var conversation = await _conversationRepository.GetConversation(conversationId);
-                await _notificationService.SendNewMessageNotificationAsync(onlyForUserId ?? (conversation.UserIdOne == userId ? conversation.UserIdTwo : conversation.UserIdOne), body);
 
+                bool sendNotification = true;
+                if(
+                    ((conversation.UserOneSilent??false) && (conversation.UserTwoSilent ?? false)) ||
+                    ((conversation.UserOneSilent ?? false) && conversation.UserIdOne == userId) ||
+                    ((conversation.UserTwoSilent ?? false) && conversation.UserIdTwo == userId) ||
+                    ((conversation.UserOneArchived ?? false) && (conversation.UserTwoArchived ?? false)) ||
+                    ((conversation.UserOneArchived ?? false) && conversation.UserIdOne == userId) ||
+                    ((conversation.UserTwoArchived ?? false) && conversation.UserIdTwo == userId)
+                 )
+                {
+                    sendNotification = false;
+                }
+                if (sendNotification)
+                {
+                    await _notificationService.SendNewMessageNotificationAsync(onlyForUserId ?? (conversation.UserIdOne == userId ? conversation.UserIdTwo : conversation.UserIdOne), body);
+                }
                 result = new ReturnModelDTO<MessageDTO>
                 {
                     StatusCode = ResultStatusCode.OK,

@@ -79,12 +79,12 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task<List<TbBook>> GetByUserId(long userId)
+        public async Task<List<TbBook>> GetByUserId(long userId, int? statusId)
         {
             try
             {
                 var books = await _dbContext.TbBooks
-                    .Where(b => b.UserIdRenter == userId)
+                    .Where(b => b.UserIdRenter == userId && (statusId == null || b.BookStatusId == statusId))
                     .Include(x => x.ListingRent).ThenInclude(lr => lr.OwnerUser)
                     .Include(x => x.ListingRent.TlListingPhotos)
                     .Include(x => x.ListingRent.ApprovalPolicyType)

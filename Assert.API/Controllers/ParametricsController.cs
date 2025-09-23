@@ -349,5 +349,24 @@ namespace Assert.API.Controllers
 
             return amenities;
         }
+
+
+        /// <summary>
+        /// Servicio que devuelve la lista de estados de las reservas.
+        /// </summary>
+        /// <returns></returns>
+        /// <response code="200"></response>
+        /// <remarks>
+        /// 
+        /// </remarks>
+        [HttpGet("BookStatuses")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO<List<BookStatusDTO>>> BookStatuses()
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            ReturnModelDTO<List<BookStatusDTO>> bookStatus = await _parametricService.GetBookStatuses(requestInfo, true);
+
+            return bookStatus;
+        }
     }
 }

@@ -145,7 +145,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 throw new ArgumentException("User ID must be greater than zero.", nameof(userId));
             }
 
-            var conversations = await _context.TmConversations
+            var conversations = (await _context.TmConversations
                 .Include(x => x.UserIdOneNavigation)
                 .Include(x => x.UserIdTwoNavigation)
                 .Include(x => x.ListingRent)
@@ -154,7 +154,14 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 //.Include(x => x.ListingRent.TpProperties)
                 .Include(x => x.ListingRent.TlListingPhotos)
                 //.Include(x => x.ListingRent.AccomodationType)
-                .Where(c => c.UserIdOne == userId || c.UserIdTwo == userId)
+                .Where(c => (c.UserIdOne == userId || c.UserIdTwo == userId)
+                 //&&
+                 //    (
+                 //        (c.UserTwoArchived == false && c.UserOneArchived == false) ||
+                 //        (c.UserOneArchived == false && c.UserIdOne == userId)||
+                 //        (c.UserTwoArchived == false && c.UserIdTwo == userId)
+                 //    )
+                 )
                 .Select(c => new TmConversation
                 {
                     // Mapear todas las propiedades que necesitas
@@ -196,7 +203,10 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .Take(1)
                 .ToList()
                 })
-                .ToListAsync();
+                .ToListAsync()).Where(c => (c.UserTwoArchived == false && c.UserOneArchived == false) ||
+                        (c.UserOneArchived == false && c.UserIdOne == userId) ||
+                        (c.UserTwoArchived == false && c.UserIdTwo == userId)
+                 );
             foreach (var con in conversations)
             {
                 if (con.Book?.ListingRent != null)
@@ -204,7 +214,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     con.Book.ListingRent = null;
                 }
             }
-            return conversations;
+            return conversations?.ToList();
         }
 
         public async Task<TmConversation> GetConversation(long conversationId)
@@ -252,6 +262,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 query = query.Where(c => c.UserIdOne == filter.UserId.Value || c.UserIdTwo == filter.UserId.Value);
             }
+
+            query = query.Where(c => (c.UserTwoArchived == false && c.UserOneArchived == false) ||
+                    (c.UserOneArchived == false && c.UserIdOne == filter.UserId) ||
+                    (c.UserTwoArchived == false && c.UserIdTwo == filter.UserId)
+                );
 
             // Obtener conteo total ANTES de filtrar por keywords
             var totalCount = await query.CountAsync();
