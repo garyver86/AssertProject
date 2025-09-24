@@ -235,7 +235,10 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         (c.UserIdOne == userId && c.UserOneArchived != true) ||
                         // El usuario es UserTwo Y NO está archivado  
                         (c.UserIdTwo == userId && c.UserTwoArchived != true)
-                 ).ToList();
+                 )
+                .OrderByDescending(c => (c.UserIdOne == userId && (c.UserOneFeatured ?? false)) ||
+                           (c.UserIdTwo == userId && (c.UserTwoFeatured ?? false)))
+                    .ThenByDescending(c => c.TmMessages.Max(m => m.CreationDate)).ToList();
 
             foreach (var con in conversations)
             {
@@ -310,7 +313,10 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 // Primero obtenemos las conversaciones con paginación
                 var conversationQuery = query
-                    .OrderByDescending(c => c.TmMessages.Max(m => m.CreationDate))
+                    //.OrderByDescending(c => c.TmMessages.Max(m => m.CreationDate))
+                    .OrderByDescending(c => (c.UserIdOne == filter.UserId && (c.UserOneFeatured ?? false)) ||
+                           (c.UserIdTwo == filter.UserId && (c.UserTwoFeatured ?? false)))
+                    .ThenByDescending(c => c.TmMessages.Max(m => m.CreationDate))
                     .Skip((filter.PageNumber - 1) * filter.PageSize)
                     .Take(filter.PageSize);
 
@@ -334,7 +340,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 // Si no hay keywords, devolver todas las conversaciones normalmente
                 conversations = await query
-                    .OrderByDescending(c => c.TmMessages.Max(m => m.CreationDate))
+                    .OrderByDescending(c => (c.UserIdOne == filter.UserId && (c.UserOneFeatured ?? false)) ||
+                           (c.UserIdTwo == filter.UserId && (c.UserTwoFeatured ?? false)))
+                    .ThenByDescending(c => c.TmMessages.Max(m => m.CreationDate))
                     .Skip((filter.PageNumber - 1) * filter.PageSize)
                     .Take(filter.PageSize)
                     .ToListAsync();

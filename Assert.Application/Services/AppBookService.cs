@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Assert.Application.Services
 {
@@ -80,11 +81,62 @@ namespace Assert.Application.Services
             };
         }
 
+        public async Task<ReturnModelDTO<List<BookDTO>>> GetBooksByOwnerIdAsync(string statusCode)
+        {
+            List<TbBookStatus> statusList = null;
+            if (!statusCode.IsNullOrEmpty() && statusCode?.ToUpper() != "ALL")
+            {
+                statusList = new List<TbBookStatus>();
+                string[] code = statusCode.Split(',');
+                foreach (string cod in code)
+                {
+                    statusList.Add(await _bookStatusRepository.GetStatusByCode(cod));
+                }
+            }
+
+            var books = await _bookRespository.GetByOwnerId(_metadata.UserId, statusList?.Select(x => x.BookStatusId).ToArray());
+
+            if (!(books is { Count: > 0 }))
+                throw new KeyNotFoundException($"No existen reservas del usuario con ID {_metadata.UserId}.");
+
+            string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+            _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+            foreach (var book in books)
+            {
+                if (book.ListingRent?.TlListingPhotos?.Count > 0)
+                {
+                    foreach (var item in book.ListingRent?.TlListingPhotos)
+                    {
+                        item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                    }
+
+                }
+            }
+
+            var bookDtos = _mapper.Map<List<BookDTO>>(books);
+
+            return new ReturnModelDTO<List<BookDTO>>
+            {
+                Data = bookDtos,
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
+        }
+
         public async Task<ReturnModelDTO<List<BookDTO>>> GetBooksByUserIdAsync(string statusCode)
         {
-            TbBookStatus statusList = await _bookStatusRepository.GetStatusByCode(statusCode);
+            List<TbBookStatus> statusList = null;
+            if (!statusCode.IsNullOrEmpty() && statusCode?.ToUpper() != "ALL")
+            {
+                statusList = new List<TbBookStatus>();
+                string[] code = statusCode.Split(',');
+                foreach (string cod in code)
+                {
+                    statusList.Add(await _bookStatusRepository.GetStatusByCode(cod));
+                }
+            }
 
-            var books = await _bookRespository.GetByUserId(_metadata.UserId, statusList.BookStatusId);
+            var books = await _bookRespository.GetByUserId(_metadata.UserId, statusList?.Select(x => x.BookStatusId).ToArray());
 
             if (!(books is { Count: > 0 }))
                 throw new KeyNotFoundException($"No existen reservas para el usuario con ID {_metadata.UserId}.");

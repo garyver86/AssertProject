@@ -4,7 +4,8 @@ namespace Assert.Domain.Repositories;
 
 public interface IBookRepository
 {
-    Task<List<TbBook>> GetByUserId(long userId, int? statusId);
+    Task<List<TbBook>> GetByUserId(long userId, int[]? statuses);
+    Task<List<TbBook>> GetByOwnerId(long userId, int[]? statuses);
     Task<TbBook> GetByIdAsync(long bookId);
     Task<long> UpsertBookAsync(TbBook book);
     Task<List<TbBook>> GetBooksWithoutReviewByUser(int userId);

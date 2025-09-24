@@ -79,17 +79,120 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task<List<TbBook>> GetByUserId(long userId, int? statusId)
+        public async Task<List<TbBook>> GetByUserId(long userId, int[]? statuses)
         {
             try
             {
-                var books = await _dbContext.TbBooks
-                    .Where(b => b.UserIdRenter == userId && (statusId == null || b.BookStatusId == statusId))
+                List<TbBook> books = await _dbContext.TbBooks
+                    .Where(b => b.UserIdRenter == userId && (statuses == null || !statuses.Any() || statuses.Contains(b.BookStatusId)))
                     .Include(x => x.ListingRent).ThenInclude(lr => lr.OwnerUser)
                     .Include(x => x.ListingRent.TlListingPhotos)
                     .Include(x => x.ListingRent.ApprovalPolicyType)
+                    .Include(x => x.ListingRent.TpProperties)
+                    .ToListAsync();
+
+                // Luego carga los BookStatus por separado si los necesitas
+                var bookStatusIds = books.Select(b => b.BookStatusId).Distinct().ToList();
+                var statusesDict = await _dbContext.TbBookStatuses
+                    .Where(s => bookStatusIds.Contains(s.BookStatusId))
+                    .ToDictionaryAsync(s => s.BookStatusId);
+
+                // Asignar los BookStatus a cada libro
+                foreach (var book in books)
+                {
+                    if (statusesDict.TryGetValue(book.BookStatusId, out var status))
+                    {
+                        book.BookStatus = status;
+                    }
+                }
+
+                if (books != null)
+                {
+                    foreach (var book in books)
+                    {
+                        if (book?.ListingRent?.TpProperties?.Count > 0)
+                        {
+                            foreach (var prop in book.ListingRent.TpProperties)
+                            {
+                                prop.TpPropertyAddresses = new List<TpPropertyAddress>
+                                {
+                                    new TpPropertyAddress
+                                    {
+                                        Address1 = prop.Address1,
+                                        Address2 = prop.Address2,
+                                        CityId = prop.CityId,
+                                        CountyId = prop.CountyId,
+                                        ZipCode = prop.ZipCode,
+                                        StateId = prop.StateId,
+                                        City = new TCity
+                                        {
+                                            CityId = prop.CityId??0,
+                                            Name = prop.CityName,
+                                            CountyId = prop.CountyId??0,
+                                            County = new TCounty
+                                            {
+                                                CountyId = prop.CountyId ?? 0,
+                                                Name = prop.CountyName,
+                                                StateId = prop.StateId??0,
+                                                State = new TState
+                                                {
+                                                    Name = prop.StateName,
+                                                    StateId = prop.StateId ?? 0,
+                                                    Country = new TCountry
+                                                    {
+                                                        Name = prop.CountryName,
+                                                        CountryId = prop.CountryId ?? 0
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                };
+                            }
+                        }
+                    }
+                }
+
+                books = books.OrderByDescending(x => x.InitDate).ToList();
+                return books ??
+                    throw new KeyNotFoundException($"No existen reservas para el  usuaerio con ID {userId}.");
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { userId });
+                throw new InfrastructureException(ex.Message);
+            }
+        }
+
+        public async Task<List<TbBook>> GetByOwnerId(long userId, int[]? statuses)
+        {
+            try
+            {
+                List<TbBook> books = await _dbContext.TbBooks
+                    .Where(b => b.ListingRent.OwnerUserId == userId && (statuses == null || !statuses.Any() || statuses.Contains(b.BookStatusId)))
+                    .Include(x => x.UserIdRenterNavigation)
+                    .Include(x => x.ListingRent)
+                    .Include(x => x.ListingRent.TlListingPhotos)
+                    .Include(x => x.ListingRent.ApprovalPolicyType)
                     .Include(x => x.ListingRent.OwnerUser)
-                    .Include(x => x.ListingRent.TpProperties).ToListAsync();
+                    .Include(x => x.ListingRent.TpProperties)
+                    .ToListAsync();
+
+                // Luego carga los BookStatus por separado si los necesitas
+                var bookStatusIds = books.Select(b => b.BookStatusId).Distinct().ToList();
+                var statusesDict = await _dbContext.TbBookStatuses
+                    .Where(s => bookStatusIds.Contains(s.BookStatusId))
+                    .ToDictionaryAsync(s => s.BookStatusId);
+
+                // Asignar los BookStatus a cada libro
+                foreach (var book in books)
+                {
+                    if (statusesDict.TryGetValue(book.BookStatusId, out var status))
+                    {
+                        book.BookStatus = status;
+                    }
+                }
 
                 if (books != null)
                 {
