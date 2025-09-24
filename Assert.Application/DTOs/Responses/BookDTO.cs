@@ -87,6 +87,7 @@ public class BookDTO
     public TbBookStatus BookStatus { get; set; } = null!;
 
     public TuUser? CancellationUser { get; set; }
+    public TuUser? UserIdRenterNavigation { get; set; }
 
     public TCurrency Currency { get; set; } = null!;
     public ReasonRefusedBookDTO? ReasonRefused { get; set; }

@@ -102,6 +102,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 {
                     if (statusesDict.TryGetValue(book.BookStatusId, out var status))
                     {
+                        status.TbBooks = null;
                         book.BookStatus = status;
                     }
                 }
@@ -190,6 +191,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 {
                     if (statusesDict.TryGetValue(book.BookStatusId, out var status))
                     {
+                        status.TbBooks = null;
                         book.BookStatus = status;
                     }
                 }
