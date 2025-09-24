@@ -622,5 +622,35 @@ namespace Assert.API.Controllers
         [Route("UpsertMaxMinStay")]
         public async Task<ReturnModelDTO> UpsertMaxMinStay(UpsertMaxMinStayRequestDTO request)
         => await _appListingRentService.UpsertMaxMinStay(request);
+
+        /// <summary>
+        /// Actualiza los valores de preaviso requerido para realizar una reserva en un Listing Rent.
+        /// </summary>
+        /// <param name="request">
+        /// Objeto que contiene los parámetros necesarios para la operación:
+        /// - <see cref="UpsertMinimumNoticeRequestDTO.ListingRentId"/>: Identificador del Listing Rent.
+        /// - <see cref="UpsertMinimumNoticeRequestDTO.MinimumNoticeDay"/>: Días de preaviso requeridos. Puede ser 0 en caso de ser el mismo dia.
+        /// - <see cref="UpsertMinimumNoticeRequestDTO.MinimumNoticeHours"/>: Horas mínimas de preaviso requeridas (En caso de ser el mismo dia).
+        /// </param>
+        /// <returns>
+        /// UPDATED
+        /// </returns>
+        /// <response code="200">UPDATED: El preaviso fue actualizado exitosamente.</response>
+        /// <response code="404">NOT FOUND: No se encontró el Listing Rent con el ID especificado.</response>
+        /// <response code="400">BAD REQUEST: Los valores proporcionados no cumplen con las reglas de negocio.</response>
+        /// <response code="500">INTERNAL SERVER ERROR: Error inesperado durante la operación.</response>
+        /// <remarks>
+        /// Requisitos y validaciones:
+        /// - El <c>ListingRentId</c> debe ser válido y existir en el sistema.
+        /// - El valor de <c>MinimumNoticeDay</c> debe ser mayor o igual a 0. En caso de 0 significa que es el mismo día.
+        /// - Si <c>MinimumNoticeDay</c> es igual a cero, se puede especificar <c>MinimumNoticeHours</c> para complementar.
+        /// - Si no se especifica <c>MinimumNoticeHours</c>, se aplicará un valor nulo o por defecto según configuración.
+        /// - Se registra cualquier excepción con contexto completo para trazabilidad y auditoría.
+        /// </remarks>
+        [HttpPut()]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("UpsertReservationNotice")]
+        public async Task<ReturnModelDTO> UpsertReservationNotice(UpsertMinimumNoticeRequestDTO request)
+        => await _appListingRentService.UpsertReservationNotice(request);
     }
 }

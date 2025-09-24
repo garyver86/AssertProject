@@ -20,7 +20,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         IListingViewHistoryRepository _listingViewHistoryRepository,
         IListingFavoriteRepository _favoritesRepository,
         ParamsData _paramsData,
-        ILogger<ListingRentRepository> _logger, IServiceProvider serviceProvider) 
+        ILogger<ListingRentRepository> _logger, IServiceProvider serviceProvider)
         : IListingRentRepository
     {
 
@@ -31,12 +31,12 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 var listing = await context.TlListingRents.FirstOrDefaultAsync(x => x.ListingRentId == id);
-                if(listing is null) throw new NotFoundException($"No se encontró el listing con ID {id}");
+                if (listing is null) throw new NotFoundException($"No se encontró el listing con ID {id}");
 
                 if (listing.ListingStatusId != newStatus)
                 {
                     listing.ListingStatusId = newStatus;
-                    context.Attach(listing); 
+                    context.Attach(listing);
 
                     var result = await context.SaveChangesAsync();
 
@@ -414,7 +414,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         .Take(pageSize)
                         .ToListAsync();
 
-                    if(listingRents is not { Count: > 0 })
+                    if (listingRents is not { Count: > 0 })
                         throw new NotFoundException($"No existen propiedades publicadas en los ultimos {_paramsData.DaysRecentlyPublished}");
 
                     var pagination = new PaginationMetadata
@@ -428,7 +428,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     return (listingRents, pagination);
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 var (className, methodName) = this.GetCallerInfo();
                 _exceptionLoggerService.LogAsync(ex, methodName, className, "");
@@ -927,7 +927,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task<string> ChangeMaxMinStay(int listingRentId, bool setMaxStay, int maxStayValue,
+        public async Task<string> SetMaxMinStay(int listingRentId, bool setMaxStay, int maxStayValue,
             bool setMinStay, int minStayValue)
         {
             try
@@ -970,6 +970,41 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 var (className, methodName) = this.GetCallerInfo();
                 _exceptionLoggerService.LogAsync(ex, methodName, className, new { listingRentId, setMaxStay, maxStayValue, setMinStay, minStayValue });
+                throw new InfrastructureException(ex.Message);
+            }
+        }
+
+        public async Task<string> SetMinimumNotice(int listingRentId, int minimumNoticeDay,
+            TimeSpan? minimumNoticeHours)
+        {
+            try
+            {
+                await using var context = new InfraAssertDbContext(dbOptions);
+
+                var listingRent = await context.TlListingRents
+                        .FirstOrDefaultAsync(l => l.ListingRentId == listingRentId);
+
+                if (listingRent is null)
+                    throw new NotFoundException($"No se encontró el listing con ID: {listingRentId}");
+
+                if (minimumNoticeDay == 0 && minimumNoticeHours is null)
+                    throw new InfrastructureException($"Si el preaviso es del mismo dia requiere registro de horas.");
+
+                listingRent.MinimumNotice = Math.Max(minimumNoticeDay, 0);
+
+                listingRent.MinimumNoticeHour = minimumNoticeDay > 0
+                    ? TimeOnly.FromTimeSpan(minimumNoticeHours!.Value)
+                    : null;
+
+                await context.SaveChangesAsync();
+
+                return "UPDATED";
+
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { listingRentId, minimumNoticeDay, minimumNoticeHours });
                 throw new InfrastructureException(ex.Message);
             }
         }

@@ -1204,8 +1204,21 @@ namespace Assert.Application.Services
             if(!request.SetMaxStay && !request.SetMinStay)
                 throw new ApplicationException("Requiere modificar al menos minimo o maximo de estancia.");
 
-            var result = await _listingRentRepository.ChangeMaxMinStay(request.ListingRentId, request.SetMaxStay,
+            var result = await _listingRentRepository.SetMaxMinStay(request.ListingRentId, request.SetMaxStay,
                 request.MaxStay, request.SetMinStay, request.MinStay);
+
+            return new ReturnModelDTO<string>
+            {
+                HasError = false,
+                StatusCode = ResultStatusCode.OK,
+                Data = result
+            };
+        }
+
+        public async Task<ReturnModelDTO<string>> UpsertReservationNotice(UpsertMinimumNoticeRequestDTO request)
+        {
+            var result = await _listingRentRepository.SetMinimumNotice(request.ListingRentId,
+                request.MinimumNoticeDay, request.MinimumNoticeHours);
 
             return new ReturnModelDTO<string>
             {
