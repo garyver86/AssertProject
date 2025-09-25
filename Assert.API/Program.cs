@@ -15,17 +15,41 @@ using Assert.Infrastructure.Common;
 using Assert.Infrastructure.InternalServices;
 // Añade estos using
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http.Json;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using System.Diagnostics;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
 var allowedOriginsSection = builder.Configuration.GetSection("SystemConfiguration:AllowedOrigins");
 var allowedOrigins = allowedOriginsSection.Get<string[]>();
+
+// Configurar JSON options para evitar referencias circulares
+builder.Services.ConfigureHttpJsonOptions(options =>
+{
+    options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    options.SerializerOptions.WriteIndented = true;
+});
+
+// Si usas MVC/Controllers, también configura:
+builder.Services.Configure<JsonOptions>(options =>
+{
+    options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    options.SerializerOptions.WriteIndented = true;
+});
+
+// Para System.Text.Json en general
+builder.Services.Configure<JsonSerializerOptions>(options =>
+{
+    options.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    options.WriteIndented = true;
+});
 
 builder.Services.AddControllers(options =>
 {

@@ -83,29 +83,107 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         {
             try
             {
+                //List<TbBook> books = await _dbContext.TbBooks
+                //    .Where(b => b.UserIdRenter == userId && (statuses == null || !statuses.Any() || statuses.Contains(b.BookStatusId)))
+                //    .Include(x => x.ListingRent).ThenInclude(lr => lr.OwnerUser)
+                //    .Include(x => x.ListingRent.TlListingPhotos)
+                //    .Include(x => x.ListingRent.ApprovalPolicyType)
+                //    .Include(x => x.ListingRent.TpProperties)
+                //    .Include(x => x.BookStatus)
+                //    .ToListAsync();
+
                 List<TbBook> books = await _dbContext.TbBooks
                     .Where(b => b.UserIdRenter == userId && (statuses == null || !statuses.Any() || statuses.Contains(b.BookStatusId)))
-                    .Include(x => x.ListingRent).ThenInclude(lr => lr.OwnerUser)
+                    .Include(lr => lr.ListingRent.OwnerUser)
                     .Include(x => x.ListingRent.TlListingPhotos)
                     .Include(x => x.ListingRent.ApprovalPolicyType)
                     .Include(x => x.ListingRent.TpProperties)
+                    .Select(x => new TbBook
+                    {
+                        AdditionalInfo = x.AdditionalInfo,
+                        AmountFees = x.AmountFees,
+                        AmountTotal = x.AmountTotal,
+                        ApprovalDetails = x.ApprovalDetails,
+                        BookId = x.BookId,
+                        BookStatus = x.BookStatusId > 0 ? new TbBookStatus
+                        {
+                            BookStatusId = x.BookStatusId,
+                            Code = x.BookStatus.Code,
+                            Description = x.BookStatus.Description,
+                            Name = x.BookStatus.Name
+                        } : null,
+                        BookStatusId = x.BookStatusId,
+                        Cancellation = x.Cancellation,
+                        CancellationEnd = x.CancellationEnd,
+                        CancellationStart = x.CancellationStart,
+                        //CancellationUser = x.CancellationUser,
+                        CancellationUserId = x.CancellationUserId,
+                        Checkin = x.Checkin,
+                        Checkout = x.Checkout,
+                        Currency = new TCurrency
+                        {
+                            Code = x.Currency.Code,
+                            CountryCode = x.Currency.CountryCode,
+                            CurrencyId = x.CurrencyId,
+                            Name = x.Currency.Name,
+                            Symbol = x.Currency.Symbol
+                        },
+                        CurrencyId = x.CurrencyId,
+                        DaysToApproval = x.DaysToApproval,
+                        DepositSec = x.DepositSec,
+                        EndDate = x.EndDate,
+                        ExpiredDateTime = x.ExpiredDateTime,
+                        GuestCheckin = x.GuestCheckin,
+                        GuestCheckout = x.GuestCheckout,
+                        InitDate = x.InitDate,
+                        IsApprobal = x.IsApprobal,
+                        IsManualApprobal = x.IsManualApprobal,
+                        LastNameRenter = x.LastNameRenter,
+                        ListingRent = x.ListingRent,
+                        ListingRentId = x.ListingRentId,
+                        MaxCheckin = x.MaxCheckin,
+                        MountPerNight = x.MountPerNight,
+                        NameRenter = x.NameRenter,
+                        PaymentCode = x.PaymentCode,
+                        PaymentId = x.PaymentId,
+                        PayPriceCalculations = x.PayPriceCalculations.Any() ? new PayPriceCalculation[]{
+                            new PayPriceCalculation
+                            {
+                              Amount =  x.PayPriceCalculations.First().Amount,
+                              BreakdownInfo = x.PayPriceCalculations.First().BreakdownInfo,
+                              CalculationCode = x.PayPriceCalculations.First().CalculationCode,
+                            }
+                        } : null,
+                        PickUpLocation = x.PickUpLocation,
+                        Pk = x.Pk,
+                        ReasonRefused = x.ReasonRefusedId > 0 ? new TReasonRefusedBook
+                        {
+                            ReasonRefusedCode = x.ReasonRefused.ReasonRefusedCode,
+                            ReasonRefusedId = x.ReasonRefused.ReasonRefusedId,
+                            ReasonRefusedName = x.ReasonRefused.ReasonRefusedName,
+                            ReasonRefusedText = x.ReasonRefused.ReasonRefusedText
+                        } : null,
+                        ReasonRefusedId = x.ReasonRefusedId,
+                        StartDate = x.StartDate,
+                        
+                    })
                     .ToListAsync();
 
-                // Luego carga los BookStatus por separado si los necesitas
-                var bookStatusIds = books.Select(b => b.BookStatusId).Distinct().ToList();
-                var statusesDict = await _dbContext.TbBookStatuses
-                    .Where(s => bookStatusIds.Contains(s.BookStatusId))
-                    .ToDictionaryAsync(s => s.BookStatusId);
+                //// Luego carga los BookStatus por separado si los necesitas
+                //var bookStatusIds = books.Select(b => b.BookStatusId).Distinct().ToList();
+                //var statusesDict = await _dbContext.TbBookStatuses
+                //    .Where(s => bookStatusIds.Contains(s.BookStatusId))
+                //    .ToDictionaryAsync(s => s.BookStatusId);
 
-                // Asignar los BookStatus a cada libro
-                foreach (var book in books)
-                {
-                    if (statusesDict.TryGetValue(book.BookStatusId, out var status))
-                    {
-                        status.TbBooks = null;
-                        book.BookStatus = status;
-                    }
-                }
+                //// Asignar los BookStatus a cada libro
+                //foreach (var book in books)
+                //{
+                //    if (statusesDict.TryGetValue(book.BookStatusId, out var status))
+                //    {
+                //        status.TbBooks = null;
+                //        book.BookStatus = status;
+                //    }
+                //}
 
                 if (books != null)
                 {
@@ -172,29 +250,96 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 List<TbBook> books = await _dbContext.TbBooks
                     .Where(b => b.ListingRent.OwnerUserId == userId && (statuses == null || !statuses.Any() || statuses.Contains(b.BookStatusId)))
-                    .Include(x => x.UserIdRenterNavigation)
-                    .Include(x => x.ListingRent)
+                    .Include(lr => lr.ListingRent.OwnerUser)
                     .Include(x => x.ListingRent.TlListingPhotos)
                     .Include(x => x.ListingRent.ApprovalPolicyType)
-                    .Include(x => x.ListingRent.OwnerUser)
                     .Include(x => x.ListingRent.TpProperties)
+                    .Select(x => new TbBook
+                    {
+                        AdditionalInfo = x.AdditionalInfo,
+                        AmountFees = x.AmountFees,
+                        AmountTotal = x.AmountTotal,
+                        ApprovalDetails = x.ApprovalDetails,
+                        BookId = x.BookId,
+                        BookStatus = x.BookStatusId > 0 ? new TbBookStatus
+                        {
+                            BookStatusId = x.BookStatusId,
+                            Code = x.BookStatus.Code,
+                            Description = x.BookStatus.Description,
+                            Name = x.BookStatus.Name
+                        } : null,
+                        BookStatusId = x.BookStatusId,
+                        Cancellation = x.Cancellation,
+                        CancellationEnd = x.CancellationEnd,
+                        CancellationStart = x.CancellationStart,
+                        //CancellationUser = x.CancellationUser,
+                        CancellationUserId = x.CancellationUserId,
+                        Checkin = x.Checkin,
+                        Checkout = x.Checkout,
+                        Currency = new TCurrency
+                        {
+                            Code = x.Currency.Code,
+                            CountryCode = x.Currency.CountryCode,
+                            CurrencyId = x.CurrencyId,
+                            Name = x.Currency.Name,
+                            Symbol = x.Currency.Symbol
+                        },
+                        CurrencyId = x.CurrencyId,
+                        DaysToApproval = x.DaysToApproval,
+                        DepositSec = x.DepositSec,
+                        EndDate = x.EndDate,
+                        ExpiredDateTime = x.ExpiredDateTime,
+                        GuestCheckin = x.GuestCheckin,
+                        GuestCheckout = x.GuestCheckout,
+                        InitDate = x.InitDate,
+                        IsApprobal = x.IsApprobal,
+                        IsManualApprobal = x.IsManualApprobal,
+                        LastNameRenter = x.LastNameRenter,
+                        ListingRent = x.ListingRent,
+                        ListingRentId = x.ListingRentId,
+                        MaxCheckin = x.MaxCheckin,
+                        MountPerNight = x.MountPerNight,
+                        NameRenter = x.NameRenter,
+                        PaymentCode = x.PaymentCode,
+                        PaymentId = x.PaymentId,
+                        PayPriceCalculations = x.PayPriceCalculations.Any() ? new PayPriceCalculation[]{
+                            new PayPriceCalculation
+                            {
+                              Amount =  x.PayPriceCalculations.First().Amount,
+                              BreakdownInfo = x.PayPriceCalculations.First().BreakdownInfo,
+                              CalculationCode = x.PayPriceCalculations.First().CalculationCode,
+                            }
+                        } : null,
+                        PickUpLocation = x.PickUpLocation,
+                        Pk = x.Pk,
+                        ReasonRefused = x.ReasonRefusedId > 0 ? new TReasonRefusedBook
+                        {
+                            ReasonRefusedCode = x.ReasonRefused.ReasonRefusedCode,
+                            ReasonRefusedId = x.ReasonRefused.ReasonRefusedId,
+                            ReasonRefusedName = x.ReasonRefused.ReasonRefusedName,
+                            ReasonRefusedText = x.ReasonRefused.ReasonRefusedText
+                        } : null,
+                        ReasonRefusedId = x.ReasonRefusedId,
+                        StartDate = x.StartDate,
+
+                    })
                     .ToListAsync();
 
-                // Luego carga los BookStatus por separado si los necesitas
-                var bookStatusIds = books.Select(b => b.BookStatusId).Distinct().ToList();
-                var statusesDict = await _dbContext.TbBookStatuses
-                    .Where(s => bookStatusIds.Contains(s.BookStatusId))
-                    .ToDictionaryAsync(s => s.BookStatusId);
+                //// Luego carga los BookStatus por separado si los necesitas
+                //var bookStatusIds = books.Select(b => b.BookStatusId).Distinct().ToList();
+                //var statusesDict = await _dbContext.TbBookStatuses
+                //    .Where(s => bookStatusIds.Contains(s.BookStatusId))
+                //    .ToDictionaryAsync(s => s.BookStatusId);
 
-                // Asignar los BookStatus a cada libro
-                foreach (var book in books)
-                {
-                    if (statusesDict.TryGetValue(book.BookStatusId, out var status))
-                    {
-                        status.TbBooks = null;
-                        book.BookStatus = status;
-                    }
-                }
+                //// Asignar los BookStatus a cada libro
+                //foreach (var book in books)
+                //{
+                //    if (statusesDict.TryGetValue(book.BookStatusId, out var status))
+                //    {
+                //        status.TbBooks = null;
+                //        book.BookStatus = status;
+                //    }
+                //}
 
                 if (books != null)
                 {
