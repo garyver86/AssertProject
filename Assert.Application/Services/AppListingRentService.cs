@@ -1227,5 +1227,18 @@ namespace Assert.Application.Services
                 Data = result
             };
         }
+
+        public async Task<ReturnModelDTO<string>> UpsertPreparationDay(UpsertPreparationDayRequestDTO request)
+        {
+            var result = await _listingRentRepository.SetPreparationDay(request.ListingRentId,
+                request.PreparationDayValue);
+
+            return new ReturnModelDTO<string>
+            {
+                HasError = false,
+                StatusCode = ResultStatusCode.OK,
+                Data = result
+            };
+        }
     }
 }

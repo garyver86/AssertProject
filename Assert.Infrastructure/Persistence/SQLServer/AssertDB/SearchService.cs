@@ -385,12 +385,22 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 query = query.Where(p => !p.TbBooks.Any(b =>
                     (b.StartDate <= filters.CheckOutDate.Value && b.EndDate >= filters.CheckInDate.Value)));
 
+                #region Max/Min stay check
                 var stayLength = (filters.CheckOutDate.Value - filters.CheckInDate.Value).Days;
                 int defaultMinStay = _paramsData?.MinStayDefault ?? 1;
                 int defaultMaxStay = _paramsData?.MaxStayDefault ?? 365;
                 query = query.Where(p =>
                         (stayLength >= (p.MinimunStay ?? defaultMinStay)) &&
                         (stayLength <= (p.MaximumStay ?? defaultMaxStay)));
+                #endregion
+
+                #region preparation days check (BOL timezone)
+                var boliviaTimeZone = TimeZoneInfo.FindSystemTimeZoneById("SA Pacific Standard Time");
+                var checkInUtc = TimeZoneInfo.ConvertTimeToUtc(filters.CheckInDate.Value, boliviaTimeZone);
+                var todayUtc = DateTime.UtcNow.Date;
+                query = query.Where(p =>
+                    checkInUtc.Date >= todayUtc.AddDays(p.PreparationDays ?? 0));
+                #endregion
 
             }
 

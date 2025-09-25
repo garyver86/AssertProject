@@ -927,7 +927,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task<string> SetMaxMinStay(int listingRentId, bool setMaxStay, int maxStayValue,
+        public async Task<string> SetMaxMinStay(long listingRentId, bool setMaxStay, int maxStayValue,
             bool setMinStay, int minStayValue)
         {
             try
@@ -974,7 +974,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task<string> SetMinimumNotice(int listingRentId, int minimumNoticeDay,
+        public async Task<string> SetMinimumNotice(long listingRentId, int minimumNoticeDay,
             TimeSpan? minimumNoticeHours)
         {
             try
@@ -1005,6 +1005,33 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 var (className, methodName) = this.GetCallerInfo();
                 _exceptionLoggerService.LogAsync(ex, methodName, className, new { listingRentId, minimumNoticeDay, minimumNoticeHours });
+                throw new InfrastructureException(ex.Message);
+            }
+        }
+
+        public async Task<string> SetPreparationDay(long listingRentId, int preparationDay)
+        {
+            try
+            {
+                await using var context = new InfraAssertDbContext(dbOptions);
+
+                var listingRent = await context.TlListingRents
+                        .FirstOrDefaultAsync(l => l.ListingRentId == listingRentId);
+
+                if (listingRent is null)
+                    throw new NotFoundException($"No se encontró el listing con ID: {listingRentId}");
+
+                listingRent.MinimumNotice = Math.Max(preparationDay, 0);
+
+                await context.SaveChangesAsync();
+
+                return "UPDATED";
+
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { listingRentId, preparationDay });
                 throw new InfrastructureException(ex.Message);
             }
         }

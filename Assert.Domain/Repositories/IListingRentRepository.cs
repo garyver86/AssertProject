@@ -36,9 +36,10 @@ namespace Assert.Domain.Repositories
         Task<List<TlListingRent>> GetCalendarData(int userID);
         Task<List<TlListingRent>> GetUnfinishedList(int ownerId);
 
-        Task<string> SetMaxMinStay(int listingRentId, bool setMaxStay, int maxStayValue,
+        Task<string> SetMaxMinStay(long listingRentId, bool setMaxStay, int maxStayValue,
             bool setMinStay, int minStayValue);
-        Task<string> SetMinimumNotice(int listingRentId, int minimumNoticeDay,
+        Task<string> SetMinimumNotice(long listingRentId, int minimumNoticeDay,
             TimeSpan? minimumNoticeHours);
+        Task<string> SetPreparationDay(long listingRentId, int preparationDay);
     }
 }

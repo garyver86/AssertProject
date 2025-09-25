@@ -79,5 +79,6 @@ namespace Assert.Application.Interfaces
 
         Task<ReturnModelDTO<string>> UpsertMaxMinStay(UpsertMaxMinStayRequestDTO request);
         Task<ReturnModelDTO<string>> UpsertReservationNotice(UpsertMinimumNoticeRequestDTO request);
+        Task<ReturnModelDTO<string>> UpsertPreparationDay(UpsertPreparationDayRequestDTO request);
     }
 }
