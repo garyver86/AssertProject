@@ -2,7 +2,7 @@
 
 public class UpsertMinimumNoticeRequestDTO
 {
-    public int ListingRentId { get; set; }
+    public long ListingRentId { get; set; }
     public int MinimumNoticeDay { get; set; }
     public TimeSpan? MinimumNoticeHours { get; set; }
 }

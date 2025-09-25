@@ -652,5 +652,34 @@ namespace Assert.API.Controllers
         [Route("UpsertReservationNotice")]
         public async Task<ReturnModelDTO> UpsertReservationNotice(UpsertMinimumNoticeRequestDTO request)
         => await _appListingRentService.UpsertReservationNotice(request);
+
+        /// <summary>
+        /// Actualiza el valor de días de preparación requeridos antes de permitir una nueva reserva en un Listing Rent.
+        /// </summary>
+        /// <param name="request">
+        /// Objeto que contiene los parámetros necesarios para la operación:
+        /// - <see cref="UpsertPreparationDayRequestDTO.ListingRentId"/>: Identificador único del Listing Rent.
+        /// - <see cref="UpsertPreparationDayRequestDTO.PreparationDayValue"/>: Cantidad de días requeridos como margen de preparación entre reservas.
+        /// </param>
+        /// <returns>
+        /// UPDATED.
+        /// </returns>
+        /// <response code="200">UPDATED: El valor de preparación fue actualizado exitosamente.</response>
+        /// <response code="404">NOT FOUND: No se encontró el Listing Rent con el ID especificado.</response>
+        /// <response code="400">BAD REQUEST: El valor proporcionado no cumple con las reglas de negocio (por ejemplo, valor negativo).</response>
+        /// <response code="500">INTERNAL SERVER ERROR: Error inesperado durante la operación.</response>
+        /// <remarks>
+        /// Requisitos y validaciones:
+        /// - El <c>ListingRentId</c> debe existir en el sistema.
+        /// - El <c>PreparationDayValue</c> debe ser mayor o igual a cero. Siendo que valor cero equivale a NINGUNO
+        /// - La operación es idempotente: si el valor ya está establecido, se retorna "UPDATED" sin duplicación.
+        /// - Se registra cualquier excepción con contexto completo para trazabilidad, incluyendo parámetros de entrada.
+        /// </remarks>
+
+        [HttpPut()]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("UpsertPreparationDay")]
+        public async Task<ReturnModelDTO> UpsertPreparationDay(UpsertPreparationDayRequestDTO request)
+        => await _appListingRentService.UpsertPreparationDay(request);
     }
 }
