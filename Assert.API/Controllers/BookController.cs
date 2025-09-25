@@ -175,7 +175,7 @@ namespace Assert.API.Controllers
         /// <returns>Confirmación de la actualizacion: retorna la informacion completa de las reservas del usuario</returns>
         /// <response code="200">Si se proceso correctamente.</response>
         /// <remarks>
-        /// En caso que no existan reservas para el usuario retorna error
+        /// En caso que no existan reservas para el usuario retorna error. Usar ALL para recuperar todas las reservas.
         /// </remarks>
         [HttpGet("GetBooks/{statusCode}")]
         [Authorize(Policy = "GuestOrHostOrAdmin")]
