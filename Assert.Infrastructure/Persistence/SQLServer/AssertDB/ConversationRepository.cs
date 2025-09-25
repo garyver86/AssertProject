@@ -145,23 +145,28 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 throw new ArgumentException("User ID must be greater than zero.", nameof(userId));
             }
 
-            var conversations = (await _context.TmConversations
-                .Include(x => x.UserIdOneNavigation)
-                .Include(x => x.UserIdTwoNavigation)
-                .Include(x => x.ListingRent)
-                .Include(x => x.Book)
-                .Include(x => x.PriceCalculation)
-                //.Include(x => x.ListingRent.TpProperties)
-                .Include(x => x.ListingRent.TlListingPhotos)
-                //.Include(x => x.ListingRent.AccomodationType)
-                .Where(c => (c.UserIdOne == userId || c.UserIdTwo == userId)
-                 //&&
-                 //    (
-                 //        (c.UserTwoArchived == false && c.UserOneArchived == false) ||
-                 //        (c.UserOneArchived == false && c.UserIdOne == userId)||
-                 //        (c.UserTwoArchived == false && c.UserIdTwo == userId)
-                 //    )
-                 )
+            var query = _context.TmConversations
+                .Include(c => c.TmMessages)
+                .AsQueryable();
+
+
+            query = query.Where(c => c.UserIdOne == userId || c.UserIdTwo == userId);
+
+            query = query.Where(c =>
+                    // El usuario es UserOne Y NO está archivado
+                    (c.UserIdOne == userId && c.UserOneArchived != true) ||
+                    // El usuario es UserTwo Y NO está archivado  
+                    (c.UserIdTwo == userId && c.UserTwoArchived != true)
+                );
+
+
+            List<TmConversation> conversations = null;
+            var conversationQuery = query
+                 .OrderByDescending(c => (c.UserIdOne == userId && (c.UserOneFeatured ?? false)) ||
+                        (c.UserIdTwo == userId && (c.UserTwoFeatured ?? false)))
+                 .ThenByDescending(c => c.TmMessages.Max(m => m.CreationDate));
+
+            conversations = conversationQuery
                 .Select(c => new TmConversation
                 {
                     // Mapear todas las propiedades que necesitas
@@ -219,26 +224,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .OrderByDescending(m => m.CreationDate)
                 .Take(1)
                 .ToList()
-                })
-                .ToListAsync());
-
-            //conversations = conversations.Where(c => (c.UserTwoArchived == false && c.UserOneArchived == false) ||
-            //            (c.UserTwoArchived == null && c.UserOneArchived == null) ||
-            //            (c.UserOneArchived == false && c.UserIdOne == userId) ||
-            //            (c.UserOneArchived == null && c.UserIdOne == userId) ||
-            //            (c.UserTwoArchived == false && c.UserIdTwo == userId) ||
-            //            (c.UserTwoArchived == null && c.UserIdTwo == userId)
-            //     ).ToList();
-
-            conversations = conversations.Where(c => (c.UserTwoArchived == false && c.UserOneArchived == false) ||
-                        // El usuario es UserOne Y NO está archivado
-                        (c.UserIdOne == userId && c.UserOneArchived != true) ||
-                        // El usuario es UserTwo Y NO está archivado  
-                        (c.UserIdTwo == userId && c.UserTwoArchived != true)
-                 )
-                .OrderByDescending(c => (c.UserIdOne == userId && (c.UserOneFeatured ?? false)) ||
-                           (c.UserIdTwo == userId && (c.UserTwoFeatured ?? false)))
-                    .ThenByDescending(c => c.TmMessages.Max(m => m.CreationDate)).ToList();
+                }).ToList();
 
             foreach (var con in conversations)
             {
@@ -320,7 +306,66 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Skip((filter.PageNumber - 1) * filter.PageSize)
                     .Take(filter.PageSize);
 
-                conversations = await conversationQuery.ToListAsync();
+                conversations = await conversationQuery
+                    .Select(c => new TmConversation
+                    {
+                        // Mapear todas las propiedades que necesitas
+                        ConversationId = c.ConversationId,
+                        UserIdOne = c.UserIdOne,
+                        UserIdTwo = c.UserIdTwo,
+                        UserIdOneNavigation = c.UserIdOneNavigation,
+                        UserIdTwoNavigation = c.UserIdTwoNavigation,
+                        //ListingRent = c.ListingRent,
+                        Book = c.Book,
+                        PriceCalculation = c.PriceCalculation,
+                        BookId = c.BookId,
+                        CreationDate = c.CreationDate,
+                        ListingRentId = c.ListingRentId,
+                        PriceCalculationId = c.PriceCalculationId,
+                        StatusId = c.StatusId,
+                        Status = c.Status,
+                        UserOneArchived = c.UserOneArchived,
+                        UserOneArchivedDateTime = c.UserOneArchivedDateTime,
+                        UserOneFeatured = c.UserOneFeatured,
+                        UserOneFeaturedDateTime = c.UserOneFeaturedDateTime,
+                        UserOneSilent = c.UserOneSilent,
+                        UserOneSilentDateTime = c.UserOneSilentDateTime,
+                        UserTwoArchived = c.UserTwoArchived,
+                        UserTwoArchivedDateTime = c.UserTwoArchivedDateTime,
+                        UserTwoFeatured = c.UserTwoFeatured,
+                        UserTwoFeaturedDateTime = c.UserTwoFeaturedDateTime,
+                        UserTwoSilent = c.UserTwoSilent,
+                        UserTwoSilentDateTime = c.UserTwoFeaturedDateTime,
+                        // Cargar solo la foto principal (asumiendo que hay una propiedad IsPrimary)
+                        ListingRent = c.ListingRent != null ? new TlListingRent
+                        {
+                            ListingRentId = c.ListingRent.ListingRentId,
+                            TpProperties = c.ListingRent.TpProperties,
+                            AccomodationType = c.ListingRent.AccomodationType,
+                            Name = c.ListingRent.Name,
+                            Description = c.ListingRent.Description,
+                            TlListingPhotos = c.ListingRent.TlListingPhotos.Where(p => p.IsPrincipal != null ? (bool)p.IsPrincipal : false) // Asumiendo que hay un campo IsPrimary
+                            .Take(1)
+                            .ToList()
+                        } : c.ListingRent == null && c.PriceCalculation != null ? new TlListingRent
+                        {
+                            ListingRentId = c.PriceCalculation.ListingRent.ListingRentId,
+                            TpProperties = c.PriceCalculation.ListingRent.TpProperties,
+                            AccomodationType = c.PriceCalculation.ListingRent.AccomodationType,
+                            Name = c.PriceCalculation.ListingRent.Name,
+                            Description = c.PriceCalculation.ListingRent.Description,
+                            TlListingPhotos = c.PriceCalculation.ListingRent.TlListingPhotos.Where(p => p.IsPrincipal != null ? (bool)p.IsPrincipal : false) // Asumiendo que hay un campo IsPrimary
+                            .Take(1)
+                            .ToList()
+                        } : null,
+
+                        // Cargar solo el último mensaje
+                        TmMessages = c.TmMessages.Where(me => me.MessageTypeId != 4)
+                    .OrderByDescending(m => m.CreationDate)
+                    .Take(1)
+                    .ToList()
+                    })
+                .ToListAsync();
 
                 // Filtrar los mensajes dentro de cada conversación
                 foreach (var conversation in conversations)
@@ -339,13 +384,73 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             else
             {
                 // Si no hay keywords, devolver todas las conversaciones normalmente
-                conversations = await query
-                    .OrderByDescending(c => (c.UserIdOne == filter.UserId && (c.UserOneFeatured ?? false)) ||
-                           (c.UserIdTwo == filter.UserId && (c.UserTwoFeatured ?? false)))
-                    .ThenByDescending(c => c.TmMessages.Max(m => m.CreationDate))
-                    .Skip((filter.PageNumber - 1) * filter.PageSize)
-                    .Take(filter.PageSize)
-                    .ToListAsync();
+                var conversationQuery = query
+                 .OrderByDescending(c => (c.UserIdOne == filter.UserId && (c.UserOneFeatured ?? false)) ||
+                        (c.UserIdTwo == filter.UserId && (c.UserTwoFeatured ?? false)))
+                 .ThenByDescending(c => c.TmMessages.Max(m => m.CreationDate))
+                 .Skip((filter.PageNumber - 1) * filter.PageSize)
+                 .Take(filter.PageSize);
+
+                conversations = conversationQuery
+                    .Select(c => new TmConversation
+                    {
+                        // Mapear todas las propiedades que necesitas
+                        ConversationId = c.ConversationId,
+                        UserIdOne = c.UserIdOne,
+                        UserIdTwo = c.UserIdTwo,
+                        UserIdOneNavigation = c.UserIdOneNavigation,
+                        UserIdTwoNavigation = c.UserIdTwoNavigation,
+                        //ListingRent = c.ListingRent,
+                        Book = c.Book,
+                        PriceCalculation = c.PriceCalculation,
+                        BookId = c.BookId,
+                        CreationDate = c.CreationDate,
+                        ListingRentId = c.ListingRentId,
+                        PriceCalculationId = c.PriceCalculationId,
+                        StatusId = c.StatusId,
+                        Status = c.Status,
+                        UserOneArchived = c.UserOneArchived,
+                        UserOneArchivedDateTime = c.UserOneArchivedDateTime,
+                        UserOneFeatured = c.UserOneFeatured,
+                        UserOneFeaturedDateTime = c.UserOneFeaturedDateTime,
+                        UserOneSilent = c.UserOneSilent,
+                        UserOneSilentDateTime = c.UserOneSilentDateTime,
+                        UserTwoArchived = c.UserTwoArchived,
+                        UserTwoArchivedDateTime = c.UserTwoArchivedDateTime,
+                        UserTwoFeatured = c.UserTwoFeatured,
+                        UserTwoFeaturedDateTime = c.UserTwoFeaturedDateTime,
+                        UserTwoSilent = c.UserTwoSilent,
+                        UserTwoSilentDateTime = c.UserTwoFeaturedDateTime,
+                        // Cargar solo la foto principal (asumiendo que hay una propiedad IsPrimary)
+                        ListingRent = c.ListingRent != null ? new TlListingRent
+                        {
+                            ListingRentId = c.ListingRent.ListingRentId,
+                            TpProperties = c.ListingRent.TpProperties,
+                            AccomodationType = c.ListingRent.AccomodationType,
+                            Name = c.ListingRent.Name,
+                            Description = c.ListingRent.Description,
+                            TlListingPhotos = c.ListingRent.TlListingPhotos.Where(p => p.IsPrincipal != null ? (bool)p.IsPrincipal : false) // Asumiendo que hay un campo IsPrimary
+                            .Take(1)
+                            .ToList()
+                        } : c.ListingRent == null && c.PriceCalculation != null ? new TlListingRent
+                        {
+                            ListingRentId = c.PriceCalculation.ListingRent.ListingRentId,
+                            TpProperties = c.PriceCalculation.ListingRent.TpProperties,
+                            AccomodationType = c.PriceCalculation.ListingRent.AccomodationType,
+                            Name = c.PriceCalculation.ListingRent.Name,
+                            Description = c.PriceCalculation.ListingRent.Description,
+                            TlListingPhotos = c.PriceCalculation.ListingRent.TlListingPhotos.Where(p => p.IsPrincipal != null ? (bool)p.IsPrincipal : false) // Asumiendo que hay un campo IsPrimary
+                            .Take(1)
+                            .ToList()
+                        } : null,
+
+                        // Cargar solo el último mensaje
+                        TmMessages = c.TmMessages.Where(me => me.MessageTypeId != 4)
+                    .OrderByDescending(m => m.CreationDate)
+                    .Take(1)
+                    .ToList()
+                    }).ToList();
+
             }
 
             PaginationMetadata pagination = new PaginationMetadata

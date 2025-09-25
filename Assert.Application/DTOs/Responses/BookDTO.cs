@@ -84,11 +84,11 @@ public class BookDTO
 
     public int? ReasonRefusedId { get; set; }
 
-    public TbBookStatus BookStatus { get; set; } = null!;
+    public BookStatusDTO BookStatus { get; set; } = null!;
 
-    public TuUser? CancellationUser { get; set; }
-    public TuUser? UserIdRenterNavigation { get; set; }
+    public UserDTO? CancellationUser { get; set; }
+    public UserDTO? UserIdRenterNavigation { get; set; }
 
-    public TCurrency Currency { get; set; } = null!;
+    public CurrencyDTO Currency { get; set; } = null!;
     public ReasonRefusedBookDTO? ReasonRefused { get; set; }
 }
