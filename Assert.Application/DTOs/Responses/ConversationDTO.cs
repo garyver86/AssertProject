@@ -40,5 +40,6 @@ namespace Assert.Application.DTOs.Responses
         public DateTime? ArchivedDateTime { get; set; }
 
         public DateTime? SilentDateTime { get; set; }
+        public bool IsUnread { get; set; }
     }
 }

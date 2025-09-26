@@ -19,5 +19,8 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<ConversationDTO>> SetFeatured(long conversationId, int userid, bool isFeatured);
         Task<ReturnModelDTO<ConversationDTO>> SetArchived(long conversationId, int userid, bool isArchived);
         Task<ReturnModelDTO<ConversationDTO>> SetSilent(long conversationId, int userid, bool isSilent);
+        Task<ReturnModelDTO<List<ConversationDTO>>> GetConversationsArchiveds(int userId, Dictionary<string, string> requestInfo);
+        Task<(ReturnModelDTO<List<ConversationDTO>>, PaginationMetadataDTO)> SearchConversationsArchiveds(ConversationFilterDTO filter, Dictionary<string, string> requestInfo);
+        Task<ReturnModelDTO<ConversationDTO>> SetConversationAsUnread(long conversationId, int userid, bool isUnread);
     }
 }

@@ -65,6 +65,8 @@ public partial class AssertDbContext : DbContext
 
     public virtual DbSet<TLocation> TLocations { get; set; }
 
+    public virtual DbSet<TPreparationTimeType> TPreparationTimeTypes { get; set; }
+
     public virtual DbSet<TQuickTip> TQuickTips { get; set; }
 
     public virtual DbSet<TQuickTipType> TQuickTipTypes { get; set; }
@@ -1063,6 +1065,27 @@ public partial class AssertDbContext : DbContext
                 .HasColumnName("url_image");
         });
 
+        modelBuilder.Entity<TPreparationTimeType>(entity =>
+        {
+            entity.HasKey(e => e.PreparationTimeTypeId);
+
+            entity.ToTable("T_PreparationTimeType");
+
+            entity.Property(e => e.PreparationTimeTypeId)
+                .ValueGeneratedNever()
+                .HasColumnName("preparationTimeTypeId");
+            entity.Property(e => e.Code)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("code");
+            entity.Property(e => e.Name)
+                .HasMaxLength(200)
+                .IsUnicode(false)
+                .HasColumnName("name");
+            entity.Property(e => e.Status).HasColumnName("status");
+            entity.Property(e => e.Value).HasColumnName("value");
+        });
+
         modelBuilder.Entity<TQuickTip>(entity =>
         {
             entity.HasKey(e => e.QuickTipId);
@@ -1426,6 +1449,12 @@ public partial class AssertDbContext : DbContext
             entity.HasKey(e => e.BookId).HasName("PK_TB_Booking");
 
             entity.ToTable("TB_Book");
+
+            entity.HasIndex(e => e.ListingRentId, "IX_TB_Book_ListingRentId");
+
+            entity.HasIndex(e => e.RequestDateTime, "IX_TB_Book_RequestDateTime");
+
+            entity.HasIndex(e => e.UserIdRenter, "IX_TB_Book_UserIdRenter");
 
             entity.Property(e => e.AdditionalInfo)
                 .HasMaxLength(2000)
@@ -3106,6 +3135,7 @@ public partial class AssertDbContext : DbContext
             entity.Property(e => e.UserOneSilentDateTime)
                 .HasColumnType("datetime")
                 .HasColumnName("userOne_silentDateTime");
+            entity.Property(e => e.UserOneUnread).HasColumnName("userOne_unread");
             entity.Property(e => e.UserTwoArchived).HasColumnName("userTwo_archived");
             entity.Property(e => e.UserTwoArchivedDateTime)
                 .HasColumnType("datetime")
@@ -3118,6 +3148,7 @@ public partial class AssertDbContext : DbContext
             entity.Property(e => e.UserTwoSilentDateTime)
                 .HasColumnType("datetime")
                 .HasColumnName("userTwo_silentDateTime");
+            entity.Property(e => e.UserTwoUnread).HasColumnName("userTwo_unread");
 
             entity.HasOne(d => d.Book).WithMany(p => p.TmConversations)
                 .HasForeignKey(d => d.BookId)
