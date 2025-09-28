@@ -619,31 +619,31 @@ namespace Assert.Domain.Implementation
             };
         }
 
-        private async Task<ReturnModel> SetPricing(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
-        {
-            if (request_.Pricing > 0)
-            {
-                var actualPrice = listing.TlListingPrices.FirstOrDefault();
-                if (actualPrice?.PriceNightly != request_.Pricing || actualPrice?.CurrencyId != request_.CurrencyId)
-                {
-                    await _listingPriceRepository.SetPricing(listing.ListingRentId, request_.Pricing, request_.CurrencyId);
-                }
-                return new ReturnModel
-                {
-                    HasError = false,
-                    StatusCode = ResultStatusCode.OK
-                };
-            }
-            else
-            {
-                return new ReturnModel
-                {
-                    HasError = true,
-                    StatusCode = ResultStatusCode.BadRequest,
-                    ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe definir la tarifa po noche de la propiedad.", useTechnicalMessages)
-                };
-            }
-        }
+        //private async Task<ReturnModel> SetPricing(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        //{
+        //    if (request_.Pricing > 0)
+        //    {
+        //        var actualPrice = listing.TlListingPrices.FirstOrDefault();
+        //        if (actualPrice?.PriceNightly != request_.Pricing || actualPrice?.CurrencyId != request_.CurrencyId)
+        //        {
+        //            await _listingPriceRepository.SetPricing(listing.ListingRentId, request_.Pricing, request_.CurrencyId);
+        //        }
+        //        return new ReturnModel
+        //        {
+        //            HasError = false,
+        //            StatusCode = ResultStatusCode.OK
+        //        };
+        //    }
+        //    else
+        //    {
+        //        return new ReturnModel
+        //        {
+        //            HasError = true,
+        //            StatusCode = ResultStatusCode.BadRequest,
+        //            ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe definir la tarifa po noche de la propiedad.", useTechnicalMessages)
+        //        };
+        //    }
+        //}
 
         private async Task<ReturnModel> SetApprovalPolicy(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
         {

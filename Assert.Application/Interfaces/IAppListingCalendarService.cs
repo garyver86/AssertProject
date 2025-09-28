@@ -30,8 +30,9 @@ namespace Assert.Application.Interfaces
         /// <returns>Tupla con lista de días del calendario con información de descuentos e información de paginación</returns>
         Task<ReturnModelDTO<CalendarResultPaginatedDTO>> GetCalendarDaysWithDetails(int listingRentId, DateTime startDate, DateTime endDate, int pageNumber = 1, int pageSize = 31);
 
-        Task<ReturnModelDTO<List<CalendarDayDto>>> BlockDays(BulkBlockCalendarDaysRequest request);
-        Task<ReturnModelDTO<List<CalendarDayDto>>> UnblockDays(BulkBlockCalendarDaysRequest request);
+        Task<ReturnModelDTO<List<CalendarDayDto>>> BlockDays(BulkBlockCalendarDaysRequest request, int userId);
+        Task<ReturnModelDTO<List<CalendarDayDto>>> UnblockDays(BulkBlockCalendarDaysRequest request, int userId);
+        Task<ReturnModelDTO<List<CalendarDayDto>>> SetNightPriceDays(long listingRentId, List<DateOnly> dates, decimal priceNigthly, int userId);
 
     }
 }

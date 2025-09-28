@@ -518,7 +518,7 @@ namespace Assert.Domain.Implementation
                 dates.Add(DateOnly.FromDateTime(date));
             }
 
-            var resultBlock = await _listingCalendarRepository.BulkBlockDaysAsync(priceCalculation.ListingRentId ?? 0, dates, 2, "Alquiler de propiedad", priceCalculation.BookId);
+            var resultBlock = await _listingCalendarRepository.BulkBlockDaysAsync(priceCalculation.ListingRentId ?? 0, dates, 2, "Alquiler de propiedad", priceCalculation.BookId, null);
 
             if (priceCalculation.ListingRent?.PreparationDays > 0)
             {
@@ -530,7 +530,7 @@ namespace Assert.Domain.Implementation
                 {
                     preparationDates.Add(DateOnly.FromDateTime(date));
                 }
-                var resultBlockPreparation = await _listingCalendarRepository.BulkBlockDaysAsync(priceCalculation.ListingRentId ?? 0, preparationDates, 3, "Preparación", transaction.BookingId);
+                var resultBlockPreparation = await _listingCalendarRepository.BulkBlockDaysAsync(priceCalculation.ListingRentId ?? 0, preparationDates, 3, "Preparación", transaction.BookingId, null);
             }
             var resultStatusUpdate = await _payPriceCalculationRepository.SetAsPayed(paymentRequest.CalculationCode, paymentRequest.PaymentProviderId,
                 paymentRequest.MethodOfPaymentId, savedTransaction);
