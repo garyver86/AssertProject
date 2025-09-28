@@ -358,14 +358,14 @@ namespace Assert.API.Controllers
         }
 
         /// <summary>
-        /// Servicio que marca una converzación como silenciada
+        /// Servicio que marca una converzación como no leida
         /// </summary>
         /// <param name="conversationId">Id de la converzación.</param>
-        /// <response code="200">Confirmación del marcado como silenciado.</response>
+        /// <response code="200">Confirmación del marcado como no leida.</response>
         /// <remarks>
         /// 
         /// </remarks>
-        [HttpPut("Conversations/{conversationId}/Unread")]
+        [HttpDelete("Conversations/{conversationId}/Unread")]
         [Authorize(Policy = "GuestOrHost")]
         public async Task<ReturnModelDTO> SetConversationAsUnread(int conversationId)
         {
@@ -378,14 +378,14 @@ namespace Assert.API.Controllers
 
 
         /// <summary>
-        /// Servicio que marca una converzación como no silenciada
+        /// Servicio que marca una converzación como leida
         /// </summary>
         /// <param name="conversationId">Id de la converzación.</param>
-        /// <response code="200">Confirmación del marcado como no silenciada.</response>
+        /// <response code="200">Confirmación del marcado como leida.</response>
         /// <remarks>
         /// 
         /// </remarks>
-        [HttpDelete("Conversations/{conversationId}/Read")]
+        [HttpPut("Conversations/{conversationId}/Read")]
         [Authorize(Policy = "GuestOrHost")]
         public async Task<ReturnModelDTO> SetConversationAsRead(int conversationId)
         {

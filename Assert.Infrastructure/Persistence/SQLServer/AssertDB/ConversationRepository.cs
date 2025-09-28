@@ -96,10 +96,13 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 bookId = priceCalculation.BookId;
                 listingId = priceCalculation.ListingRentId;
 
+                var status = await _context.PayPriceCalculationStatuses.FirstOrDefaultAsync(x => x.PriceCalculationStatusCode == "CONSULT");
+
                 if (priceCalculation.CalculationStatusId == 1)
                 {
                     //Si está pendiente, la convertimos en una converzación de consulta
-                    priceCalculation.CalculationStatusId = 4; //Estado de consulta
+                    priceCalculation.CalculationStatusId = status.PayPriceCalculationStatus1; //Estado de consulta
+                    priceCalculation.CalculationStatue = status.PriceCalculationStatusCode;
                 }
             }
             else if (bookId > 0)
