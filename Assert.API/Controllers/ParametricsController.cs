@@ -368,5 +368,25 @@ namespace Assert.API.Controllers
 
             return bookStatus;
         }
+
+        /// <summary>
+        /// Obtiene la lista de tipos de cargos adicionales disponibles en el sistema.
+        /// </summary>
+        /// <returns>
+        /// Lista de objetos <see cref="AddionalFeeTypeDTO"/> que representan los tipos de cargos adicionales configurables.
+        /// </returns>
+        /// <response code="200">OK: Se retornó exitosamente la lista de tipos de cargos adicionales.</response>
+        /// <response code="500">INTERNAL SERVER ERROR: Error inesperado durante la operación.</response>
+        /// <remarks>
+        /// Características del servicio:
+        /// - La lista incluye identificadores, códigos y descripciones de cada tipo de cargo adicional.
+        /// - Esta parametrización es utilizada para clasificar y aplicar reglas de negocio en la configuración de tarifas.
+        /// - El resultado puede ser utilizado para poblar formularios, validaciones o filtros en interfaces administrativas.
+        /// - Se registra cualquier excepción con contexto completo para trazabilidad.
+        /// </remarks>
+        [HttpGet("GetAdditionalFeeTypes")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO<List<AddionalFeeTypeDTO>>> GetAdditionalFeeTypes()
+        => await _parametricService.GetAdditionalFeeTypes();
     }
 }

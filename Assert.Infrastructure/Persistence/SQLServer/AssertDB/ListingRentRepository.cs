@@ -1,4 +1,5 @@
-﻿using Assert.Domain.Common.Params;
+﻿using Assert.Domain.Common.Metadata;
+using Assert.Domain.Common.Params;
 using Assert.Domain.Entities;
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
@@ -19,6 +20,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         IExceptionLoggerService _exceptionLoggerService,
         IListingViewHistoryRepository _listingViewHistoryRepository,
         IListingFavoriteRepository _favoritesRepository,
+        RequestMetadata _metadata,
         ParamsData _paramsData,
         ILogger<ListingRentRepository> _logger, IServiceProvider serviceProvider)
         : IListingRentRepository
@@ -993,7 +995,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         .FirstOrDefaultAsync(l => l.ListingRentId == listingRentId);
 
                     if (listingRent is null)
-                        throw new NotFoundException($"No se encontró el listing con ID: {listingRentId}");
+                        throw new NotFoundException($"No se encontró la propiedad con ID: {listingRentId}");
 
                     if (listingRent.OwnerUserId != userId)
                     {
@@ -1045,7 +1047,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         .FirstOrDefaultAsync(l => l.ListingRentId == listingRentId);
 
                 if (listingRent is null)
-                    throw new NotFoundException($"No se encontró el listing con ID: {listingRentId}");
+                    throw new NotFoundException($"No se encontró la propiedad con ID: {listingRentId}");
 
                 if (listingRent.OwnerUserId != userId)
                 {
@@ -1084,7 +1086,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         .FirstOrDefaultAsync(l => l.ListingRentId == listingRentId);
 
                 if (listingRent is null)
-                    throw new NotFoundException($"No se encontró el listing con ID: {listingRentId}");
+                    throw new NotFoundException($"No se encontró la propiedad con ID: {listingRentId}");
 
                 if( listingRent.OwnerUserId != userId)
                 {
@@ -1102,6 +1104,89 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 var (className, methodName) = this.GetCallerInfo();
                 _exceptionLoggerService.LogAsync(ex, methodName, className, new { listingRentId, preparationDay });
+                throw new InfrastructureException(ex.Message);
+            }
+        }
+
+        public async Task<string> SetAdditionalFee(long listingRentId, 
+            List<int> additionalFeeId, List<decimal> value)
+        {
+            try
+            { 
+                await using var context = new InfraAssertDbContext(dbOptions);
+
+                var listingRent = await context.TlListingRents
+                        .Include(lr => lr.TlListingAdditionalFees)
+                        .FirstOrDefaultAsync(l => l.ListingRentId == listingRentId);
+
+                if (listingRent is null)
+                    throw new NotFoundException($"No se encontró la propiedad con ID: {listingRentId}");
+
+                if (listingRent.OwnerUserId != _metadata.UserId)
+                    throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
+                
+                for (int i = 0; i < additionalFeeId.Count; i++)
+                {
+                    var feeId = additionalFeeId[i];
+                    var feeValue = value[i];
+
+                    var existingFee = listingRent.TlListingAdditionalFees
+                        .FirstOrDefault(f => f.AdditionalFeeId == feeId);
+
+                    if (existingFee != null)
+                        existingFee.AmountFee = feeValue;
+                    else
+                    {
+                        var newFee = new TlListingAdditionalFee
+                        {
+                            ListingRentId = listingRentId,
+                            AdditionalFeeId = feeId,
+                            AmountFee = feeValue,
+                            IsPercent = false
+                        };
+
+                        listingRent.TlListingAdditionalFees.Add(newFee);
+                    }
+                }
+
+                await context.SaveChangesAsync();
+                return "UPDATED";
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { listingRentId, additionalFeeId, value });
+                throw new InfrastructureException(ex.Message);
+            }
+        }
+
+        public async Task<List<TlListingAdditionalFee>> GetAdditionalFeesByListingRentId(
+            long listingRentId)
+        {
+            try
+            {
+                await using var context = new InfraAssertDbContext(dbOptions);
+
+                var listingRent = await context.TlListingRents
+                    .Include(lr => lr.TlListingAdditionalFees)
+                        .ThenInclude(laf => laf.AdditionalFee)
+                    .FirstOrDefaultAsync(lr => lr.ListingRentId == listingRentId);
+
+                if (listingRent is null)
+                    throw new NotFoundException($"No se encontró el la propiedad con ID: {listingRentId}");
+
+                if (listingRent.OwnerUserId != _metadata.UserId)
+                    throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
+
+                var result = listingRent.TlListingAdditionalFees
+                    .ToList();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { listingRentId });
                 throw new InfrastructureException(ex.Message);
             }
         }

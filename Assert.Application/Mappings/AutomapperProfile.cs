@@ -30,6 +30,8 @@ namespace Assert.Application.Mappings
             CreateMap<TReasonRefusedBook, ReasonRefusedBookDTO>();
             CreateMap<TReasonRefusedPriceCalculation, ReasonRefusedConsultDTO>();
             CreateMap<TbBookStatus, BookStatusDTO>();
+            CreateMap<TlListingAdditionalFee, ListingAdditionalFeeDTO>();
+            CreateMap<TlAdditionalFee, AddionalFeeTypeDTO>();
 
             CreateMap<ProcessDataRequest, ListingProcessDataModel>();
             CreateMap<AddressDTO, ProcessData_AddressModel>();

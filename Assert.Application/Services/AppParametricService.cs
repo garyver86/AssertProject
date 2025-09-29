@@ -5,6 +5,7 @@ using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
+using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 using Assert.Shared.Extensions;
 using AutoMapper;
 
@@ -12,6 +13,7 @@ namespace Assert.Application.Services
 {
     public class AppParametricService(IParametricService _parametricService,
         ICurrencyRespository _currencyRepository,
+        IAdditionalFeeRepository _additionalFeeRespository,
         IMapper _mapper, IErrorHandler _errorHandler,
         IExceptionLoggerService _exceptionLoggerService)
         : IAppParametricService
@@ -343,6 +345,18 @@ namespace Assert.Application.Services
             {
                 return HandleException<List<BookStatusDTO>>("AppParametricService.GetBookStatuses", ex, null, v);
             }
+        }
+
+        public async Task<ReturnModelDTO<List<AddionalFeeTypeDTO>>> GetAdditionalFeeTypes()
+        {
+            var aditionalFees = await _additionalFeeRespository.Get();
+            var additionalFeesResult = _mapper.Map<List<AddionalFeeTypeDTO>>(aditionalFees);
+            return new ReturnModelDTO<List<AddionalFeeTypeDTO>>
+            {
+                Data = additionalFeesResult,
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
         }
     }
 }
