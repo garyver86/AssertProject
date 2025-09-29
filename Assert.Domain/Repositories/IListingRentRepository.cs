@@ -41,5 +41,9 @@ namespace Assert.Domain.Repositories
         Task<string> SetMinimumNotice(long listingRentId, int minimumNoticeDay,
             TimeSpan? minimumNoticeHours);
         Task<string> SetPreparationDay(long listingRentId, int preparationDay);
+        Task<string> SetAdditionalFee(long listingRentId,
+            List<int> additionalFeeId, List<decimal> value);
+        Task<List<TlListingAdditionalFee>> GetAdditionalFeesByListingRentId(
+            long listingRentId);
     }
 }

@@ -675,11 +675,65 @@ namespace Assert.API.Controllers
         /// - La operación es idempotente: si el valor ya está establecido, se retorna "UPDATED" sin duplicación.
         /// - Se registra cualquier excepción con contexto completo para trazabilidad, incluyendo parámetros de entrada.
         /// </remarks>
-
         [HttpPut()]
         [Authorize(Policy = "GuestOrHost")]
         [Route("UpsertPreparationDay")]
         public async Task<ReturnModelDTO> UpsertPreparationDay(UpsertPreparationDayRequestDTO request)
         => await _appListingRentService.UpsertPreparationDay(request);
+
+        /// <summary>
+        /// Registra o actualiza los cargos adicionales asociados a una reserva de alquiler (Listing Rent).
+        /// </summary>
+        /// <param name="request">
+        /// Objeto que contiene los parámetros necesarios para la operación:
+        /// - <see cref="UpsertAdditionalFeeRequestDTO.ListingRentId"/>: Identificador único del Listing Rent.
+        /// - <see cref="UpsertAdditionalFeeRequestDTO.AdditionalFeeIds"/>: Lista de identificadores de cargos adicionales a registrar o actualizar.
+        /// - <see cref="UpsertAdditionalFeeRequestDTO.AdditionalFeeValues"/>: Lista de valores correspondientes a cada cargo adicional.
+        /// </param>
+        /// <returns>
+        /// UPDATED.
+        /// </returns>
+        /// <response code="200">UPDATED: Los cargos adicionales fueron registrados o actualizados exitosamente.</response>
+        /// <response code="404">NOT FOUND: No se encontró el Listing Rent con el ID especificado.</response>
+        /// <response code="400">BAD REQUEST: La cantidad de IDs no coincide con la cantidad de valores, o se detectaron valores inválidos.</response>
+        /// <response code="500">INTERNAL SERVER ERROR: Error inesperado durante la operación.</response>
+        /// <remarks>
+        /// Requisitos y validaciones:
+        /// - El <c>ListingRentId</c> debe existir en el sistema.
+        /// - Las listas <c>AdditionalFeeIds</c> y <c>AdditionalFeeValues</c> deben tener la misma longitud.
+        /// - Cada <c>AdditionalFeeValue</c> debe ser mayor o igual a cero.
+        /// - La operación es idempotente: si el cargo ya existe, se actualiza su valor; si no existe, se registra uno nuevo.
+        /// - Se registra cualquier excepción con contexto completo para trazabilidad, incluyendo parámetros de entrada.
+        /// </remarks>
+        [HttpPut()]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("UpsertAdditionalFee")]
+        public async Task<ReturnModelDTO> UpsertAdditionalFee(UpsertAdditionalFeeRequestDTO request)
+        => await _appListingRentService.UpsertAdditionalFee(request);
+
+        /// <summary>
+        /// Obtiene los cargos adicionales registrados para una reserva de alquiler específica (Listing Rent).
+        /// </summary>
+        /// <param name="listingRentId">
+        /// Identificador único del Listing Rent para el cual se desea consultar los cargos adicionales asociados.
+        /// </param>
+        /// <returns>
+        /// Lista de cargos adicionales registrados, incluyendo código, descripción, tipo de cálculo, valor y si es porcentaje.
+        /// </returns>
+        /// <response code="200">OK: Se retornó exitosamente la lista de cargos adicionales asociados al Listing Rent.</response>
+        /// <response code="404">NOT FOUND: No se encontró el Listing Rent con el ID especificado.</response>
+        /// <response code="500">INTERNAL SERVER ERROR: Error inesperado durante la operación.</response>
+        /// <remarks>
+        /// Requisitos y validaciones:
+        /// - El <c>listingRentId</c> debe existir en el sistema.
+        /// - Si no existen cargos adicionales registrados, se retorna una lista vacía.
+        /// - Cada cargo adicional incluye información de referencia desde la entidad <c>TlAdditionalFee</c>.
+        /// - Se registra cualquier excepción con contexto completo para trazabilidad, incluyendo parámetros de entrada.
+        /// </remarks>
+        [HttpGet()]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("{listingRentId}/GetAdditionalFee")]
+        public async Task<ReturnModelDTO> GetAdditionalFee(long listingRentId)
+        => await _appListingRentService.GetAdditionalFee(listingRentId);
     }
 }

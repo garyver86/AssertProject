@@ -938,7 +938,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         .FirstOrDefaultAsync(l => l.ListingRentId == listingRentId);
 
                     if (listingRent is null)
-                        throw new NotFoundException($"No se encontró el listing con ID: {listingRentId}");
+                        throw new NotFoundException($"No se encontró la propiedad con ID: {listingRentId}");
 
                     bool updated = false;
 
@@ -985,7 +985,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         .FirstOrDefaultAsync(l => l.ListingRentId == listingRentId);
 
                 if (listingRent is null)
-                    throw new NotFoundException($"No se encontró el listing con ID: {listingRentId}");
+                    throw new NotFoundException($"No se encontró la propiedad con ID: {listingRentId}");
 
                 if (minimumNoticeDay == 0 && minimumNoticeHours is null)
                     throw new InfrastructureException($"Si el preaviso es del mismo dia requiere registro de horas.");
@@ -1019,7 +1019,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         .FirstOrDefaultAsync(l => l.ListingRentId == listingRentId);
 
                 if (listingRent is null)
-                    throw new NotFoundException($"No se encontró el listing con ID: {listingRentId}");
+                    throw new NotFoundException($"No se encontró la propiedad con ID: {listingRentId}");
 
                 listingRent.MinimumNotice = Math.Max(preparationDay, 0);
 
@@ -1032,6 +1032,84 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 var (className, methodName) = this.GetCallerInfo();
                 _exceptionLoggerService.LogAsync(ex, methodName, className, new { listingRentId, preparationDay });
+                throw new InfrastructureException(ex.Message);
+            }
+        }
+
+        public async Task<string> SetAdditionalFee(long listingRentId, 
+            List<int> additionalFeeId, List<decimal> value)
+        {
+            try
+            { 
+                await using var context = new InfraAssertDbContext(dbOptions);
+
+                var listingRent = await context.TlListingRents
+                        .Include(lr => lr.TlListingAdditionalFees)
+                        .FirstOrDefaultAsync(l => l.ListingRentId == listingRentId);
+
+                if (listingRent is null)
+                    throw new NotFoundException($"No se encontró la propiedad con ID: {listingRentId}");
+
+
+                for (int i = 0; i < additionalFeeId.Count; i++)
+                {
+                    var feeId = additionalFeeId[i];
+                    var feeValue = value[i];
+
+                    var existingFee = listingRent.TlListingAdditionalFees
+                        .FirstOrDefault(f => f.AdditionalFeeId == feeId);
+
+                    if (existingFee != null)
+                        existingFee.AmountFee = feeValue;
+                    else
+                    {
+                        var newFee = new TlListingAdditionalFee
+                        {
+                            ListingRentId = listingRentId,
+                            AdditionalFeeId = feeId,
+                            AmountFee = feeValue,
+                            IsPercent = false
+                        };
+
+                        listingRent.TlListingAdditionalFees.Add(newFee);
+                    }
+                }
+
+                await context.SaveChangesAsync();
+                return "UPDATED";
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { listingRentId, additionalFeeId, value });
+                throw new InfrastructureException(ex.Message);
+            }
+        }
+
+        public async Task<List<TlListingAdditionalFee>> GetAdditionalFeesByListingRentId(
+            long listingRentId)
+        {
+            try
+            {
+                await using var context = new InfraAssertDbContext(dbOptions);
+
+                var listingRent = await context.TlListingRents
+                    .Include(lr => lr.TlListingAdditionalFees)
+                        .ThenInclude(laf => laf.AdditionalFee)
+                    .FirstOrDefaultAsync(lr => lr.ListingRentId == listingRentId);
+
+                if (listingRent is null)
+                    throw new NotFoundException($"No se encontró el la propiedad con ID: {listingRentId}");
+
+                var result = listingRent.TlListingAdditionalFees
+                    .ToList();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { listingRentId });
                 throw new InfrastructureException(ex.Message);
             }
         }

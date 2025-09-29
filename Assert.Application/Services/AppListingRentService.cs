@@ -12,6 +12,7 @@ using Assert.Domain.ValueObjects;
 using Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 using Assert.Shared.Extensions;
 using AutoMapper;
+using Azure.Core;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
@@ -70,7 +71,7 @@ namespace Assert.Application.Services
             return result;
         }
 
-        public async Task<ReturnModelDTO> ChangeStatusByAdmin(long listingRentId, int ownerUserId, 
+        public async Task<ReturnModelDTO> ChangeStatusByAdmin(long listingRentId, int ownerUserId,
             string newStatusCode, Dictionary<string, string> clientData)
         {
             ReturnModelDTO result = new ReturnModelDTO();
@@ -78,7 +79,7 @@ namespace Assert.Application.Services
             {
                 var status = await _listingStatusRepository.Get(newStatusCode);
 
-                var changeResult = await _listingRentRepository.ChangeStatus(listingRentId, ownerUserId, 
+                var changeResult = await _listingRentRepository.ChangeStatus(listingRentId, ownerUserId,
                     status.ListingStatusId, clientData);
 
                 result.Data = "UPDATED";
@@ -139,7 +140,7 @@ namespace Assert.Application.Services
             }
             catch (Exception ex)
             {
-                throw new ApplicationException(ex.Message); 
+                throw new ApplicationException(ex.Message);
             }
         }
 
@@ -1201,7 +1202,7 @@ namespace Assert.Application.Services
 
         public async Task<ReturnModelDTO<string>> UpsertMaxMinStay(UpsertMaxMinStayRequestDTO request)
         {
-            if(!request.SetMaxStay && !request.SetMinStay)
+            if (!request.SetMaxStay && !request.SetMinStay)
                 throw new ApplicationException("Requiere modificar al menos minimo o maximo de estancia.");
 
             var result = await _listingRentRepository.SetMaxMinStay(request.ListingRentId, request.SetMaxStay,
@@ -1240,5 +1241,33 @@ namespace Assert.Application.Services
                 Data = result
             };
         }
+
+        public async Task<ReturnModelDTO<string>> UpsertAdditionalFee(
+            UpsertAdditionalFeeRequestDTO request)
+        {
+            var result = await _listingRentRepository.SetAdditionalFee(request.ListingRentId,
+                request.AdditionalFeeIds, request.AdditionalFeeValues);
+
+            return new ReturnModelDTO<string>
+            {
+                HasError = false,
+                StatusCode = ResultStatusCode.OK,
+                Data = result
+            };
+        }
+
+        public async Task<ReturnModelDTO<List<ListingAdditionalFeeDTO>>> GetAdditionalFee(long listingRentId)
+        {
+            var result = new ReturnModelDTO<List<ListingAdditionalFeeDTO>>() 
+            { StatusCode = ResultStatusCode.OK, HasError = false };
+
+            var response = await _listingRentRepository.GetAdditionalFeesByListingRentId(listingRentId);
+
+            result.Data = _mapper.Map<List<ListingAdditionalFeeDTO>>(response);
+
+            return result;
+        }
+
+
     }
 }
