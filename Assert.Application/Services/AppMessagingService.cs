@@ -31,22 +31,22 @@ namespace Assert.Application.Services
             _notificationService = notificationService;
             _messagePredefinedRepository = messagePredefinedRepository;
         }
-        public async Task<ReturnModelDTO<ConversationDTO>> CreateConversation(int renterid, int hostId, int userId, long? bookId, long? priceCalculationId, long? listingId, Dictionary<string, string> requestInfo)
+        public async Task<ReturnModelDTO<ConversationDTO>> CreateConversation(int renterid, int? hostId, long? bookId, long? priceCalculationId, long? listingId, Dictionary<string, string> requestInfo)
         {
             ReturnModelDTO<ConversationDTO> result = new ReturnModelDTO<ConversationDTO>();
             try
             {
-                if (renterid != userId && hostId != userId)
-                {
-                    result = new ReturnModelDTO<ConversationDTO>
-                    {
-                        StatusCode = ResultStatusCode.Unauthorized,
-                        HasError = true,
-                        ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetError(ResultStatusCode.Unauthorized, "El usuario actual no puede crear al converzación deseada.", true))
-                    };
-                }
-                else
-                {
+                //if (renterid != userId && hostId != userId)
+                //{
+                //    result = new ReturnModelDTO<ConversationDTO>
+                //    {
+                //        StatusCode = ResultStatusCode.Unauthorized,
+                //        HasError = true,
+                //        ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetError(ResultStatusCode.Unauthorized, "El usuario actual no puede crear la converzación deseada.", true))
+                //    };
+                //}
+                //else
+                //{
                     var result_ = await _conversationRepository.Create(renterid, hostId, bookId, priceCalculationId, listingId);
 
                     result = new ReturnModelDTO<ConversationDTO>
@@ -69,13 +69,13 @@ namespace Assert.Application.Services
                             await SendMessage(result_.ConversationId, null, messageRenter, 4, requestInfo, renterid);
                         }
                     }
-                }
+                //}
             }
             catch (Exception ex)
             {
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
-                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppMessagingService.CreateConversation", ex, new { renterid, hostId, userId, requestInfo }, false));
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppMessagingService.CreateConversation", ex, new { renterid, hostId, requestInfo }, false));
             }
             return result;
         }

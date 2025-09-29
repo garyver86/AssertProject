@@ -166,6 +166,7 @@ namespace Assert.Application.Mappings
 
             CreateMap<TlAccommodationType, AccomodationTypeDTO>();
             CreateMap<PayPriceCalculation, PayPriceCalculationDTO>();
+            CreateMap<PayPriceCalculationStatus, PriceCalculationStatusDTO>();
             CreateMap<PayPriceCalculation, PayPriceCalculationCompleteDTO>()
                .ForMember(dest => dest.PriceCalculation, opt => opt.MapFrom(src => src))
                .ForMember(dest => dest.PriceBreakdowns, opt => opt.MapFrom(src => src.BreakdownInfo != null ? JsonConvert.DeserializeObject<List<PriceBreakdownItemDTO>>(src.BreakdownInfo) : null));

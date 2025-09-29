@@ -40,7 +40,7 @@ namespace Assert.API.Controllers
             var requestInfo = HttpContext.GetRequestInfo();
             int userId = 0;
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);
-            ReturnModelDTO<ConversationDTO> result = await _messagingService.CreateConversation(request.RenterId, request.HostId, userId, request.bookId, request.priceCalculationId, request.listingId, requestInfo);
+            ReturnModelDTO<ConversationDTO> result = await _messagingService.CreateConversation(userId, request.HostId, request.bookId, request.priceCalculationId, request.listingId, requestInfo);
             return result;
         }
 

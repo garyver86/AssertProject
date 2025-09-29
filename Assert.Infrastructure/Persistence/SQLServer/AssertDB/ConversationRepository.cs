@@ -15,7 +15,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             _context = context;
             _messageRepository = messageRepository;
         }
-        public async Task<TmConversation> Create(int renterId, int hostId, long? bookId, long? priceCalculationId, long? listingId)
+        public async Task<TmConversation> Create(int renterId, int? hostId, long? bookId, long? priceCalculationId, long? listingId)
         {
             if (renterId <= 0)
             {
@@ -38,11 +38,24 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Include(x => x.PriceCalculation)
                     .Include(x => x.Book)
                     .Include(x => x.ListingRent)
-                    .FirstOrDefaultAsync(c => ((c.UserIdOne == renterId && c.UserIdTwo == hostId) ||
-                                              (c.UserIdOne == hostId && c.UserIdTwo == renterId)) &&
-                                              c.BookId == bookId);
+                    //.FirstOrDefaultAsync(c => ((c.UserIdOne == renterId && c.UserIdTwo == hostId) ||
+                    //                          (c.UserIdOne == hostId && c.UserIdTwo == renterId)) &&
+                    //                          c.BookId == bookId);
+                    .FirstOrDefaultAsync(c => c.BookId == bookId);
+
                 if (existingConversationWithBook != null)
                 {
+                    hostId = hostId ?? existingConversationWithBook.ListingRent.OwnerUserId;
+                    if ((existingConversationWithBook.UserIdOne == renterId && existingConversationWithBook.UserIdTwo == hostId) ||
+                       (existingConversationWithBook.UserIdOne == hostId && existingConversationWithBook.UserIdTwo == renterId))
+                    {
+                        return existingConversationWithBook; // Retorna la conversación existente.
+                    }
+                    else
+                    {
+                        throw new ArgumentException("A conversation with the same Book ID already exists between different users.");
+                    }
+
                     return existingConversationWithBook; // Retorna la conversación existente.
                 }
             }
@@ -52,24 +65,42 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 var existingConversationWithPriceCalculation = await _context.TmConversations
                     .Include(x => x.PriceCalculation)
                     .Include(x => x.ListingRent)
-                    .FirstOrDefaultAsync(c => ((c.UserIdOne == renterId && c.UserIdTwo == hostId) ||
-                                              (c.UserIdOne == hostId && c.UserIdTwo == renterId)) &&
-                                              c.PriceCalculationId == priceCalculationId);
+                    //.FirstOrDefaultAsync(c => ((c.UserIdOne == renterId && c.UserIdTwo == hostId) ||
+                    //                          (c.UserIdOne == hostId && c.UserIdTwo == renterId)) &&
+                    //                          c.PriceCalculationId == priceCalculationId);
+                    .FirstOrDefaultAsync(c => (c.PriceCalculationId == priceCalculationId));
+
                 if (existingConversationWithPriceCalculation != null)
                 {
-                    return existingConversationWithPriceCalculation; // Retorna la conversación existente.
+                    hostId = hostId ?? existingConversationWithPriceCalculation.ListingRent.OwnerUserId;
+                    if ((existingConversationWithPriceCalculation.UserIdOne == renterId && existingConversationWithPriceCalculation.UserIdTwo == hostId) ||
+                       (existingConversationWithPriceCalculation.UserIdOne == hostId && existingConversationWithPriceCalculation.UserIdTwo == renterId))
+                    {
+                        return existingConversationWithPriceCalculation; // Retorna la conversación existente.
+                    }
+                    else
+                    {
+                        throw new ArgumentException("A conversation with the same Price Calculation ID already exists between different users.");
+                    }
                 }
             }
             else if (listingId > 0)
             {
                 //Buscamos una converzación entre estas dos personas con ese mismo listingId
                 var existingConversationWithListing = await _context.TmConversations
-                    .FirstOrDefaultAsync(c => ((c.UserIdOne == renterId && c.UserIdTwo == hostId) ||
-                                              (c.UserIdOne == hostId && c.UserIdTwo == renterId)) &&
-                                              c.ListingRentId == listingId);
+                    .FirstOrDefaultAsync(c => c.ListingRentId == listingId);
                 if (existingConversationWithListing != null)
                 {
-                    return existingConversationWithListing; // Retorna la conversación existente.
+                    hostId = hostId ?? existingConversationWithListing.ListingRent.OwnerUserId;
+                    if ((existingConversationWithListing.UserIdOne == renterId && existingConversationWithListing.UserIdTwo == hostId) ||
+                       (existingConversationWithListing.UserIdOne == hostId && existingConversationWithListing.UserIdTwo == renterId))
+                    {
+                        return existingConversationWithListing; // Retorna la conversación existente.
+                    }
+                    else
+                    {
+                        throw new ArgumentException("A conversation with the same Listing ID already exists between different users.");
+                    }
                 }
             }
             else
@@ -88,6 +119,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             if (priceCalculationId > 0)
             {
                 priceCalculation = await _context.PayPriceCalculations
+                    .Include(tl => tl.ListingRent)
                     .FirstOrDefaultAsync(pc => pc.PriceCalculationId == priceCalculationId);
                 if (priceCalculation == null)
                 {
@@ -95,7 +127,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 }
                 bookId = priceCalculation.BookId;
                 listingId = priceCalculation.ListingRentId;
-
+                hostId = hostId ?? priceCalculation.ListingRent.OwnerUserId;
                 var status = await _context.PayPriceCalculationStatuses.FirstOrDefaultAsync(x => x.PriceCalculationStatusCode == "CONSULT");
 
                 if (priceCalculation.CalculationStatusId == 1)
@@ -108,11 +140,13 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             else if (bookId > 0)
             {
                 var booking = await _context.TbBooks
+                    .Include(tl => tl.ListingRent)
                     .FirstOrDefaultAsync(b => b.BookId == bookId);
                 if (booking == null)
                 {
                     throw new ArgumentException("Book ID does not exist.", nameof(bookId));
                 }
+                hostId = hostId ?? booking.ListingRent.OwnerUserId;
                 listingId = booking.ListingRentId;
             }
             else if (listingId > 0)
@@ -123,15 +157,17 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 {
                     throw new ArgumentException("Listing ID does not exist.", nameof(listingId));
                 }
+                hostId = hostId ?? listing.OwnerUserId;
             }
 
             var conversation = new TmConversation
             {
                 UserIdOne = renterId,
-                UserIdTwo = hostId,
+                UserIdTwo = hostId ?? 0,
                 CreationDate = DateTime.UtcNow, // Establece la fecha de creación.
                 StatusId = 1,
                 BookId = bookId,
+                ListingRentId = listingId,
                 PriceCalculationId = priceCalculationId
             };
 
