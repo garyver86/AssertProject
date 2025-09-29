@@ -25,7 +25,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task<PayPriceCalculation> ConsultingResponse(int userId, long priceCalculationId, bool isApproval, int? reasonRefused)
         {
-            var existingCalc = await _context.PayPriceCalculations.Include(x => x.ListingRent).Include(c=>c.TmConversations).Where(x => x.PriceCalculationId == priceCalculationId).FirstOrDefaultAsync();
+            var existingCalc = await _context.PayPriceCalculations.Include(x => x.ListingRent).Include(c => c.TmConversations).Where(x => x.PriceCalculationId == priceCalculationId).FirstOrDefaultAsync();
             if (existingCalc == null)
                 throw new NotFoundException($"No se encontro la cotización con ID {priceCalculationId}.");
 
@@ -39,13 +39,23 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
             if (isApproval)
             {
-                existingCalc.CalculationStatusId = 1;
-                await _context.SaveChangesAsync();               
+                var status = await _context.PayPriceCalculationStatuses.FirstOrDefaultAsync(x => x.PriceCalculationStatusCode == "PENDING");
+
+                existingCalc.CalculationStatusId = status.PayPriceCalculationStatus1;
+                existingCalc.ConsultAccepted = true;
+                existingCalc.ConsultResponse = DateTime.UtcNow;
+                existingCalc.CalculationStatue = status.PriceCalculationStatusCode;
+                await _context.SaveChangesAsync();
             }
             else
             {
+                var status = await _context.PayPriceCalculationStatuses.FirstOrDefaultAsync(x => x.PriceCalculationStatusCode == "REFUSED");
+
                 existingCalc.CalculationStatusId = 5;
                 existingCalc.ReasonRefusedId = reasonRefused;
+                existingCalc.CalculationStatue = status.PriceCalculationStatusCode;
+                existingCalc.ConsultAccepted = false;
+                existingCalc.ConsultResponse = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
             }
 
@@ -139,8 +149,10 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             var priceCalculation = await _context.PayPriceCalculations.Where(x => x.CalculationCode == calculationCode).FirstOrDefaultAsync();
             if (priceCalculation != null)
             {
-                priceCalculation.CalculationStatue = "PAYED";
-                priceCalculation.CalculationStatusId = 2;
+                var status = await _context.PayPriceCalculationStatuses.FirstOrDefaultAsync(x => x.PriceCalculationStatusCode == "PAYED");
+
+                priceCalculation.CalculationStatue = status.PriceCalculationStatusCode;
+                priceCalculation.CalculationStatusId = status.PayPriceCalculationStatus1;
                 priceCalculation.PaymentProviderId = paymentProviderId;
                 priceCalculation.MethodOfPaymentId = methodOfPaymentId;
                 priceCalculation.PaymentTransactionId = PaymentTransactionId;

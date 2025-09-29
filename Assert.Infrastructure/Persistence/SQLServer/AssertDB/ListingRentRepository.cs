@@ -634,32 +634,46 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task<TlListingRent> SetAccomodationType(long listingRentId, int? accomodationTypeId)
+        public async Task<TlListingRent> SetAccomodationType(long listingRentId, int? accomodationTypeId, int userId)
         {
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+
+                if(listing.OwnerUserId != userId)
+                {
+                    throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
+                }
+
                 listing.AccomodationTypeId = accomodationTypeId;
                 await context.SaveChangesAsync();
                 return listing;
             }
         }
 
-        public async Task SetApprovalPolicy(long listingRentId, int? approvalPolicyTypeId)
+        public async Task SetApprovalPolicy(long listingRentId, int? approvalPolicyTypeId, int userId)
         {
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                if(listing.OwnerUserId != userId)
+                {
+                    throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
+                }
                 listing.ApprovalPolicyTypeId = approvalPolicyTypeId;
                 await context.SaveChangesAsync();
             }
         }
 
-        public async Task SetCapacity(long listingRentId, int? beds, int? bedrooms, bool? allDoorsLocked, int? maxGuests, int? privateBathroom, int? privateBathroomLodging, int? sharedBathroom)
+        public async Task SetCapacity(long listingRentId, int? beds, int? bedrooms, bool? allDoorsLocked, int? maxGuests, int? privateBathroom, int? privateBathroomLodging, int? sharedBathroom, int userId)
         {
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                if(listing.OwnerUserId != userId)
+                {
+                    throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
+                }
                 listing.Beds = beds;
                 listing.Bedrooms = bedrooms;
                 listing.AllDoorsLocked = allDoorsLocked;
@@ -681,11 +695,15 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task SetCapacity(long listingRentId, int? beds, int? bedrooms, int? bathrooms, int? maxGuests, int? privateBathroom, int? privateBathroomLodging, int? sharedBathroom)
+        public async Task SetCapacity(long listingRentId, int? beds, int? bedrooms, int? bathrooms, int? maxGuests, int? privateBathroom, int? privateBathroomLodging, int? sharedBathroom, int userId)
         {
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                if(listing.OwnerUserId != userId)
+                {
+                    throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
+                }
                 listing.Beds = beds;
                 listing.Bedrooms = bedrooms;
                 listing.Bathrooms = bathrooms;
@@ -701,42 +719,58 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task SetDescription(long listingRentId, string description)
+        public async Task SetDescription(long listingRentId, string description, int userId)
         {
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                if(listing.OwnerUserId != userId)
+                {
+                    throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
+                }
                 listing.Description = description;
                 await context.SaveChangesAsync();
             }
         }
 
-        public async Task SetName(long listingRentId, string title)
+        public async Task SetName(long listingRentId, string title, int userId)
         {
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                if(listing.OwnerUserId != userId)
+                {
+                    throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
+                }
                 listing.Name = title;
                 await context.SaveChangesAsync();
             }
         }
 
-        public async Task SetNameAndDescription(long listingRentId, string title, string description)
+        public async Task SetNameAndDescription(long listingRentId, string title, string description, int userId)
         {
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                if(listing.OwnerUserId != userId)
+                {
+                    throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
+                }
                 listing.Description = description;
                 listing.Name = title;
                 await context.SaveChangesAsync();
             }
         }
 
-        public async Task SetSecurityConfirmationData(long listingRentId, bool? presenceOfWeapons, bool? noiseDesibelesMonitor, bool? externalCameras)
+        public async Task SetSecurityConfirmationData(long listingRentId, bool? presenceOfWeapons, bool? noiseDesibelesMonitor, bool? externalCameras, int userId)
         {
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                if(listing.OwnerUserId != userId)
+                {
+                    throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
+                }
                 listing.PresenceOfWeapons = presenceOfWeapons;
                 listing.NoiseDesibelesMonitor = noiseDesibelesMonitor;
                 listing.ExternalCameras = externalCameras;
@@ -754,7 +788,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task<string> UpdateBasicData(long listingRentId, string title, string description, List<int> aspectTypeIdList)
+        public async Task<string> UpdateBasicData(long listingRentId, string title, string description, List<int> aspectTypeIdList, int userId)
         {
             try
             {
@@ -763,6 +797,10 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     var listing = await context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefaultAsync();
                     if (listing != null)
                     {
+                        if(listing.OwnerUserId != userId)
+                        {
+                            throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
+                        }
                         listing.Name = string.IsNullOrEmpty(title) ? listing.Name : title;
                         listing.Description = string.IsNullOrEmpty(description) ? listing.Description : description;
 
@@ -805,11 +843,15 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task SetReservationTypeApprobation(long listingRentId, int approvalPolicyTypeId, int preparationDays, int minimumNotice)
+        public async Task SetReservationTypeApprobation(long listingRentId, int approvalPolicyTypeId, int preparationDays, int minimumNotice, int userId)
         {
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                if ((listing.OwnerUserId != userId))
+                {
+                    throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing rent.");
+                }
                 listing.ApprovalPolicyTypeId = approvalPolicyTypeId;
                 listing.PreparationDays = preparationDays;
                 listing.MinimumNotice = minimumNotice;
@@ -817,11 +859,20 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task SetCheckInPolicies(long listingRentId, string checkinTime, string checkoutTime, string maxCheckinTime, string instructions)
+        public async Task SetCheckInPolicies(long listingRentId, string checkinTime, string checkoutTime, string maxCheckinTime, string instructions, int userId)
         {
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 //TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId).Include(x => x.).FirstOrDefault();
+                var listing = _context.TlListingRents.AsNoTracking().FirstOrDefault(x => x.ListingRentId == listingRentId);
+                if (listing == null)
+                {
+                    throw new ArgumentException("El listing rent especificado no existe.", nameof(listingRentId));
+                }
+                if (listing.OwnerUserId != userId)
+                {
+                    throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing rent.");
+                }
 
                 var chkPolicies = context.TlCheckInOutPolicies.Where(x => x.ListingRentid == listingRentId).FirstOrDefault();
 
@@ -892,11 +943,15 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task SetCancellationPolicy(long listingRentId, int? cancellationPolicyTypeId)
+        public async Task SetCancellationPolicy(long listingRentId, int? cancellationPolicyTypeId, int userId)
         {
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
+                if(listing.OwnerUserId != userId)
+                {
+                    throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
+                }
                 listing.CancelationPolicyTypeId = cancellationPolicyTypeId;
                 await context.SaveChangesAsync();
             }
@@ -928,7 +983,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         }
 
         public async Task<string> SetMaxMinStay(long listingRentId, bool setMaxStay, int maxStayValue,
-            bool setMinStay, int minStayValue)
+            bool setMinStay, int minStayValue, int userId)
         {
             try
             {
@@ -940,7 +995,12 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     if (listingRent is null)
                         throw new NotFoundException($"No se encontró la propiedad con ID: {listingRentId}");
 
-                    bool updated = false;
+                    if (listingRent.OwnerUserId != userId)
+                    {
+                        throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
+                    }
+
+                        bool updated = false;
 
                     if (setMaxStay)
                     {
@@ -975,7 +1035,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         }
 
         public async Task<string> SetMinimumNotice(long listingRentId, int minimumNoticeDay,
-            TimeSpan? minimumNoticeHours)
+            TimeSpan? minimumNoticeHours, int userId)
         {
             try
             {
@@ -987,7 +1047,12 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 if (listingRent is null)
                     throw new NotFoundException($"No se encontró la propiedad con ID: {listingRentId}");
 
-                if (minimumNoticeDay == 0 && minimumNoticeHours is null)
+                if (listingRent.OwnerUserId != userId)
+                {
+                    throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
+                }
+
+                    if (minimumNoticeDay == 0 && minimumNoticeHours is null)
                     throw new InfrastructureException($"Si el preaviso es del mismo dia requiere registro de horas.");
 
                 listingRent.MinimumNotice = Math.Max(minimumNoticeDay, 0);
@@ -1009,7 +1074,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task<string> SetPreparationDay(long listingRentId, int preparationDay)
+        public async Task<string> SetPreparationDay(long listingRentId, int preparationDay, int userId)
         {
             try
             {
@@ -1020,6 +1085,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
                 if (listingRent is null)
                     throw new NotFoundException($"No se encontró la propiedad con ID: {listingRentId}");
+
+                if( listingRent.OwnerUserId != userId)
+                {
+                    throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
+                }
 
                 listingRent.MinimumNotice = Math.Max(preparationDay, 0);
 

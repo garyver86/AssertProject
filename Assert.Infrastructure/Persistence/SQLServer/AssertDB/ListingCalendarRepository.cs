@@ -15,8 +15,17 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             _context = infraAssertDbContext;
         }
 
-        public async Task<List<TlListingCalendar>> BulkBlockDaysAsync(long listingRentId, List<DateOnly> dates, int blockType, string? blockReason, long? bookId)
-        {            
+        public async Task<List<TlListingCalendar>> BulkBlockDaysAsync(long listingRentId, List<DateOnly> dates, int blockType, string? blockReason, long? bookId, int? userId)
+        {
+            var listing = _context.TlListingRents.AsNoTracking().FirstOrDefault(x => x.ListingRentId == listingRentId);
+            if (listing == null)
+            {
+                throw new ArgumentException("El listing rent especificado no existe.", nameof(listingRentId));
+            }
+            if (listing.OwnerUserId != userId && blockType == 1)
+            {
+                throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing rent.");
+            }
             var executionStrategy = _context.Database.CreateExecutionStrategy();
 
             return await executionStrategy.ExecuteAsync(async () =>
@@ -106,8 +115,114 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             });
         }
 
-        public async Task<List<TlListingCalendar>> BulkUnblockDaysAsync(long listingRentId, List<DateOnly> dates)
+        public async Task<List<TlListingCalendar>> BulkSetNightPriceDaysAsync(long listingRentId, List<DateOnly> dates, decimal priceNigthly, int userId)
         {
+            var listing = _context.TlListingRents.AsNoTracking().FirstOrDefault(x => x.ListingRentId == listingRentId);
+            if (listing == null)
+            {
+                throw new ArgumentException("El listing rent especificado no existe.", nameof(listingRentId));
+            }
+            if (listing.OwnerUserId != userId)
+            {
+                throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing rent.");
+            }
+            if (priceNigthly <= 0)
+            {
+                throw new ArgumentException("El precio por noche debe ser mayor a cero.", nameof(priceNigthly));
+            }
+            var executionStrategy = _context.Database.CreateExecutionStrategy();
+
+            return await executionStrategy.ExecuteAsync(async () =>
+            {
+                await using var transaction = await _context.Database.BeginTransactionAsync();
+                List<TlListingCalendar> response = new();
+                var failedDates = new List<DateOnly>();
+
+                try
+                {
+                    // 1. Buscar días existentes
+                    var existingDays = await _context.TlListingCalendars
+                        .Where(c => c.ListingrentId == listingRentId && dates.Contains(c.Date))
+                        .ToListAsync();
+
+                    // 2. Verificar conflictos primero
+                    var conflictingDays = existingDays
+                        .Where(day => day.BookId != null)
+                        .ToList();
+
+                    if (conflictingDays.Any())
+                    {
+                        await transaction.RollbackAsync();
+                        throw new Exception($"Error al editar el precio por noche de los días seleccionados, los siguientes días están bloqueados por reservas: {string.Join(", ", conflictingDays.Select(d => d.Date))}");
+                    }
+
+                    // 3. Actualizar días existentes
+                    var existingDates = existingDays.Select(d => d.Date).ToList();
+
+                    foreach (var day in existingDays)
+                    {
+                        day.Price = priceNigthly;
+                        response.Add(day);
+                    }
+
+                    // 4. Insertar nuevos días bloqueados
+                    var newDates = dates.Except(existingDates).ToList();
+
+                    foreach (var date in newDates)
+                    {
+                        try
+                        {
+                            var newDay = new TlListingCalendar
+                            {
+                                ListingrentId = listingRentId,
+                                Date = date,
+                                Price = priceNigthly
+                            };
+                            _context.TlListingCalendars.Add(newDay);
+                            response.Add(newDay);
+                        }
+                        catch
+                        {
+                            failedDates.Add(date);
+                        }
+                    }
+
+                    await _context.SaveChangesAsync();
+                    await transaction.CommitAsync();
+
+                    if (failedDates.Any())
+                    {
+                        // Registrar días fallidos si es necesario
+                    }
+
+                    return response;
+                }
+                catch (Exception ex)
+                {
+                    try
+                    {
+                        await transaction.RollbackAsync();
+                    }
+                    catch
+                    {
+                        // Ignorar errores en rollback si la transacción ya terminó
+                    }
+                    throw new Exception("Error al bloquear días en el calendario del listing rent", ex);
+                }
+            });
+        }
+
+        public async Task<List<TlListingCalendar>> BulkUnblockDaysAsync(long listingRentId, List<DateOnly> dates, int userId)
+        {
+            var listing = _context.TlListingRents.AsNoTracking().FirstOrDefault(x => x.ListingRentId == listingRentId);
+            if (listing == null)
+            {
+                throw new ArgumentException("El listing rent especificado no existe.", nameof(listingRentId));
+            }
+            if (listing.OwnerUserId != userId)
+            {
+                throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing rent.");
+            }
             var executionStrategy = _context.Database.CreateExecutionStrategy();
 
             return await executionStrategy.ExecuteAsync(async () =>

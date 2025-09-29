@@ -14,5 +14,8 @@ namespace Assert.Domain.Repositories
         Task<TmConversation> SetFeatured(long conversationId, int userid, bool isFeatured);
         Task<TmConversation> SetArchived(long conversationId, int userid, bool isArchived);
         Task<TmConversation> SetSilent(long conversationId, int userid, bool isSilent);
+        Task<(List<TmConversation> Conversations, PaginationMetadata pagination)> SearchConversationsArchiveds(ConversationFilter filter);
+        Task<List<TmConversation>> GetArchiveds(int userId);
+        Task<TmConversation> SetUnread(long conversationId, int userid, bool isUnread);
     }
 }

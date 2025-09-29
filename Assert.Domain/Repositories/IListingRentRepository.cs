@@ -17,33 +17,35 @@ namespace Assert.Domain.Repositories
         Task<(List<TlListingRent>, PaginationMetadata)> GetSortedByMostRentalsAsync(SearchFiltersToListingRent filters, int pageNumber, int pageSize);
         Task<TlListingRent> Register(TlListingRent listingRent, Dictionary<string, string> clientData);
         Task<bool> HasStepInProcess(long listingRentId);
-        Task<TlListingRent> SetAccomodationType(long listingRentId, int? subtypeId);
-        Task SetCapacity(long listingRentId, int? beds, int? bedrooms, bool? allDoorsLocked, int? maxGuests, int? privateBathroom, int? privateBathroomLodging, int? sharedBathroom);
-        Task SetCapacity(long listingRentId, int? beds, int? bedrooms, int? bathrooms, int? maxGuests, int? privateBathroom, int? privateBathroomLodging, int? sharedBathroom);
+        Task<TlListingRent> SetAccomodationType(long listingRentId, int? subtypeId, int userId);
+        Task SetCapacity(long listingRentId, int? beds, int? bedrooms, bool? allDoorsLocked, int? maxGuests, int? privateBathroom, int? privateBathroomLodging, int? sharedBathroom, int userId);
+        Task SetCapacity(long listingRentId, int? beds, int? bedrooms, int? bathrooms, int? maxGuests, int? privateBathroom, int? privateBathroomLodging, int? sharedBathroom, int userId);
         Task SetAsConfirmed(long listingRentId);
-        Task SetSecurityConfirmationData(long listingRentId, bool? presenceOfWeapons, bool? noiseDesibelesMonitor, bool? externalCameras);
-        Task SetApprovalPolicy(long listingRentId, int? approvalPolicyTypeId);
-        Task SetDescription(long listingRentId, string description);
-        Task SetName(long listingRentId, string title);
-        Task SetNameAndDescription(long listingRentId, string title, string description);
+        Task SetSecurityConfirmationData(long listingRentId, bool? presenceOfWeapons, bool? noiseDesibelesMonitor, bool? externalCameras, int userId);
+        Task SetApprovalPolicy(long listingRentId, int? approvalPolicyTypeId, int userId);
+        Task SetDescription(long listingRentId, string description, int userId);
+        Task SetName(long listingRentId, string title, int userId);
+        Task SetNameAndDescription(long listingRentId, string title, string description, int userId);
         Task<(List<TlListingRent>, PaginationMetadata)> GetFeatureds(long userId, int pageNumber = 1, int pageSize = 10, int? countryId = null);
         
-        Task<string> UpdateBasicData(long listingRentId, string title, string description, List<int> aspectTypeIdList);
-        Task SetReservationTypeApprobation(long listingRentId, int value1, int value2, int value3);
-        Task SetCheckInPolicies(long listingRentId, string checkinTime, string checkoutTime, string instructions, string maxCheckinTime);
-        Task SetCancellationPolicy(long listingRentId, int? cancellationPolicyTypeId);
+        Task<string> UpdateBasicData(long listingRentId, string title, string description, List<int> aspectTypeIdList, int userId);
+        Task SetReservationTypeApprobation(long listingRentId, int value1, int value2, int value3, int userId);
+        Task SetCheckInPolicies(long listingRentId, string checkinTime, string checkoutTime, string instructions, string maxCheckinTim, int userId);
+        Task SetCancellationPolicy(long listingRentId, int? cancellationPolicyTypeId, int userId);
         Task<List<TlListingRent>> GetAllResumed(int userID, bool onlyPublish);
         Task<List<TlListingRent>> GetCalendarData(int userID);
         Task<List<TlListingRent>> GetUnfinishedList(int ownerId);
 
         Task<string> SetMaxMinStay(long listingRentId, bool setMaxStay, int maxStayValue,
-            bool setMinStay, int minStayValue);
+            bool setMinStay, int minStayValue, int userId);
         Task<string> SetMinimumNotice(long listingRentId, int minimumNoticeDay,
-            TimeSpan? minimumNoticeHours);
-        Task<string> SetPreparationDay(long listingRentId, int preparationDay);
+            TimeSpan? minimumNoticeHours, int userId);
+        
         Task<string> SetAdditionalFee(long listingRentId,
             List<int> additionalFeeId, List<decimal> value);
         Task<List<TlListingAdditionalFee>> GetAdditionalFeesByListingRentId(
             long listingRentId);
+            TimeSpan? minimumNoticeHours, int userId);
+        Task<string> SetPreparationDay(long listingRentId, int preparationDay, int userId);
     }
 }

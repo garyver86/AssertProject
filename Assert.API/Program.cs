@@ -30,26 +30,26 @@ var builder = WebApplication.CreateBuilder(args);
 var allowedOriginsSection = builder.Configuration.GetSection("SystemConfiguration:AllowedOrigins");
 var allowedOrigins = allowedOriginsSection.Get<string[]>();
 
-// Configurar JSON options para evitar referencias circulares
-builder.Services.ConfigureHttpJsonOptions(options =>
-{
-    options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-    options.SerializerOptions.WriteIndented = true;
-});
+//// Configurar JSON options para evitar referencias circulares
+//builder.Services.ConfigureHttpJsonOptions(options =>
+//{
+//    options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+//    options.SerializerOptions.WriteIndented = true;
+//});
 
-// Si usas MVC/Controllers, también configura:
-builder.Services.Configure<JsonOptions>(options =>
-{
-    options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-    options.SerializerOptions.WriteIndented = true;
-});
+//// Si usas MVC/Controllers, también configura:
+//builder.Services.Configure<JsonOptions>(options =>
+//{
+//    options.SerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+//    options.SerializerOptions.WriteIndented = true;
+//});
 
-// Para System.Text.Json en general
-builder.Services.Configure<JsonSerializerOptions>(options =>
-{
-    options.ReferenceHandler = ReferenceHandler.IgnoreCycles;
-    options.WriteIndented = true;
-});
+//// Para System.Text.Json en general
+//builder.Services.Configure<JsonSerializerOptions>(options =>
+//{
+//    options.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+//    options.WriteIndented = true;
+//});
 
 builder.Services.AddControllers(options =>
 {

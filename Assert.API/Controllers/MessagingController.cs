@@ -52,7 +52,7 @@ namespace Assert.API.Controllers
         /// </remarks>
         [HttpGet("Conversations")]
         [Authorize(Policy = "GuestOrHost")]
-        public async Task<ReturnModelDTO<List<ConversationDTO>>> CreateConversation()
+        public async Task<ReturnModelDTO<List<ConversationDTO>>> GetConversations()
         {
             var requestInfo = HttpContext.GetRequestInfo();
             int userId = 0;
@@ -77,6 +77,50 @@ namespace Assert.API.Controllers
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);
             filter.UserId = userId;
             (ReturnModelDTO<List<ConversationDTO>>, PaginationMetadataDTO) result = await _messagingService.SearchConversations(filter, requestInfo);
+            ReturnModelDTO_Pagination _result = new ReturnModelDTO_Pagination
+            {
+                StatusCode = result.Item1.StatusCode,
+                Data = result.Item1.Data,
+                HasError = result.Item1.HasError,
+                ResultError = result.Item1.ResultError,
+                pagination = result.Item2
+            };
+            return _result;
+        }
+
+        /// <summary>
+        /// Servicio que devuelve la lista de converzaciones archivadas del usuario logueado
+        /// </summary>
+        /// <returns>Lista de converzaciones archivadas.</returns>
+        /// <remarks>
+        /// </remarks>
+        [HttpGet("Conversations/Archiveds")]
+        [Authorize(Policy = "GuestOrHost")]
+        public async Task<ReturnModelDTO<List<ConversationDTO>>> GetConversationsArchiveds()
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+            ReturnModelDTO<List<ConversationDTO>> result = await _messagingService.GetConversationsArchiveds(userId, requestInfo);
+            return result;
+        }
+
+
+        /// <summary>
+        /// Servicio que devuelve la lista de converzaciones del usuario logueado en base a filtros
+        /// </summary>
+        /// <returns>Lista de converzaciones.</returns>
+        /// <remarks>
+        /// </remarks>
+        [HttpPost("Conversations/Archiveds/Search")]
+        [Authorize(Policy = "GuestOrHost")]
+        public async Task<ReturnModelDTO_Pagination> SearchConversationsArchiveds([FromBody] ConversationFilterDTO filter)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+            filter.UserId = userId;
+            (ReturnModelDTO<List<ConversationDTO>>, PaginationMetadataDTO) result = await _messagingService.SearchConversationsArchiveds(filter, requestInfo);
             ReturnModelDTO_Pagination _result = new ReturnModelDTO_Pagination
             {
                 StatusCode = result.Item1.StatusCode,
@@ -310,6 +354,45 @@ namespace Assert.API.Controllers
             int userId = 0;
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);
             ReturnModelDTO result = await _messagingService.SetSilent(conversationId, userId, false);
+            return result;
+        }
+
+        /// <summary>
+        /// Servicio que marca una converzación como no leida
+        /// </summary>
+        /// <param name="conversationId">Id de la converzación.</param>
+        /// <response code="200">Confirmación del marcado como no leida.</response>
+        /// <remarks>
+        /// 
+        /// </remarks>
+        [HttpDelete("Conversations/{conversationId}/Unread")]
+        [Authorize(Policy = "GuestOrHost")]
+        public async Task<ReturnModelDTO> SetConversationAsUnread(int conversationId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+            ReturnModelDTO result = await _messagingService.SetConversationAsUnread(conversationId, userId, true);
+            return result;
+        }
+
+
+        /// <summary>
+        /// Servicio que marca una converzación como leida
+        /// </summary>
+        /// <param name="conversationId">Id de la converzación.</param>
+        /// <response code="200">Confirmación del marcado como leida.</response>
+        /// <remarks>
+        /// 
+        /// </remarks>
+        [HttpPut("Conversations/{conversationId}/Read")]
+        [Authorize(Policy = "GuestOrHost")]
+        public async Task<ReturnModelDTO> SetConversationAsRead(int conversationId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            int userId = 0;
+            int.TryParse(User.FindFirst("identifier")?.Value, out userId);
+            ReturnModelDTO result = await _messagingService.SetConversationAsUnread(conversationId, userId, false);
             return result;
         }
 

@@ -27,6 +27,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Include(pr => pr.ListingRent.TlListingPhotos)
                     .Include(pr => pr.ListingRent.OwnerUser)
                     .Include(pr => pr.PayPriceCalculations)
+                    .Include(pr => pr.CancellationUser)
                     .FirstOrDefaultAsync(b => b.BookId == bookId);
 
                 if (book?.ListingRent?.TpProperties?.Count > 0)
@@ -165,7 +166,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         } : null,
                         ReasonRefusedId = x.ReasonRefusedId,
                         StartDate = x.StartDate,
-                        
+
                     })
                     .ToListAsync();
 
@@ -233,8 +234,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 }
 
                 books = books.OrderByDescending(x => x.InitDate).ToList();
-                return books ??
-                    throw new KeyNotFoundException($"No existen reservas para el  usuaerio con ID {userId}.");
+                return books ?? new List<TbBook>();
+                //throw new KeyNotFoundException($"No existen reservas para el  usuario con ID {userId}.");
             }
             catch (Exception ex)
             {
@@ -389,8 +390,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 }
 
                 books = books.OrderByDescending(x => x.InitDate).ToList();
-                return books ??
-                    throw new KeyNotFoundException($"No existen reservas para el  usuaerio con ID {userId}.");
+                return books ?? new List<TbBook>();
+                //throw new KeyNotFoundException($"No existen reservas para el  usuario con ID {userId}.");
             }
             catch (Exception ex)
             {

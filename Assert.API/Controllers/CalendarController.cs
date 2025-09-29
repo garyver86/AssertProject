@@ -1,6 +1,7 @@
 ﻿using Assert.Application.DTOs.Requests;
 using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
+using Assert.Domain.Common.Metadata;
 using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Microsoft.AspNetCore.Authorization;
@@ -18,10 +19,12 @@ namespace Assert.API.Controllers
     public class CalendarController : ControllerBase
     {
         private readonly IAppListingCalendarService _listingCalendarService;
+        private readonly RequestMetadata _metadata;
 
-        public CalendarController(IAppListingCalendarService listingCalendarService)
+        public CalendarController(IAppListingCalendarService listingCalendarService, RequestMetadata metadata)
         {
             _listingCalendarService = listingCalendarService;
+            _metadata = metadata;
         }
 
         /// <summary>
@@ -161,7 +164,49 @@ namespace Assert.API.Controllers
                 };
             }
 
-            var result = await _listingCalendarService.UnblockDays(request);
+            var result = await _listingCalendarService.UnblockDays(request, _metadata.UserId);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Modifica las tarifas de noches específicas en el calendario de un listing
+        /// </summary>
+        /// <param name="listingRentId">ID del listing al que pretenecen las fechs</param>
+        /// <param name="Dates">Listado de fechas a modificar</param>
+        /// <param name="NightPrice">Precio a registar por los días ingresados</param>
+        [HttpPost("SetNightPrice")]
+        public async Task<ReturnModelDTO<List<CalendarDayDto>>> SetNightPriceDays([FromBody] BulkSetPriceDaysRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return new ReturnModelDTO<List<CalendarDayDto>>
+                {
+                    StatusCode = ResultStatusCode.BadRequest,
+                    HasError = true,
+                    ResultError = new ErrorCommonDTO
+                    {
+                        Message = "Datos de solicitud inválidos"
+                    }
+                };
+            }
+
+            // Validación adicional de fechas
+            if (request.Dates.Any(d => d < DateOnly.FromDateTime(DateTime.Today)))
+            {
+                ModelState.AddModelError(nameof(request.Dates), "No se pueden modificar tarifas de fechas pasadas");
+                return new ReturnModelDTO<List<CalendarDayDto>>
+                {
+                    StatusCode = ResultStatusCode.BadRequest,
+                    HasError = true,
+                    ResultError = new ErrorCommonDTO
+                    {
+                        Message = "No se pueden modificar tarifas de fechas pasadas"
+                    }
+                };
+            }
+
+            var result = await _listingCalendarService.SetNightPriceDays(request.ListingRentId, request.Dates, request.NightPrice, _metadata.UserId);
 
             return result;
         }
@@ -209,7 +254,7 @@ namespace Assert.API.Controllers
                 };
             }
 
-            var result = await _listingCalendarService.BlockDays(request);
+            var result = await _listingCalendarService.BlockDays(request, _metadata.UserId);
 
             return result;
         }

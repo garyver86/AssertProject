@@ -294,7 +294,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     IsDisabled = false
                 };
                 // Si el condado no existe, lo creamos
-                if (result.CountyId <= 0)
+                if (result.CountyId <= 0 || result.CountyId == null)
                 {
                     TCounty newCounty = new TCounty
                     {
@@ -304,7 +304,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         IsDisabled = false
                     };
                     // Si el estado no existe, lo creamos
-                    if (result.StateId <= 0)
+                    if (result.StateId <= 0 || result.StateId == null)
                     {
                         TState newState = new TState
                         {
@@ -314,7 +314,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                             IsDisabled = false
                         };
                         // Si el país no existe, lo creamos
-                        if (result.CountryId <= 0)
+                        if (result.CountryId <= 0 || result.CountryId == null)
                         {
                             TCountry newCountryEntity = new TCountry
                             {

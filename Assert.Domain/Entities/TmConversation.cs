@@ -45,6 +45,10 @@ public partial class TmConversation
 
     public DateTime? UserTwoSilentDateTime { get; set; }
 
+    public bool? UserOneUnread { get; set; }
+
+    public bool? UserTwoUnread { get; set; }
+
     public virtual TbBook? Book { get; set; }
 
     public virtual TlListingRent? ListingRent { get; set; }

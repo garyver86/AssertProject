@@ -34,7 +34,7 @@ namespace Assert.Application.Services
             ReturnModelDTO<CalendarResultPaginatedDTO> result = new ReturnModelDTO<CalendarResultPaginatedDTO>();
             try
             {
-                (List<TlListingCalendar>,PaginationMetadata) result_ = await _listingCalendarRepository.GetCalendarDaysAsync(listingRentId, startDate, endDate, pageNumber, pageSize);
+                (List<TlListingCalendar>, PaginationMetadata) result_ = await _listingCalendarRepository.GetCalendarDaysAsync(listingRentId, startDate, endDate, pageNumber, pageSize);
 
                 result = new ReturnModelDTO<CalendarResultPaginatedDTO>
                 {
@@ -47,7 +47,7 @@ namespace Assert.Application.Services
             {
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
-                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingCalendarService.GetCalendarDaysAsync", ex, new { listingRentId, startDate, endDate, pageNumber , pageSize }, false));
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingCalendarService.GetCalendarDaysAsync", ex, new { listingRentId, startDate, endDate, pageNumber, pageSize }, false));
             }
             return result;
         }
@@ -74,12 +74,12 @@ namespace Assert.Application.Services
             }
             return result;
         }
-        public async Task<ReturnModelDTO<List<CalendarDayDto>>> BlockDays(BulkBlockCalendarDaysRequest request)
+        public async Task<ReturnModelDTO<List<CalendarDayDto>>> BlockDays(BulkBlockCalendarDaysRequest request, int userId)
         {
             ReturnModelDTO<List<CalendarDayDto>> result = new ReturnModelDTO<List<CalendarDayDto>>();
             try
             {
-                List<TlListingCalendar> result_ = await _listingCalendarRepository.BulkBlockDaysAsync(request.ListingRentId, request.Dates, request.BlockType, request.BlockReason, request.BookId);
+                List<TlListingCalendar> result_ = await _listingCalendarRepository.BulkBlockDaysAsync(request.ListingRentId, request.Dates, request.BlockType, request.BlockReason, request.BookId, userId);
 
                 result = new ReturnModelDTO<List<CalendarDayDto>>
                 {
@@ -97,12 +97,12 @@ namespace Assert.Application.Services
             return result;
         }
 
-        public async Task<ReturnModelDTO<List<CalendarDayDto>>> UnblockDays(BulkBlockCalendarDaysRequest request)
+        public async Task<ReturnModelDTO<List<CalendarDayDto>>> UnblockDays(BulkBlockCalendarDaysRequest request, int userId)
         {
             ReturnModelDTO<List<CalendarDayDto>> result = new ReturnModelDTO<List<CalendarDayDto>>();
             try
             {
-                List<TlListingCalendar> result_ = await _listingCalendarRepository.BulkUnblockDaysAsync(request.ListingRentId, request.Dates);
+                List<TlListingCalendar> result_ = await _listingCalendarRepository.BulkUnblockDaysAsync(request.ListingRentId, request.Dates, userId);
 
                 result = new ReturnModelDTO<List<CalendarDayDto>>
                 {
@@ -116,6 +116,29 @@ namespace Assert.Application.Services
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
                 result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingCalendarService.UnblockDays", ex, new { request }, false));
+            }
+            return result;
+        }
+
+        public async Task<ReturnModelDTO<List<CalendarDayDto>>> SetNightPriceDays(long listingRentId, List<DateOnly> dates, decimal priceNigthly, int userId)
+        {
+            ReturnModelDTO<List<CalendarDayDto>> result = new ReturnModelDTO<List<CalendarDayDto>>();
+            try
+            {
+                List<TlListingCalendar> result_ = await _listingCalendarRepository.BulkSetNightPriceDaysAsync(listingRentId, dates, priceNigthly, userId);
+
+                result = new ReturnModelDTO<List<CalendarDayDto>>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    HasError = false,
+                    Data = _mapper.Map<List<CalendarDayDto>>(result_)
+                };
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetErrorException("AppListingCalendarService.SetNightPriceDays", ex, new { listingRentId, dates, priceNigthly }, false));
             }
             return result;
         }

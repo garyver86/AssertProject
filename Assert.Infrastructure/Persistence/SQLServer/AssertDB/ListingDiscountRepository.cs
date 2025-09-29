@@ -23,8 +23,18 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             return activeDiscounts;
         }
 
-        public async Task SetDiscounts(long listingRentId, List<(int, decimal)> discountList)
+        public async Task SetDiscounts(long listingRentId, List<(int, decimal)> discountList, int userId)
         {
+            var listing = _context.TlListingRents.AsNoTracking().FirstOrDefault(x => x.ListingRentId == listingRentId);
+            if (listing == null)
+            {
+                throw new ArgumentException("El listing rent especificado no existe.", nameof(listingRentId));
+            }
+            if (listing.OwnerUserId != userId)
+            {
+                throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing rent.");
+            }
+
             List<TlListingDiscountForRate> activeDiscounts = await _context.TlListingDiscountForRates.Where(x => x.ListingRentId == listingRentId).ToListAsync();
             List<int> alreadyExist = new List<int>();
             foreach (var discount in activeDiscounts)

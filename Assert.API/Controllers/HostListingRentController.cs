@@ -84,7 +84,7 @@ namespace Assert.API.Controllers
             var result = await _appListingRentService.GetLastView(listinRentId, _metadata.UserId);
             return result;
         }
-       
+
         /// <summary>
         /// Servicio que devuelve la lista de propiedades cuyo registro no ha finalizado
         /// </summary>
@@ -118,7 +118,7 @@ namespace Assert.API.Controllers
         public async Task<ReturnModelDTO<string>> UpdatePricesAndDiscounts(long listinRentId,
             [FromBody] PricesAndDiscountRequest request)
         {
-            var result = await _appListingRentService.UpdatePricesAndDiscounts(listinRentId, request);
+            var result = await _appListingRentService.UpdatePricesAndDiscounts(listinRentId, request, _metadata.UserId);
             return result;
         }
 
@@ -329,7 +329,7 @@ namespace Assert.API.Controllers
         public async Task<ReturnModelDTO<string>> UpdateBasicData(
             [FromRoute] long listinRentId,
             [FromBody] BasicListingRentData request)
-        => await _appListingRentService.UpdateBasicData(listinRentId, request);
+        => await _appListingRentService.UpdateBasicData(listinRentId, request, _metadata.UserId);
 
         /// <summary>
         /// Servicio que actualiza nombre y descripcion de Listing Rent
@@ -352,7 +352,7 @@ namespace Assert.API.Controllers
                     Title = request.Title,
                     Description = request.Description,
                     AspectTypeIdList = null
-                });
+                }, _metadata.UserId);
 
         /// <summary>
         /// Servicio que actualiza los tipos de propiedad y alojamiento de un Listing Rent.
@@ -370,7 +370,7 @@ namespace Assert.API.Controllers
         [Route("{listingRentId}/UpdatePropertyAndAccomodationTypes")]
         public async Task<ReturnModelDTO> UpdatePropertyAndAccomodationTypes([FromRoute] long listingRentId,
             int propertyTypeId, int accomodationTypeId)
-        => await _appListingRentService.UpdatePropertyAndAccomodationTypes(listingRentId, propertyTypeId, accomodationTypeId);
+        => await _appListingRentService.UpdatePropertyAndAccomodationTypes(listingRentId, propertyTypeId, accomodationTypeId, _metadata.UserId);
 
         /// <summary>
         /// Servicio que actualiza la capacidades de un Listing Rent.
@@ -395,7 +395,7 @@ namespace Assert.API.Controllers
             int beds, int bedrooms, int bathrooms, int maxGuests,
             int privateBathroom, int privateBathroomLodging, int sharedBathroom)
         => await _appListingRentService.UpdateCapacity(listingRentId, beds, bedrooms,
-            bathrooms, privateBathroom, privateBathroomLodging, sharedBathroom, maxGuests);
+            bathrooms, privateBathroom, privateBathroomLodging, sharedBathroom, maxGuests, _metadata.UserId);
 
         /// <summary>
         /// Servicio que actualiza la ubicación y dirección de un Listing Rent.
@@ -467,7 +467,7 @@ namespace Assert.API.Controllers
         [Route("{listingRentId}/UpdateCancellationPolicy")]
         public async Task<ReturnModelDTO> UpdateCancellationPolicy([FromRoute] long listingRentId,
             int cancellationPolicyId)
-        => await _appListingRentService.UpdateCancellationPolicy(listingRentId, cancellationPolicyId);
+        => await _appListingRentService.UpdateCancellationPolicy(listingRentId, cancellationPolicyId, _metadata.UserId);
 
         /// <summary>
         /// Servicio que actualiza la configuración de reservas de un Listing Rent.
@@ -489,7 +489,7 @@ namespace Assert.API.Controllers
         public async Task<ReturnModelDTO> UpdateReservation([FromRoute] long listingRentId,
             int approvalPolicyTypeId, int minimunNoticeDays, int preparationDays)
         => await _appListingRentService.UpdateReservation(listingRentId,
-            approvalPolicyTypeId, minimunNoticeDays, preparationDays);
+            approvalPolicyTypeId, minimunNoticeDays, preparationDays, _metadata.UserId);
 
         /// <summary>
         /// Servicio que actualiza la configuración de precios y descuentos de un Listing Rent.
@@ -509,7 +509,7 @@ namespace Assert.API.Controllers
         [Route("{listingRentId}/UpdatePricingAndDiscounts")]
         public async Task<ReturnModelDTO> UpdatePricingAndDiscounts([FromRoute] long listingRentId,
             [FromBody] PricesAndDiscountRequest request)
-        => await _appListingRentService.UpdatePricesAndDiscounts(listingRentId, request);
+        => await _appListingRentService.UpdatePricesAndDiscounts(listingRentId, request, _metadata.UserId);
 
         /// <summary>
         /// Servicio que actualiza los horarios de check-in/check-out y las reglas de estadía para un Listing Rent.
@@ -530,9 +530,9 @@ namespace Assert.API.Controllers
         [Route("{listingRentId}/UpdateCheckInOutAndRules")]
         public async Task<ReturnModelDTO> UpdateCheckInOutAndRules([FromRoute] long listingRentId,
             [FromBody] CheckInOutAndRulesRequestDTO request)
-        => await _appListingRentService.UpdateCheckInOutAndRules(listingRentId, 
-            request.CheckInTime, request.CheckOutTime, request.MaxCheckInTime, 
-            request.Instructions, request.RuleIds);
+        => await _appListingRentService.UpdateCheckInOutAndRules(listingRentId,
+            request.CheckInTime, request.CheckOutTime, request.MaxCheckInTime,
+            request.Instructions, request.RuleIds, _metadata.UserId);
 
         /// <summary>
         /// Servicio que actualiza las reglas de estadía asociadas a un Listing Rent.
@@ -571,7 +571,7 @@ namespace Assert.API.Controllers
         [HttpPut()]
         [Authorize(Policy = "GuestOrHost")]
         [Route("{listingRentId}/UpdatePhotoPosition")]
-        public async Task<ReturnModelDTO> UpdatePhotoPosition(long listingRentId, 
+        public async Task<ReturnModelDTO> UpdatePhotoPosition(long listingRentId,
             long listingPhotoId, int newPostition)
         => await _appListingRentService.UpdatePhotoPosition(listingRentId,
             listingPhotoId, newPostition);
@@ -621,7 +621,7 @@ namespace Assert.API.Controllers
         [Authorize(Policy = "GuestOrHost")]
         [Route("UpsertMaxMinStay")]
         public async Task<ReturnModelDTO> UpsertMaxMinStay(UpsertMaxMinStayRequestDTO request)
-        => await _appListingRentService.UpsertMaxMinStay(request);
+        => await _appListingRentService.UpsertMaxMinStay(request, _metadata.UserId);
 
         /// <summary>
         /// Actualiza los valores de preaviso requerido para realizar una reserva en un Listing Rent.
@@ -651,7 +651,7 @@ namespace Assert.API.Controllers
         [Authorize(Policy = "GuestOrHost")]
         [Route("UpsertReservationNotice")]
         public async Task<ReturnModelDTO> UpsertReservationNotice(UpsertMinimumNoticeRequestDTO request)
-        => await _appListingRentService.UpsertReservationNotice(request);
+        => await _appListingRentService.UpsertReservationNotice(request, _metadata.UserId);
 
         /// <summary>
         /// Actualiza el valor de días de preparación requeridos antes de permitir una nueva reserva en un Listing Rent.
@@ -679,6 +679,29 @@ namespace Assert.API.Controllers
         [Authorize(Policy = "GuestOrHost")]
         [Route("UpsertPreparationDay")]
         public async Task<ReturnModelDTO> UpsertPreparationDay(UpsertPreparationDayRequestDTO request)
+        => await _appListingRentService.UpsertPreparationDay(request, _metadata.UserId);
+
+        /// <summary>
+        /// Actualiza el precio por fin de semana en un Listing Rent.
+        /// </summary>
+        /// <param name="request">
+        /// Objeto que contiene los parámetros necesarios para la operación:
+        /// - <see cref="UpsertPreparationDayRequestDTO.ListingRentId"/>: Identificador único del Listing Rent.
+        /// - <see cref="UpsertPreparationDayRequestDTO.weekendPricing"/>: Tarifa por fin de semana.
+        /// </param>
+        /// <response code="200">UPDATED: El valor de preparación fue actualizado exitosamente.</response>
+        /// <remarks>
+        /// Requisitos y validaciones:
+        /// - El <c>ListingRentId</c> debe existir en el sistema.
+        /// - El <c>weekendPricing</c> debe ser mayor a cero.
+        /// - Solo puede modificar el owner de la propiedad
+        /// </remarks>
+
+        [HttpPut()]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("UpdateWeekendPricing")]
+        public async Task<ReturnModelDTO> UpdateWeekendPricing(PricingRequestDTO request)
+        => await _appListingRentService.UpdateWeekendPricing(request.ListingRentId, request.weekendPricing, 2, _metadata.UserId);
         => await _appListingRentService.UpsertPreparationDay(request);
 
         /// <summary>
