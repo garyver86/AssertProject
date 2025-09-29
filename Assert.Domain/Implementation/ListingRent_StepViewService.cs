@@ -301,11 +301,11 @@ namespace Assert.Domain.Implementation
                 #region Paso 1: Information
                 case "LV001":
                     //Vista 1: Definir el tipo de propiedad y el tipo de alojamiento.
-                    ReturnModel propertypeResult = await SetPropertyTypeAndAccomodationType(listing, request_, useTechnicalMessages, clientData);
+                    ReturnModel propertypeResult = await SetPropertyTypeAndAccomodationType(listing, request_, useTechnicalMessages, clientData, userId);
                     return propertypeResult;
                 case "LV002":
                     //Vista 2: Definir la capacidad.
-                    ReturnModel capacityResult = await SetListingCapacity(listing, request_, useTechnicalMessages, clientData);
+                    ReturnModel capacityResult = await SetListingCapacity(listing, request_, useTechnicalMessages, clientData, userId);
                     return capacityResult;
                 case "LV003":
                     //Vista 3: Definir la dirección de la propiedad.
@@ -327,25 +327,25 @@ namespace Assert.Domain.Implementation
                 //    return photosResult2;
                 case "LV006":
                     //Vista 6: Definir el título y la descripción de la propiedad.
-                    ReturnModel titleResult = await SetAttibutes(listing, request_, useTechnicalMessages, clientData);
+                    ReturnModel titleResult = await SetAttibutes(listing, request_, useTechnicalMessages, clientData, userId);
                     return titleResult;
                 #endregion
                 #region Paso 3: Configuration
                 case "LV007":
                     //Vista 7: Definir precios y descuentos.
-                    ReturnModel pricingResult = await SetPricingAndDiscount(listing, request_, useTechnicalMessages, clientData);
+                    ReturnModel pricingResult = await SetPricingAndDiscount(listing, request_, useTechnicalMessages, clientData, userId);
                     return pricingResult;
                 case "LV008":
                     //Vista 8: Definir tipo de reservacion.
-                    ReturnModel reservationTypeResult = await SetReservationType(listing, request_, useTechnicalMessages, clientData);
+                    ReturnModel reservationTypeResult = await SetReservationType(listing, request_, useTechnicalMessages, clientData, userId);
                     return reservationTypeResult;
                 case "LV009":
                     //Vista 09: Definir reglas y check-in.
-                    ReturnModel rulesResult = await SetCheckInAndRules(listing, request_, useTechnicalMessages, clientData);
+                    ReturnModel rulesResult = await SetCheckInAndRules(listing, request_, useTechnicalMessages, clientData, userId);
                     return rulesResult;
                 case "LV010":
                     //Vista 10: Definir las políticas.
-                    ReturnModel politicsResult = await SetPolitics(listing, request_, useTechnicalMessages, clientData);
+                    ReturnModel politicsResult = await SetPolitics(listing, request_, useTechnicalMessages, clientData, userId);
                     return politicsResult;
                 case "LV011":
                     //Vista 11: confirmación de la creación
@@ -363,7 +363,7 @@ namespace Assert.Domain.Implementation
             return null;
         }
 
-        private async Task<ReturnModel> SetPolitics(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        private async Task<ReturnModel> SetPolitics(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData, int userId)
         {
             if (!(request_.cancelPolicyTypeId > 0))
             {
@@ -374,7 +374,7 @@ namespace Assert.Domain.Implementation
                     ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar el tipo de politica de cancelación.", useTechnicalMessages)
                 };
             }
-            await _listingRentRepository.SetCancellationPolicy(listing.ListingRentId, request_.cancelPolicyTypeId);
+            await _listingRentRepository.SetCancellationPolicy(listing.ListingRentId, request_.cancelPolicyTypeId, userId);
 
             return new ReturnModel
             {
@@ -383,7 +383,7 @@ namespace Assert.Domain.Implementation
             };
         }
 
-        private async Task<ReturnModel> SetCheckInAndRules(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        private async Task<ReturnModel> SetCheckInAndRules(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData, int userId)
         {
             if ((request_.CheckInPolicies?.CheckInTime.IsNullOrEmpty() ?? true) || (request_.CheckInPolicies?.CheckOutTime.IsNullOrEmpty() ?? true))
             {
@@ -394,7 +394,7 @@ namespace Assert.Domain.Implementation
                     ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe definir las horas de Checin y checkout.", useTechnicalMessages)
                 };
             }
-            await _listingRentRepository.SetCheckInPolicies(listing.ListingRentId, request_.CheckInPolicies?.CheckInTime, request_.CheckInPolicies?.CheckOutTime, request_.CheckInPolicies?.MaxCheckInTime, request_.CheckInPolicies?.Instructions);
+            await _listingRentRepository.SetCheckInPolicies(listing.ListingRentId, request_.CheckInPolicies?.CheckInTime, request_.CheckInPolicies?.CheckOutTime, request_.CheckInPolicies?.MaxCheckInTime, request_.CheckInPolicies?.Instructions, userId);
             await _listingRentRulesRepository.Set(listing.ListingRentId, request_.Rules);
 
             return new ReturnModel
@@ -404,7 +404,7 @@ namespace Assert.Domain.Implementation
             };
         }
 
-        private async Task<ReturnModel> SetReservationType(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        private async Task<ReturnModel> SetReservationType(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData, int userId)
         {
             if (request_.ApprovalPolicyTypeId == null || (request_.ApprovalPolicyTypeId != 1 && request_.ApprovalPolicyTypeId != 2))
             {
@@ -433,7 +433,7 @@ namespace Assert.Domain.Implementation
                     ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe definir el tiempo de prepareación para que la propiedad esté disponible para el siguiente alquiler.", useTechnicalMessages)
                 };
             }
-            await _listingRentRepository.SetReservationTypeApprobation(listing.ListingRentId, request_.ApprovalPolicyTypeId.Value, request_.MinimunNoticeDays.Value, request_.PreparationDays.Value);
+            await _listingRentRepository.SetReservationTypeApprobation(listing.ListingRentId, request_.ApprovalPolicyTypeId.Value, request_.MinimunNoticeDays.Value, request_.PreparationDays.Value, userId);
             return new ReturnModel
             {
                 StatusCode = ResultStatusCode.OK,
@@ -463,7 +463,7 @@ namespace Assert.Domain.Implementation
             }
         }
 
-        private async Task<ReturnModel> SetPricingAndDiscount(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        private async Task<ReturnModel> SetPricingAndDiscount(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData, int userId)
         {
             if (!(request_.Pricing > 0))
             {
@@ -484,8 +484,8 @@ namespace Assert.Domain.Implementation
                 };
             }
 
-            await _listingPriceRepository.SetPricing(listing.ListingRentId, request_.Pricing, request_.WeekendPrice, request_.CurrencyId);
-            await _listingDiscountRepository.SetDiscounts(listing.ListingRentId, request_.Discounts?.Select(x => (x.dicountTypeId, x.Percentage)).ToList());
+            await _listingPriceRepository.SetPricing(listing.ListingRentId, request_.Pricing, request_.WeekendPrice, userId, request_.CurrencyId);
+            await _listingDiscountRepository.SetDiscounts(listing.ListingRentId, request_.Discounts?.Select(x => (x.dicountTypeId, x.Percentage)).ToList(), userId);
 
             return new ReturnModel
             {
@@ -494,7 +494,7 @@ namespace Assert.Domain.Implementation
             };
         }
 
-        private async Task<ReturnModel> SetAttibutes(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        private async Task<ReturnModel> SetAttibutes(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData, int userId)
         {
             if (request_.Title.IsNullOrEmpty())
             {
@@ -534,7 +534,7 @@ namespace Assert.Domain.Implementation
             }
             if (listing.Name != request_.Title || listing.Description != request_.Description)
             {
-                await _listingRentRepository.SetNameAndDescription(listing.ListingRentId, request_.Title, request_.Description);
+                await _listingRentRepository.SetNameAndDescription(listing.ListingRentId, request_.Title, request_.Description, userId);
             }
             return new ReturnModel
             {
@@ -569,7 +569,7 @@ namespace Assert.Domain.Implementation
             }
         }
 
-        private async Task<ReturnModel> SetSecurityConfirmation(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        private async Task<ReturnModel> SetSecurityConfirmation(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData, int userId)
         {
             if (request_.ExternalCameras == null)
             {
@@ -600,7 +600,7 @@ namespace Assert.Domain.Implementation
             }
             if (listing.PresenceOfWeapons != request_.PresenceOfWeapons || listing.NoiseDesibelesMonitor != request_.NoiseDesibelesMonitor || listing.ExternalCameras != request_.ExternalCameras)
             {
-                await _listingRentRepository.SetSecurityConfirmationData(listing.ListingRentId, listing.PresenceOfWeapons, listing.NoiseDesibelesMonitor, listing.ExternalCameras);
+                await _listingRentRepository.SetSecurityConfirmationData(listing.ListingRentId, listing.PresenceOfWeapons, listing.NoiseDesibelesMonitor, listing.ExternalCameras, userId);
             }
             return new ReturnModel
             {
@@ -609,9 +609,9 @@ namespace Assert.Domain.Implementation
             };
         }
 
-        private async Task<ReturnModel> SetDiscount(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        private async Task<ReturnModel> SetDiscount(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData, int userId)
         {
-            await _listingDiscountRepository.SetDiscounts(listing.ListingRentId, request_.Discounts?.Select(x => (x.dicountTypeId, x.Percentage)).ToList());
+            await _listingDiscountRepository.SetDiscounts(listing.ListingRentId, request_.Discounts?.Select(x => (x.dicountTypeId, x.Percentage)).ToList(), userId);
             return new ReturnModel
             {
                 HasError = false,
@@ -645,11 +645,11 @@ namespace Assert.Domain.Implementation
         //    }
         //}
 
-        private async Task<ReturnModel> SetApprovalPolicy(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        private async Task<ReturnModel> SetApprovalPolicy(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData, int userId)
         {
             if (request_.ApprovalPolicyTypeId > 0)
             {
-                await _listingRentRepository.SetApprovalPolicy(listing.ListingRentId, request_.ApprovalPolicyTypeId);
+                await _listingRentRepository.SetApprovalPolicy(listing.ListingRentId, request_.ApprovalPolicyTypeId, userId);
                 return new ReturnModel
                 {
                     HasError = false,
@@ -667,7 +667,7 @@ namespace Assert.Domain.Implementation
             }
         }
 
-        private async Task<ReturnModel> SetDescription(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        private async Task<ReturnModel> SetDescription(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData, int userId)
         {
             if (request_.Description.IsNullOrEmpty())
             {
@@ -689,7 +689,7 @@ namespace Assert.Domain.Implementation
             }
             if (listing.Description != request_.Description)
             {
-                await _listingRentRepository.SetDescription(listing.ListingRentId, request_.Description);
+                await _listingRentRepository.SetDescription(listing.ListingRentId, request_.Description, userId);
             }
             return new ReturnModel
             {
@@ -698,7 +698,7 @@ namespace Assert.Domain.Implementation
             };
         }
 
-        private async Task<ReturnModel> SetTitle(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        private async Task<ReturnModel> SetTitle(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData, int userId)
         {
             if (request_.Title.IsNullOrEmpty())
             {
@@ -720,7 +720,7 @@ namespace Assert.Domain.Implementation
             }
             if (listing.Name != request_.Title)
             {
-                await _listingRentRepository.SetName(listing.ListingRentId, request_.Title);
+                await _listingRentRepository.SetName(listing.ListingRentId, request_.Title, userId);
             }
             return new ReturnModel
             {
@@ -750,7 +750,7 @@ namespace Assert.Domain.Implementation
             };
         }
 
-        private async Task<ReturnModel> SetListingCapacity(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        private async Task<ReturnModel> SetListingCapacity(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData, int userId)
         {
             if (request_.Bedrooms < 0 || request_.Bedrooms == null)
             {
@@ -800,7 +800,7 @@ namespace Assert.Domain.Implementation
             if (listing.Beds != request_.Beds || listing.Bedrooms != request_.Bedrooms || listing.AllDoorsLocked != request_.AllDoorsLooked || listing.MaxGuests != request_.MaxGuests
                 || listing.PrivateBathroom != request_.privateBathroom || listing.PrivateBathroomLodging != request_.privateBathroomLodging || listing.SharedBathroom != request_.sharedBathroom)
             {
-                await _listingRentRepository.SetCapacity(listing.ListingRentId, request_.Beds, request_.Bedrooms, request_.Bathrooms, request_.MaxGuests, request_.privateBathroom, request_.privateBathroomLodging, request_.sharedBathroom);
+                await _listingRentRepository.SetCapacity(listing.ListingRentId, request_.Beds, request_.Bedrooms, request_.Bathrooms, request_.MaxGuests, request_.privateBathroom, request_.privateBathroomLodging, request_.sharedBathroom, userId);
             }
             return new ReturnModel
             {
@@ -941,7 +941,7 @@ namespace Assert.Domain.Implementation
         }
 
 
-        private async Task<ReturnModel> SetAccomodationType(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        private async Task<ReturnModel> SetAccomodationType(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData, int userId)
         {
             TlAccommodationType accomodationType = await _accommodationTypeRepository.GetActive(request_.AccomodationId);
             if (accomodationType == null)
@@ -953,7 +953,7 @@ namespace Assert.Domain.Implementation
                     ResultError = _errorHandler.GetError(ResultStatusCode.BadRequest, "Debe ingresar un tipo de alojamiento correcto.", useTechnicalMessages)
                 };
             }
-            TlListingRent accomodationTypeResult = await _listingRentRepository.SetAccomodationType(listing.ListingRentId, request_.AccomodationId);
+            TlListingRent accomodationTypeResult = await _listingRentRepository.SetAccomodationType(listing.ListingRentId, request_.AccomodationId, userId);
             return new ReturnModel
             {
                 HasError = false,
@@ -961,7 +961,7 @@ namespace Assert.Domain.Implementation
             };
         }
 
-        private async Task<ReturnModel> SetPropertyTypeAndAccomodationType(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData)
+        private async Task<ReturnModel> SetPropertyTypeAndAccomodationType(TlListingRent listing, ListingProcessDataModel request_, bool useTechnicalMessages, Dictionary<string, string> clientData, int userId)
         {
             TpPropertySubtype propertyType = await _propertySubtypeRepository.GetActive(request_.SubtypeId);
             if (propertyType == null)
@@ -984,7 +984,7 @@ namespace Assert.Domain.Implementation
                 };
             }
             TpProperty setSubtyperesult = await _propertyRepository.SetPropertySubType(listing.TpProperties.First().PropertyId, request_.SubtypeId);
-            TlListingRent accomodationTypeResult = await _listingRentRepository.SetAccomodationType(listing.ListingRentId, request_.AccomodationId);
+            TlListingRent accomodationTypeResult = await _listingRentRepository.SetAccomodationType(listing.ListingRentId, request_.AccomodationId, userId);
 
             return new ReturnModel
             {

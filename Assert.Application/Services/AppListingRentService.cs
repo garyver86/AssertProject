@@ -606,12 +606,12 @@ namespace Assert.Application.Services
         }
 
         public async Task<ReturnModelDTO<string>> UpdateBasicData(long listingRentId,
-            BasicListingRentData basicData)
+            BasicListingRentData basicData, int userId)
         {
             ReturnModelDTO<string> result = null;
             try
             {
-                string updatedResult = await _listingRentRepository.UpdateBasicData(listingRentId, basicData.Title, basicData.Description, basicData.AspectTypeIdList);
+                string updatedResult = await _listingRentRepository.UpdateBasicData(listingRentId, basicData.Title, basicData.Description, basicData.AspectTypeIdList, userId);
                 result = _mapper.Map<ReturnModelDTO<string>>(updatedResult);
                 return result;
             }
@@ -624,13 +624,13 @@ namespace Assert.Application.Services
         }
 
         public async Task<ReturnModelDTO<string>> UpdatePricesAndDiscounts(long listingRentId,
-            PricesAndDiscountRequest pricingData)
+            PricesAndDiscountRequest pricingData, int userId)
         {
             ReturnModelDTO<string> result = null;
             try
             {
                 await _listingPriceRepository.SetPricing(listingRentId, pricingData.NightlyPrice,
-                    pricingData.WeekendNightlyPrice, pricingData.CurrencyId);
+                    pricingData.WeekendNightlyPrice, pricingData.CurrencyId, userId);
 
                 if (pricingData.DiscountPrices != null)
                 {
@@ -746,7 +746,7 @@ namespace Assert.Application.Services
         }
 
         public async Task<ReturnModelDTO<string>> UpdatePropertyAndAccomodationTypes(long listingRentId,
-            int? propertyTypeId, int? accomodationTypeId)
+            int? propertyTypeId, int? accomodationTypeId, int userId)
         {
             if (propertyTypeId is not null && propertyTypeId > 0)
             {
@@ -758,7 +758,7 @@ namespace Assert.Application.Services
             if (accomodationTypeId is not null && accomodationTypeId > 0)
             {
                 var _ = await _listingRentRepository
-                    .SetAccomodationType(listingRentId, accomodationTypeId!);
+                    .SetAccomodationType(listingRentId, accomodationTypeId!,userId);
             }
 
             return new ReturnModelDTO<string>
@@ -771,10 +771,10 @@ namespace Assert.Application.Services
 
         public async Task<ReturnModelDTO<string>> UpdateCapacity(long listingRentId,
             int beds, int bedrooms, int bathrooms, int maxGuests,
-            int privateBathroom, int privateBathroomLodging, int sharedBathroom)
+            int privateBathroom, int privateBathroomLodging, int sharedBathroom, int userId)
         {
             await _listingRentRepository.SetCapacity(listingRentId, beds, bedrooms,
-                bathrooms, maxGuests, privateBathroom, privateBathroomLodging, sharedBathroom);
+                bathrooms, maxGuests, privateBathroom, privateBathroomLodging, sharedBathroom, userId);
 
             return new ReturnModelDTO<string>
             {
@@ -963,12 +963,12 @@ namespace Assert.Application.Services
         }
 
         public async Task<ReturnModelDTO<string>> UpdateCancellationPolicy(long listingRentId,
-            int cancellationPolicyId)
+            int cancellationPolicyId, int userId)
         {
             if (cancellationPolicyId <= 0)
                 throw new ApplicationException("El ID de la política de cancelación no es válido, verifica los datos e intenta de nuevo.");
 
-            await _listingRentRepository.SetCancellationPolicy(listingRentId, cancellationPolicyId);
+            await _listingRentRepository.SetCancellationPolicy(listingRentId, cancellationPolicyId, userId);
 
             return new ReturnModelDTO<string>
             {
@@ -979,13 +979,13 @@ namespace Assert.Application.Services
         }
 
         public async Task<ReturnModelDTO<string>> UpdateReservation(long listingRentId,
-           int approvalPolicyTypeId, int minimunNoticeDays, int preparationDays)
+           int approvalPolicyTypeId, int minimunNoticeDays, int preparationDays, int userId)
         {
             if (approvalPolicyTypeId <= 0 || minimunNoticeDays <= 0 || preparationDays <= 0)
                 throw new ApplicationException("Los datos de la política de reserva no son válidos, verifica los datos e intenta de nuevo.");
 
             await _listingRentRepository.SetReservationTypeApprobation(listingRentId,
-                approvalPolicyTypeId, minimunNoticeDays, preparationDays);
+                approvalPolicyTypeId, minimunNoticeDays, preparationDays, userId);
 
             return new ReturnModelDTO<string>
             {
@@ -997,7 +997,7 @@ namespace Assert.Application.Services
 
         public async Task<ReturnModelDTO<string>> UpdatePricingAndDiscounts(long listingRentId,
             decimal pricing, decimal weekendPrice, int currencyId,
-            List<(int, decimal)> discounts)
+            List<(int, decimal)> discounts, int userId)
         {
             if (!(pricing > 0))
                 throw new ApplicationException("Debe definir el precio de alquiler por noche  de la propiedad.");
@@ -1005,8 +1005,23 @@ namespace Assert.Application.Services
             if (!(weekendPrice > 0))
                 throw new ApplicationException("Debe definir el precio de alquiler por noche los fines de semana de la propiedad.");
 
-            await _listingPriceRepository.SetPricing(listingRentId, pricing, weekendPrice, currencyId);
-            await _listingDiscountRepository.SetDiscounts(listingRentId, discounts);
+            await _listingPriceRepository.SetPricing(listingRentId, pricing, weekendPrice, currencyId, userId);
+            await _listingDiscountRepository.SetDiscounts(listingRentId, discounts, userId);
+
+            return new ReturnModelDTO<string>
+            {
+                Data = "UPDATED",
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
+        }
+
+        public async Task<ReturnModelDTO<string>> UpdateWeekendPricing(long listingRentId, decimal weekendPrice, int currencyId, int userId)
+        {
+            if (!(weekendPrice > 0))
+                throw new ApplicationException("Debe definir el precio de alquiler por noche los fines de semana de la propiedad.");
+
+            await _listingPriceRepository.SetWeekendPricing(listingRentId, weekendPrice, currencyId, userId);
 
             return new ReturnModelDTO<string>
             {
@@ -1018,12 +1033,12 @@ namespace Assert.Application.Services
 
         public async Task<ReturnModelDTO<string>> UpdateCheckInOutAndRules(long listingRentId,
             string checkinTime, string checkoutTime, string maxCheckinTime, string instructions,
-            List<int> rules)
+            List<int> rules, int userId)
         {
             if (string.IsNullOrEmpty(checkinTime) || string.IsNullOrEmpty(checkoutTime))
                 throw new ApplicationException("Debe definir las horas de Checin y checkout.");
 
-            await _listingRentRepository.SetCheckInPolicies(listingRentId, checkinTime, checkoutTime, maxCheckinTime, instructions);
+            await _listingRentRepository.SetCheckInPolicies(listingRentId, checkinTime, checkoutTime, maxCheckinTime, instructions, userId);
 
             if (rules is { Count: > 0 })
                 await _listingRentRulesRepository.Set(listingRentId, rules);
@@ -1199,13 +1214,13 @@ namespace Assert.Application.Services
             }
         }
 
-        public async Task<ReturnModelDTO<string>> UpsertMaxMinStay(UpsertMaxMinStayRequestDTO request)
+        public async Task<ReturnModelDTO<string>> UpsertMaxMinStay(UpsertMaxMinStayRequestDTO request, int userId)
         {
             if(!request.SetMaxStay && !request.SetMinStay)
                 throw new ApplicationException("Requiere modificar al menos minimo o maximo de estancia.");
 
             var result = await _listingRentRepository.SetMaxMinStay(request.ListingRentId, request.SetMaxStay,
-                request.MaxStay, request.SetMinStay, request.MinStay);
+                request.MaxStay, request.SetMinStay, request.MinStay, userId);
 
             return new ReturnModelDTO<string>
             {
@@ -1215,10 +1230,10 @@ namespace Assert.Application.Services
             };
         }
 
-        public async Task<ReturnModelDTO<string>> UpsertReservationNotice(UpsertMinimumNoticeRequestDTO request)
+        public async Task<ReturnModelDTO<string>> UpsertReservationNotice(UpsertMinimumNoticeRequestDTO request, int userId)
         {
             var result = await _listingRentRepository.SetMinimumNotice(request.ListingRentId,
-                request.MinimumNoticeDay, request.MinimumNoticeHours);
+                request.MinimumNoticeDay, request.MinimumNoticeHours, userId);
 
             return new ReturnModelDTO<string>
             {
@@ -1228,10 +1243,10 @@ namespace Assert.Application.Services
             };
         }
 
-        public async Task<ReturnModelDTO<string>> UpsertPreparationDay(UpsertPreparationDayRequestDTO request)
+        public async Task<ReturnModelDTO<string>> UpsertPreparationDay(UpsertPreparationDayRequestDTO request, int userId)
         {
             var result = await _listingRentRepository.SetPreparationDay(request.ListingRentId,
-                request.PreparationDayValue);
+                request.PreparationDayValue, userId);
 
             return new ReturnModelDTO<string>
             {

@@ -8,7 +8,7 @@ namespace Assert.Application.Interfaces
 {
     public interface IAppListingRentService
     {
-        Task<ReturnModelDTO> ChangeStatus(long listingRentId, int ownerUserId, 
+        Task<ReturnModelDTO> ChangeStatus(long listingRentId, int ownerUserId,
             string newStatusCode, Dictionary<string, string> clientData,
             bool useTechnicalMessages);
 
@@ -31,19 +31,19 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<PhotoDTO>> UpdatePhoto(long listingRentId, int photoId, UploadImageListingRent request, Dictionary<string, string> requestInfo);
         Task<List<ReturnModelDTO>> UploadImagesDescription(long listingRentId, List<UploadImageRequest> imagesDescription, Dictionary<string, string> clientData);
 
-        Task<ReturnModelDTO<string>> UpdateBasicData(long listingRentId, BasicListingRentData basicData);
+        Task<ReturnModelDTO<string>> UpdateBasicData(long listingRentId, BasicListingRentData basicData, int userId);
 
         Task<ReturnModelDTO<string>> UpdatePricesAndDiscounts(long listingRentId,
-            PricesAndDiscountRequest pricingData);
+            PricesAndDiscountRequest pricingData, int userId);
         Task<ReturnModelDTO<ListingRentDTO>> Get(long istingRentId, long userId, Dictionary<string, string> clientData, bool useTechnicalMessages);
         Task<ReturnModelDTO<List<ListingRentResumeDTO>>> GetByOwnerResumed(Dictionary<string, string> requestInfo, bool useTechnicalMessages);
 
 
         Task<ReturnModelDTO<string>> UpdatePropertyAndAccomodationTypes(long listingRentId,
-                int? propertyTypeId, int? accomodationTypeId);
+                int? propertyTypeId, int? accomodationTypeId, int userId);
         Task<ReturnModelDTO<string>> UpdateCapacity(long listingRentId,
             int beds, int bedrooms, int bathrooms, int maxGuests,
-            int privateBathroom, int privateBathroomLodging, int sharedBathroom);
+            int privateBathroom, int privateBathroomLodging, int sharedBathroom, int userId);
 
         Task<ReturnModelDTO<string>> UpdatePropertyLocation(long listingRentId,
             int cityId, int countyId, int stateId, double? Latitude, double? Longitude,
@@ -54,18 +54,18 @@ namespace Assert.Application.Interfaces
             List<int> securityItems);
 
         Task<ReturnModelDTO<string>> UpdateCancellationPolicy(long listingRentId,
-            int cancellationPolicyId);
+            int cancellationPolicyId, int userId);
 
         Task<ReturnModelDTO<string>> UpdateReservation(long listingRentId,
-           int approvalPolicyTypeId, int minimunNoticeDays, int preparationDays);
+           int approvalPolicyTypeId, int minimunNoticeDays, int preparationDays, int userId);
 
         Task<ReturnModelDTO<string>> UpdatePricingAndDiscounts(long listingRentId,
             decimal pricing, decimal weekendPrice, int currencyId,
-            List<(int, decimal)> discounts);
+            List<(int, decimal)> discounts, int userId);
 
         Task<ReturnModelDTO<string>> UpdateCheckInOutAndRules(long listingRentId,
             string checkinTime, string checkoutTime, string maxCheckinTime, string instructions,
-            List<int> rules);
+            List<int> rules, int userId);
 
         Task<ReturnModelDTO<string>> UpdateRules(long listingRentId,
             List<int> rules);
@@ -77,8 +77,9 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<string>> UpdatePhotoPosition(long listingRentId, long listingPhotoId, int newPostition);
         Task<ReturnModelDTO<string>> SortListingRentPhotos();
 
-        Task<ReturnModelDTO<string>> UpsertMaxMinStay(UpsertMaxMinStayRequestDTO request);
-        Task<ReturnModelDTO<string>> UpsertReservationNotice(UpsertMinimumNoticeRequestDTO request);
-        Task<ReturnModelDTO<string>> UpsertPreparationDay(UpsertPreparationDayRequestDTO request);
+        Task<ReturnModelDTO<string>> UpsertMaxMinStay(UpsertMaxMinStayRequestDTO request, int userId);
+        Task<ReturnModelDTO<string>> UpsertReservationNotice(UpsertMinimumNoticeRequestDTO request, int userId);
+        Task<ReturnModelDTO<string>> UpsertPreparationDay(UpsertPreparationDayRequestDTO request, int userId);
+        Task<ReturnModelDTO<string>> UpdateWeekendPricing(long listingRentId, decimal weekendPrice, int currencyId, int userId);
     }
 }
