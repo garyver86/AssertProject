@@ -1,4 +1,5 @@
-﻿using Assert.Domain.Common.Params;
+﻿using Assert.Domain.Common.Metadata;
+using Assert.Domain.Common.Params;
 using Assert.Domain.Entities;
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
@@ -19,6 +20,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         IExceptionLoggerService _exceptionLoggerService,
         IListingViewHistoryRepository _listingViewHistoryRepository,
         IListingFavoriteRepository _favoritesRepository,
+        RequestMetadata _metadata,
         ParamsData _paramsData,
         ILogger<ListingRentRepository> _logger, IServiceProvider serviceProvider)
         : IListingRentRepository
@@ -1120,7 +1122,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 if (listingRent is null)
                     throw new NotFoundException($"No se encontró la propiedad con ID: {listingRentId}");
 
-
+                if (listingRent.OwnerUserId != _metadata.UserId)
+                    throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
+                
                 for (int i = 0; i < additionalFeeId.Count; i++)
                 {
                     var feeId = additionalFeeId[i];
@@ -1170,6 +1174,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
                 if (listingRent is null)
                     throw new NotFoundException($"No se encontró el la propiedad con ID: {listingRentId}");
+
+                if (listingRent.OwnerUserId != _metadata.UserId)
+                    throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
 
                 var result = listingRent.TlListingAdditionalFees
                     .ToList();

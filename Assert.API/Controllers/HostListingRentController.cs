@@ -696,14 +696,12 @@ namespace Assert.API.Controllers
         /// - El <c>weekendPricing</c> debe ser mayor a cero.
         /// - Solo puede modificar el owner de la propiedad
         /// </remarks>
-
         [HttpPut()]
         [Authorize(Policy = "GuestOrHost")]
         [Route("UpdateWeekendPricing")]
         public async Task<ReturnModelDTO> UpdateWeekendPricing(PricingRequestDTO request)
         => await _appListingRentService.UpdateWeekendPricing(request.ListingRentId, request.weekendPricing, 2, _metadata.UserId);
-        => await _appListingRentService.UpsertPreparationDay(request);
-
+        
         /// <summary>
         /// Registra o actualiza los cargos adicionales asociados a una reserva de alquiler (Listing Rent).
         /// </summary>
