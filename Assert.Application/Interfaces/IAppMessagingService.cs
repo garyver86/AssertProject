@@ -6,7 +6,7 @@ namespace Assert.Application.Interfaces
 {
     public interface IAppMessagingService
     {
-        Task<ReturnModelDTO<ConversationDTO>> CreateConversation(int renterid, int? hostId, long? bookId, long? priceCalculationId, long? listingId, Dictionary<string, string> requestInfo);
+        Task<ReturnModelDTO<ConversationDTO>> CreateConversation(int renterid, int? hostId, long? bookId, long? priceCalculationId, long? listingId, bool isBookingRequest, Dictionary<string, string> requestInfo);
         Task<ReturnModelDTO<ConversationDTO>> GetConversation(long conversationId, int userId, Dictionary<string, string> requestInfo);
         Task<ReturnModelDTO<List<MessageDTO>>> GetConversationMessages(int conversationId, int userId, int page, int pageSize, string orderBy, Dictionary<string, string> requestInfo);
         Task<ReturnModelDTO<List<ConversationDTO>>> GetConversations(int userId, Dictionary<string, string> requestInfo);

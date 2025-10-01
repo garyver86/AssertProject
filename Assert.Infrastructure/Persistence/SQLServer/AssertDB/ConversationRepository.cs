@@ -3,6 +3,7 @@ using Assert.Domain.Models;
 using Assert.Domain.Repositories;
 using Assert.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
@@ -10,12 +11,15 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
     {
         private readonly InfraAssertDbContext _context;
         private readonly IMessageRepository _messageRepository;
-        public ConversationRepository(InfraAssertDbContext context, IMessageRepository messageRepository)
+        private readonly DbContextOptions<InfraAssertDbContext> dbOptions;
+        public ConversationRepository(InfraAssertDbContext context, IMessageRepository messageRepository, IServiceProvider serviceProvider)
         {
             _context = context;
             _messageRepository = messageRepository;
+            dbOptions = serviceProvider.GetRequiredService<DbContextOptions<InfraAssertDbContext>>();
+
         }
-        public async Task<TmConversation> Create(int renterId, int? hostId, long? bookId, long? priceCalculationId, long? listingId)
+        public async Task<TmConversation> Create(int renterId, int? hostId, long? bookId, long? priceCalculationId, long? listingId, bool isBookingRequest)
         {
             if (renterId <= 0)
             {
@@ -36,8 +40,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 //Buscamos una converzación entre estas dos personas con ese mismo bookId
                 var existingConversationWithBook = await _context.TmConversations
                     .Include(x => x.PriceCalculation)
-                    .Include(x => x.Book)
                     .Include(x => x.ListingRent)
+                    .Include(x => x.Book)
+                    .ThenInclude(x=>x.BookStatus)
                     //.FirstOrDefaultAsync(c => ((c.UserIdOne == renterId && c.UserIdTwo == hostId) ||
                     //                          (c.UserIdOne == hostId && c.UserIdTwo == renterId)) &&
                     //                          c.BookId == bookId);
@@ -65,6 +70,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 var existingConversationWithPriceCalculation = await _context.TmConversations
                     .Include(x => x.PriceCalculation)
                     .Include(x => x.ListingRent)
+                    .Include(x => x.Book)
+                    .ThenInclude(x => x.BookStatus)
                     //.FirstOrDefaultAsync(c => ((c.UserIdOne == renterId && c.UserIdTwo == hostId) ||
                     //                          (c.UserIdOne == hostId && c.UserIdTwo == renterId)) &&
                     //                          c.PriceCalculationId == priceCalculationId);
@@ -120,27 +127,45 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 priceCalculation = await _context.PayPriceCalculations
                     .Include(tl => tl.ListingRent)
+                    .Include(x=>x.Book)
+                    .ThenInclude(x => x.BookStatus)
                     .FirstOrDefaultAsync(pc => pc.PriceCalculationId == priceCalculationId);
                 if (priceCalculation == null)
                 {
                     throw new ArgumentException("Price Calculation ID does not exist.", nameof(priceCalculationId));
                 }
+                else if (priceCalculation.ExpirationDate <= DateTime.UtcNow)
+                {
+                    throw new ArgumentException("La cotización ya ha expirado.", nameof(priceCalculationId));
+                }
+                else if (renterId != priceCalculation.UserId)
+                {
+                    throw new ArgumentException("La cotización no corresponde al usuario actual.", nameof(priceCalculationId));
+                }
                 bookId = priceCalculation.BookId;
                 listingId = priceCalculation.ListingRentId;
                 hostId = hostId ?? priceCalculation.ListingRent.OwnerUserId;
-                var status = await _context.PayPriceCalculationStatuses.FirstOrDefaultAsync(x => x.PriceCalculationStatusCode == "CONSULT");
 
-                if (priceCalculation.CalculationStatusId == 1)
+                if (isBookingRequest)
                 {
-                    //Si está pendiente, la convertimos en una converzación de consulta
-                    priceCalculation.CalculationStatusId = status.PayPriceCalculationStatus1; //Estado de consulta
-                    priceCalculation.CalculationStatue = status.PriceCalculationStatusCode;
+
+                }
+                else
+                {
+                    if (priceCalculation.CalculationStatusId == 1 && priceCalculation.ConsultResponse != null)
+                    {
+                        var status = await _context.PayPriceCalculationStatuses.FirstOrDefaultAsync(x => x.PriceCalculationStatusCode == "CONSULT");
+                        //Si está pendiente, la convertimos en una converzación de consulta
+                        priceCalculation.CalculationStatusId = status.PayPriceCalculationStatus1; //Estado de consulta
+                        priceCalculation.CalculationStatue = status.PriceCalculationStatusCode;
+                    }
                 }
             }
             else if (bookId > 0)
             {
                 var booking = await _context.TbBooks
                     .Include(tl => tl.ListingRent)
+                    .Include(x=>x.BookStatus)
                     .FirstOrDefaultAsync(b => b.BookId == bookId);
                 if (booking == null)
                 {
@@ -813,108 +838,136 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         }
         public async Task<TmConversation> SetArchived(long conversationId, int userid, bool isArchived)
         {
-            var conversations = await _context.TmConversations
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                var conversations = await context.TmConversations
                .FirstOrDefaultAsync(x => x.ConversationId == conversationId);
 
-            if (conversations == null)
-            {
-                throw new ArgumentException("La converzación no existe.", nameof(conversationId));
+                if (conversations == null)
+                {
+                    throw new ArgumentException("La converzación no existe.", nameof(conversationId));
+                }
+                if (conversations.UserIdOne != userid && conversations.UserIdTwo != userid)
+                {
+                    throw new ArgumentException("El usuario no es parte de la converzación.", nameof(userid));
+                }
+                if (conversations.UserIdOne == userid)
+                {
+                    conversations.UserOneArchived = isArchived;
+                    conversations.UserOneArchivedDateTime = DateTime.UtcNow;
+                }
+                else
+                {
+                    conversations.UserTwoArchived = isArchived;
+                    conversations.UserTwoArchivedDateTime = DateTime.UtcNow;
+                }
+                await context.SaveChangesAsync();
+                return conversations;
             }
-            if (conversations.UserIdOne != userid && conversations.UserIdTwo != userid)
-            {
-                throw new ArgumentException("El usuario no es parte de la converzación.", nameof(userid));
-            }
-            if (conversations.UserIdOne == userid)
-            {
-                conversations.UserOneArchived = isArchived;
-                conversations.UserOneArchivedDateTime = DateTime.UtcNow;
-            }
-            else
-            {
-                conversations.UserTwoArchived = isArchived;
-                conversations.UserTwoArchivedDateTime = DateTime.UtcNow;
-            }
-            await _context.SaveChangesAsync();
-            return conversations;
         }
 
         public async Task<TmConversation> SetUnread(long conversationId, int userid, bool isUnread)
         {
-            var conversations = await _context.TmConversations
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                var conversations = await context.TmConversations
                .FirstOrDefaultAsync(x => x.ConversationId == conversationId);
 
-            if (conversations == null)
-            {
-                throw new ArgumentException("La converzación no existe.", nameof(conversationId));
+                if (conversations == null)
+                {
+                    throw new ArgumentException("La converzación no existe.", nameof(conversationId));
+                }
+                if (conversations.UserIdOne != userid && conversations.UserIdTwo != userid)
+                {
+                    throw new ArgumentException("El usuario no es parte de la converzación.", nameof(userid));
+                }
+                if (conversations.UserIdOne == userid)
+                {
+                    conversations.UserOneUnread = isUnread;
+                }
+                else
+                {
+                    conversations.UserTwoUnread = isUnread;
+                }
+                await context.SaveChangesAsync();
+                return conversations;
             }
-            if (conversations.UserIdOne != userid && conversations.UserIdTwo != userid)
-            {
-                throw new ArgumentException("El usuario no es parte de la converzación.", nameof(userid));
-            }
-            if (conversations.UserIdOne == userid)
-            {
-                conversations.UserOneUnread = isUnread;
-            }
-            else
-            {
-                conversations.UserTwoUnread = isUnread;
-            }
-            await _context.SaveChangesAsync();
-            return conversations;
         }
 
         public async Task<TmConversation> SetFeatured(long conversationId, int userid, bool isFeatured)
         {
-            var conversations = await _context.TmConversations
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                var conversations = await context.TmConversations
                .FirstOrDefaultAsync(x => x.ConversationId == conversationId);
 
-            if (conversations == null)
-            {
-                throw new ArgumentException("La converzación no existe.", nameof(conversationId));
+                if (conversations == null)
+                {
+                    throw new ArgumentException("La converzación no existe.", nameof(conversationId));
+                }
+                if (conversations.UserIdOne != userid && conversations.UserIdTwo != userid)
+                {
+                    throw new ArgumentException("El usuario no es parte de la converzación.", nameof(userid));
+                }
+                if (conversations.UserIdOne == userid)
+                {
+                    conversations.UserOneFeatured = isFeatured;
+                    conversations.UserOneFeaturedDateTime = DateTime.UtcNow;
+                }
+                else
+                {
+                    conversations.UserTwoFeatured = isFeatured;
+                    conversations.UserTwoFeaturedDateTime = DateTime.UtcNow;
+                }
+                await context.SaveChangesAsync();
+                return conversations;
             }
-            if (conversations.UserIdOne != userid && conversations.UserIdTwo != userid)
-            {
-                throw new ArgumentException("El usuario no es parte de la converzación.", nameof(userid));
-            }
-            if (conversations.UserIdOne == userid)
-            {
-                conversations.UserOneFeatured = isFeatured;
-                conversations.UserOneFeaturedDateTime = DateTime.UtcNow;
-            }
-            else
-            {
-                conversations.UserTwoFeatured = isFeatured;
-                conversations.UserTwoFeaturedDateTime = DateTime.UtcNow;
-            }
-            await _context.SaveChangesAsync();
-            return conversations;
         }
 
         public async Task<TmConversation> SetSilent(long conversationId, int userid, bool isSilent)
         {
-            var conversations = await _context.TmConversations
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                var conversations = await context.TmConversations
                .FirstOrDefaultAsync(x => x.ConversationId == conversationId);
 
-            if (conversations == null)
-            {
-                throw new ArgumentException("La converzación no existe.", nameof(conversationId));
+                if (conversations == null)
+                {
+                    throw new ArgumentException("La converzación no existe.", nameof(conversationId));
+                }
+                if (conversations.UserIdOne != userid && conversations.UserIdTwo != userid)
+                {
+                    throw new ArgumentException("El usuario no es parte de la converzación.", nameof(userid));
+                }
+                if (conversations.UserIdOne == userid)
+                {
+                    conversations.UserOneSilent = isSilent;
+                    conversations.UserOneSilentDateTime = DateTime.UtcNow;
+                }
+                else
+                {
+                    conversations.UserTwoSilent = isSilent;
+                    conversations.UserTwoSilentDateTime = DateTime.UtcNow;
+                }
+                await context.SaveChangesAsync();
+                return conversations;
             }
-            if (conversations.UserIdOne != userid && conversations.UserIdTwo != userid)
+        }
+
+        public async Task RegisterBookId(long conversationId, long bookId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
             {
-                throw new ArgumentException("El usuario no es parte de la converzación.", nameof(userid));
+                var conversations = await context.TmConversations
+               .FirstOrDefaultAsync(x => x.ConversationId == conversationId);
+
+                if (conversations == null)
+                {
+                    throw new ArgumentException("La converzación no existe.", nameof(conversationId));
+                }
+                conversations.BookId = bookId;
+                await context.SaveChangesAsync();
             }
-            if (conversations.UserIdOne == userid)
-            {
-                conversations.UserOneSilent = isSilent;
-                conversations.UserOneSilentDateTime = DateTime.UtcNow;
-            }
-            else
-            {
-                conversations.UserTwoSilent = isSilent;
-                conversations.UserTwoSilentDateTime = DateTime.UtcNow;
-            }
-            await _context.SaveChangesAsync();
-            return conversations;
         }
     }
 }

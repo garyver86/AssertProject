@@ -41,5 +41,11 @@ namespace Assert.Application.DTOs.Responses
 
         public DateTime? SilentDateTime { get; set; }
         public bool IsUnread { get; set; }
+
+        public long? BookId { get; set; }
+
+        public long? PriceCalculationId { get; set; }
+
+        public long? ListingRentId { get; set; }
     }
 }

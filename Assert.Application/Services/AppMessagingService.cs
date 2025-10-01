@@ -18,11 +18,13 @@ namespace Assert.Application.Services
         private readonly IConversationRepository _conversationRepository;
         private readonly INotificationService _notificationService;
         private readonly IMessagePredefinedRepository _messagePredefinedRepository;
+        private readonly IBookService _bookservice;
 
         private readonly IMapper _mapper;
         private readonly IErrorHandler _errorHandler;
         public AppMessagingService(IConversationRepository conversationRepository, IMessageRepository messageRepository,
-            IMapper mapper, IErrorHandler errorHandler, INotificationService notificationService, IMessagePredefinedRepository messagePredefinedRepository)
+            IMapper mapper, IErrorHandler errorHandler, INotificationService notificationService, IMessagePredefinedRepository messagePredefinedRepository,
+            IBookService bookservice)
         {
             _conversationRepository = conversationRepository;
             _messageRepository = messageRepository;
@@ -30,46 +32,63 @@ namespace Assert.Application.Services
             _errorHandler = errorHandler;
             _notificationService = notificationService;
             _messagePredefinedRepository = messagePredefinedRepository;
+            _bookservice = bookservice;
         }
-        public async Task<ReturnModelDTO<ConversationDTO>> CreateConversation(int renterid, int? hostId, long? bookId, long? priceCalculationId, long? listingId, Dictionary<string, string> requestInfo)
+        public async Task<ReturnModelDTO<ConversationDTO>> CreateConversation(int renterid, int? hostId, long? bookId, long? priceCalculationId, long? listingId, bool isBookingRequest, Dictionary<string, string> requestInfo)
         {
             ReturnModelDTO<ConversationDTO> result = new ReturnModelDTO<ConversationDTO>();
             try
             {
-                //if (renterid != userId && hostId != userId)
-                //{
-                //    result = new ReturnModelDTO<ConversationDTO>
-                //    {
-                //        StatusCode = ResultStatusCode.Unauthorized,
-                //        HasError = true,
-                //        ResultError = _mapper.Map<ErrorCommonDTO>(_errorHandler.GetError(ResultStatusCode.Unauthorized, "El usuario actual no puede crear la converzación deseada.", true))
-                //    };
-                //}
-                //else
-                //{
-                    var result_ = await _conversationRepository.Create(renterid, hostId, bookId, priceCalculationId, listingId);
+                if (hostId == 0)
+                {
+                    hostId = null;
+                }
+                if (bookId == 0)
+                {
+                    bookId = null;
+                }
+                if (priceCalculationId == 0)
+                {
+                    priceCalculationId = null;
+                }
+                if (listingId == 0)
+                {
+                    listingId = null;
+                }
+                var result_ = await _conversationRepository.Create(renterid, hostId, bookId, priceCalculationId, listingId, isBookingRequest);
 
-                    result = new ReturnModelDTO<ConversationDTO>
+                result = new ReturnModelDTO<ConversationDTO>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    HasError = false,
+                    Data = _mapper.Map<ConversationDTO>(result_)
+                };
+
+                if (result_.PriceCalculation?.CalculationStatusId == 4)
+                {
+                    var messagePredefined = await _messagePredefinedRepository.GetByCode("CON_WORES");
+                    if (messagePredefined != null)
                     {
-                        StatusCode = ResultStatusCode.OK,
-                        HasError = false,
-                        Data = _mapper.Map<ConversationDTO>(result_)
-                    };
-
-                    if (result_.PriceCalculation?.CalculationStatusId == 4)
-                    {
-                        var messagePredefined = await _messagePredefinedRepository.GetByCode("CON_WORES");
-                        if (messagePredefined != null)
-                        {
-                            string messageHost = string.Format(messagePredefined.MessageBody, result_.ListingRent?.MaxGuests > 1 ? result_.ListingRent?.MaxGuests.ToString() + " huespedes" : result_.ListingRent?.MaxGuests.ToString() + " huesped", result_.PriceCalculation?.InitBook?.ToString("dd/MM/yyyy") + " al " + result_.PriceCalculation?.EndBook?.ToString("dd/MM/yyyy"));
-                            await SendMessage(result_.ConversationId, null, messageHost, 4, requestInfo, hostId);
+                        string messageHost = string.Format(messagePredefined.MessageBody, result_.ListingRent?.MaxGuests > 1 ? result_.ListingRent?.MaxGuests.ToString() + " huespedes" : result_.ListingRent?.MaxGuests.ToString() + " huesped", result_.PriceCalculation?.InitBook?.ToString("dd/MM/yyyy") + " al " + result_.PriceCalculation?.EndBook?.ToString("dd/MM/yyyy"));
+                        await SendMessage(result_.ConversationId, null, messageHost, 4, requestInfo, hostId);
 
 
-                            string messageRenter = string.Format(messagePredefined.MessageBodyDest ?? messagePredefined.MessageBody, result_.ListingRent?.MaxGuests > 1 ? result_.ListingRent?.MaxGuests.ToString() + " huespedes" : result_.ListingRent?.MaxGuests.ToString() + " huesped", result_.PriceCalculation?.InitBook?.ToString("dd/MM/yyyy") + " al " + result_.PriceCalculation?.EndBook?.ToString("dd/MM/yyyy"));
-                            await SendMessage(result_.ConversationId, null, messageRenter, 4, requestInfo, renterid);
-                        }
+                        string messageRenter = string.Format(messagePredefined.MessageBodyDest ?? messagePredefined.MessageBody, result_.ListingRent?.MaxGuests > 1 ? result_.ListingRent?.MaxGuests.ToString() + " huespedes" : result_.ListingRent?.MaxGuests.ToString() + " huesped", result_.PriceCalculation?.InitBook?.ToString("dd/MM/yyyy") + " al " + result_.PriceCalculation?.EndBook?.ToString("dd/MM/yyyy"));
+                        await SendMessage(result_.ConversationId, null, messageRenter, 4, requestInfo, renterid);
                     }
-                //}
+                }
+
+                if (isBookingRequest && result_.BookId == null)
+                {
+                    var createBook = await _bookservice.BookingRequestApproval((Guid)result_.PriceCalculation.CalculationCode, hostId ?? renterid, requestInfo, true);
+                    if (createBook.Data != null)
+                    {
+                        // Actualizar el bookId en la conversación
+                        result_.BookId = createBook.Data.BookId;
+                        result_.Book = createBook.Data;
+                        await _conversationRepository.RegisterBookId(result_.ConversationId, createBook.Data.BookId);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -592,7 +611,7 @@ namespace Assert.Application.Services
                     conversation.Featured = result_.UserOneFeatured;
                     conversation.ArchivedDateTime = result_.UserOneArchivedDateTime;
                     conversation.FeaturedDateTime = result_.UserOneFeaturedDateTime;
-                    conversation.SilentDateTime = result_.UserOneSilentDateTime; 
+                    conversation.SilentDateTime = result_.UserOneSilentDateTime;
                     conversation.IsUnread = result_.UserOneUnread == true ? true : result_.TmMessages?.Any(x => !(x.IsRead) && x.UserId != userid) ?? false;
                 }
                 else if (conversation != null && userid == conversation.UserIdTwo)
@@ -639,7 +658,7 @@ namespace Assert.Application.Services
                     conversation.ArchivedDateTime = result_.UserOneArchivedDateTime;
                     conversation.FeaturedDateTime = result_.UserOneFeaturedDateTime;
                     conversation.SilentDateTime = result_.UserOneSilentDateTime;
-                    conversation.IsUnread = result_.UserOneUnread == true? true : result_.TmMessages?.Any(x => !(x.IsRead) && x.UserId != userid)??false;
+                    conversation.IsUnread = result_.UserOneUnread == true ? true : result_.TmMessages?.Any(x => !(x.IsRead) && x.UserId != userid) ?? false;
                 }
                 else if (conversation != null && userid == conversation.UserIdTwo)
                 {

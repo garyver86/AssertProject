@@ -762,13 +762,16 @@ namespace Assert.Domain.Implementation
 
             booking = await _bookRepository.GetByIdAsync(bookId);
 
-            //Envío de solicitud de aprobación al anfitrión
-            _notificationService.SendBookingRequestNotificationAsync(
-                listing.OwnerUserId,
-                (long)priceCalculation.ListingRentId,
-                booking.BookId
-            ).Wait();
-
+            try
+            {
+                //Envío de solicitud de aprobación al anfitrión
+                _notificationService.SendBookingRequestNotificationAsync(
+                    listing.OwnerUserId,
+                    (long)priceCalculation.ListingRentId,
+                    booking.BookId
+                ).Wait();
+            }
+            catch (Exception e) { }
 
             return new ReturnModel<TbBook>
             {
@@ -828,6 +831,36 @@ namespace Assert.Domain.Implementation
 
         private async Task<ReturnModel> CheckAvailability(int listingRentId, DateTime? initBook, DateTime? endBook)
         {
+            var (calendarDays, _) = await _listingCalendarRepository.GetCalendarDaysAsync(
+                listingRentId, (DateTime)initBook, (DateTime)endBook, 1, (int)((DateTime)endBook - (DateTime)initBook).TotalDays + 1);
+
+            if (calendarDays.Any(d => d.BlockType != null))
+            {
+                return new ReturnModel
+                {
+                    HasError = true,
+                    StatusCode = ResultStatusCode.Conflict,
+                    ResultError = new ErrorCommon { Message = "Las fechas seleccionadas no están disponibles." }
+                };
+            }
+
+            //// Validar mínimo y máximo de noches
+            //int nights = (endDate - startDate).Days;
+            //if (listing.MinimunStay.HasValue && nights < listing.MinimunStay.Value)
+            //{
+            //    result.HasError = true;
+            //    result.StatusCode = ResultStatusCode.BadRequest;
+            //    result.ResultError = new ErrorCommon { Message = $"La estancia mínima es de {listing.MinimunStay.Value} noches." };
+            //    return result;
+            //}
+            //if (listing.MaximumStay.HasValue && nights > listing.MaximumStay.Value)
+            //{
+            //    result.HasError = true;
+            //    result.StatusCode = ResultStatusCode.BadRequest;
+            //    result.ResultError = new ErrorCommon { Message = $"La estancia máxima es de {listing.MaximumStay.Value} noches." };
+            //    return result;
+            //}
+
             return new ReturnModel { StatusCode = ResultStatusCode.OK, HasError = false };
         }
 

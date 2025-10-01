@@ -7,5 +7,6 @@
         public long? bookId { get; set; }
         public long? priceCalculationId { get; set; }
         public long? listingId { get; set; }
+        public bool isBookingRequest { get; set; }
     }
 }

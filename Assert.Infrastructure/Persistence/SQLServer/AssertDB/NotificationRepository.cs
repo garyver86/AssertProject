@@ -1,16 +1,21 @@
 ﻿using Assert.Domain.Entities;
 using Assert.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
     public class NotificationRepository : INotificationRepository
     {
         private readonly InfraAssertDbContext _context;
+        private readonly DbContextOptions<InfraAssertDbContext> dbOptions;
 
-        public NotificationRepository(InfraAssertDbContext context)
+
+        public NotificationRepository(InfraAssertDbContext context, IServiceProvider serviceProvider)
         {
             _context = context;
+            dbOptions = serviceProvider.GetRequiredService<DbContextOptions<InfraAssertDbContext>>();
         }
 
         public async Task<TnNotification> GetByIdAsync(long notificationId)
@@ -42,42 +47,66 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task MarkAsReadAsync(long notificationId)
         {
-            var notification = await _context.TnNotifications
-                .FirstOrDefaultAsync(n => n.NotificationId == notificationId);
-            if (notification != null)
+            using (var context = new InfraAssertDbContext(dbOptions))
             {
-                notification.IsRead = true;
-                notification.ReadAt = DateTime.UtcNow;
-                await _context.SaveChangesAsync();
+                var notification = await context.TnNotifications
+                .FirstOrDefaultAsync(n => n.NotificationId == notificationId);
+                if (notification != null)
+                {
+                    notification.IsRead = true;
+                    notification.ReadAt = DateTime.UtcNow;
+                    await context.SaveChangesAsync();
+                }
             }
         }
 
         public async Task MarkAllAsReadAsync(int userId)
         {
-            var unreadNotifications = await _context.TnNotifications
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                var unreadNotifications = await context.TnNotifications
                 .Where(n => n.UserId == userId && !n.IsRead)
                 .ToListAsync();
 
-            foreach (var notification in unreadNotifications)
-            {
-                notification.IsRead = true;
-                notification.ReadAt = DateTime.UtcNow;
-            }
+                foreach (var notification in unreadNotifications)
+                {
+                    notification.IsRead = true;
+                    notification.ReadAt = DateTime.UtcNow;
+                }
 
-            await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
+            }
         }
 
         public async Task<TnNotification> CreateNotificationAsync(TnNotification notification)
         {
-            _context.TnNotifications.Add(notification);
-            await _context.SaveChangesAsync();
-            return notification;
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                //context.TnNotifications.Add(new TnNotification
+                //{
+                //    BookingId = notification.BookingId,
+                //    CreatedAt = DateTime.UtcNow,
+                //    IsRead = false,
+                //    ListingRentId = notification.ListingRentId,
+                //    MessageBody = notification.MessageBody,
+                //    Title = notification.Title,
+                //    //TnNotificationActions = notification.TnNotificationActions,
+                //    TypeId = notification.TypeId,
+                //    UserId = notification.UserId
+                //});
+                context.TnNotifications.Add(notification);
+                await context.SaveChangesAsync();
+                return notification;
+            }
         }
 
         public async Task AddNotificationActionAsync(TnNotificationAction action)
         {
-            _context.TnNotificationActions.Add(action);
-            await _context.SaveChangesAsync();
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                context.TnNotificationActions.Add(action);
+                await context.SaveChangesAsync();
+            }
         }
 
         public async Task<List<TnNotification>> GetHistoricalNotificationsAsync(

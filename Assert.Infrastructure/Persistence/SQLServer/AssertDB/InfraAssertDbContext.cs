@@ -64,8 +64,6 @@ public partial class InfraAssertDbContext : DbContext
 
     public virtual DbSet<TLocation> TLocations { get; set; }
 
-    public virtual DbSet<TPreparationTimeType> TPreparationTimeTypes { get; set; }
-
     public virtual DbSet<TQuickTip> TQuickTips { get; set; }
 
     public virtual DbSet<TQuickTipType> TQuickTipTypes { get; set; }
@@ -1058,27 +1056,6 @@ public partial class InfraAssertDbContext : DbContext
                 .HasMaxLength(500)
                 .IsUnicode(false)
                 .HasColumnName("url_image");
-        });
-
-        modelBuilder.Entity<TPreparationTimeType>(entity =>
-        {
-            entity.HasKey(e => e.PreparationTimeTypeId);
-
-            entity.ToTable("T_PreparationTimeType");
-
-            entity.Property(e => e.PreparationTimeTypeId)
-                .ValueGeneratedNever()
-                .HasColumnName("preparationTimeTypeId");
-            entity.Property(e => e.Code)
-                .HasMaxLength(50)
-                .IsUnicode(false)
-                .HasColumnName("code");
-            entity.Property(e => e.Name)
-                .HasMaxLength(200)
-                .IsUnicode(false)
-                .HasColumnName("name");
-            entity.Property(e => e.Status).HasColumnName("status");
-            entity.Property(e => e.Value).HasColumnName("value");
         });
 
         modelBuilder.Entity<TQuickTip>(entity =>

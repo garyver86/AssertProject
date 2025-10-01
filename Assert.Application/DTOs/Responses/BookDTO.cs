@@ -60,10 +60,7 @@ public class BookDTO
     public decimal? VggFee { get; set; }
 
     public decimal? VggFeePercent { get; set; }
-    public List<CalendarDayDto>? CalendarDays { get; set; }
-    public UserDTO? Owner { get; set; }
-    public List<PhotoDTO>? Photos { get; set; }
-    public ListingRentDTO? ListingRent { get; set; }
+
     public DateTime? Checkin { get; set; }
 
     public DateTime? Checkout { get; set; }
@@ -83,6 +80,15 @@ public class BookDTO
     public int? CancellationUserId { get; set; }
 
     public int? ReasonRefusedId { get; set; }
+
+    public DateTime? RequestDateTime { get; set; }
+
+    public DateTime? ExpiredDateTime { get; set; }
+
+    public List<CalendarDayDto>? CalendarDays { get; set; }
+    public UserDTO? Owner { get; set; }
+    public List<PhotoDTO>? Photos { get; set; }
+    public ListingRentDTO? ListingRent { get; set; }
 
     public BookStatusDTO BookStatus { get; set; } = null!;
 

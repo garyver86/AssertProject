@@ -19,7 +19,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
     public class PayPriceCalculationRepository(InfraAssertDbContext _context,
         IListingLogRepository _logRepository,
-        IExceptionLoggerService _exceptionLoggerService, IServiceProvider serviceProvider) : IPayPriceCalculationRepository
+        IExceptionLoggerService _exceptionLoggerService, IServiceProvider serviceProvider,
+        IBookRepository _bookRepository) : IPayPriceCalculationRepository
     {
         private readonly DbContextOptions<InfraAssertDbContext> dbOptions = serviceProvider.GetRequiredService<DbContextOptions<InfraAssertDbContext>>();
 

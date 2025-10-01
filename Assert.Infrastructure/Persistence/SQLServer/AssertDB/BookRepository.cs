@@ -450,7 +450,23 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     if (incomingBook.CancellationEnd.HasValue) existingBook.CancellationEnd = incomingBook.CancellationEnd;
                 }
                 else //insert
+                {
+                    incomingBook.PayPriceCalculations = null;
+                    incomingBook.TbBookChanges = null;
+                    incomingBook.TbBookingInsurances = null;
+                    incomingBook.TbBookInsuranceClaims = null;
+                    incomingBook.TlListingReviews = null;
+                    incomingBook.TmConversations = null;
+                    incomingBook.TbBookPayments = null;
+                    incomingBook.TbBookSnapshots = null;
+                    incomingBook.TbBookSteps = null;
+                    incomingBook.TiIssues = null;
+                    incomingBook.TuUserReviews = null;
+                    incomingBook.TlListingAvailabilities = null;
+                    incomingBook.TlListingCalendars = null;
+                    incomingBook.TlListingReviews = null;
                     _dbContext.TbBooks.Add(incomingBook);
+                }
 
                 await _dbContext.SaveChangesAsync();
                 return incomingBook.BookId;

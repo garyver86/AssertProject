@@ -6,7 +6,7 @@ namespace Assert.Domain.Repositories
 {
     public interface IConversationRepository
     {
-        Task<TmConversation> Create(int renterId, int? hostId, long? bookId, long? priceCalculationId, long? listingId);
+        Task<TmConversation> Create(int renterId, int? hostId, long? bookId, long? priceCalculationId, long? listingId, bool isBookingRequest);
         //Task<List<TmMessage>> Get(long conversationId, int page, int pageSize, string orderBy);
         Task<List<TmConversation>> Get(int userId);
         Task<TmConversation> GetConversation(long conversationId);
@@ -17,5 +17,6 @@ namespace Assert.Domain.Repositories
         Task<(List<TmConversation> Conversations, PaginationMetadata pagination)> SearchConversationsArchiveds(ConversationFilter filter);
         Task<List<TmConversation>> GetArchiveds(int userId);
         Task<TmConversation> SetUnread(long conversationId, int userid, bool isUnread);
+        Task RegisterBookId(long conversationId, long bookId);
     }
 }
