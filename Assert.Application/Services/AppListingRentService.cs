@@ -631,7 +631,7 @@ namespace Assert.Application.Services
             try
             {
                 await _listingPriceRepository.SetPricing(listingRentId, pricingData.NightlyPrice,
-                    pricingData.WeekendNightlyPrice, pricingData.CurrencyId, userId);
+                    pricingData.WeekendNightlyPrice, userId, pricingData.CurrencyId);
 
                 if (pricingData.DiscountPrices != null)
                 {
@@ -1006,7 +1006,7 @@ namespace Assert.Application.Services
             if (!(weekendPrice > 0))
                 throw new ApplicationException("Debe definir el precio de alquiler por noche los fines de semana de la propiedad.");
 
-            await _listingPriceRepository.SetPricing(listingRentId, pricing, weekendPrice, currencyId, userId);
+            await _listingPriceRepository.SetPricing(listingRentId, pricing, weekendPrice, userId, currencyId);
             await _listingDiscountRepository.SetDiscounts(listingRentId, discounts, userId);
 
             return new ReturnModelDTO<string>
@@ -1022,7 +1022,7 @@ namespace Assert.Application.Services
             if (!(weekendPrice > 0))
                 throw new ApplicationException("Debe definir el precio de alquiler por noche los fines de semana de la propiedad.");
 
-            await _listingPriceRepository.SetWeekendPricing(listingRentId, weekendPrice, currencyId, userId);
+            await _listingPriceRepository.SetWeekendPricing(listingRentId, weekendPrice, userId, currencyId);
 
             return new ReturnModelDTO<string>
             {
