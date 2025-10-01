@@ -7,7 +7,7 @@ using System.CodeDom;
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
     public class ListingPricingRepository(InfraAssertDbContext _context,
-        IExceptionLoggerService _exceptionLoggerService) 
+        IExceptionLoggerService _exceptionLoggerService)
         : IListingPricingRepository
     {
         public async Task<TlListingPrice> GetByListingRent(long listingRentId)
@@ -23,7 +23,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task SetPricing(long listingRentId, decimal? pricing, decimal? weekendPrice, int userId, int? currencyId)
         {
-            if(currencyId == 0)
+            if (currencyId == 0)
                 currencyId = 2; //TODO : ir a base de datos para recuperar un default por codigo BOB
 
             var listing = _context.TlListingRents.AsNoTracking().FirstOrDefault(x => x.ListingRentId == listingRentId);
@@ -39,8 +39,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             var price = await _context.TlListingPrices.Where(x => x.ListingRentId == listingRentId).FirstOrDefaultAsync();
             if (price != null)
             {
-                if(pricing != null) price.PriceNightly = pricing;
-                if (weekendPrice != null) price.WeekendNightlyPrice = weekendPrice;
+                if (pricing != null && pricing > 0) price.PriceNightly = pricing;
+                if (weekendPrice != null && weekendPrice > 0) price.WeekendNightlyPrice = weekendPrice;
                 if (currencyId != null) price.CurrencyId = currencyId;
 
                 await _context.SaveChangesAsync();
@@ -65,7 +65,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             if (currencyId == 0)
                 currencyId = 2; //TODO : ir a base de datos para recuperar un default por codigo BOB
 
-            if(weekendPrice <= 0)
+            if (weekendPrice <= 0)
             {
                 throw new ArgumentException("El precio debe ser mayor a 0", nameof(listingRentId));
             }
@@ -75,7 +75,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 throw new ArgumentException("El listing rent especificado no existe.", nameof(listingRentId));
             }
-            if (listing.OwnerUserId != userId )
+            if (listing.OwnerUserId != userId)
             {
                 throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing rent.");
             }
