@@ -698,7 +698,16 @@ namespace Assert.Domain.Implementation
                     useTechnicalMessages);
                 return result;
             }
-
+            if(listing.OwnerUserId == userId)
+            {
+                result.HasError = true;
+                result.StatusCode = ResultStatusCode.NotFound;
+                result.ResultError = _errorHandler.GetError(
+                    ResultStatusCode.NotFound,
+                    "El usuario no puede crear una reserva en su propiedad.",
+                    useTechnicalMessages);
+                return result;
+            }
             if (listing.ApprovalPolicyTypeId == 2)
             {
                 result.HasError = true;

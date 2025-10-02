@@ -43,9 +43,6 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Include(x => x.ListingRent)
                     .Include(x => x.Book)
                     .ThenInclude(x=>x.BookStatus)
-                    //.FirstOrDefaultAsync(c => ((c.UserIdOne == renterId && c.UserIdTwo == hostId) ||
-                    //                          (c.UserIdOne == hostId && c.UserIdTwo == renterId)) &&
-                    //                          c.BookId == bookId);
                     .FirstOrDefaultAsync(c => c.BookId == bookId);
 
                 if (existingConversationWithBook != null)
@@ -66,15 +63,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
             else if (priceCalculationId > 0)
             {
-                //Buscamos una converzación entre estas dos personas con ese mismo priceCalculationId
                 var existingConversationWithPriceCalculation = await _context.TmConversations
                     .Include(x => x.PriceCalculation)
                     .Include(x => x.ListingRent)
                     .Include(x => x.Book)
                     .ThenInclude(x => x.BookStatus)
-                    //.FirstOrDefaultAsync(c => ((c.UserIdOne == renterId && c.UserIdTwo == hostId) ||
-                    //                          (c.UserIdOne == hostId && c.UserIdTwo == renterId)) &&
-                    //                          c.PriceCalculationId == priceCalculationId);
                     .FirstOrDefaultAsync(c => (c.PriceCalculationId == priceCalculationId));
 
                 if (existingConversationWithPriceCalculation != null)

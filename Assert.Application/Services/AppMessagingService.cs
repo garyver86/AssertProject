@@ -55,6 +55,10 @@ namespace Assert.Application.Services
                 {
                     listingId = null;
                 }
+                if (bookId > 0 || listingId > 0 || priceCalculationId > 0)
+                {
+                    hostId = null;
+                }
                 var result_ = await _conversationRepository.Create(renterid, hostId, bookId, priceCalculationId, listingId, isBookingRequest);
 
                 result = new ReturnModelDTO<ConversationDTO>
@@ -63,7 +67,7 @@ namespace Assert.Application.Services
                     HasError = false,
                     Data = _mapper.Map<ConversationDTO>(result_)
                 };
-
+                hostId = result_.ListingRent?.OwnerUserId;
                 if (result_.PriceCalculation?.CalculationStatusId == 4)
                 {
                     var messagePredefined = await _messagePredefinedRepository.GetByCode("CON_WORES");
@@ -80,7 +84,7 @@ namespace Assert.Application.Services
 
                 if (isBookingRequest && result_.BookId == null)
                 {
-                    var createBook = await _bookservice.BookingRequestApproval((Guid)result_.PriceCalculation.CalculationCode, hostId ?? renterid, requestInfo, true);
+                    var createBook = await _bookservice.BookingRequestApproval((Guid)result_.PriceCalculation.CalculationCode, renterid, requestInfo, true);
                     if (createBook.Data != null)
                     {
                         // Actualizar el bookId en la conversación
