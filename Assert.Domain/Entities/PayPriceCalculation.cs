@@ -51,6 +51,10 @@ public partial class PayPriceCalculation
 
     public int? UserId { get; set; }
 
+    public int? Guests { get; set; }
+
+    public bool? ExistPet { get; set; }
+
     public virtual TbBook? Book { get; set; }
 
     public virtual PayPriceCalculationStatus CalculationStatus { get; set; } = null!;

@@ -34,6 +34,7 @@ namespace Assert.Domain.Implementation
         private readonly IListingAdditionalFeeRepository _listingAdditionalFee;
         private readonly IAssertFeeRepository _assertFeeRepository;
         private readonly INotificationService _notificationService;
+        private readonly IAdditionalFeeRepository _additionalFeeRepository;
 
         public BookService(
             IListingRentRepository listingRentRepository,
@@ -48,7 +49,8 @@ namespace Assert.Domain.Implementation
             IPayTransactionRepository payTransactionRepository,
             IListingAdditionalFeeRepository listingAdditionalFee,
             IAssertFeeRepository assertFeeRepository,
-            INotificationService notificationService)
+            INotificationService notificationService,
+            IAdditionalFeeRepository additionalFeeRepository)
         {
             _listingRentRepository = listingRentRepository;
             _listingCalendarRepository = listingCalendarRepository;
@@ -63,6 +65,7 @@ namespace Assert.Domain.Implementation
             _listingAdditionalFee = listingAdditionalFee;
             _assertFeeRepository = assertFeeRepository;
             _notificationService = notificationService;
+            _additionalFeeRepository = additionalFeeRepository;
         }
 
 
@@ -87,6 +90,9 @@ namespace Assert.Domain.Implementation
             DateTime startDate,
             DateTime endDate,
             int guestId,
+            int guests,
+            bool? existChilds,
+            bool? existPet,
             Dictionary<string, string> clientData,
             bool useTechnicalMessages)
         {
@@ -139,6 +145,71 @@ namespace Assert.Domain.Implementation
                 return result;
             }
 
+            var additionalFees = await _listingAdditionalFee.GetByListingRentId(listingRentId, listing.OwnerUserId);
+            List<string> feesByCondition = new List<string> { "TL_PET", "TL_GUEST" };
+            decimal total = 0;
+            decimal totalDiscount = 0;
+            decimal totalAdditionalFees = 0;
+
+            //Validar reglas de capacidad
+            if (listing.MaxGuests.HasValue && (listing.MaxGuests > 0) && guests > listing.MaxGuests.Value)
+            {
+                var EXTRA_GUESTS_rule = listing.TlListingRentRules?.FirstOrDefault(x => x.RuleType.Code == "EXTRA_GUESTS");
+                if (EXTRA_GUESTS_rule == null && false) //Inicialmente no tomamos en cuenta reglas de huéspedes extra, dejamos pasar y ver si hay cobro adicional
+                {
+                    result.HasError = true;
+                    result.StatusCode = ResultStatusCode.BadRequest;
+                    result.ResultError = new ErrorCommon { Message = $"La cantidad máxima de huéspedes es de {listing.MaxGuests.Value}." };
+                    return result;
+                }
+                else
+                {
+                    var feeAdditionalGuest = additionalFees.Where(x => x.AdditionalFee.FeeCode == "TL_GUEST").FirstOrDefault();
+                    if (feeAdditionalGuest?.AdditionalFee != null)
+                    {
+                        decimal feeAmount = feeAdditionalGuest.IsPercent ? (total * feeAdditionalGuest.AmountFee / 100) : feeAdditionalGuest.AmountFee;
+                        totalAdditionalFees += (feeAmount * (listing.MaxGuests ?? 0 - guests));
+                        breakdown.Add(new PriceBreakdownItem
+                        {
+                            Type = feeAdditionalGuest.AdditionalFee.FeeCode ?? "ADDITIONAL_FEE",
+                            Description = feeAdditionalGuest.AdditionalFee.DeeDescription,
+                            Amount = feeAmount,
+                            Percentage = feeAdditionalGuest.IsPercent ? feeAdditionalGuest.AmountFee : 0,
+                        });
+                    }
+                }
+            }
+
+            //Validar reglas de mascotas
+            if (existPet ?? false)
+            {
+                var PETS_rule = listing.TlListingRentRules?.FirstOrDefault(x => x.RuleType.Code == "ALLOW_PETS");
+                if (PETS_rule == null)
+                {
+                    result.HasError = true;
+                    result.StatusCode = ResultStatusCode.BadRequest;
+                    result.ResultError = new ErrorCommon { Message = $"No se permiten mascotas." };
+                    return result;
+                }
+                else
+                {
+                    var feePet = additionalFees.Where(x => x.AdditionalFee.FeeCode == "TL_PET").FirstOrDefault();
+                    if (feePet?.AdditionalFee != null)
+                    {
+                        decimal feeAmount = feePet.IsPercent ? (total * feePet.AmountFee / 100) : feePet.AmountFee;
+                        totalAdditionalFees += (feeAmount);
+                        breakdown.Add(new PriceBreakdownItem
+                        {
+                            Type = feePet.AdditionalFee.FeeCode ?? "ADDITIONAL_FEE",
+                            Description = feePet.AdditionalFee.DeeDescription,
+                            Amount = feeAmount,
+                            Percentage = feePet.IsPercent ? feePet.AmountFee : 0,
+                        });
+                    }
+                }
+            }
+
+
             // 3. Validar conflicto con reservas o bloqueos
             var (calendarDays, _) = await _listingCalendarRepository.GetCalendarDaysAsync(
                 (int)listingRentId, startDate, endDate, 1, (int)(endDate - startDate).TotalDays + 1);
@@ -182,9 +253,7 @@ namespace Assert.Domain.Implementation
             }
 
             // 6. Calcular precio por día considerando tarifas especiales
-            decimal total = 0;
-            decimal totalDiscount = 0;
-            decimal totalAdditionalFees = 0;
+
             for (var date = startDate; date < endDate; date = date.AddDays(1))
             {
                 var calendarDay = calendarDays.FirstOrDefault(d => d.Date == DateOnly.FromDateTime(date));
@@ -268,22 +337,24 @@ namespace Assert.Domain.Implementation
             }
 
             // 7. Sumar tarifas adicionales
-            var additionalFees = await _listingAdditionalFee.GetByListingRentId(listingRentId, listing.OwnerUserId);
             if (additionalFees != null && additionalFees.Count > 0)
             {
                 foreach (var fee in additionalFees)
                 {
-                    if (fee.AdditionalFee != null)
+                    if (!feesByCondition.Contains(fee.AdditionalFee.FeeCode))
                     {
-                        decimal feeAmount = fee.IsPercent ? (total * fee.AmountFee / 100) : fee.AmountFee;
-                        totalAdditionalFees += feeAmount;
-                        breakdown.Add(new PriceBreakdownItem
+                        if (fee.AdditionalFee != null)
                         {
-                            Type = fee.AdditionalFee.FeeCode ?? "ADDITIONAL_FEE",
-                            Description = fee.AdditionalFee.DeeDescription,
-                            Amount = feeAmount,
-                            Percentage = fee.IsPercent ? fee.AmountFee : 0,
-                        });
+                            decimal feeAmount = fee.IsPercent ? (total * fee.AmountFee / 100) : fee.AmountFee;
+                            totalAdditionalFees += feeAmount;
+                            breakdown.Add(new PriceBreakdownItem
+                            {
+                                Type = fee.AdditionalFee.FeeCode ?? "ADDITIONAL_FEE",
+                                Description = fee.AdditionalFee.DeeDescription,
+                                Amount = feeAmount,
+                                Percentage = fee.IsPercent ? fee.AmountFee : 0,
+                            });
+                        }
                     }
                 }
             }
@@ -354,7 +425,9 @@ namespace Assert.Domain.Implementation
                 ListingRentId = listingRentId,
                 BreakdownInfo = JsonConvert.SerializeObject(breakdown),
                 CalculationStatusId = 1,
-                UserId = guestId
+                UserId = guestId,
+                Guests = guests,
+                ExistPet = existPet
             };
 
             var resultCalculation = await _payPriceCalculationRepository.Create(payPriceCalculation);
@@ -481,8 +554,9 @@ namespace Assert.Domain.Implementation
                     MaxCheckin = checInOutValues.MaxCheckIn,
                     PaymentId = "",
                     CancellationStart = checInOutValues.CancellationStart,
-                    CancellationEnd = checInOutValues.CancellationEnd
-
+                    CancellationEnd = checInOutValues.CancellationEnd,
+                    ExistPet = priceCalculation.ExistPet,
+                    Gests = priceCalculation.Guests
                 };
 
                 long bookId = await _bookRepository.UpsertBookAsync(booking);
@@ -698,7 +772,7 @@ namespace Assert.Domain.Implementation
                     useTechnicalMessages);
                 return result;
             }
-            if(listing.OwnerUserId == userId)
+            if (listing.OwnerUserId == userId)
             {
                 result.HasError = true;
                 result.StatusCode = ResultStatusCode.NotFound;

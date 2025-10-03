@@ -33,12 +33,14 @@ namespace Assert.Application.Services
     {
         public async Task<ReturnModelDTO<(PayPriceCalculationDTO, List<PriceBreakdownItemDTO>)>> CalculatePrice(
             long listingRentId, DateTime startDate, DateTime endDate,
-            int guestId, Dictionary<string, string> clientData, bool useTechnicalMessages)
+            int guestId, int guests,
+            bool? existChilds,
+            bool? existPet, Dictionary<string, string> clientData, bool useTechnicalMessages)
         {
             ReturnModelDTO<(PayPriceCalculationDTO, List<PriceBreakdownItemDTO>)> result = new ReturnModelDTO<(PayPriceCalculationDTO, List<PriceBreakdownItemDTO>)>();
             try
             {
-                ReturnModel<(PayPriceCalculation, List<PriceBreakdownItem>)> returnModel = await _bookService.CalculatePrice(listingRentId, startDate, endDate, guestId, clientData, useTechnicalMessages);
+                ReturnModel<(PayPriceCalculation, List<PriceBreakdownItem>)> returnModel = await _bookService.CalculatePrice(listingRentId, startDate, endDate, guestId, guests, existChilds, existPet, clientData, useTechnicalMessages);
 
                 if (returnModel.StatusCode == ResultStatusCode.OK)
                 {

@@ -12,6 +12,9 @@ namespace Assert.Domain.Services
     public interface IBookService
     {
         Task<ReturnModel<(PayPriceCalculation, List<PriceBreakdownItem>)>> CalculatePrice(long listingRentId, DateTime startDate, DateTime endDate, int guestId,
+            int guests,
+            bool? existChilds,
+            bool? existPet,
             Dictionary<string, string> clientData, bool useTechnicalMessages);
 
         Task<ReturnModel<TbBook>> RegisterPaymentAndCreateBooking(PaymentRequest paymentRequest, int userId,

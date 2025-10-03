@@ -81,6 +81,10 @@ public partial class TbBook
 
     public DateTime? ExpiredDateTime { get; set; }
 
+    public int? Gests { get; set; }
+
+    public bool? ExistPet { get; set; }
+
     public virtual TbBookStatus BookStatus { get; set; } = null!;
 
     public virtual TuUser? CancellationUser { get; set; }

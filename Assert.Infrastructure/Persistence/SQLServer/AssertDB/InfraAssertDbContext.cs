@@ -431,9 +431,11 @@ public partial class InfraAssertDbContext : DbContext
             entity.Property(e => e.EndBook)
                 .HasColumnType("datetime")
                 .HasColumnName("endBook");
+            entity.Property(e => e.ExistPet).HasColumnName("existPet");
             entity.Property(e => e.ExpirationDate)
                 .HasColumnType("datetime")
                 .HasColumnName("expirationDate");
+            entity.Property(e => e.Guests).HasColumnName("guests");
             entity.Property(e => e.InitBook)
                 .HasColumnType("datetime")
                 .HasColumnName("initBook");
@@ -1465,9 +1467,11 @@ public partial class InfraAssertDbContext : DbContext
             entity.Property(e => e.EndDate)
                 .HasColumnType("datetime")
                 .HasColumnName("endDate");
+            entity.Property(e => e.ExistPet).HasColumnName("existPet");
             entity.Property(e => e.ExpiredDateTime)
                 .HasColumnType("datetime")
                 .HasColumnName("expiredDateTime");
+            entity.Property(e => e.Gests).HasColumnName("gests");
             entity.Property(e => e.GuestCheckin)
                 .HasColumnType("datetime")
                 .HasColumnName("guest_checkin");

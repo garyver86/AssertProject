@@ -52,6 +52,9 @@ namespace Assert.API.Controllers
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);
 
             var result = await _bookService.CalculatePrice(listinRentId, request.startDate, request.endDate, userId,
+            request.guests,
+            request.existChilds,
+            request.existPet,
            requestInfo, true);
 
             return new ReturnModelDTO<PayPriceCalculationDTO>
@@ -88,6 +91,9 @@ namespace Assert.API.Controllers
             int.TryParse(User.FindFirst("identifier")?.Value, out userId);
 
             var result = await _bookService.CalculatePrice(listinRentId, request.startDate, request.endDate, userId,
+            request.guests,
+            request.existChilds,
+            request.existPet,
            requestInfo, true);
 
             return new ReturnModelDTO<PayPriceCalculationCompleteDTO>

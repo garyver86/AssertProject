@@ -11,5 +11,8 @@ namespace Assert.Application.DTOs.Requests
         public DateTime startDate { get; set; }
         public DateTime endDate { get; set; }
         public int hostId { get; set; }
+        public int guests { get; set; }
+        public bool? existChilds { get; set; }
+        public bool? existPet { get; set; }
     }
 }
