@@ -26,6 +26,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Include(pr => pr.ListingRent.TlListingPrices)
                     .Include(pr => pr.ListingRent.TlListingPhotos)
                     .Include(pr => pr.ListingRent.OwnerUser)
+                    .Include(pr => pr.ListingRent.CancelationPolicyType)
                     .Include(pr => pr.PayPriceCalculations)
                     .Include(pr => pr.CancellationUser)
                     .FirstOrDefaultAsync(b => b.BookId == bookId);
