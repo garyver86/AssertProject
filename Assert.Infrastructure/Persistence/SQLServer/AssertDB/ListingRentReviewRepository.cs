@@ -210,43 +210,60 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         public async Task<TlListingReview> CreateReviewAsync(TlListingReview review)
         {
-            _context.TlListingReviews.Add(review);
-            await _context.SaveChangesAsync();
-            return review;
+            using (var dbContext = new InfraAssertDbContext(dbOptions))
+            {
+                dbContext.TlListingReviews.Add(review);
+                await dbContext.SaveChangesAsync();
+                return review;
+            }
         }
 
         public async Task UpdateReviewAsync(TlListingReview review)
         {
             using (var dbContext = new InfraAssertDbContext(dbOptions))
             {
-                dbContext.TlListingReviews.Update(review);
-                await _context.SaveChangesAsync();
+                TlListingReview update = new TlListingReview
+                {
+                    BookId = review.BookId,
+                    Calification = review.Calification,
+                    Comment = review.Comment,
+                    DateTimeReview = review.DateTimeReview,
+                    IsComplete = review.IsComplete,
+                    ListingRentId = review.ListingRentId,
+                    ListingReviewId = review.ListingReviewId,
+                    UserId = review.UserId
+                };
+                dbContext.TlListingReviews.Update(update);
+                await dbContext.SaveChangesAsync();
             }
         }
 
         public async Task SaveAnswersAsync(List<TlListingReviewQuestion> answers)
         {
-            foreach (var answer in answers)
+            using (var dbContext = new InfraAssertDbContext(dbOptions))
             {
-                var existing = await _context.TlListingReviewQuestions
-                    .FirstOrDefaultAsync(a =>
-                        a.ListingReviewId == answer.ListingReviewId &&
-                        a.ReviewQuestionId == answer.ReviewQuestionId);
+                foreach (var answer in answers)
+                {
+                    var existing = await dbContext.TlListingReviewQuestions
+                        .FirstOrDefaultAsync(a =>
+                            a.ListingReviewId == answer.ListingReviewId &&
+                            a.ReviewQuestionId == answer.ReviewQuestionId);
 
-                if (existing != null && existing.Rating != answer.Rating)
-                {
-                    existing.Rating = answer.Rating;
-                    existing.ReviewDate = DateTime.UtcNow;
-                    _context.TlListingReviewQuestions.Update(existing);
+                    if (existing != null && existing.Rating != answer.Rating)
+                    {
+                        existing.Rating = answer.Rating;
+                        existing.ReviewDate = DateTime.UtcNow;
+                        dbContext.TlListingReviewQuestions.Update(existing);
+                    }
+                    else if (existing == null)
+                    {
+                        answer.ReviewDate = DateTime.UtcNow;
+                        dbContext.TlListingReviewQuestions.Add(answer);
+                    }
                 }
-                else if (existing == null)
-                {
-                    answer.ReviewDate = DateTime.UtcNow;
-                    _context.TlListingReviewQuestions.Add(answer);
-                }
+
+                await dbContext.SaveChangesAsync();
             }
-
-            await _context.SaveChangesAsync();
         }
 
         public async Task<int> GetTotalActiveQuestionsAsync()
