@@ -59,6 +59,7 @@ namespace Assert.Application
             services.AddScoped<IAppMethodOfPaymentService, AppMethodOfPaymentService>();
             services.AddScoped<IAppReviewService, AppReviewService>();
             services.AddScoped<IAppNotificationService, AppNotificationService>();
+            services.AddScoped<IAppCompliantService, AppCompliantService>();
             services.AddScoped<IEmailNotificationService, EmailNotificationsService>();
 
 
@@ -72,6 +73,7 @@ namespace Assert.Application
             services.AddScoped<IBookService, BookService>();
             services.AddScoped<IMethodOfPaymentService, MethodOfPaymentService>();
             services.AddScoped<IReviewService, ReviewService>();
+            services.AddScoped<IComplaintService, ComplaintService>();
 
             return services;
         }

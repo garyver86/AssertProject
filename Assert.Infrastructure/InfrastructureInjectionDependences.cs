@@ -153,6 +153,8 @@ public static class InfrastructureInjectionDependences
         services.AddScoped<IReasonRefusedPriceCalculationRepository, ReasonRefusedPriceCalculationRepository>();
         services.AddScoped<IBookStatusRepository, BookStatusRepository>();
         services.AddScoped<IAdditionalFeeRepository, AdditionalFeeRepository>();
+        services.AddScoped<IComplaintReasonRepository, ComplaintReasonRepository>();
+        services.AddScoped<IComplaintRepository, ComplaintRepository>();
         #endregion
 
         return services;

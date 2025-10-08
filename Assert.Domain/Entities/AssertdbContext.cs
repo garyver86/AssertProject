@@ -45,6 +45,10 @@ public partial class AssertDbContext : DbContext
 
     public virtual DbSet<TCity> TCities { get; set; }
 
+    public virtual DbSet<TComplaintReason> TComplaintReasons { get; set; }
+
+    public virtual DbSet<TComplaintStatus> TComplaintStatuses { get; set; }
+
     public virtual DbSet<TCountry> TCountries { get; set; }
 
     public virtual DbSet<TCounty> TCounties { get; set; }
@@ -97,6 +101,14 @@ public partial class AssertDbContext : DbContext
 
     public virtual DbSet<TbBook> TbBooks { get; set; }
 
+    public virtual DbSet<TbBookCancellation> TbBookCancellations { get; set; }
+
+    public virtual DbSet<TbBookCancellationGroup> TbBookCancellationGroups { get; set; }
+
+    public virtual DbSet<TbBookCancellationReason> TbBookCancellationReasons { get; set; }
+
+    public virtual DbSet<TbBookCancellationType> TbBookCancellationTypes { get; set; }
+
     public virtual DbSet<TbBookChange> TbBookChanges { get; set; }
 
     public virtual DbSet<TbBookInsuranceClaim> TbBookInsuranceClaims { get; set; }
@@ -114,6 +126,10 @@ public partial class AssertDbContext : DbContext
     public virtual DbSet<TbBookStepType> TbBookStepTypes { get; set; }
 
     public virtual DbSet<TbBookingInsurance> TbBookingInsurances { get; set; }
+
+    public virtual DbSet<TbComplaint> TbComplaints { get; set; }
+
+    public virtual DbSet<TbComplaintEvidence> TbComplaintEvidences { get; set; }
 
     public virtual DbSet<TbPaymentStatus> TbPaymentStatuses { get; set; }
 
@@ -794,6 +810,55 @@ public partial class AssertDbContext : DbContext
                 .HasForeignKey(d => d.CountyId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_T_City_T_County");
+        });
+
+        modelBuilder.Entity<TComplaintReason>(entity =>
+        {
+            entity.HasKey(e => e.ComplaintReasonId).HasName("PK__T_Compla__CD4B9D644C67FAA4");
+
+            entity.ToTable("T_ComplaintReason");
+
+            entity.HasIndex(e => e.ComplaintReasonCode, "UQ__T_Compla__6F2B57E06AEF2664").IsUnique();
+
+            entity.Property(e => e.ComplaintReasonId).HasColumnName("complaintReasonId");
+            entity.Property(e => e.ComplaintReasonCode)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("complaintReasonCode");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnName("createdAt");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("isActive");
+            entity.Property(e => e.ReasonDescription)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("reasonDescription");
+            entity.Property(e => e.RequiresFreeText)
+                .HasDefaultValue(false)
+                .HasColumnName("requiresFreeText");
+            entity.Property(e => e.SeverityLevel)
+                .HasDefaultValue(1)
+                .HasColumnName("severityLevel");
+        });
+
+        modelBuilder.Entity<TComplaintStatus>(entity =>
+        {
+            entity.HasKey(e => e.ComplaintStatusId).HasName("PK__T_Compla__5D3CD5A39B7CEFC7");
+
+            entity.ToTable("T_ComplaintStatus");
+
+            entity.HasIndex(e => e.ComplaintStatusCode, "UQ__T_Compla__FDAEAD523424522D").IsUnique();
+
+            entity.Property(e => e.ComplaintStatusId).HasColumnName("complaintStatusId");
+            entity.Property(e => e.ComplaintStatusCode)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("complaintStatusCode");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("isActive");
         });
 
         modelBuilder.Entity<TCountry>(entity =>
@@ -1563,6 +1628,137 @@ public partial class AssertDbContext : DbContext
                 .HasConstraintName("FK_TB_Book_TU_User");
         });
 
+        modelBuilder.Entity<TbBookCancellation>(entity =>
+        {
+            entity.HasKey(e => e.BookCacellationId);
+
+            entity.ToTable("TB_BookCancellation");
+
+            entity.Property(e => e.BookCacellationId).HasColumnName("bookCacellationId");
+            entity.Property(e => e.BookId).HasColumnName("bookId");
+            entity.Property(e => e.CancellationReasonId).HasColumnName("cancellationReasonId");
+            entity.Property(e => e.CancellationTypeCode)
+                .HasMaxLength(30)
+                .IsUnicode(false)
+                .HasColumnName("cancellationTypeCode");
+            entity.Property(e => e.CreatedAt)
+                .HasColumnType("datetime")
+                .HasColumnName("createdAt");
+            entity.Property(e => e.CustomMessage).HasColumnName("customMessage");
+            entity.Property(e => e.ListingRentId).HasColumnName("listingRentId");
+            entity.Property(e => e.MessageToAssert).HasColumnName("messageToAssert");
+            entity.Property(e => e.MessageToGuest).HasColumnName("messageToGuest");
+            entity.Property(e => e.MessageToHost).HasColumnName("messageToHost");
+            entity.Property(e => e.Status)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("status");
+            entity.Property(e => e.UserId).HasColumnName("userId");
+
+            entity.HasOne(d => d.Book).WithMany(p => p.TbBookCancellations)
+                .HasForeignKey(d => d.BookId)
+                .HasConstraintName("FK_TB_BookCancellation_TB_Book");
+
+            entity.HasOne(d => d.CancellationReason).WithMany(p => p.TbBookCancellations)
+                .HasForeignKey(d => d.CancellationReasonId)
+                .HasConstraintName("FK_TB_BookCancellation_TB_BookCancellationReason");
+
+            entity.HasOne(d => d.ListingRent).WithMany(p => p.TbBookCancellations)
+                .HasForeignKey(d => d.ListingRentId)
+                .HasConstraintName("FK_TB_BookCancellation_TL_ListingRent");
+
+            entity.HasOne(d => d.User).WithMany(p => p.TbBookCancellations)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_TB_BookCancellation_TU_User");
+        });
+
+        modelBuilder.Entity<TbBookCancellationGroup>(entity =>
+        {
+            entity.HasKey(e => e.CancellationGroupId);
+
+            entity.ToTable("TB_BookCancellationGroup");
+
+            entity.Property(e => e.CancellationGroupId).HasColumnName("cancellationGroupId");
+            entity.Property(e => e.Code)
+                .HasMaxLength(30)
+                .IsUnicode(false)
+                .HasColumnName("code");
+            entity.Property(e => e.Detail).HasColumnName("detail");
+            entity.Property(e => e.Icon)
+                .HasMaxLength(500)
+                .IsUnicode(false)
+                .HasColumnName("icon");
+            entity.Property(e => e.Position).HasColumnName("position");
+            entity.Property(e => e.Status)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("status");
+            entity.Property(e => e.Title)
+                .HasMaxLength(1000)
+                .HasColumnName("title");
+        });
+
+        modelBuilder.Entity<TbBookCancellationReason>(entity =>
+        {
+            entity.HasKey(e => e.CancellationReasonId);
+
+            entity.ToTable("TB_BookCancellationReason");
+
+            entity.Property(e => e.CancellationReasonId).HasColumnName("cancellationReasonId");
+            entity.Property(e => e.CancellationGroupId).HasColumnName("cancellationGroupId");
+            entity.Property(e => e.CancellationLevel).HasColumnName("cancellationLevel");
+            entity.Property(e => e.CancellationReasonParentId)
+                .HasMaxLength(10)
+                .IsFixedLength()
+                .HasColumnName("cancellationReasonParentId");
+            entity.Property(e => e.CancellationTypeCode)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("cancellationTypeCode");
+            entity.Property(e => e.Detail).HasColumnName("detail");
+            entity.Property(e => e.Icon)
+                .HasMaxLength(500)
+                .IsUnicode(false)
+                .HasColumnName("icon");
+            entity.Property(e => e.IsEndStep).HasColumnName("isEndStep");
+            entity.Property(e => e.Status)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("status");
+            entity.Property(e => e.Title)
+                .HasMaxLength(2000)
+                .HasColumnName("title");
+
+            entity.HasOne(d => d.CancellationGroup).WithMany(p => p.TbBookCancellationReasons)
+                .HasForeignKey(d => d.CancellationGroupId)
+                .HasConstraintName("FK_TB_BookCancellationReason_TB_BookCancellationGroup");
+        });
+
+        modelBuilder.Entity<TbBookCancellationType>(entity =>
+        {
+            entity.HasKey(e => e.BookCancellationTypeId);
+
+            entity.ToTable("TB_BookCancellationType");
+
+            entity.Property(e => e.BookCancellationTypeId).HasColumnName("bookCancellationTypeId");
+            entity.Property(e => e.CanellationTypeCode)
+                .HasMaxLength(30)
+                .IsUnicode(false)
+                .HasColumnName("canellationTypeCode");
+            entity.Property(e => e.Detalle)
+                .HasMaxLength(500)
+                .IsUnicode(false)
+                .HasColumnName("detalle");
+            entity.Property(e => e.Name)
+                .HasMaxLength(300)
+                .IsUnicode(false)
+                .HasColumnName("name");
+            entity.Property(e => e.Status)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("status");
+        });
+
         modelBuilder.Entity<TbBookChange>(entity =>
         {
             entity.HasKey(e => e.BookChangeId);
@@ -1861,6 +2057,127 @@ public partial class AssertDbContext : DbContext
                 .HasForeignKey(d => d.InsuranceId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__TB_Bookin__insur__68687968");
+        });
+
+        modelBuilder.Entity<TbComplaint>(entity =>
+        {
+            entity.HasKey(e => e.ComplaintId).HasName("PK__TB_Compl__489708C12400A1D7");
+
+            entity.ToTable("TB_Complaint");
+
+            entity.HasIndex(e => e.BookingId, "IX_host_complaints_booking_id");
+
+            entity.HasIndex(e => e.ComplainantUserId, "IX_host_complaints_complainant");
+
+            entity.HasIndex(e => e.CreatedAt, "IX_host_complaints_created_date");
+
+            entity.HasIndex(e => e.ReportedHostId, "IX_host_complaints_host_id");
+
+            entity.HasIndex(e => e.ComplaintStatusId, "IX_host_complaints_status");
+
+            entity.HasIndex(e => e.ComplainCode, "UQ__TB_Compl__A56B201E2C51A211").IsUnique();
+
+            entity.Property(e => e.ComplaintId).HasColumnName("complaintId");
+            entity.Property(e => e.AssignedAdminId).HasColumnName("assignedAdminId");
+            entity.Property(e => e.AssignedDate).HasColumnName("assignedDate");
+            entity.Property(e => e.BookingId).HasColumnName("bookingId");
+            entity.Property(e => e.ComplainCode)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("complainCode");
+            entity.Property(e => e.ComplainantUserId).HasColumnName("complainant_userId");
+            entity.Property(e => e.ComplaintDate)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnName("complaintDate");
+            entity.Property(e => e.ComplaintPriority)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasDefaultValue("MEDIUM")
+                .HasColumnName("complaintPriority");
+            entity.Property(e => e.ComplaintReasonId).HasColumnName("complaint_reasonId");
+            entity.Property(e => e.ComplaintStatus)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("PENDING")
+                .HasColumnName("complaintStatus");
+            entity.Property(e => e.ComplaintStatusId)
+                .HasDefaultValue(1)
+                .HasColumnName("complaintStatusId");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnName("created_at");
+            entity.Property(e => e.FreeTextDescription).HasColumnName("free_text_description");
+            entity.Property(e => e.InternalNotes).HasColumnName("internalNotes");
+            entity.Property(e => e.IpAddress)
+                .HasMaxLength(45)
+                .IsUnicode(false)
+                .HasColumnName("ipAddress");
+            entity.Property(e => e.ReportedHostId).HasColumnName("reported_hostId");
+            entity.Property(e => e.ResolutionDate).HasColumnName("resolutionDate");
+            entity.Property(e => e.ResolutionNotes).HasColumnName("resolutionNotes");
+            entity.Property(e => e.ResolutionType)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("resolutionType");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnName("updated_at");
+            entity.Property(e => e.UserAgent)
+                .HasMaxLength(500)
+                .HasColumnName("userAgent");
+
+            entity.HasOne(d => d.Booking).WithMany(p => p.TbComplaints)
+                .HasForeignKey(d => d.BookingId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_host_complaints_booking");
+
+            entity.HasOne(d => d.ComplainantUser).WithMany(p => p.TbComplaintComplainantUsers)
+                .HasForeignKey(d => d.ComplainantUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_host_complaints_complainant");
+
+            entity.HasOne(d => d.ComplaintReason).WithMany(p => p.TbComplaints)
+                .HasForeignKey(d => d.ComplaintReasonId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_host_complaints_reason");
+
+            entity.HasOne(d => d.ComplaintStatusNavigation).WithMany(p => p.TbComplaints)
+                .HasForeignKey(d => d.ComplaintStatusId)
+                .HasConstraintName("FK_host_complaints_status");
+
+            entity.HasOne(d => d.ReportedHost).WithMany(p => p.TbComplaintReportedHosts)
+                .HasForeignKey(d => d.ReportedHostId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_host_complaints_host");
+        });
+
+        modelBuilder.Entity<TbComplaintEvidence>(entity =>
+        {
+            entity.HasKey(e => e.ComplaintEvidenceId).HasName("PK__TB_Compl__8CB5B5F965BA3371");
+
+            entity.ToTable("TB_ComplaintEvidence");
+
+            entity.HasIndex(e => e.ComplaintId, "IX_evidence_complaint_id");
+
+            entity.Property(e => e.ComplaintEvidenceId).HasColumnName("complaintEvidenceId");
+            entity.Property(e => e.ComplaintId).HasColumnName("complaintId");
+            entity.Property(e => e.FileName)
+                .HasMaxLength(255)
+                .HasColumnName("file_name");
+            entity.Property(e => e.FileType)
+                .HasMaxLength(10)
+                .IsUnicode(false)
+                .HasColumnName("file_type");
+            entity.Property(e => e.FileUrl)
+                .HasMaxLength(500)
+                .HasColumnName("file_url");
+            entity.Property(e => e.UploadedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnName("uploaded_at");
+
+            entity.HasOne(d => d.Complaint).WithMany(p => p.TbComplaintEvidences)
+                .HasForeignKey(d => d.ComplaintId)
+                .HasConstraintName("FK_evidence_complaint");
         });
 
         modelBuilder.Entity<TbPaymentStatus>(entity =>

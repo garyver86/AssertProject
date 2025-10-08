@@ -26,6 +26,7 @@ namespace Assert.Domain.Implementation
         private readonly IApprovalPolityTypeRepository _approvalPolicyTypeRepository;
         private readonly IReasonRefuseBookRepository _reasonRefusedBookRepository;
         private readonly IReasonRefusedPriceCalculationRepository _reasonRefusedPriceCalculationRepository;
+        private readonly IComplaintReasonRepository _complaintReasonRepository;
         private readonly IBookStatusRepository _bookStatusRepository;
         public ParametricService(IAccommodationTypeRepository accommodationTypeRepository, IErrorHandler errorHandler,
             IFeaturesAspectsRepository featuredAspectsRepository, IDiscountTypeRepository discountTypeRepository,
@@ -34,7 +35,7 @@ namespace Assert.Domain.Implementation
             IAmenitiesRepository amenitiesRepository, ICancelationPoliciesTypesRepository cancelationPoliciesTypesRepository,
             IRulesTypeRepository rulesTypeRepository, ISecurityItemsRepository securityItemsRepository,
             IApprovalPolityTypeRepository approvalPolicyTypeRepository, IReasonRefuseBookRepository reasonRefusedBookRepository,
-            IReasonRefusedPriceCalculationRepository reasonRefusedPriceCalculationRepository, IBookStatusRepository bookStatusRepository)
+            IReasonRefusedPriceCalculationRepository reasonRefusedPriceCalculationRepository, IBookStatusRepository bookStatusRepository, IComplaintReasonRepository complaintReasonRepository)
         {
             _accommodationTypeRepository = accommodationTypeRepository;
             _errorHandler = errorHandler;
@@ -52,6 +53,7 @@ namespace Assert.Domain.Implementation
             _reasonRefusedBookRepository = reasonRefusedBookRepository;
             _reasonRefusedPriceCalculationRepository = reasonRefusedPriceCalculationRepository;
             _bookStatusRepository = bookStatusRepository;
+            _complaintReasonRepository = complaintReasonRepository;
         }
 
         public async Task<ReturnModel<List<TlAccommodationType>>> GetAccomodationTypesActives()
@@ -365,6 +367,28 @@ namespace Assert.Domain.Implementation
                 result.StatusCode = ResultStatusCode.InternalError;
                 result.HasError = true;
                 result.ResultError = _errorHandler.GetErrorException("IParametricService.GetBookStatuses", ex, null, true);
+            }
+            return result;
+        }
+
+        public async Task<ReturnModel<List<TComplaintReason>>> GetComplaintReasons(bool useTechnicalMessages)
+        {
+            ReturnModel<List<TComplaintReason>> result = new ReturnModel<List<TComplaintReason>>();
+            try
+            {
+                var result_data = await _complaintReasonRepository.GetAll();
+                return new ReturnModel<List<TComplaintReason>>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    Data = result_data,
+                    HasError = false
+                };
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _errorHandler.GetErrorException("IParametricService.GetComplaintReasons", ex, null, true);
             }
             return result;
         }

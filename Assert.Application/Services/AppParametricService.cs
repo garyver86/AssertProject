@@ -358,5 +358,17 @@ namespace Assert.Application.Services
                 StatusCode = ResultStatusCode.OK
             };
         }
+
+        public async Task<ReturnModelDTO<List<ComplaintReasonDTO>>> GetComplaintReasons()
+        {
+            var aditionalFees = await _parametricService.GetComplaintReasons(true);
+            var additionalFeesResult = _mapper.Map<List<ComplaintReasonDTO>>(aditionalFees);
+            return new ReturnModelDTO<List<ComplaintReasonDTO>>
+            {
+                Data = additionalFeesResult,
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
+        }
     }
 }
