@@ -29,6 +29,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Include(pr => pr.ListingRent.CancelationPolicyType)
                     .Include(pr => pr.PayPriceCalculations)
                     .Include(pr => pr.CancellationUser)
+                    .Include(lr => lr.TbComplaints)
+                    .ThenInclude(lr => lr.ComplaintStatus)
                     .FirstOrDefaultAsync(b => b.BookId == bookId);
 
                 if (book?.ListingRent?.TpProperties?.Count > 0)
@@ -100,6 +102,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Include(x => x.ListingRent.TlListingPhotos)
                     .Include(x => x.ListingRent.ApprovalPolicyType)
                     .Include(x => x.ListingRent.TpProperties)
+                    .Include(lr => lr.TbComplaints)
+                    .ThenInclude(lr => lr.ComplaintStatus)
                     .Select(x => new TbBook
                     {
                         AdditionalInfo = x.AdditionalInfo,
@@ -256,6 +260,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Include(x => x.ListingRent.TlListingPhotos)
                     .Include(x => x.ListingRent.ApprovalPolicyType)
                     .Include(x => x.ListingRent.TpProperties)
+                    .Include(lr => lr.TbComplaints)
+                    .ThenInclude(lr => lr.ComplaintStatus)
                     .Select(x => new TbBook
                     {
                         AdditionalInfo = x.AdditionalInfo,
@@ -495,6 +501,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Include(x => x.ListingRent.ApprovalPolicyType)
                     .Include(x => x.ListingRent.TpProperties)
                     .Include(x => x.ListingRent.OwnerUser)
+                    .Include(lr => lr.TbComplaints)
+                    .ThenInclude(lr => lr.ComplaintStatus)
                     .ToListAsync();
 
                 if (booksWithoutReview != null)
@@ -560,6 +568,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Include(x => x.ListingRent.ApprovalPolicyType)
                     .Include(x => x.ListingRent.TpProperties)
                     .Include(x => x.ListingRent.OwnerUser)
+                    .Include(lr => lr.TbComplaints)
+                    .ThenInclude(lr => lr.ComplaintStatus)
                     .ToListAsync();
 
                 if (booksWithoutAcceptation != null)
@@ -626,6 +636,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Include(x => x.ListingRent.ApprovalPolicyType)
                     .Include(x => x.ListingRent.TpProperties)
                     .Include(x => x.ListingRent.OwnerUser)
+                    .Include(lr => lr.TbComplaints)
+                    .ThenInclude(lr => lr.ComplaintStatus)
                     .ToListAsync();
 
                 if (booksWithoutAcceptation != null)
@@ -693,6 +705,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Include(x => x.ListingRent.ApprovalPolicyType)
                     .Include(x => x.ListingRent.TpProperties)
                     .Include(x => x.ListingRent.OwnerUser)
+                    .Include(lr => lr.TbComplaints)
+                    .ThenInclude(lr => lr.ComplaintStatus)
                     .ToListAsync();
 
                 if (booksWithoutAcceptation != null)
@@ -761,6 +775,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Include(x => x.ListingRent.ApprovalPolicyType)
                     .Include(x => x.ListingRent.TpProperties)
                     .Include(x => x.ListingRent.OwnerUser)
+                    .Include(lr => lr.TbComplaints)
+                    .ThenInclude(lr => lr.ComplaintStatus)
                     .ToListAsync();
 
                 if (booksWithoutAcceptation != null)
