@@ -85,6 +85,10 @@ public class BookDTO
 
     public DateTime? ExpiredDateTime { get; set; }
 
+    public int? Gests { get; set; }
+
+    public bool? ExistPet { get; set; }
+
     public List<CalendarDayDto>? CalendarDays { get; set; }
     public UserDTO? Owner { get; set; }
     public List<PhotoDTO>? Photos { get; set; }
@@ -97,4 +101,5 @@ public class BookDTO
 
     public CurrencyDTO Currency { get; set; } = null!;
     public ReasonRefusedBookDTO? ReasonRefused { get; set; }
+    public List<ReviewDTO> TlListingReviews { get; set; }
 }

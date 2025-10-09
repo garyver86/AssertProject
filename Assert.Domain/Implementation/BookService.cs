@@ -827,7 +827,9 @@ namespace Assert.Domain.Implementation
                 MaxCheckin = checInOutValues.MaxCheckIn,
                 CancellationStart = checInOutValues.CancellationStart,
                 CancellationEnd = checInOutValues.CancellationEnd,
-                RequestDateTime = DateTime.UtcNow
+                RequestDateTime = DateTime.UtcNow,
+                ExistPet = priceCalculation.ExistPet,
+                Gests = priceCalculation.Guests
             };
 
             long bookId = await _bookRepository.UpsertBookAsync(booking);
@@ -844,7 +846,7 @@ namespace Assert.Domain.Implementation
             }
 
             booking = await _bookRepository.GetByIdAsync(bookId);
-
+            _payPriceCalculationRepository.SetBookId(priceCalculation.PriceCalculationId, bookId);
             try
             {
                 //Envío de solicitud de aprobación al anfitrión

@@ -362,13 +362,25 @@ namespace Assert.Application.Services
         public async Task<ReturnModelDTO<List<ComplaintReasonDTO>>> GetComplaintReasons()
         {
             var aditionalFees = await _parametricService.GetComplaintReasons(true);
-            var additionalFeesResult = _mapper.Map<List<ComplaintReasonDTO>>(aditionalFees);
-            return new ReturnModelDTO<List<ComplaintReasonDTO>>
+            if (aditionalFees.StatusCode == ResultStatusCode.OK)
             {
-                Data = additionalFeesResult,
-                HasError = false,
-                StatusCode = ResultStatusCode.OK
-            };
+                var additionalFeesResult = _mapper.Map<List<ComplaintReasonDTO>>(aditionalFees.Data);
+                return new ReturnModelDTO<List<ComplaintReasonDTO>>
+                {
+                    Data = additionalFeesResult,
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK
+                };
+            }
+            else
+            {
+                return new ReturnModelDTO<List<ComplaintReasonDTO>>
+                {
+                    HasError = aditionalFees.HasError,
+                    StatusCode = aditionalFees.StatusCode,
+                    ResultError = _mapper.Map<ErrorCommonDTO>(aditionalFees.ResultError)
+                };
+            }
         }
     }
 }

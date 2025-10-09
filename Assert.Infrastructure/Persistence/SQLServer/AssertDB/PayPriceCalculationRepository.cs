@@ -179,5 +179,18 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 };
             }
         }
+
+        public async Task SetBookId(long priceCalculationId, long bookId)
+        {
+            using (var context = new InfraAssertDbContext(dbOptions))
+            {
+                var priceCalculation = await context.PayPriceCalculations.FirstOrDefaultAsync(x => x.PriceCalculationId == priceCalculationId);
+                if (priceCalculation != null)
+                {
+                    priceCalculation.BookId = bookId;
+                    await context.SaveChangesAsync();
+                }
+            }
+        }
     }
 }

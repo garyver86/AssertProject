@@ -30,6 +30,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Include(pr => pr.PayPriceCalculations)
                     .Include(pr => pr.CancellationUser)
                     .Include(lr => lr.TbComplaints)
+                    .Include(lr => lr.BookStatus)
+                    .Include(lr => lr.TlListingReviews)
                     //.Include(lr => lr.TbComplaints.ComplaintStatus)
                     .FirstOrDefaultAsync(b => b.BookId == bookId);
 
@@ -70,6 +72,18 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                             }
                         }
                     };
+                }
+
+                if (book?.TlListingReviews?.Count > 0)
+                {
+                    foreach (var review in book?.TlListingReviews)
+                    {
+
+                        List<TlListingReviewQuestion> questions = await _dbContext.TlListingReviewQuestions
+                            .Include(x => x.ReviewQuestion)
+                            .Where(x => x.ListingReviewId == review.ListingReviewId).ToListAsync();
+                        review.TlListingReviewQuestions = questions;
+                    }
                 }
 
                 return book ??
