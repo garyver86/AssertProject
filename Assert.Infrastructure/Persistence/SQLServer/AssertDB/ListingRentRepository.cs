@@ -1060,8 +1060,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 listingRent.MinimumNotice = Math.Max(minimumNoticeDay, 0);
 
                 listingRent.MinimumNoticeHour = minimumNoticeDay > 0
-                    ? TimeOnly.FromTimeSpan(minimumNoticeHours!.Value)
-                    : null;
+                    ? null
+                    : TimeOnly.FromTimeSpan(minimumNoticeHours!.Value);
 
                 await context.SaveChangesAsync();
 

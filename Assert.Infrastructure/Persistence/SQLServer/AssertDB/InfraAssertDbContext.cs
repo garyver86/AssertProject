@@ -1753,7 +1753,7 @@ public partial class InfraAssertDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("status");
         });
-
+        
         modelBuilder.Entity<TbBookChange>(entity =>
         {
             entity.HasKey(e => e.BookChangeId);
