@@ -18,5 +18,6 @@ namespace Assert.Domain.Services
         Task<ReturnModel<List<TApprovalPolicyType>>> GetApprobalPolicyTypes(bool useTechnicalMessages);
         Task<ReturnModel<List<TReasonRefusedBook>>> GetReasonRefusedBook(bool useTechnicalMessages);
         Task<ReturnModel<List<TbBookStatus>>> GetBookStatuses(bool useTechnicalMessages);
+        Task<ReturnModel<List<TComplaintReason>>> GetComplaintReasons(bool useTechnicalMessages);
     }
 }

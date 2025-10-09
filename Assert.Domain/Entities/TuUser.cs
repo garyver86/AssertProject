@@ -61,6 +61,10 @@ public partial class TuUser
 
     public virtual ICollection<TbBook> TbBookUserIdRenterNavigations { get; set; } = new List<TbBook>();
 
+    public virtual ICollection<TbComplaint> TbComplaintComplainantUsers { get; set; } = new List<TbComplaint>();
+
+    public virtual ICollection<TbComplaint> TbComplaintReportedHosts { get; set; } = new List<TbComplaint>();
+
     public virtual ICollection<TiIssue> TiIssueRelatedUsers { get; set; } = new List<TiIssue>();
 
     public virtual ICollection<TiIssue> TiIssueReportedByUsers { get; set; } = new List<TiIssue>();

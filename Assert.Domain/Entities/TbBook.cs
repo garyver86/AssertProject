@@ -111,6 +111,8 @@ public partial class TbBook
 
     public virtual ICollection<TbBookingInsurance> TbBookingInsurances { get; set; } = new List<TbBookingInsurance>();
 
+    public virtual ICollection<TbComplaint> TbComplaints { get; set; } = new List<TbComplaint>();
+
     public virtual ICollection<TiIssue> TiIssues { get; set; } = new List<TiIssue>();
 
     public virtual ICollection<TlListingAvailability> TlListingAvailabilities { get; set; } = new List<TlListingAvailability>();

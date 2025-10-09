@@ -370,23 +370,20 @@ namespace Assert.API.Controllers
         }
 
         /// <summary>
-        /// Obtiene la lista de tipos de cargos adicionales disponibles en el sistema.
+        /// Obtiene la lista de los motivos de denuncia a un host.
         /// </summary>
         /// <returns>
-        /// Lista de objetos <see cref="AddionalFeeTypeDTO"/> que representan los tipos de cargos adicionales configurables.
+        /// Lista de objetos <see cref="ComplaintReasonDTO"/> que representan los motivos de denuncia.
         /// </returns>
-        /// <response code="200">OK: Se retornó exitosamente la lista de tipos de cargos adicionales.</response>
+        /// <response code="200">OK: Se retornó exitosamente la lista.</response>
         /// <response code="500">INTERNAL SERVER ERROR: Error inesperado durante la operación.</response>
         /// <remarks>
         /// Características del servicio:
-        /// - La lista incluye identificadores, códigos y descripciones de cada tipo de cargo adicional.
-        /// - Esta parametrización es utilizada para clasificar y aplicar reglas de negocio en la configuración de tarifas.
-        /// - El resultado puede ser utilizado para poblar formularios, validaciones o filtros en interfaces administrativas.
-        /// - Se registra cualquier excepción con contexto completo para trazabilidad.
+        /// - La lista incluye identificadores, códigos y descripciones de cada motivo de denuncia.
         /// </remarks>
-        [HttpGet("GetAdditionalFeeTypes")]
+        [HttpGet("GetComplaintReasons")]
         [Authorize(Policy = "GuestOrHostOrAdmin")]
-        public async Task<ReturnModelDTO<List<AddionalFeeTypeDTO>>> GetAdditionalFeeTypes()
-        => await _parametricService.GetAdditionalFeeTypes();
+        public async Task<ReturnModelDTO<List<ComplaintReasonDTO>>> GetComplaintReasons()
+        => await _parametricService.GetComplaintReasons();
     }
 }
