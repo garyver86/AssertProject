@@ -55,6 +55,8 @@ public partial class TuUser
 
     public virtual ICollection<TbBook> TbBookCancellationUsers { get; set; } = new List<TbBook>();
 
+    public virtual ICollection<TbBookCancellation> TbBookCancellations { get; set; } = new List<TbBookCancellation>();
+
     public virtual ICollection<TbBookInsuranceClaim> TbBookInsuranceClaims { get; set; } = new List<TbBookInsuranceClaim>();
 
     public virtual ICollection<TbBook> TbBookUserIdRenterNavigations { get; set; } = new List<TbBook>();

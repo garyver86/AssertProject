@@ -97,6 +97,8 @@ public partial class TbBook
 
     public virtual TReasonRefusedBook? ReasonRefused { get; set; }
 
+    public virtual ICollection<TbBookCancellation> TbBookCancellations { get; set; } = new List<TbBookCancellation>();
+
     public virtual ICollection<TbBookChange> TbBookChanges { get; set; } = new List<TbBookChange>();
 
     public virtual ICollection<TbBookInsuranceClaim> TbBookInsuranceClaims { get; set; } = new List<TbBookInsuranceClaim>();

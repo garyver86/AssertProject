@@ -81,6 +81,8 @@ public partial class TlListingRent
 
     public virtual ICollection<PayPriceCalculation> PayPriceCalculations { get; set; } = new List<PayPriceCalculation>();
 
+    public virtual ICollection<TbBookCancellation> TbBookCancellations { get; set; } = new List<TbBookCancellation>();
+
     public virtual ICollection<TbBook> TbBooks { get; set; } = new List<TbBook>();
 
     public virtual ICollection<TlCheckInOutPolicy> TlCheckInOutPolicies { get; set; } = new List<TlCheckInOutPolicy>();
