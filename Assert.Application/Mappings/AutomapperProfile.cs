@@ -36,6 +36,8 @@ namespace Assert.Application.Mappings
             CreateMap<TComplaintStatus, ComplaintStatusDTO>();
             CreateMap<TbComplaintEvidence, ComplaintEvidenceDTO>();
             CreateMap<TbComplaint, ComplaintDTO>();
+            CreateMap<ComplaintReasonHierarchyDto, AppComplaintReasonHierarchyDto>().ReverseMap();
+            CreateMap<ComplaintReasonDto, AppComplaintReasonDto>().ReverseMap();
             CreateMap<TbComplaint, ComplaintRequestDTO>().ReverseMap();
 
             CreateMap<ProcessDataRequest, ListingProcessDataModel>();

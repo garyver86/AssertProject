@@ -813,6 +813,8 @@ public partial class InfraAssertDbContext : DbContext
 
             entity.ToTable("T_ComplaintReason");
 
+            entity.HasIndex(e => e.ParentId, "IX_T_ComplaintReason_ParentId");
+
             entity.HasIndex(e => e.ComplaintReasonCode, "UQ__T_Compla__6F2B57E06AEF2664").IsUnique();
 
             entity.Property(e => e.ComplaintReasonId).HasColumnName("complaintReasonId");
@@ -826,6 +828,7 @@ public partial class InfraAssertDbContext : DbContext
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasColumnName("isActive");
+            entity.Property(e => e.ParentId).HasColumnName("parentId");
             entity.Property(e => e.ReasonDescription)
                 .HasMaxLength(255)
                 .IsUnicode(false)
@@ -836,6 +839,10 @@ public partial class InfraAssertDbContext : DbContext
             entity.Property(e => e.SeverityLevel)
                 .HasDefaultValue(1)
                 .HasColumnName("severityLevel");
+
+            entity.HasOne(d => d.Parent).WithMany(p => p.InverseParent)
+                .HasForeignKey(d => d.ParentId)
+                .HasConstraintName("FK_T_ComplaintReason_Parent");
         });
 
         modelBuilder.Entity<TComplaintStatus>(entity =>
@@ -1702,10 +1709,7 @@ public partial class InfraAssertDbContext : DbContext
             entity.Property(e => e.CancellationReasonId).HasColumnName("cancellationReasonId");
             entity.Property(e => e.CancellationGroupId).HasColumnName("cancellationGroupId");
             entity.Property(e => e.CancellationLevel).HasColumnName("cancellationLevel");
-            entity.Property(e => e.CancellationReasonParentId)
-                .HasMaxLength(10)
-                .IsFixedLength()
-                .HasColumnName("cancellationReasonParentId");
+            entity.Property(e => e.CancellationReasonParentId).HasColumnName("cancellationReasonParentId");
             entity.Property(e => e.CancellationTypeCode)
                 .HasMaxLength(20)
                 .IsUnicode(false)
@@ -1716,6 +1720,10 @@ public partial class InfraAssertDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("icon");
             entity.Property(e => e.IsEndStep).HasColumnName("isEndStep");
+            entity.Property(e => e.MessageTo)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("messageTo");
             entity.Property(e => e.Status)
                 .HasMaxLength(10)
                 .IsUnicode(false)
@@ -1753,7 +1761,7 @@ public partial class InfraAssertDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("status");
         });
-        
+
         modelBuilder.Entity<TbBookChange>(entity =>
         {
             entity.HasKey(e => e.BookChangeId);

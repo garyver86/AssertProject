@@ -383,7 +383,7 @@ namespace Assert.API.Controllers
         /// </remarks>
         [HttpGet("GetComplaintReasons")]
         [Authorize(Policy = "GuestOrHostOrAdmin")]
-        public async Task<ReturnModelDTO<List<ComplaintReasonDTO>>> GetComplaintReasons()
+        public async Task<ReturnModelDTO<List<AppComplaintReasonHierarchyDto>>> GetComplaintReasons()
         => await _parametricService.GetComplaintReasons();
     }
 }

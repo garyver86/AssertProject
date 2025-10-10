@@ -19,5 +19,11 @@ public partial class TComplaintReason
 
     public DateTime? CreatedAt { get; set; }
 
+    public int? ParentId { get; set; }
+
+    public virtual ICollection<TComplaintReason> InverseParent { get; set; } = new List<TComplaintReason>();
+
+    public virtual TComplaintReason? Parent { get; set; }
+
     public virtual ICollection<TbComplaint> TbComplaints { get; set; } = new List<TbComplaint>();
 }

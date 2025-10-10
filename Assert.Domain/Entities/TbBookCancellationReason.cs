@@ -7,7 +7,7 @@ public partial class TbBookCancellationReason
 {
     public int CancellationReasonId { get; set; }
 
-    public string? CancellationReasonParentId { get; set; }
+    public int? CancellationReasonParentId { get; set; }
 
     public int? CancellationGroupId { get; set; }
 
@@ -20,6 +20,8 @@ public partial class TbBookCancellationReason
     public string? Title { get; set; }
 
     public string? Detail { get; set; }
+
+    public string? MessageTo { get; set; }
 
     public string? Icon { get; set; }
 
