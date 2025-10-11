@@ -49,6 +49,9 @@ namespace Assert.Application.Mappings
             CreateMap<ProcessData_Photo, ProcessData_PhotoModel>();
             CreateMap<ProcessData_Discount, ProcessData_DiscountModel>();
             CreateMap<EmailNotificationRequestDTO, EmailNotification>();
+            CreateMap<TbBookCancellationReason, BookCancellationReasonDTO>()
+                 .ForMember(dest => dest.TitleGroup, opt => opt.MapFrom(src => src.CancellationGroup!.Title));
+            CreateMap<TbBookCancellation, BookCancellationDTO>();
 
             CreateMap<TCurrency, CurrencyDTO>().ReverseMap();
             CreateMap<TReviewQuestion, ReviewQuestionDTO>().ReverseMap();

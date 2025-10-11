@@ -1,4 +1,5 @@
 ﻿using Assert.Application.DTOs.Responses;
+using Assert.Domain.Models;
 
 namespace Assert.Application.Interfaces
 {
@@ -19,5 +20,8 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<List<BookStatusDTO>>> GetBookStatuses(Dictionary<string, string> requestInfo, bool v);
         Task<ReturnModelDTO<List<AddionalFeeTypeDTO>>> GetAdditionalFeeTypes();
         Task<ReturnModelDTO<List<ComplaintReasonDTO>>> GetComplaintReasons();
+
+        Task<ReturnModelDTO<List<BookCancellationReasonDTO>>> GetCancellationReason(
+            string cancellationTypeCode, int cancellationReasonOwnerId);
     }
 }

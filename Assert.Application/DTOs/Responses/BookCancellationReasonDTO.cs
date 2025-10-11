@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿namespace Assert.Application.DTOs.Responses;
 
-namespace Assert.Domain.Entities;
-
-public partial class TbBookCancellationReason
+public class BookCancellationReasonDTO
 {
     public int CancellationReasonId { get; set; }
 
@@ -17,17 +14,11 @@ public partial class TbBookCancellationReason
 
     public bool? IsEndStep { get; set; }
 
-    public string? Title { get; set; }
+    public string? TitleGroup { get; set; }
 
     public string? Detail { get; set; }
 
     public string? MessageTo { get; set; }
 
     public string? Icon { get; set; }
-
-    public string? Status { get; set; }
-
-    public virtual TbBookCancellationGroup? CancellationGroup { get; set; }
-
-    public virtual ICollection<TbBookCancellation> TbBookCancellations { get; set; } = new List<TbBookCancellation>();
 }

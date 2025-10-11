@@ -385,5 +385,42 @@ namespace Assert.API.Controllers
         [Authorize(Policy = "GuestOrHostOrAdmin")]
         public async Task<ReturnModelDTO<List<ComplaintReasonDTO>>> GetComplaintReasons()
         => await _parametricService.GetComplaintReasons();
+
+        /// <summary>
+        /// Recupera la lista inicial de motivos de cancelación aplicables a un host.
+        /// </summary>
+        /// <returns>
+        /// Una lista de objetos <see cref="BookCancellationReasonDTO"/> que representan los motivos disponibles en el primer paso.
+        /// </returns>
+        /// <response code="200">OK: La lista se obtuvo correctamente.</response>
+        /// <response code="500">INTERNAL SERVER ERROR: Se produjo un error inesperado durante la operación.</response>
+        /// <remarks>
+        /// Detalles del servicio:
+        /// - La lista incluye identificadores, códigos y descripciones de cada motivo.
+        /// - Corresponde al primer paso de selección, sin filtros adicionales.
+        /// </remarks>
+        [HttpGet("GetHostCancellationReasonFirstStep")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO<List<BookCancellationReasonDTO>>> GetHostCancellationReasonFirstStep()
+        => await _parametricService.GetCancellationReason("BYHOST", 0);
+
+        /// <summary>
+        /// Recupera la lista de motivos de cancelación aplicables a un host, filtrados por el motivo seleccionado previamente.
+        /// </summary>
+        /// <param name="cancellationReasonOwnerId">Identificador del motivo padre seleccionado en el paso anterior.</param>
+        /// <returns>
+        /// Una lista de objetos <see cref="BookCancellationReasonDTO"/> que representan los motivos disponibles en el siguiente paso.
+        /// </returns>
+        /// <response code="200">OK: La lista se obtuvo correctamente.</response>
+        /// <response code="500">INTERNAL SERVER ERROR: Se produjo un error inesperado durante la operación.</response>
+        /// <remarks>
+        /// Detalles del servicio:
+        /// - La lista incluye identificadores, códigos y descripciones de cada motivo.
+        /// - Corresponde al segundo paso de selección, filtrado por el motivo padre.
+        /// </remarks>
+        [HttpGet("GetHostCancellationReasonNextStep")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO<List<BookCancellationReasonDTO>>> GetHostCancellationReasonNextStep(int cancellationReasonOwnerId)
+        => await _parametricService.GetCancellationReason("BYHOST", cancellationReasonOwnerId);
     }
 }

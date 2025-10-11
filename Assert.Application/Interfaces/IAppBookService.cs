@@ -29,5 +29,8 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<List<BookDTO>>> GetPendingAcceptanceForRenter(int userId);
         Task<ReturnModelDTO<BookDTO>> AuthorizationResponse(int userId, long bookId, bool isApproval, int? reasonRefused);
         Task<ReturnModelDTO<PayPriceCalculationDTO>> ConsultingResponse(int userId, long priceCalculationId, bool isApproval, int? reasonRefused);
+        Task<ReturnModelDTO<string>> UpsertHostBookCancellation(
+            UpsertHostBookCancellationRequestDTO request);
+        Task<ReturnModelDTO<List<BookCancellationDTO>>> GetHostBookCancellation(long bookId);
     }
 }

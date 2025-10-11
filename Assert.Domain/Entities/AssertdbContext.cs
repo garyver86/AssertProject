@@ -831,6 +831,7 @@ public partial class AssertDbContext : DbContext
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true)
                 .HasColumnName("isActive");
+            entity.Property(e => e.ParentId).HasColumnName("parentId");
             entity.Property(e => e.ReasonDescription)
                 .HasMaxLength(255)
                 .IsUnicode(false)
@@ -1707,10 +1708,7 @@ public partial class AssertDbContext : DbContext
             entity.Property(e => e.CancellationReasonId).HasColumnName("cancellationReasonId");
             entity.Property(e => e.CancellationGroupId).HasColumnName("cancellationGroupId");
             entity.Property(e => e.CancellationLevel).HasColumnName("cancellationLevel");
-            entity.Property(e => e.CancellationReasonParentId)
-                .HasMaxLength(10)
-                .IsFixedLength()
-                .HasColumnName("cancellationReasonParentId");
+            entity.Property(e => e.CancellationReasonParentId).HasColumnName("cancellationReasonParentId");
             entity.Property(e => e.CancellationTypeCode)
                 .HasMaxLength(20)
                 .IsUnicode(false)
@@ -1721,6 +1719,10 @@ public partial class AssertDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("icon");
             entity.Property(e => e.IsEndStep).HasColumnName("isEndStep");
+            entity.Property(e => e.MessageTo)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("messageTo");
             entity.Property(e => e.Status)
                 .HasMaxLength(10)
                 .IsUnicode(false)
