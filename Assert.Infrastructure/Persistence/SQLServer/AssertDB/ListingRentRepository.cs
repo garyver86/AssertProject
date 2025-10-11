@@ -1007,14 +1007,14 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     if (setMaxStay)
                     {
                         var maxStayDefault = _paramsData?.MaxStayDefault ?? 365;
-                        listingRent.MaximumStay = maxStayValue >= maxStayDefault ? maxStayValue : maxStayDefault;
+                        listingRent.MaximumStay = maxStayValue != 0 ? maxStayValue : maxStayDefault;
                         updated = true;
                     }
 
                     if (setMinStay)
                     {
                         var minStayDefault = _paramsData?.MinStayDefault ?? 1;
-                        listingRent.MinimunStay = minStayValue >= minStayDefault ? minStayValue : minStayDefault;
+                        listingRent.MinimunStay = minStayValue != 0 ? minStayValue : minStayDefault;
                         updated = true;
                     }
 
