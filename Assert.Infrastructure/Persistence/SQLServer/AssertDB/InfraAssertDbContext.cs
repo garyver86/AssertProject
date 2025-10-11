@@ -829,10 +829,18 @@ public partial class InfraAssertDbContext : DbContext
                 .HasDefaultValue(true)
                 .HasColumnName("isActive");
             entity.Property(e => e.ParentId).HasColumnName("parentId");
+            entity.Property(e => e.ReasonAdditionalText)
+                .HasMaxLength(560)
+                .IsUnicode(false)
+                .HasColumnName("reasonAdditionalText");
             entity.Property(e => e.ReasonDescription)
                 .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasColumnName("reasonDescription");
+            entity.Property(e => e.ReasonLabel)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("reasonLabel");
             entity.Property(e => e.RequiresFreeText)
                 .HasDefaultValue(false)
                 .HasColumnName("requiresFreeText");
@@ -1515,6 +1523,13 @@ public partial class InfraAssertDbContext : DbContext
             entity.Property(e => e.ApprovalDetails)
                 .HasMaxLength(500)
                 .IsUnicode(false);
+            entity.Property(e => e.AuthTimeElapsed)
+                .HasMaxLength(8)
+                .IsUnicode(false)
+                .HasColumnName("authTimeElapsed");
+            entity.Property(e => e.AuthorizationDateTime)
+                .HasColumnType("datetime")
+                .HasColumnName("authorizationDateTime");
             entity.Property(e => e.BookStatusId).HasColumnName("bookStatusId");
             entity.Property(e => e.Cancellation)
                 .HasColumnType("datetime")
@@ -1589,6 +1604,9 @@ public partial class InfraAssertDbContext : DbContext
             entity.Property(e => e.RequestDateTime)
                 .HasColumnType("datetime")
                 .HasColumnName("requestDateTime");
+            entity.Property(e => e.ReviewDateTime)
+                .HasColumnType("datetime")
+                .HasColumnName("reviewDateTime");
             entity.Property(e => e.StartDate)
                 .HasColumnType("datetime")
                 .HasColumnName("startDate");

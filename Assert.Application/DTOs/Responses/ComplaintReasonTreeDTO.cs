@@ -29,11 +29,38 @@ namespace Assert.Application.DTOs.Responses
     {
         public List<ComplaintReasonTreeDTO> BuildTree(IEnumerable<AppComplaintReasonHierarchyDto> flatList)
         {
+            //var lookup = flatList.ToLookup(x => x.ParentId);
+
+            //List<ComplaintReasonTreeDTO> BuildTreeNodes(int? parentId)
+            //{
+            //    return lookup[parentId]
+            //        .Select(item => new ComplaintReasonTreeDTO
+            //        {
+            //            Id = item.ComplaintReasonId,
+            //            Code = item.ComplaintReasonCode,
+            //            Description = item.ReasonDescription,
+            //            IsActive = item.IsActive ?? true,
+            //            RequiresFreeText = item.RequiresFreeText ?? false,
+            //            SeverityLevel = item.SeverityLevel ?? 1,
+            //            CreatedAt = item.CreatedAt ?? DateTime.UtcNow,
+            //            ParentId = item.ParentId,
+            //            Level = item.Level,
+            //            HierarchyPath = item.HierarchyPath,
+            //            FullDescriptionPath = item.FullDescriptionPath,
+            //            HasChildren = lookup[item.ComplaintReasonId].Any(),
+            //            Children = BuildTreeNodes(item.ComplaintReasonId)
+            //        })
+            //        .OrderBy(x => x.Code)
+            //        .ToList();
+            //}
+
+            //return BuildTreeNodes(null); // Raíces (parentId = null)
             var lookup = flatList.ToLookup(x => x.ParentId);
 
             List<ComplaintReasonTreeDTO> BuildTreeNodes(int? parentId)
             {
                 return lookup[parentId]
+                    .OrderBy(x => x.ComplaintReasonId) // Ordenar por ID principal
                     .Select(item => new ComplaintReasonTreeDTO
                     {
                         Id = item.ComplaintReasonId,
@@ -48,13 +75,12 @@ namespace Assert.Application.DTOs.Responses
                         HierarchyPath = item.HierarchyPath,
                         FullDescriptionPath = item.FullDescriptionPath,
                         HasChildren = lookup[item.ComplaintReasonId].Any(),
-                        Children = BuildTreeNodes(item.ComplaintReasonId)
+                        Children = BuildTreeNodes(item.ComplaintReasonId) // Esto ordenará recursivamente los hijos
                     })
-                    .OrderBy(x => x.Code)
                     .ToList();
             }
 
-            return BuildTreeNodes(null); // Raíces (parentId = null)
+            return BuildTreeNodes(null);
         }
     }
 }

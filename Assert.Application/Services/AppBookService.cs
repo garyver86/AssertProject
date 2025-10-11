@@ -74,6 +74,21 @@ namespace Assert.Application.Services
             if (book is null)
                 throw new NotFoundException($"La reserva con ID {bookId} no fue encontrada. Verifique e intente nuevamente.");
 
+            if (book.ListingRent != null)
+            {
+                string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+                _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+
+                if (book.ListingRent?.TlListingPhotos?.Count > 0)
+                {
+                    foreach (var item in book.ListingRent.TlListingPhotos)
+                    {
+                        item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                    }
+                }
+            }
+
+
             var bookDto = _mapper.Map<BookDTO>(book);
             return new ReturnModelDTO<BookDTO>
             {

@@ -85,6 +85,12 @@ public partial class TbBook
 
     public bool? ExistPet { get; set; }
 
+    public DateTime? AuthorizationDateTime { get; set; }
+
+    public string? AuthTimeElapsed { get; set; }
+
+    public DateTime? ReviewDateTime { get; set; }
+
     public virtual TbBookStatus BookStatus { get; set; } = null!;
 
     public virtual TuUser? CancellationUser { get; set; }

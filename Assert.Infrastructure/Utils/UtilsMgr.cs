@@ -58,7 +58,28 @@ namespace Assert.Infrastructure.Utils
                 .Replace("{otpCode}", WebUtility.HtmlEncode(otpCode)) ?? $"Estimado {user},\n\nUtilice el siguiente codigo en la plataforma Assert: {otpCode}";
         }
 
+        public static string? GetTimeElapsed(DateTime? authorizationDateTime, DateTime? requestDateTime)
+        {
+            try
+            {
+                if (!authorizationDateTime.HasValue || !requestDateTime.HasValue)
+                    return null;
 
+                if (authorizationDateTime.Value <= requestDateTime.Value)
+                    return "00:00";
 
+                TimeSpan timeElapsed = authorizationDateTime.Value - requestDateTime.Value;
+
+                // Calcular horas y minutos
+                int totalHours = (int)timeElapsed.TotalHours;
+                int minutes = timeElapsed.Minutes;
+
+                return $"{totalHours:00}:{minutes:00}";
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
     }
 }

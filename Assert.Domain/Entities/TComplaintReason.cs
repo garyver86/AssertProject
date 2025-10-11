@@ -11,6 +11,8 @@ public partial class TComplaintReason
 
     public string ReasonDescription { get; set; } = null!;
 
+    public string? ReasonAdditionalText { get; set; }
+
     public bool? IsActive { get; set; }
 
     public bool? RequiresFreeText { get; set; }
@@ -20,6 +22,8 @@ public partial class TComplaintReason
     public DateTime? CreatedAt { get; set; }
 
     public int? ParentId { get; set; }
+
+    public string? ReasonLabel { get; set; }
 
     public virtual ICollection<TComplaintReason> InverseParent { get; set; } = new List<TComplaintReason>();
 
