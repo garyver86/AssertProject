@@ -818,6 +818,8 @@ public partial class AssertDbContext : DbContext
 
             entity.ToTable("T_ComplaintReason");
 
+            entity.HasIndex(e => e.ParentId, "IX_T_ComplaintReason_ParentId");
+
             entity.HasIndex(e => e.ComplaintReasonCode, "UQ__T_Compla__6F2B57E06AEF2664").IsUnique();
 
             entity.Property(e => e.ComplaintReasonId).HasColumnName("complaintReasonId");
@@ -832,16 +834,28 @@ public partial class AssertDbContext : DbContext
                 .HasDefaultValue(true)
                 .HasColumnName("isActive");
             entity.Property(e => e.ParentId).HasColumnName("parentId");
+            entity.Property(e => e.ReasonAdditionalText)
+                .HasMaxLength(560)
+                .IsUnicode(false)
+                .HasColumnName("reasonAdditionalText");
             entity.Property(e => e.ReasonDescription)
                 .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasColumnName("reasonDescription");
+            entity.Property(e => e.ReasonLabel)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("reasonLabel");
             entity.Property(e => e.RequiresFreeText)
                 .HasDefaultValue(false)
                 .HasColumnName("requiresFreeText");
             entity.Property(e => e.SeverityLevel)
                 .HasDefaultValue(1)
                 .HasColumnName("severityLevel");
+
+            entity.HasOne(d => d.Parent).WithMany(p => p.InverseParent)
+                .HasForeignKey(d => d.ParentId)
+                .HasConstraintName("FK_T_ComplaintReason_Parent");
         });
 
         modelBuilder.Entity<TComplaintStatus>(entity =>
@@ -1514,6 +1528,13 @@ public partial class AssertDbContext : DbContext
             entity.Property(e => e.ApprovalDetails)
                 .HasMaxLength(500)
                 .IsUnicode(false);
+            entity.Property(e => e.AuthTimeElapsed)
+                .HasMaxLength(8)
+                .IsUnicode(false)
+                .HasColumnName("authTimeElapsed");
+            entity.Property(e => e.AuthorizationDateTime)
+                .HasColumnType("datetime")
+                .HasColumnName("authorizationDateTime");
             entity.Property(e => e.BookStatusId).HasColumnName("bookStatusId");
             entity.Property(e => e.Cancellation)
                 .HasColumnType("datetime")
@@ -1588,6 +1609,9 @@ public partial class AssertDbContext : DbContext
             entity.Property(e => e.RequestDateTime)
                 .HasColumnType("datetime")
                 .HasColumnName("requestDateTime");
+            entity.Property(e => e.ReviewDateTime)
+                .HasColumnType("datetime")
+                .HasColumnName("reviewDateTime");
             entity.Property(e => e.StartDate)
                 .HasColumnType("datetime")
                 .HasColumnName("startDate");

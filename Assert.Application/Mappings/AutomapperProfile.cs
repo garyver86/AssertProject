@@ -36,6 +36,8 @@ namespace Assert.Application.Mappings
             CreateMap<TComplaintStatus, ComplaintStatusDTO>();
             CreateMap<TbComplaintEvidence, ComplaintEvidenceDTO>();
             CreateMap<TbComplaint, ComplaintDTO>();
+            CreateMap<ComplaintReasonHierarchyDto, AppComplaintReasonHierarchyDto>().ReverseMap();
+            CreateMap<ComplaintReasonDto, AppComplaintReasonDto>().ReverseMap();
             CreateMap<TbComplaint, ComplaintRequestDTO>().ReverseMap();
 
             CreateMap<ProcessDataRequest, ListingProcessDataModel>();
@@ -137,6 +139,8 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.ListingRent, opt => opt.MapFrom(src => src.ListingRent))
                 .ForMember(dest => dest.Photos, opt => opt.MapFrom(src => src.ListingRent != null ? src.ListingRent.TlListingPhotos : null))
                 .ForMember(dest => dest.Owner, opt => opt.MapFrom(src => src.ListingRent != null ? src.ListingRent.OwnerUser : null))
+                .ForMember(dest => dest.CheckinStatus, opt => opt.MapFrom(src => src.Checkin < DateTime.UtcNow))
+                .ForMember(dest => dest.CheckoutStatus, opt => opt.MapFrom(src => src.Checkout < DateTime.UtcNow))
                 .ReverseMap();
 
             CreateMap<TlListingRent, ListingRentDTO>()

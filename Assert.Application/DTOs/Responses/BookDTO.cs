@@ -102,4 +102,11 @@ public class BookDTO
     public CurrencyDTO Currency { get; set; } = null!;
     public ReasonRefusedBookDTO? ReasonRefused { get; set; }
     public List<ReviewDTO> TlListingReviews { get; set; }
+    public DateTime? AuthorizationDateTime { get; set; }
+
+    public string? AuthTimeElapsed { get; set; }
+
+    public DateTime? ReviewDateTime { get; set; }
+    public bool CheckinStatus { get; set; }
+    public bool CheckoutStatus { get; set; }
 }

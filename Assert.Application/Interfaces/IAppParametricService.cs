@@ -19,9 +19,9 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<List<ReasonRefusedBookDTO>>> GetReasonRefusedBook(Dictionary<string, string> requestInfo, bool v);
         Task<ReturnModelDTO<List<BookStatusDTO>>> GetBookStatuses(Dictionary<string, string> requestInfo, bool v);
         Task<ReturnModelDTO<List<AddionalFeeTypeDTO>>> GetAdditionalFeeTypes();
-        Task<ReturnModelDTO<List<ComplaintReasonDTO>>> GetComplaintReasons();
-
+        
         Task<ReturnModelDTO<List<BookCancellationReasonDTO>>> GetCancellationReason(
             string cancellationTypeCode, int cancellationReasonOwnerId);
+        Task<ReturnModelDTO<List<AppComplaintReasonHierarchyDto>>> GetComplaintReasons();
     }
 }

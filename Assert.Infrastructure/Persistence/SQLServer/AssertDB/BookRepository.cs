@@ -2,6 +2,7 @@
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Repositories;
 using Assert.Infrastructure.Exceptions;
+using Assert.Infrastructure.Utils;
 using Assert.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -900,6 +901,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 existingBook.BookStatusId = 2;
                 existingBook.IsApprobal = true;
+                existingBook.AuthorizationDateTime = DateTime.UtcNow;
+                existingBook.AuthTimeElapsed = UtilsMgr.GetTimeElapsed(existingBook.AuthorizationDateTime, existingBook.RequestDateTime);
                 await _dbContext.SaveChangesAsync();
             }
             else
@@ -907,6 +910,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 existingBook.BookStatusId = 5;
                 existingBook.IsApprobal = false;
                 existingBook.ReasonRefusedId = reasonRefused;
+                existingBook.AuthorizationDateTime = DateTime.UtcNow;
                 await _dbContext.SaveChangesAsync();
             }
 
@@ -959,6 +963,22 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 }
 
                 await dbContext.SaveChangesAsync();
+            }
+        }
+
+        public async Task SetReviewDateTime(long bookId)
+        {
+            using (var dbContext = new InfraAssertDbContext(dbOptions))
+            {
+                var reservation = await dbContext.TbBooks
+                    .FirstOrDefaultAsync(r => r.BookId == bookId);
+
+                if (reservation != null)
+                {
+                    reservation.ReviewDateTime = DateTime.UtcNow;
+                    await dbContext.SaveChangesAsync();
+                    return;
+                }
             }
         }
     }

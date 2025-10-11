@@ -371,13 +371,20 @@ namespace Assert.Domain.Implementation
             return result;
         }
 
-        public async Task<ReturnModel<List<TComplaintReason>>> GetComplaintReasons(bool useTechnicalMessages)
+        public async Task<ReturnModel<List<ComplaintReasonHierarchyDto>>> GetComplaintReasons(bool useTechnicalMessages)
         {
-            ReturnModel<List<TComplaintReason>> result = new ReturnModel<List<TComplaintReason>>();
+            ReturnModel<List<ComplaintReasonHierarchyDto>> result = new ReturnModel<List<ComplaintReasonHierarchyDto>>();
             try
             {
-                var result_data = await _complaintReasonRepository.GetAll();
-                return new ReturnModel<List<TComplaintReason>>
+                //var result_data = await _complaintReasonRepository.GetAll();
+                //return new ReturnModel<List<TComplaintReason>>
+                //{
+                //    StatusCode = ResultStatusCode.OK,
+                //    Data = result_data,
+                //    HasError = false
+                //};
+                var result_data = await _complaintReasonRepository.GetComplaintReasonsHierarchyAsync();
+                return new ReturnModel<List<ComplaintReasonHierarchyDto>>
                 {
                     StatusCode = ResultStatusCode.OK,
                     Data = result_data,

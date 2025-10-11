@@ -360,13 +360,13 @@ namespace Assert.Application.Services
             };
         }
 
-        public async Task<ReturnModelDTO<List<ComplaintReasonDTO>>> GetComplaintReasons()
+        public async Task<ReturnModelDTO<List<AppComplaintReasonHierarchyDto>>> GetComplaintReasons()
         {
             var aditionalFees = await _parametricService.GetComplaintReasons(true);
             if (aditionalFees.StatusCode == ResultStatusCode.OK)
             {
-                var additionalFeesResult = _mapper.Map<List<ComplaintReasonDTO>>(aditionalFees.Data);
-                return new ReturnModelDTO<List<ComplaintReasonDTO>>
+                var additionalFeesResult = _mapper.Map<List<AppComplaintReasonHierarchyDto>>(aditionalFees.Data);
+                return new ReturnModelDTO<List<AppComplaintReasonHierarchyDto>>
                 {
                     Data = additionalFeesResult,
                     HasError = false,
@@ -375,7 +375,7 @@ namespace Assert.Application.Services
             }
             else
             {
-                return new ReturnModelDTO<List<ComplaintReasonDTO>>
+                return new ReturnModelDTO<List<AppComplaintReasonHierarchyDto>>
                 {
                     HasError = aditionalFees.HasError,
                     StatusCode = aditionalFees.StatusCode,

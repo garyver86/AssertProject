@@ -132,6 +132,7 @@ namespace Assert.Domain.Implementation
             {
                 review.IsComplete = true;
                 _reviewRepository.UpdateReviewAsync(review);
+                _bookRepository.SetReviewDateTime(bookInfo.BookId);
                 result.IsComplete = review.IsComplete;
             }
             return result;

@@ -383,7 +383,7 @@ namespace Assert.API.Controllers
         /// </remarks>
         [HttpGet("GetComplaintReasons")]
         [Authorize(Policy = "GuestOrHostOrAdmin")]
-        public async Task<ReturnModelDTO<List<ComplaintReasonDTO>>> GetComplaintReasons()
+        public async Task<ReturnModelDTO<List<AppComplaintReasonHierarchyDto>>> GetComplaintReasons()
         => await _parametricService.GetComplaintReasons();
 
         /// <summary>
@@ -422,5 +422,46 @@ namespace Assert.API.Controllers
         [Authorize(Policy = "GuestOrHostOrAdmin")]
         public async Task<ReturnModelDTO<List<BookCancellationReasonDTO>>> GetHostCancellationReasonNextStep(int cancellationReasonOwnerId)
         => await _parametricService.GetCancellationReason("BYHOST", cancellationReasonOwnerId);
+
+        /// <summary>
+        /// Obtiene la lista de los motivos de denuncia a un host, en formato de arbol, identificando.
+        /// </summary>
+        /// <returns>
+        /// Lista de objetos <see cref="ComplaintReasonDTO"/> que representan los motivos de denuncia.
+        /// </returns>
+        /// <response code="200">OK: Se retornó exitosamente la lista.</response>
+        /// <response code="500">INTERNAL SERVER ERROR: Error inesperado durante la operación.</response>
+        /// <remarks>
+        /// Características del servicio:
+        /// - La lista incluye identificadores, códigos y descripciones de cada motivo de denuncia.
+        /// </remarks>
+        [HttpGet("GetComplaintReasonsAsTree")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO<List<ComplaintReasonTreeDTO>>> GetComplaintReasonsAsTree()
+        {
+            var result = await _parametricService.GetComplaintReasons();
+            if (result.StatusCode == ResultStatusCode.OK && result.Data != null)
+            {
+                ComplaintReasonUtil util = new ComplaintReasonUtil();
+                var resultTree = util.BuildTree(result.Data);
+                return new ReturnModelDTO<List<ComplaintReasonTreeDTO>>()
+                {
+                    HasError = false,
+                    StatusCode = ResultStatusCode.OK,
+                    ResultError = null,
+                    Data = resultTree
+                };
+            }
+            else
+            {
+                return new ReturnModelDTO<List<ComplaintReasonTreeDTO>>()
+                {
+                    HasError = result.HasError,
+                    StatusCode = result.StatusCode,
+                    ResultError = result.ResultError,
+                    Data = null
+                };
+            }
+        }
     }
 }
