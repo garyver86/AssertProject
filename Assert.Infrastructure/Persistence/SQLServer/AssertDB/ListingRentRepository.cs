@@ -642,7 +642,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
 
-                if(listing.OwnerUserId != userId)
+                if (listing.OwnerUserId != userId)
                 {
                     throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
                 }
@@ -658,7 +658,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
-                if(listing.OwnerUserId != userId)
+                if (listing.OwnerUserId != userId)
                 {
                     throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
                 }
@@ -672,7 +672,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
-                if(listing.OwnerUserId != userId)
+                if (listing.OwnerUserId != userId)
                 {
                     throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
                 }
@@ -702,7 +702,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
-                if(listing.OwnerUserId != userId)
+                if (listing.OwnerUserId != userId)
                 {
                     throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
                 }
@@ -726,7 +726,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
-                if(listing.OwnerUserId != userId)
+                if (listing.OwnerUserId != userId)
                 {
                     throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
                 }
@@ -740,7 +740,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
-                if(listing.OwnerUserId != userId)
+                if (listing.OwnerUserId != userId)
                 {
                     throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
                 }
@@ -754,7 +754,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
-                if(listing.OwnerUserId != userId)
+                if (listing.OwnerUserId != userId)
                 {
                     throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
                 }
@@ -769,7 +769,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
-                if(listing.OwnerUserId != userId)
+                if (listing.OwnerUserId != userId)
                 {
                     throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
                 }
@@ -799,7 +799,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     var listing = await context.TlListingRents.Where(x => x.ListingRentId == listingRentId).FirstOrDefaultAsync();
                     if (listing != null)
                     {
-                        if(listing.OwnerUserId != userId)
+                        if (listing.OwnerUserId != userId)
                         {
                             throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
                         }
@@ -950,7 +950,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             using (var context = new InfraAssertDbContext(dbOptions))
             {
                 TlListingRent listing = context.TlListingRents.Where(x => x.ListingRentId == listingRentId && x.ListingStatusId != 5).FirstOrDefault();
-                if(listing.OwnerUserId != userId)
+                if (listing.OwnerUserId != userId)
                 {
                     throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
                 }
@@ -1002,7 +1002,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                         throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
                     }
 
-                        bool updated = false;
+                    bool updated = false;
 
                     if (setMaxStay)
                     {
@@ -1054,7 +1054,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
                 }
 
-                    if (minimumNoticeDay == 0 && minimumNoticeHours is null)
+                if (minimumNoticeDay == 0 && minimumNoticeHours is null)
                     throw new InfrastructureException($"Si el preaviso es del mismo dia requiere registro de horas.");
 
                 listingRent.MinimumNotice = Math.Max(minimumNoticeDay, 0);
@@ -1088,7 +1088,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 if (listingRent is null)
                     throw new NotFoundException($"No se encontró la propiedad con ID: {listingRentId}");
 
-                if( listingRent.OwnerUserId != userId)
+                if (listingRent.OwnerUserId != userId)
                 {
                     throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
                 }
@@ -1108,11 +1108,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-        public async Task<string> SetAdditionalFee(long listingRentId, 
+        public async Task<string> SetAdditionalFee(long listingRentId,
             List<int> additionalFeeId, List<decimal> value)
         {
             try
-            { 
+            {
                 await using var context = new InfraAssertDbContext(dbOptions);
 
                 var listingRent = await context.TlListingRents
@@ -1124,7 +1124,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
                 if (listingRent.OwnerUserId != _metadata.UserId)
                     throw new UnauthorizedAccessException("El usuario no tiene permiso para modificar este listing.");
-                
+
                 for (int i = 0; i < additionalFeeId.Count; i++)
                 {
                     var feeId = additionalFeeId[i];

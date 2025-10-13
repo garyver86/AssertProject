@@ -759,7 +759,7 @@ namespace Assert.Application.Services
             if (accomodationTypeId is not null && accomodationTypeId > 0)
             {
                 var _ = await _listingRentRepository
-                    .SetAccomodationType(listingRentId, accomodationTypeId!,userId);
+                    .SetAccomodationType(listingRentId, accomodationTypeId!, userId);
             }
 
             return new ReturnModelDTO<string>
@@ -1273,7 +1273,7 @@ namespace Assert.Application.Services
 
         public async Task<ReturnModelDTO<List<ListingAdditionalFeeDTO>>> GetAdditionalFee(long listingRentId)
         {
-            var result = new ReturnModelDTO<List<ListingAdditionalFeeDTO>>() 
+            var result = new ReturnModelDTO<List<ListingAdditionalFeeDTO>>()
             { StatusCode = ResultStatusCode.OK, HasError = false };
 
             var response = await _listingRentRepository.GetAdditionalFeesByListingRentId(listingRentId);
