@@ -423,6 +423,169 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
+
+        public async Task<List<TbBook>> GetPayedsByOwnerId(long userId)
+        {
+            try
+            {
+                List<TbBook> books = await _dbContext.TbBooks
+                    .Where(b => b.ListingRent.OwnerUserId == userId && b.PaymentId != null)
+                    .Include(lr => lr.ListingRent)
+                    .Include(x => x.PayPriceCalculations)
+                    .ThenInclude(x => x.PaymentTransaction)
+                    .ThenInclude(x => x.PaymentProvider)
+                    .Select(x => new TbBook
+                    {
+                        AdditionalInfo = x.AdditionalInfo,
+                        AmountFees = x.AmountFees,
+                        AmountTotal = x.AmountTotal,
+                        ApprovalDetails = x.ApprovalDetails,
+                        BookId = x.BookId,
+                        BookStatus = x.BookStatusId > 0 ? new TbBookStatus
+                        {
+                            BookStatusId = x.BookStatusId,
+                            Code = x.BookStatus.Code,
+                            Description = x.BookStatus.Description,
+                            Name = x.BookStatus.Name
+                        } : null,
+                        BookStatusId = x.BookStatusId,
+                        Cancellation = x.Cancellation,
+                        CancellationEnd = x.CancellationEnd,
+                        CancellationStart = x.CancellationStart,
+                        //CancellationUser = x.CancellationUser,
+                        CancellationUserId = x.CancellationUserId,
+                        Checkin = x.Checkin,
+                        Checkout = x.Checkout,
+                        Currency = new TCurrency
+                        {
+                            Code = x.Currency.Code,
+                            CountryCode = x.Currency.CountryCode,
+                            CurrencyId = x.CurrencyId,
+                            Name = x.Currency.Name,
+                            Symbol = x.Currency.Symbol
+                        },
+                        CurrencyId = x.CurrencyId,
+                        DaysToApproval = x.DaysToApproval,
+                        DepositSec = x.DepositSec,
+                        EndDate = x.EndDate,
+                        ExpiredDateTime = x.ExpiredDateTime,
+                        GuestCheckin = x.GuestCheckin,
+                        GuestCheckout = x.GuestCheckout,
+                        InitDate = x.InitDate,
+                        IsApprobal = x.IsApprobal,
+                        IsManualApprobal = x.IsManualApprobal,
+                        LastNameRenter = x.LastNameRenter,
+                        ListingRent = x.ListingRent,
+                        ListingRentId = x.ListingRentId,
+                        MaxCheckin = x.MaxCheckin,
+                        MountPerNight = x.MountPerNight,
+                        NameRenter = x.NameRenter,
+                        PaymentCode = x.PaymentCode,
+                        PaymentId = x.PaymentId,
+                        PayPriceCalculations = x.PayPriceCalculations.Any() ? new PayPriceCalculation[]{
+                            new PayPriceCalculation
+                            {
+                              Amount =  x.PayPriceCalculations.First().Amount,
+                              BreakdownInfo = x.PayPriceCalculations.First().BreakdownInfo,
+                              CalculationCode = x.PayPriceCalculations.First().CalculationCode,
+                              PaymentTransaction = x.PayPriceCalculations.First().PaymentTransaction,
+                              MethodOfPayment = x.PayPriceCalculations.First().MethodOfPayment,
+                              MethodOfPaymentId = x.PayPriceCalculations.First().MethodOfPaymentId,
+                              PaymentTransactionId = x.PayPriceCalculations.First().PaymentTransactionId,
+                              PaymentProvider = x.PayPriceCalculations.First().PaymentProvider,
+                              PaymentProviderId = x.PayPriceCalculations.First().PaymentProviderId,
+                            }
+                        } : null,
+                        PickUpLocation = x.PickUpLocation,
+                        Pk = x.Pk,
+                        ReasonRefused = x.ReasonRefusedId > 0 ? new TReasonRefusedBook
+                        {
+                            ReasonRefusedCode = x.ReasonRefused.ReasonRefusedCode,
+                            ReasonRefusedId = x.ReasonRefused.ReasonRefusedId,
+                            ReasonRefusedName = x.ReasonRefused.ReasonRefusedName,
+                            ReasonRefusedText = x.ReasonRefused.ReasonRefusedText
+                        } : null,
+                        ReasonRefusedId = x.ReasonRefusedId,
+                        StartDate = x.StartDate,
+
+                    })
+                    .ToListAsync();
+
+                //// Luego carga los BookStatus por separado si los necesitas
+                //var bookStatusIds = books.Select(b => b.BookStatusId).Distinct().ToList();
+                //var statusesDict = await _dbContext.TbBookStatuses
+                //    .Where(s => bookStatusIds.Contains(s.BookStatusId))
+                //    .ToDictionaryAsync(s => s.BookStatusId);
+
+                //// Asignar los BookStatus a cada libro
+                //foreach (var book in books)
+                //{
+                //    if (statusesDict.TryGetValue(book.BookStatusId, out var status))
+                //    {
+                //        status.TbBooks = null;
+                //        book.BookStatus = status;
+                //    }
+                //}
+
+                //if (books != null)
+                //{
+                //    foreach (var book in books)
+                //    {
+                //        if (book?.ListingRent?.TpProperties?.Count > 0)
+                //        {
+                //            foreach (var prop in book.ListingRent.TpProperties)
+                //            {
+                //                prop.TpPropertyAddresses = new List<TpPropertyAddress>
+                //                {
+                //                    new TpPropertyAddress
+                //                    {
+                //                        Address1 = prop.Address1,
+                //                        Address2 = prop.Address2,
+                //                        CityId = prop.CityId,
+                //                        CountyId = prop.CountyId,
+                //                        ZipCode = prop.ZipCode,
+                //                        StateId = prop.StateId,
+                //                        City = new TCity
+                //                        {
+                //                            CityId = prop.CityId??0,
+                //                            Name = prop.CityName,
+                //                            CountyId = prop.CountyId??0,
+                //                            County = new TCounty
+                //                            {
+                //                                CountyId = prop.CountyId ?? 0,
+                //                                Name = prop.CountyName,
+                //                                StateId = prop.StateId??0,
+                //                                State = new TState
+                //                                {
+                //                                    Name = prop.StateName,
+                //                                    StateId = prop.StateId ?? 0,
+                //                                    Country = new TCountry
+                //                                    {
+                //                                        Name = prop.CountryName,
+                //                                        CountryId = prop.CountryId ?? 0
+                //                                    }
+                //                                }
+                //                            }
+                //                        }
+                //                    }
+                //                };
+                //            }
+                //        }
+                //    }
+                //}
+
+                books = books.OrderByDescending(x => x.DatetimePayment).ToList();
+                return books ?? new List<TbBook>();
+                //throw new KeyNotFoundException($"No existen reservas para el  usuario con ID {userId}.");
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { userId });
+                throw new InfrastructureException(ex.Message);
+            }
+        }
+
         public async Task<long> UpsertBookAsync(TbBook incomingBook)
         {
             try
@@ -461,7 +624,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     if (incomingBook.InitDate.HasValue) existingBook.InitDate = incomingBook.InitDate;
                     if (!string.IsNullOrWhiteSpace(incomingBook.PaymentCode)) existingBook.PaymentCode = incomingBook.PaymentCode;
                     if (!string.IsNullOrWhiteSpace(incomingBook.Pk)) existingBook.Pk = incomingBook.Pk;
-                    if (!string.IsNullOrWhiteSpace(incomingBook.PaymentId)) existingBook.PaymentId = incomingBook.PaymentId;
+                    if (incomingBook.PaymentId > 0) existingBook.PaymentId = incomingBook.PaymentId;
                     if (incomingBook.DepositSec.HasValue) existingBook.DepositSec = incomingBook.DepositSec;
                     if (!string.IsNullOrWhiteSpace(incomingBook.PickUpLocation)) existingBook.PickUpLocation = incomingBook.PickUpLocation;
                     if (incomingBook.VggFee.HasValue) existingBook.VggFee = incomingBook.VggFee;
@@ -470,6 +633,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     if (incomingBook.Checkout.HasValue) existingBook.Checkout = incomingBook.Checkout;
                     if (incomingBook.CancellationStart.HasValue) existingBook.CancellationStart = incomingBook.CancellationStart;
                     if (incomingBook.CancellationEnd.HasValue) existingBook.CancellationEnd = incomingBook.CancellationEnd;
+                    if (incomingBook.DatetimePayment.HasValue) existingBook.DatetimePayment = incomingBook.DatetimePayment;
                 }
                 else //insert
                 {
@@ -980,6 +1144,11 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     return;
                 }
             }
+        }
+
+        public Task CancelOtherRequests(long listingRentId, DateTime startDate, DateTime endDate, long bookId)
+        {
+            throw new NotImplementedException();
         }
     }
 }

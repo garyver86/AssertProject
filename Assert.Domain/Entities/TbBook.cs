@@ -47,7 +47,7 @@ public partial class TbBook
 
     public string? Pk { get; set; }
 
-    public string? PaymentId { get; set; }
+    public long? PaymentId { get; set; }
 
     public decimal? DepositSec { get; set; }
 
@@ -90,6 +90,8 @@ public partial class TbBook
     public string? AuthTimeElapsed { get; set; }
 
     public DateTime? ReviewDateTime { get; set; }
+
+    public DateTime? DatetimePayment { get; set; }
 
     public virtual TbBookStatus BookStatus { get; set; } = null!;
 

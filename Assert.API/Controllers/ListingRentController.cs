@@ -345,6 +345,40 @@ namespace Assert.API.Controllers
         }
 
         /// <summary>
+        /// Servicio que recupera la lista de reviews recibidas por las propiedades de un host.
+        /// </summary>
+        /// <param name="userId">Id del host.</param>
+        /// <returns>Listado de reviews asociados a las propiedades de un host.</returns>
+        /// <response code="200">Si se procesó correctamente.</response>
+        /// <remarks>
+        /// </remarks>
+        [Authorize(Policy = "Guest")]
+        [HttpGet("Reviews/Host/{userId}")]
+        public async Task<ReturnModelDTO<List<ReviewDTO>>> GetHostReviews(int userId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            ReturnModelDTO<List<ReviewDTO>> result = await _appListingRentService.GetByOwnerId(userId, false, requestInfo);
+            return result;
+        }
+
+        /// <summary>
+        /// Servicio que devuelve los listing rent de un usuario en específico.
+        /// </summary>
+        /// <returns>Listado de listing rents (propiedades).</returns>
+        /// <response code="200">Si no existió un error al devolver las propiedades.</response>
+        /// <remarks>
+        /// No se devolveran los listing rents que se encuentren marcados como eliminados.
+        /// </remarks>
+        [HttpGet("User/{userId}")]
+        [Authorize(Policy = "GuestOrHost")]
+        public async Task<ReturnModelDTO<List<ListingRentDTO>>> Get(int userId)
+        {
+            var requestInfo = HttpContext.GetRequestInfo();
+            ReturnModelDTO<List<ListingRentDTO>> result = await _appListingRentService.GetByUserId(userId, requestInfo, true);
+            return result;
+        }
+
+        /// <summary>
         /// Servicio que recupera un resumen de reviews de un listing Rent.
         /// </summary>
         /// <param name="listingRentId">Id del linsting.</param>

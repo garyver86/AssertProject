@@ -3,7 +3,6 @@ using Assert.Domain.Models;
 using Assert.Domain.Models.Review;
 using Assert.Domain.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
@@ -26,6 +25,65 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             var result = await _context.TlListingReviews
                 .Include(x => x.User)
                 .Where(x => x.ListingRentId == listingRentId).ToListAsync();
+            return result;
+        }
+
+        public async Task<List<TlListingReview>> GetByOwnerId(int userId)
+        {
+            var result = await _context.TlListingReviews
+                .Include(x => x.ListingRent)
+                //.Include(x => x.Book)
+                .Include(x => x.ListingRent.OwnerUser)
+                .Include(x => x.ListingRent.TpProperties)
+                .Where(x => x.IsComplete == true && x.ListingRent != null && x.ListingRent.OwnerUserId == userId)
+                .OrderByDescending(x => x.DateTimeReview).ToListAsync();
+            if (result != null)
+            {
+                result = result.ToList();
+                foreach (var review in result.ToList())
+                {
+                    if (review.ListingRent != null)
+                    {
+                        foreach (var prop in review.ListingRent.TpProperties?.ToList())
+                        {
+                            prop.TpPropertyAddresses = new List<TpPropertyAddress>
+                            {
+                                new TpPropertyAddress
+                                {
+                                    Address1 = prop.Address1,
+                                    Address2 = prop.Address2,
+                                    CityId = prop.CityId,
+                                    CountyId = prop.CountyId,
+                                    ZipCode = prop.ZipCode,
+                                    StateId = prop.StateId,
+                                    City = new TCity
+                                    {
+                                        CityId = prop.CityId??0,
+                                        Name = prop.CityName,
+                                        CountyId = prop.CountyId??0,
+                                        County = new TCounty
+                                        {
+                                            CountyId = prop.CountyId ?? 0,
+                                            Name = prop.CountyName,
+                                            StateId = prop.StateId??0,
+                                            State = new TState
+                                            {
+                                                Name = prop.StateName,
+                                                StateId = prop.StateId ?? 0,
+                                                Country = new TCountry
+                                                {
+                                                    Name = prop.CountryName,
+                                                    CountryId = prop.CountryId ?? 0
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            };
+                        }
+                    }
+                }
+            }
             return result;
         }
 

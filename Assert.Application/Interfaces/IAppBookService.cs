@@ -15,6 +15,7 @@ namespace Assert.Application.Interfaces
 
         Task<ReturnModelDTO<BookDTO>> GetBookByIdAsync(long bookId);
         Task<ReturnModelDTO<List<BookDTO>>> GetBooksByOwnerIdAsync(string statusCode);
+        Task<ReturnModelDTO<List<BookDTO>>> GetPayedsByOwnerId(int userId);
         Task<ReturnModelDTO<List<BookDTO>>> GetBooksByUserIdAsync(string statusCode);
         Task<ReturnModelDTO<BookDTO>> SimulatePayment(PaymentModel request, int userId, Dictionary<string, string> requestInfo, bool useTechnicalMessages);
         Task<ReturnModelDTO<List<BookDTO>>> GetBooksWithoutReviewByUser(int userId);

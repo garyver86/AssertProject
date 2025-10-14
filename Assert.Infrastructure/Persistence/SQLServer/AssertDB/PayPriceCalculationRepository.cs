@@ -147,36 +147,39 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         public async Task<ReturnModel> SetAsPayed(Guid calculationCode, int paymentProviderId, int methodOfPaymentId,
             long PaymentTransactionId)
         {
-            var priceCalculation = await _context.PayPriceCalculations.Where(x => x.CalculationCode == calculationCode).FirstOrDefaultAsync();
-            if (priceCalculation != null)
+            using (var context = new InfraAssertDbContext(dbOptions))
             {
-                var status = await _context.PayPriceCalculationStatuses.FirstOrDefaultAsync(x => x.PriceCalculationStatusCode == "PAYED");
+                var priceCalculation = await context.PayPriceCalculations.Where(x => x.CalculationCode == calculationCode).FirstOrDefaultAsync();
+                if (priceCalculation != null)
+                {
+                    var status = await context.PayPriceCalculationStatuses.FirstOrDefaultAsync(x => x.PriceCalculationStatusCode == "PAYED");
 
-                priceCalculation.CalculationStatue = status.PriceCalculationStatusCode;
-                priceCalculation.CalculationStatusId = status.PayPriceCalculationStatus1;
-                priceCalculation.PaymentProviderId = paymentProviderId;
-                priceCalculation.MethodOfPaymentId = methodOfPaymentId;
-                priceCalculation.PaymentTransactionId = PaymentTransactionId;
-                //_context.PayPriceCalculations.Update(priceCalculation);
-                await _context.SaveChangesAsync();
-                return new ReturnModel
-                {
-                    HasError = false,
-                    StatusCode = ResultStatusCode.OK
-                };
-            }
-            else
-            {
-                return new ReturnModel<PayPriceCalculation>
-                {
-                    HasError = false,
-                    StatusCode = ResultStatusCode.BadRequest,
-                    ResultError = new ErrorCommon
+                    priceCalculation.CalculationStatue = status.PriceCalculationStatusCode;
+                    priceCalculation.CalculationStatusId = status.PayPriceCalculationStatus1;
+                    priceCalculation.PaymentProviderId = paymentProviderId;
+                    priceCalculation.MethodOfPaymentId = methodOfPaymentId;
+                    priceCalculation.PaymentTransactionId = PaymentTransactionId;
+                    //_context.PayPriceCalculations.Update(priceCalculation);
+                    await context.SaveChangesAsync();
+                    return new ReturnModel
                     {
-                        Code = "PAY_PRICE_CALCULATION_EXISTS",
-                        Message = "la cotización no puede ser encontrada."
-                    }
-                };
+                        HasError = false,
+                        StatusCode = ResultStatusCode.OK
+                    };
+                }
+                else
+                {
+                    return new ReturnModel<PayPriceCalculation>
+                    {
+                        HasError = false,
+                        StatusCode = ResultStatusCode.BadRequest,
+                        ResultError = new ErrorCommon
+                        {
+                            Code = "PAY_PRICE_CALCULATION_EXISTS",
+                            Message = "la cotización no puede ser encontrada."
+                        }
+                    };
+                }
             }
         }
 

@@ -137,6 +137,20 @@ namespace Assert.API.Controllers
         => await _bookService.GetBooksByOwnerIdAsync(statusCode);
 
         /// <summary>
+        /// Servicio que recupera una lista de reservas pagadas del un usuario owner.
+        /// </summary>
+        /// <returns>Confirmación de la actualizacion: retorna la informacion completa de las reservas del usuario</returns>
+        /// <response code="200">Si se proceso correctamente.</response>
+        /// <remarks>
+        /// En caso que no existan reservas para el usuario retorna error. 
+        /// </remarks>
+        [HttpGet("GetBooksPayeds/{userId}")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> GetBooksPayeds(int userId)
+        => await _bookService.GetPayedsByOwnerId(userId);
+
+
+        /// <summary>
         /// Servicio que devuelve rechaza una solicitud de reserva
         /// </summary>
         /// <returns></returns>
