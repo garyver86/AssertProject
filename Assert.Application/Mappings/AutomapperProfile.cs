@@ -139,7 +139,7 @@ namespace Assert.Application.Mappings
                 .ForMember(dest => dest.CheckinStatus, opt => opt.MapFrom(src => src.Checkin < DateTime.UtcNow))
                 .ForMember(dest => dest.CheckoutStatus, opt => opt.MapFrom(src => src.Checkout < DateTime.UtcNow))
                 .ReverseMap();
-
+            CreateMap<TbBook, BookV2DTO>();
             CreateMap<TlListingRent, ListingRentDTO>()
                 .ForMember(dest => dest.ApprovalPolicy, opt => opt.MapFrom(src => src.ApprovalPolicyType))
                 .ForMember(dest => dest.ApprovalPolicy, opt => opt.MapFrom(src => src.ApprovalPolicyType))
@@ -161,6 +161,10 @@ namespace Assert.Application.Mappings
                 //.ForMember(dest => dest.Valoration, opt => opt.MapFrom(src => src.TlListingReviews.Select(y=>y.Calification).Average()));
                 .ForMember(dest => dest.Valoration, opt => opt.MapFrom(src => UtilsMgr.CalculateAverageCalification(src.AvgReviews, src.TlListingReviews)));
 
+            CreateMap<TlListingRent, ListingRentV2DTO>()
+                .ForMember(dest => dest.Owner, opt => opt.MapFrom(src => src.OwnerUser))
+                //.ForMember(dest => dest.Books, opt => opt.MapFrom(src => src.TbBooks))
+                .ForMember(dest => dest.Property, opt => opt.MapFrom(src => src.TpProperties.FirstOrDefault()));
             CreateMap<TlListingRent, ListingRentResumeDTO>()
                 .ForMember(dest => dest.Property, opt => opt.MapFrom(src => src.TpProperties.FirstOrDefault()))
                 .ForMember(dest => dest.Price, opt => opt.MapFrom(src => src.TlListingPrices.FirstOrDefault()));
@@ -178,6 +182,8 @@ namespace Assert.Application.Mappings
             CreateMap<TlAccommodationType, AccomodationTypeDTO>();
             CreateMap<PayPriceCalculation, PayPriceCalculationDTO>();
             CreateMap<PayPriceCalculationStatus, PriceCalculationStatusDTO>();
+            CreateMap<PayProvider, PayProviderDTO>();
+            CreateMap<PayTransaction, PayTransactionDTO>();
             CreateMap<PayPriceCalculation, PayPriceCalculationCompleteDTO>()
                .ForMember(dest => dest.PriceCalculation, opt => opt.MapFrom(src => src))
                .ForMember(dest => dest.PriceBreakdowns, opt => opt.MapFrom(src => src.BreakdownInfo != null ? JsonConvert.DeserializeObject<List<PriceBreakdownItemDTO>>(src.BreakdownInfo) : null));

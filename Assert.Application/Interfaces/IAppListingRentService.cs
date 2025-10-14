@@ -25,6 +25,7 @@ namespace Assert.Application.Interfaces
         Task<List<ReturnModelDTO>> UploadImages(IEnumerable<IFormFile> imageFiles, Dictionary<string, string> clientData);
         Task<(ReturnModelDTO<List<ListingRentDTO>>, PaginationMetadataDTO)> GetFeaturedListings(long userId, int? countryId, int pageNumber, int pageSize, Dictionary<string, string> requestInfo);
         Task<ReturnModelDTO<List<ListingRentDTO>>> GetByOwner(Dictionary<string, string> requestInfo, bool useTechnicalMessages);
+        Task<ReturnModelDTO<List<ListingRentDTO>>> GetByUserId(int userId, Dictionary<string, string> clientData, bool userTechnicalMessages);
         Task<ReturnModelDTO<List<PhotoDTO>>> GetPhotoByListigRent(long listinRentId, Dictionary<string, string> requestInfo, bool useTechnicalMessages);
         Task<ReturnModelDTO<List<ReviewDTO>>> GetListingRentReviews(int listingRentId, bool UseTechnicalMessages, Dictionary<string, string> requestInfo);
         Task<ReturnModelDTO<ListingReviewSummaryDTO>> GetListingRentReviewsSummary(long listingRentId, int topCount, bool UseTechnicalMessages, Dictionary<string, string> requestInfo); Task<ReturnModelDTO> DeletePhoto(long listingRentId, int photoId, Dictionary<string, string> requestInfo);
@@ -85,5 +86,6 @@ namespace Assert.Application.Interfaces
             UpsertAdditionalFeeRequestDTO request);
         Task<ReturnModelDTO<List<ListingAdditionalFeeDTO>>> GetAdditionalFee(
             long listingRentId);
+        Task<ReturnModelDTO<List<ReviewDTO>>> GetByOwnerId(int userId, bool UseTechnicalMessages, Dictionary<string, string> requestInfo);
     }
 }

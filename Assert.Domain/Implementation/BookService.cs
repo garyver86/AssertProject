@@ -16,6 +16,7 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Transactions;
 using static Azure.Core.HttpHeader;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace Assert.Domain.Implementation
 {
@@ -552,11 +553,11 @@ namespace Assert.Domain.Implementation
                     Checkin = checInOutValues.CheckIn,
                     Checkout = checInOutValues.CheckOut,
                     MaxCheckin = checInOutValues.MaxCheckIn,
-                    PaymentId = "",
                     CancellationStart = checInOutValues.CancellationStart,
                     CancellationEnd = checInOutValues.CancellationEnd,
                     ExistPet = priceCalculation.ExistPet,
-                    Gests = priceCalculation.Guests
+                    Gests = priceCalculation.Guests,
+                    DatetimePayment = DateTime.UtcNow,
                 };
 
                 long bookId = await _bookRepository.UpsertBookAsync(booking);
@@ -581,10 +582,15 @@ namespace Assert.Domain.Implementation
                 booking = await _bookRepository.GetByIdAsync(transaction.BookingId ?? 0);
                 booking.BookStatusId = 3; // Confirmado
                 booking.PaymentCode = paymentRequest.OrderCode;
+                booking.DatetimePayment = DateTime.UtcNow;
                 await _bookRepository.UpsertBookAsync(booking);
             }
             long savedTransaction = await _payTransactionRepository.Create(transaction);
-
+            if(savedTransaction > 0)
+            {
+                booking.PaymentId = savedTransaction;
+                await _bookRepository.UpsertBookAsync(booking);
+            }
             List<DateOnly> dates = new List<DateOnly>();
 
             for (var date = booking.StartDate; date <= booking.EndDate; date = date.AddDays(1))
@@ -905,6 +911,40 @@ namespace Assert.Domain.Implementation
         public async Task<TbBook> AuthorizationResponse(int userId, long bookId, bool isApproval, int? reasonRefused)
         {
             var result = await _bookRepository.AuthorizationResponse(userId, bookId, isApproval, reasonRefused);
+
+            //Despues de que se aprueba la reserva, se deben bloquear los días en el calendario            
+
+            List<DateOnly> dates = new List<DateOnly>();
+
+            for (var date = result.StartDate; date <= result.EndDate; date = date.AddDays(1))
+            {
+                dates.Add(DateOnly.FromDateTime(date));
+            }
+
+            var resultBlock = await _listingCalendarRepository.BulkBlockDaysAsync(result.ListingRentId, dates, 4, "Alquiler aprobado", result.BookId, null);
+
+            if (result.ListingRent?.PreparationDays > 0)
+            {
+                DateTime initPreparation = result.EndDate.AddDays(1);
+                DateTime endPreparation = result.EndDate.AddDays(result.ListingRent?.PreparationDays ?? 1);
+                List<DateOnly> preparationDates = new List<DateOnly>();
+
+                for (var date = initPreparation; date <= endPreparation; date = date.AddDays(1))
+                {
+                    preparationDates.Add(DateOnly.FromDateTime(date));
+                }
+                var resultBlockPreparation = await _listingCalendarRepository.BulkBlockDaysAsync(result.ListingRentId, preparationDates, 4, "Alquiler aprobado (Preparación)", result.BookId, null);
+            }
+
+            //Cancelar las más solicitudes que se hayan hecho para las mismas fechas (o que alguna fecha coincida con las fechas de esta
+            //reserva)
+            try
+            {
+                await _bookRepository.CancelOtherRequests(result.ListingRentId, result.StartDate, result.EndDate, result.BookId);
+            }
+            catch (Exception e){
+                int i = 0;
+            }
             return result;
         }
 

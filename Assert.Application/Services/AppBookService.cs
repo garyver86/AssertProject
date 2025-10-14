@@ -140,6 +140,37 @@ namespace Assert.Application.Services
             };
         }
 
+        public async Task<ReturnModelDTO<List<BookDTO>>> GetPayedsByOwnerId(int userId)
+        {
+            var books = await _bookRespository.GetPayedsByOwnerId(userId);
+
+            if (!(books is { Count: > 0 }))
+                throw new KeyNotFoundException($"No existen reservas del usuario con ID {userId}.");
+
+            string _basePath = await _systemConfigurationRepository.GetListingResourcePath();
+            _basePath = _basePath.Replace("\\", "/").Replace("wwwroot/Assert/", "");
+            foreach (var book in books)
+            {
+                if (book.ListingRent?.TlListingPhotos?.Count > 0)
+                {
+                    foreach (var item in book.ListingRent?.TlListingPhotos)
+                    {
+                        item.PhotoLink = $"{requestContext.HttpContext?.Request.Scheme}://{requestContext.HttpContext?.Request.Host}/{_basePath}/{item.Name}";
+                    }
+
+                }
+            }
+
+            var bookDtos = _mapper.Map<List<BookDTO>>(books);
+
+            return new ReturnModelDTO<List<BookDTO>>
+            {
+                Data = bookDtos,
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
+        }
+
         public async Task<ReturnModelDTO<List<BookDTO>>> GetBooksByUserIdAsync(string statusCode)
         {
             List<TbBookStatus> statusList = null;

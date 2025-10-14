@@ -19,5 +19,6 @@ namespace Assert.Domain.Repositories
         Task<int> GetAnsweredQuestionsCountAsync(long bookid);
         Task UpdateReviewsAverage(long listingRentId);
         Task<ListingReviewResume> GetreviewAverageByListing(long listingRentId);
+        Task<List<TlListingReview>> GetByOwnerId(int userId);
     }
 }

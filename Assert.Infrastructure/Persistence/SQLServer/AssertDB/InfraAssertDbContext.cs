@@ -1548,6 +1548,9 @@ public partial class InfraAssertDbContext : DbContext
                 .HasColumnType("datetime")
                 .HasColumnName("checkout");
             entity.Property(e => e.CurrencyId).HasColumnName("currencyId");
+            entity.Property(e => e.DatetimePayment)
+                .HasColumnType("datetime")
+                .HasColumnName("datetimePayment");
             entity.Property(e => e.DepositSec)
                 .HasColumnType("decimal(18, 2)")
                 .HasColumnName("depositSec");
@@ -1588,10 +1591,7 @@ public partial class InfraAssertDbContext : DbContext
                 .HasMaxLength(200)
                 .IsUnicode(false)
                 .HasColumnName("payment_code");
-            entity.Property(e => e.PaymentId)
-                .HasMaxLength(100)
-                .IsUnicode(false)
-                .HasColumnName("paymentId");
+            entity.Property(e => e.PaymentId).HasColumnName("paymentId");
             entity.Property(e => e.PickUpLocation)
                 .HasMaxLength(50)
                 .IsUnicode(false)

@@ -19,4 +19,6 @@ public interface IBookRepository
     Task CheckAndExpireReservation(DateTime expirationThreshold);
     Task CheckAndFinishReservation(DateTime expirationThreshold);
     Task SetReviewDateTime(long bookId);
+    Task CancelOtherRequests(long listingRentId, DateTime startDate, DateTime endDate, long bookId);
+    Task<List<TbBook>> GetPayedsByOwnerId(long userId);
 }

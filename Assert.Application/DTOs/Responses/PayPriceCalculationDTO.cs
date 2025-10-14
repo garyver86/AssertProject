@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assert.Domain.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -41,9 +42,58 @@ namespace Assert.Application.DTOs.Responses
         public ReasonRefusedConsultDTO? ReasonRefused { get; set; }
 
         //public virtual UserDTO User { get; set; }
-        //public virtual PayMethodOfPayment? MethodOfPayment { get; set; }
-        //public virtual PayProvider? PaymentProvider { get; set; }
-        //public virtual PayTransaction? PaymentTransaction { get; set; }
+        public virtual PayMethodOfPaymentDTO? MethodOfPayment { get; set; }
+        public virtual PayProviderDTO? PaymentProvider { get; set; }
+        public virtual PayTransactionDTO? PaymentTransaction { get; set; }
+    }
+
+    public class PayProviderDTO
+    {
+        public int ProviderId { get; set; }
+
+        public string ProviderName { get; set; } = null!;
+
+        public string? ProviderDescription { get; set; }
+
+
+        public bool Active { get; set; }
+
+
+        public string? ResponseType { get; set; }
+
+        public string? ProviderCode { get; set; }
+    }
+    public class PayTransactionDTO
+    {
+        public long PayTransactionId { get; set; }
+
+        public string OrderCode { get; set; } = null!;
+
+        public string Stan { get; set; } = null!;
+
+        public long? BookingId { get; set; }
+
+        public decimal Amount { get; set; }
+
+        public string CurrencyCode { get; set; } = null!;
+
+        public int MethodOfPaymentId { get; set; }
+
+        public int PaymentProviderId { get; set; }
+
+        public int CountryId { get; set; }
+
+        public string TransactionStatusCode { get; set; } = null!;
+
+        public string TransactionStatus { get; set; } = null!;
+
+        //public string? PaymentData { get; set; }
+
+        //public string? TransactionData { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        public DateTime? CupdatedAt { get; set; }
     }
     public class PriceBreakdownItemDTO
     {

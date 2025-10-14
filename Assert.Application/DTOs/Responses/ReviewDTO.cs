@@ -14,7 +14,9 @@ public class ReviewDTO
     public int UserId { get; set; }
     public long ListingRentId { get; set; }
     public long? BookId { get; set; }
-    public virtual ICollection<ReviewQuestionAnswerDTO> ReviewQuestions { get; set; } = new List<ReviewQuestionAnswerDTO>();
+    public virtual List<ReviewQuestionAnswerDTO> ReviewQuestions { get; set; } = new List<ReviewQuestionAnswerDTO>();
+    //public virtual BookV2DTO? Book { get; set; }
+    public virtual ListingRentV2DTO? ListingRent { get; set; } = null!;
 }
 public class ReviewQuestionDTO
 {

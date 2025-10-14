@@ -109,4 +109,95 @@ public class BookDTO
     public DateTime? ReviewDateTime { get; set; }
     public bool CheckinStatus { get; set; }
     public bool CheckoutStatus { get; set; }
+    public List<PayPriceCalculationCompleteDTO> PayPriceCalculations { get; set; }
+}
+public class BookV2DTO
+{
+    public long BookId { get; set; }
+
+    public long ListingRentId { get; set; }
+
+    public int UserIdRenter { get; set; }
+
+    public DateTime StartDate { get; set; }
+
+    public DateTime EndDate { get; set; }
+
+    public decimal AmountTotal { get; set; }
+
+    public int CurrencyId { get; set; }
+
+    public decimal? MountPerNight { get; set; }
+
+    public decimal? AmountFees { get; set; }
+
+    public string NameRenter { get; set; } = null!;
+
+    public string LastNameRenter { get; set; } = null!;
+
+    public bool? TermsAccepted { get; set; }
+
+    public string? AdditionalInfo { get; set; }
+
+    public int BookStatusId { get; set; }
+
+    public bool? IsApprobal { get; set; }
+
+    public string? ApprovalDetails { get; set; }
+
+    public bool? IsManualApprobal { get; set; }
+
+    public int? DaysToApproval { get; set; }
+
+    public DateTime? InitDate { get; set; }
+
+    public string? PaymentCode { get; set; }
+
+    public string? Pk { get; set; }
+
+    public string? PaymentId { get; set; }
+
+    public decimal? DepositSec { get; set; }
+
+    public string? PickUpLocation { get; set; }
+
+    public decimal? VggFee { get; set; }
+
+    public decimal? VggFeePercent { get; set; }
+
+    public DateTime? Checkin { get; set; }
+
+    public DateTime? Checkout { get; set; }
+
+    public DateTime? MaxCheckin { get; set; }
+
+    public DateTime? GuestCheckin { get; set; }
+
+    public DateTime? GuestCheckout { get; set; }
+
+    public DateTime? CancellationStart { get; set; }
+
+    public DateTime? CancellationEnd { get; set; }
+
+    public DateTime? Cancellation { get; set; }
+
+    public int? CancellationUserId { get; set; }
+
+    public int? ReasonRefusedId { get; set; }
+
+    public DateTime? RequestDateTime { get; set; }
+
+    public DateTime? ExpiredDateTime { get; set; }
+
+    public int? Gests { get; set; }
+
+    public bool? ExistPet { get; set; }
+    
+    public DateTime? AuthorizationDateTime { get; set; }
+
+    public string? AuthTimeElapsed { get; set; }
+
+    public DateTime? ReviewDateTime { get; set; }
+    public bool CheckinStatus { get; set; }
+    public bool CheckoutStatus { get; set; }
 }
