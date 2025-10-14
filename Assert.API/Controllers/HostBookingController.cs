@@ -1,4 +1,5 @@
-﻿using Assert.Application.DTOs.Responses;
+﻿using Assert.Application.DTOs.Requests;
+using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
 using Assert.Domain.Common.Metadata;
 using Assert.Domain.Services;
@@ -165,5 +166,55 @@ namespace Assert.API.Controllers
             var result = await _appBookService.ConsultingResponse(_metadata.UserId, priceCalculationId, false, reasonRefused);
             return result;
         }
+
+        /// <summary>
+        /// Registra o actualiza la cancelación de una reserva por parte del host.
+        /// </summary>
+        /// <param name="bookId">Identificador único de la reserva afectada.</param>
+        /// <param name="request">Objeto <see cref="UpsertHostBookCancellationRequestDTO"/> que contiene los detalles de la cancelación.</param>
+        /// <returns>
+        /// Resultado de la operación como texto, encapsulado en un ReturnModelDTO.Data string: SAVED.
+        /// </returns>
+        /// <response code="200">OK: La cancelación fue registrada o actualizada correctamente.</response>
+        /// <response code="400">BAD REQUEST: Datos inválidos o inconsistentes en la solicitud.</response>
+        /// <response code="401">UNAUTHORIZED: El usuario no tiene permisos para realizar esta acción.</response>
+        /// <response code="500">INTERNAL SERVER ERROR: Error inesperado durante el procesamiento.</response>
+        /// <remarks>
+        /// Características del servicio:
+        /// - Permite registrar o modificar una cancelación iniciada por el host.
+        /// - Requiere el motivo de cancelación y mensajes opcionales para el huésped.
+        /// - El campo <c>BookCancellationId</c> determina si se trata de una inserción o actualización.
+        /// - El campo <c>MessageTo</c> puede usarse para direccionar el mensaje al huésped.
+        /// </remarks>
+        [HttpPut]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("{bookId}/UpsertHostBookCancellation")]
+        public async Task<ReturnModelDTO<string>> UpsertHostBookCancellation(long bookId,
+            [FromBody] UpsertHostBookCancellationRequestDTO request)
+        => await _bookService.UpsertHostBookCancellation(request);
+
+        /// <summary>
+        /// Recupera la lista de cancelaciones realizadas por el host para una reserva específica.
+        /// </summary>
+        /// <param name="bookId">Identificador único de la reserva.</param>
+        /// <returns>
+        /// Lista de objetos <see cref="BookCancellationDTO"/> que representan las cancelaciones registradas por el host,
+        /// encapsulada en un <see cref="ReturnModelDTO&lt;List&lt;BookCancellationDTO&gt;&gt;"/>.
+        /// </returns>
+        /// <response code="200">OK: La lista de cancelaciones fue obtenida correctamente.</response>
+        /// <response code="400">BAD REQUEST: El identificador de reserva es inválido o no existe.</response>
+        /// <response code="401">UNAUTHORIZED: El usuario no tiene permisos para acceder a esta información.</response>
+        /// <response code="500">INTERNAL SERVER ERROR: Se produjo un error inesperado durante la operación.</response>
+        /// <remarks>
+        /// Características del servicio:
+        /// - Devuelve todas las cancelaciones registradas por el host para la reserva indicada.
+        /// - Cada elemento incluye motivo, mensajes y metadatos asociados.
+        /// - Útil para auditar el historial de cancelaciones o validar el estado actual.
+        /// </remarks>
+        [HttpGet]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("{bookId}/GetHostBookCancellation")]
+        public async Task<ReturnModelDTO<List<BookCancellationDTO>>> GetHostBookCancellation(long bookId)
+        => await _bookService.GetHostBookCancellation(bookId);
     }
 }

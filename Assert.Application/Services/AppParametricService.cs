@@ -14,6 +14,7 @@ namespace Assert.Application.Services
     public class AppParametricService(IParametricService _parametricService,
         ICurrencyRespository _currencyRepository,
         IAdditionalFeeRepository _additionalFeeRespository,
+        IBookCancellationReasonRepository _cancellationReasonRespository,
         IMapper _mapper, IErrorHandler _errorHandler,
         IExceptionLoggerService _exceptionLoggerService)
         : IAppParametricService
@@ -381,6 +382,23 @@ namespace Assert.Application.Services
                     ResultError = _mapper.Map<ErrorCommonDTO>(aditionalFees.ResultError)
                 };
             }
+        }
+
+        public async Task<ReturnModelDTO<List<BookCancellationReasonDTO>>> GetCancellationReason(
+            string cancellationTypeCode, int cancellationReasonOwnerId)
+        {
+            var bookCancellationReasonList = cancellationReasonOwnerId == 0 ?
+                await _cancellationReasonRespository.GetFisrtStep(cancellationTypeCode) 
+                : await _cancellationReasonRespository.GetNextStep(cancellationReasonOwnerId);
+
+            var bookCancellationReasonListResult = _mapper.Map<List<BookCancellationReasonDTO>>(bookCancellationReasonList);
+
+            return new ReturnModelDTO<List<BookCancellationReasonDTO>>
+            {
+                Data = bookCancellationReasonListResult,
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
         }
     }
 }

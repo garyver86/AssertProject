@@ -829,6 +829,7 @@ public partial class InfraAssertDbContext : DbContext
                 .HasDefaultValue(true)
                 .HasColumnName("isActive");
             entity.Property(e => e.ParentId).HasColumnName("parentId");
+            entity.Property(e => e.ParentId).HasColumnName("parentId");
             entity.Property(e => e.ReasonAdditionalText)
                 .HasMaxLength(560)
                 .IsUnicode(false)

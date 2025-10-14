@@ -29,6 +29,8 @@ namespace Assert.Application.Services
         ISystemConfigurationRepository _systemConfigurationRepository,
         IMessagePredefinedRepository _messagePredefinedRepository,
         IAppMessagingService _appMessagingService,
+        IBookCancellationRepository _bookCancellationRepository,
+        IBookCancellationReasonRepository _bookCancellationReasonRepository,
         IHttpContextAccessor requestContext) : IAppBookService
     {
         public async Task<ReturnModelDTO<(PayPriceCalculationDTO, List<PriceBreakdownItemDTO>)>> CalculatePrice(
@@ -631,5 +633,43 @@ namespace Assert.Application.Services
             }
         }
 
+        public async Task<ReturnModelDTO<string>> UpsertHostBookCancellation(
+            UpsertHostBookCancellationRequestDTO request)
+        {
+            var result = await _bookCancellationRepository.UpsertHostBookCancellation(
+                request.BookCancellationId, request.BookId, request.CancellationReasonId,
+                request.MessageTo, request.Message);
+
+            return new ReturnModelDTO<string>
+            {
+                HasError = false,
+                StatusCode = ResultStatusCode.OK,
+                Data = result
+            };
+        }
+
+        public async Task<ReturnModelDTO<List<BookCancellationDTO>>> GetHostBookCancellation(long bookId)
+        {
+            var bookCancellations = await _bookCancellationRepository.GetHostBookCancellations(bookId);
+
+            var bookCancellationReasons = await _bookCancellationReasonRepository.GetParents(
+                bookCancellations.First().CancellationReasonId!.Value);
+
+            foreach (var bcancellation in bookCancellations)
+                bookCancellationReasons.Add(bcancellation.CancellationReason!);
+
+            var results = _mapper.Map<List<BookCancellationDTO>>(bookCancellations);
+            var bcancellationReasonResult = _mapper.Map<List<BookCancellationReasonDTO>>(bookCancellationReasons);
+            
+            foreach (var item in results)
+                item.CancellationFlow = bcancellationReasonResult;
+
+            return new ReturnModelDTO<List<BookCancellationDTO>>
+            {
+                HasError = false,
+                StatusCode = ResultStatusCode.OK,
+                Data = results
+            };
+        }
     }
 }
