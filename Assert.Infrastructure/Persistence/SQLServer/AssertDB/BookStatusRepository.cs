@@ -34,6 +34,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 var statuses = await dbContext.TbBookStatuses
                     .FirstOrDefaultAsync(x=>x.Code == statusCode);
 
+                if(statuses is null)
+                    throw new NotFoundException($"No existe el estado de reserva con codigo: {statusCode}");
+
                 return statuses;
             }
         }

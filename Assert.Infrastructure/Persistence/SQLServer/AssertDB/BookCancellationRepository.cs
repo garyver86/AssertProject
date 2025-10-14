@@ -9,7 +9,8 @@ using Microsoft.EntityFrameworkCore;
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB;
 
 public class BookCancellationRepository
-    (IExceptionLoggerService _exceptionLoggerService,
+    (IBookStatusRepository _bookStatusRepository, 
+    IExceptionLoggerService _exceptionLoggerService,
     InfraAssertDbContext _dbContext,
     RequestMetadata _metadata)
     : IBookCancellationRepository
@@ -57,6 +58,9 @@ public class BookCancellationRepository
                     bookCancellation.MessageToHost = message;
                 bookCancellation.CreatedAt = DateTime.UtcNow;
             }
+
+            var statusNonApproved = await _bookStatusRepository.GetStatusByCode("non_approved");
+            book.BookStatusId = statusNonApproved.BookStatusId;
 
             await _dbContext.SaveChangesAsync();
 
