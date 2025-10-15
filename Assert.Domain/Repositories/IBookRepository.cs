@@ -1,4 +1,5 @@
 ﻿using Assert.Domain.Entities;
+using Assert.Domain.Models.Dashboard;
 
 namespace Assert.Domain.Repositories;
 
@@ -21,4 +22,5 @@ public interface IBookRepository
     Task SetReviewDateTime(long bookId);
     Task CancelOtherRequests(long listingRentId, DateTime startDate, DateTime endDate, long bookId);
     Task<List<TbBook>> GetPayedsByOwnerId(long userId);
+    Task<DashboardInfo> GetDashboardInfo(int year, int? month);
 }

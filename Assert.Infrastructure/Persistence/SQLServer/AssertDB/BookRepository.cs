@@ -1,5 +1,7 @@
-﻿using Assert.Domain.Entities;
+﻿using Assert.Domain.Common.Metadata;
+using Assert.Domain.Entities;
 using Assert.Domain.Interfaces.Logging;
+using Assert.Domain.Models.Dashboard;
 using Assert.Domain.Repositories;
 using Assert.Infrastructure.Exceptions;
 using Assert.Infrastructure.Utils;
@@ -11,7 +13,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
     public class BookRepository(
         InfraAssertDbContext _dbContext,
-        IExceptionLoggerService _exceptionLoggerService, IServiceProvider serviceProvider)
+        RequestMetadata _metadata,
+        IExceptionLoggerService _exceptionLoggerService, 
+        IServiceProvider serviceProvider)
         : IBookRepository
     {
         private readonly DbContextOptions<InfraAssertDbContext> dbOptions = serviceProvider.GetRequiredService<DbContextOptions<InfraAssertDbContext>>();
@@ -423,7 +427,6 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-
         public async Task<List<TbBook>> GetPayedsByOwnerId(long userId)
         {
             try
@@ -802,7 +805,6 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             }
         }
 
-
         public async Task<List<TbBook>> GetPendingAcceptanceForRenter(int userId)
         {
             using (var context = new InfraAssertDbContext(dbOptions))
@@ -869,7 +871,6 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 return booksWithoutAcceptation;
             }
         }
-
 
         public async Task<List<TbBook>> GetApprovedsWOInit(int userId)
         {
@@ -1046,7 +1047,6 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
         }
 
-
         public async Task<TbBook> AuthorizationResponse(int userId, long bookId, bool isApproval, int? reasonRefused)
         {
             var existingBook = await _dbContext.TbBooks.Include(x => x.ListingRent).Where(x => x.BookId == bookId).FirstOrDefaultAsync();
@@ -1149,6 +1149,37 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         public Task CancelOtherRequests(long listingRentId, DateTime startDate, DateTime endDate, long bookId)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<DashboardInfo> GetDashboardInfo(int year, int? month)
+        {
+            try
+            {
+                using var dbContext = new InfraAssertDbContext(dbOptions);
+
+                var books = await dbContext.TbBooks
+                    .Include(b => b.BookStatus)
+                    .Where(b => b.ListingRent.OwnerUserId == _metadata.UserId)
+                    .ToListAsync();
+
+                //var totalPaid = month is null ? books.Where(b => b.BookStatus.Code == "")
+
+                var result = new DashboardInfo
+                {
+                    FilterMode = month is null ? FilterMode.Year : FilterMode.YearAndMonth,
+                    Month = month,
+                    Year = year,
+
+                };
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { year, month });
+                throw new InfrastructureException(ex.Message);
+            }
         }
     }
 }
