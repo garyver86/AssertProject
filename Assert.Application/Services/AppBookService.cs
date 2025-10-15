@@ -672,17 +672,6 @@ namespace Assert.Application.Services
             };
         }
     
-        public async Task<ReturnModelDTO<DashboardInfoDTO>> GetDashboardInfo(int year, int? month)
-        {
-            var dashboardInfo = await _bookRespository.GetDashboardInfo(year, month);
-            var dashboardInfoDto = _mapper.Map<DashboardInfoDTO>(dashboardInfo);
-
-            return new ReturnModelDTO<DashboardInfoDTO>
-            {
-                Data = dashboardInfoDto,
-                HasError = false,
-                StatusCode = ResultStatusCode.OK
-            };
-        }
+        
     }
 }

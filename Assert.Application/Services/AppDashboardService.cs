@@ -2,10 +2,11 @@
 using Assert.Application.DTOs.Responses;
 using Assert.Application.Interfaces;
 using Assert.Domain.Common.Metadata;
+using Assert.Domain.Models;
 using Assert.Domain.Models.Dashboard;
+using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using AutoMapper;
-using Azure.Core;
 
 namespace Assert.Application.Services
 {
@@ -14,11 +15,15 @@ namespace Assert.Application.Services
         private readonly IDashboardService _dashboardService;
         private readonly IMapper _mapper;
         private readonly RequestMetadata _metadata;
-        public AppDashboardService(IDashboardService dashboardService, IMapper mapper, RequestMetadata metadata)
+        private readonly IBookRepository _bookRespository;
+        public AppDashboardService(IDashboardService dashboardService, 
+            IMapper mapper, RequestMetadata metadata,
+            IBookRepository bookRespository)
         {
             _dashboardService = dashboardService;
             _mapper = mapper;
             _metadata = metadata;
+            _bookRespository = bookRespository;
         }
         public async Task<ReturnModelDTO<RevenueSummaryDTO>> GetRevenueReportAsync(RevenueReportRequestDTO request)
         {
@@ -68,6 +73,19 @@ namespace Assert.Application.Services
                 HasError = result.HasError,
                 StatusCode = result.StatusCode,
                 ResultError = _mapper.Map<ErrorCommonDTO>(result.ResultError)
+            };
+        }
+
+        public async Task<ReturnModelDTO<DashboardInfoDTO>> GetDashboardInfo(int year, int? month)
+        {
+            var dashboardInfo = await _bookRespository.GetDashboardInfo(year, month);
+            var dashboardInfoDto = _mapper.Map<DashboardInfoDTO>(dashboardInfo);
+
+            return new ReturnModelDTO<DashboardInfoDTO>
+            {
+                Data = dashboardInfoDto,
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
             };
         }
     }
