@@ -4,6 +4,7 @@ using Assert.Application.DTOs.Responses;
 using Assert.Domain.Entities;
 using Assert.Domain.Enums;
 using Assert.Domain.Models;
+using Assert.Domain.Models.Dashboard;
 using Assert.Domain.Models.Review;
 using Assert.Domain.Notifications;
 using Assert.Domain.ValueObjects;
@@ -39,6 +40,11 @@ namespace Assert.Application.Mappings
             CreateMap<ComplaintReasonHierarchyDto, AppComplaintReasonHierarchyDto>().ReverseMap();
             CreateMap<ComplaintReasonDto, AppComplaintReasonDto>().ReverseMap();
             CreateMap<TbComplaint, ComplaintRequestDTO>().ReverseMap();
+
+            CreateMap<DashboardInfo, DashboardInfoDTO>().ReverseMap();
+            CreateMap<MetricEntry, MetricEntryDTO>().ReverseMap();
+            CreateMap<MetricEntryInt, MetricEntryIntDTO>().ReverseMap();
+
 
             CreateMap<ProcessDataRequest, ListingProcessDataModel>();
             CreateMap<AddressDTO, ProcessData_AddressModel>();

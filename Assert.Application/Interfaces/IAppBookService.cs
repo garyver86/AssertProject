@@ -33,5 +33,7 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<string>> UpsertHostBookCancellation(
             UpsertHostBookCancellationRequestDTO request);
         Task<ReturnModelDTO<List<BookCancellationDTO>>> GetHostBookCancellation(long bookId);
+
+        Task<ReturnModelDTO<DashboardInfoDTO>> GetDashboardInfo(int year, int? month);
     }
 }
