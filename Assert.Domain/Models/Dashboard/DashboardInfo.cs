@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Globalization;
 
 namespace Assert.Domain.Models.Dashboard;
 
@@ -25,16 +20,25 @@ public class DashboardInfo
     public FilterMode FilterMode { get; set; }
 
     public decimal TotalPaid { get; set; }
-    public decimal UpcomingPaymentsTotal { get; set; }
-    public List<(int, decimal)> UpcomingPaymentsByMonth { get; set; } = [];
-    public int TotalReservations { get; set; }
-    public List<(int, int)> ReservationsByMonth { get; set; } = [];
-    public int TotalNightsReserved { get; set; }
-    public List<(int, int)> NightsReservedByMonth { get; set; } = [];
-    public decimal AverageNightRate { get; set; }
-    public List<(int, decimal)> AverageNightRateByMonth { get; set; } = [];
+    public List<MetricEntry> PaidByPeriod { get; set; } = [];
+
+    public decimal TotalUpcoming { get; set; }
+    public List<MetricEntry> UpcomingByPeriod { get; set; } = [];
+
+    public int TotalConfirmedBooks { get; set; }
+    public List<MetricEntryInt> ConfirmedBooksByPeriod { get; set; } = [];
+
+    public int TotalNightsBooked { get; set; }
+    public List<MetricEntryInt> NightsBookedByPeriod { get; set; } = [];
+
+    public decimal AverageNightsPerBook { get; set; }
+    public List<MetricEntry> AverageNightsPerBookByPeriod { get; set; } = [];
+
 
 }
+
+public record MetricEntry(int Period, decimal Value);
+public record MetricEntryInt(int Period, int Value);   
 
 public enum FilterMode
 {

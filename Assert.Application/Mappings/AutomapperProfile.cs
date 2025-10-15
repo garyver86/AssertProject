@@ -41,6 +41,11 @@ namespace Assert.Application.Mappings
             CreateMap<ComplaintReasonDto, AppComplaintReasonDto>().ReverseMap();
             CreateMap<TbComplaint, ComplaintRequestDTO>().ReverseMap();
 
+            CreateMap<DashboardInfo, DashboardInfoDTO>().ReverseMap();
+            CreateMap<MetricEntry, MetricEntryDTO>().ReverseMap();
+            CreateMap<MetricEntryInt, MetricEntryIntDTO>().ReverseMap();
+
+
             CreateMap<ProcessDataRequest, ListingProcessDataModel>();
             CreateMap<AddressDTO, ProcessData_AddressModel>();
             CreateMap<ProcessData_Address, ProcessData_AddressModel>()

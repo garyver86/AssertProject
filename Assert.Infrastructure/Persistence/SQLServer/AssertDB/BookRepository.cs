@@ -8,6 +8,7 @@ using Assert.Infrastructure.Utils;
 using Assert.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System.Globalization;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
@@ -1159,17 +1160,90 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
                 var books = await dbContext.TbBooks
                     .Include(b => b.BookStatus)
-                    .Where(b => b.ListingRent.OwnerUserId == _metadata.UserId)
+                    .Where(b => b.ListingRent.OwnerUserId == _metadata.UserId
+                        && b.InitDate.HasValue)
                     .ToListAsync();
 
-                //var totalPaid = month is null ? books.Where(b => b.BookStatus.Code == "")
+                var rentedBooks = books
+                    .Where(b => b.BookStatus?.Code == "rented")
+                    .ToList();
+
+                var approvedBooks = books
+                    .Where(b => b.BookStatus?.Code == "approved")
+                    .ToList();
+
+                var filteredRented = rentedBooks
+                    .Where(b => b.InitDate!.Value.Year == year &&
+                               (!month.HasValue || b.InitDate!.Value.Month == month.Value));
+
+                var filteredApproved = approvedBooks
+                    .Where(b => b.InitDate!.Value.Year == year &&
+                               (!month.HasValue || b.InitDate!.Value.Month == month.Value));
+
+                #region totals
+                var totalPaid = filteredRented.Sum(b => b.AmountTotal);
+                var totalUpcoming = filteredApproved.Sum(b => b.AmountTotal);
+                var totalConfirmed = filteredRented.Count();
+                var totalNights = filteredRented.Sum(b => (b.EndDate - b.InitDate!.Value).Days);
+                var avgNights = totalConfirmed > 0 ? (decimal)totalNights / totalConfirmed : 0;
+                #endregion
+
+                Func<DateTime, int> periodSelector = month is null
+                    ? d => d.Month
+                    : d => d.Year;
+
+                #region by period
+                var paidByPeriod = filteredRented
+                    .GroupBy(b => periodSelector(b.InitDate!.Value))
+                    .Select(g => new MetricEntry(g.Key, g.Sum(b => b.AmountTotal)))
+                    .OrderBy(m => m.Period)
+                    .ToList();
+
+                var upcomingByPeriod = filteredApproved
+                    .GroupBy(b => periodSelector(b.InitDate!.Value))
+                    .Select(g => new MetricEntry(g.Key, g.Sum(b => b.AmountTotal)))
+                    .OrderBy(m => m.Period)
+                    .ToList();
+
+                var confirmedByPeriod = filteredRented
+                    .GroupBy(b => periodSelector(b.InitDate!.Value))
+                    .Select(g => new MetricEntryInt(g.Key, g.Count()))
+                    .OrderBy(m => m.Period)
+                    .ToList();
+
+                var nightsByPeriod = filteredRented
+                    .GroupBy(b => periodSelector(b.InitDate!.Value))
+                    .Select(g => new MetricEntryInt(g.Key, g.Sum(b => (b.EndDate - b.InitDate!.Value).Days)))
+                    .OrderBy(m => m.Period)
+                    .ToList();
+
+                var avgNightsByPeriod = filteredRented
+                    .GroupBy(b => periodSelector(b.InitDate!.Value))
+                    .Select(g => new MetricEntry(
+                        g.Key,
+                        g.Count() > 0 ? (decimal)g.Sum(b => (b.EndDate - b.InitDate!.Value).Days) / g.Count() : 0))
+                    .OrderBy(m => m.Period)
+                    .ToList();
+                #endregion
 
                 var result = new DashboardInfo
                 {
                     FilterMode = month is null ? FilterMode.Year : FilterMode.YearAndMonth,
                     Month = month,
                     Year = year,
+                    TotalPaid = totalPaid,
+                    TotalUpcoming = totalUpcoming,
+                    PaidByPeriod = paidByPeriod,
+                    UpcomingByPeriod = upcomingByPeriod,
 
+                    TotalConfirmedBooks = totalConfirmed,
+                    ConfirmedBooksByPeriod = confirmedByPeriod,
+
+                    TotalNightsBooked = totalNights,
+                    NightsBookedByPeriod = nightsByPeriod,
+
+                    AverageNightsPerBook = avgNights,
+                    AverageNightsPerBookByPeriod = avgNightsByPeriod
                 };
 
                 return result;
