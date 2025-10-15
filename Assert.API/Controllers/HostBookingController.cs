@@ -216,5 +216,31 @@ namespace Assert.API.Controllers
         [Route("{bookId}/GetHostBookCancellation")]
         public async Task<ReturnModelDTO<List<BookCancellationDTO>>> GetHostBookCancellation(long bookId)
         => await _bookService.GetHostBookCancellation(bookId);
+
+        /// <summary>
+        /// Recupera la información agregada del dashboard para un año específico, con opción de filtrar por mes.
+        /// </summary>
+        /// <param name="year">Año de referencia para el reporte.</param>
+        /// <param name="month">
+        /// Mes opcional para filtrar los datos. Si se proporciona, el reporte será mensual; si es nulo, se generará un resumen anual.
+        /// </param>
+        /// <returns>
+        /// Objeto <see cref="DashboardInfoDTO"/> que contiene métricas financieras y de reservas, encapsulado en un <see cref="ReturnModelDTO{DashboardInfoDTO}"/>.
+        /// </returns>
+        /// <response code="200">OK: La información del dashboard fue obtenida correctamente.</response>
+        /// <response code="400">BAD REQUEST: Los parámetros de entrada son inválidos o inconsistentes.</response>
+        /// <response code="401">UNAUTHORIZED: El usuario no tiene permisos para acceder a esta información.</response>
+        /// <response code="500">INTERNAL SERVER ERROR: Se produjo un error inesperado durante la operación.</response>
+        /// <remarks>
+        /// Características del servicio:
+        /// - Devuelve métricas agregadas como total pagado, pagos próximos, reservas confirmadas, noches reservadas y promedios.
+        /// - El desglose por período se adapta dinámicamente al filtro: por mes si se especifica, por año si no.
+        /// - Útil para alimentar dashboards visuales y analizar el rendimiento de reservas.
+        /// </remarks>
+        [HttpGet]
+        [Authorize(Policy = "GuestOrHost")]
+        [Route("Dashboard/GetDashboardInfo")]
+        public async Task<ReturnModelDTO<DashboardInfoDTO>> GetDashboardInfo(int year, int? month)
+        => await _bookService.GetDashboardInfo(year, month);
     }
 }

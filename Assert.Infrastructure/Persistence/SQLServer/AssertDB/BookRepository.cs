@@ -1165,12 +1165,10 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .ToListAsync();
 
                 var rentedBooks = books
-                    .Where(b => b.BookStatus?.Code == "rented")
-                    .ToList();
+                    .Where(b => b.BookStatus?.Code == "rented");
 
                 var approvedBooks = books
-                    .Where(b => b.BookStatus?.Code == "approved")
-                    .ToList();
+                    .Where(b => b.BookStatus?.Code == "approved");
 
                 var filteredRented = rentedBooks
                     .Where(b => b.InitDate!.Value.Year == year &&
