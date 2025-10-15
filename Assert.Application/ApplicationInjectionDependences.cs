@@ -60,11 +60,13 @@ namespace Assert.Application
             services.AddScoped<IAppReviewService, AppReviewService>();
             services.AddScoped<IAppNotificationService, AppNotificationService>();
             services.AddScoped<IAppCompliantService, AppCompliantService>();
+            services.AddScoped<IAppDashboardService, AppDashboardService>();
             services.AddScoped<IEmailNotificationService, EmailNotificationsService>();
 
 
             //Domain Services
             services.AddScoped<IListingRentService, ListingRentService>();
+            services.AddScoped<IDashboardService, DashboardService>();
             services.AddScoped<IListingFavoriteService, ListingFavoriteService>();
             services.AddScoped<IParametricService, ParametricService>();
             services.AddScoped<IUserService, UserService>();

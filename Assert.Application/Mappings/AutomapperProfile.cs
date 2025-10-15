@@ -4,6 +4,7 @@ using Assert.Application.DTOs.Responses;
 using Assert.Domain.Entities;
 using Assert.Domain.Enums;
 using Assert.Domain.Models;
+using Assert.Domain.Models.Dashboard;
 using Assert.Domain.Models.Review;
 using Assert.Domain.Notifications;
 using Assert.Domain.ValueObjects;
@@ -181,6 +182,9 @@ namespace Assert.Application.Mappings
 
             CreateMap<TlListingFavorite, ListingFavoriteDTO>();
             CreateMap<TlListingFavoriteGroup, ListingFavoriteGroupDTO>();
+            CreateMap<RevenueReportRequest, RevenueReportRequestDTO>().ReverseMap();
+            CreateMap<RevenueReport, RevenueReportDTO>();
+            CreateMap<RevenueSummary, RevenueSummaryDTO>();
 
             CreateMap<TlAccommodationType, AccomodationTypeDTO>();
             CreateMap<PayPriceCalculation, PayPriceCalculationDTO>();

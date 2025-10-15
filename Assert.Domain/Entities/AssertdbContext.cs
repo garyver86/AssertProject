@@ -420,6 +420,9 @@ public partial class AssertDbContext : DbContext
             entity.HasIndex(e => e.CalculationCode, "UQ_CodigoCotizacion").IsUnique();
 
             entity.Property(e => e.PriceCalculationId).HasColumnName("priceCalculationId");
+            entity.Property(e => e.AdditionalFees)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("additionalFees");
             entity.Property(e => e.Amount)
                 .HasColumnType("decimal(10, 2)")
                 .HasColumnName("amount");
@@ -449,6 +452,12 @@ public partial class AssertDbContext : DbContext
                 .HasMaxLength(3)
                 .IsUnicode(false)
                 .HasColumnName("currencyCode");
+            entity.Property(e => e.DatetimePayment)
+                .HasColumnType("datetime")
+                .HasColumnName("datetimePayment");
+            entity.Property(e => e.Discounts)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("discounts");
             entity.Property(e => e.EndBook)
                 .HasColumnType("datetime")
                 .HasColumnName("endBook");
@@ -467,6 +476,9 @@ public partial class AssertDbContext : DbContext
             entity.Property(e => e.MethodOfPaymentId).HasColumnName("methodOfPaymentId");
             entity.Property(e => e.PaymentProviderId).HasColumnName("paymentProviderId");
             entity.Property(e => e.PaymentTransactionId).HasColumnName("paymentTransactionId");
+            entity.Property(e => e.PlatformFee)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("platformFee");
             entity.Property(e => e.ReasonRefusedId).HasColumnName("reasonRefusedId");
             entity.Property(e => e.UserAgent)
                 .HasMaxLength(256)
