@@ -187,6 +187,9 @@ namespace Assert.Application.Mappings
 
             CreateMap<TlListingFavorite, ListingFavoriteDTO>();
             CreateMap<TlListingFavoriteGroup, ListingFavoriteGroupDTO>();
+            CreateMap<RevenueReportRequest, RevenueReportRequestDTO>().ReverseMap();
+            CreateMap<RevenueReport, RevenueReportDTO>();
+            CreateMap<RevenueSummary, RevenueSummaryDTO>();
 
             CreateMap<TlAccommodationType, AccomodationTypeDTO>();
             CreateMap<PayPriceCalculation, PayPriceCalculationDTO>();

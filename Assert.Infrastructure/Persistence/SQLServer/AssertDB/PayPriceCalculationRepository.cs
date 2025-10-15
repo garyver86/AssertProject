@@ -1,6 +1,7 @@
 ﻿using Assert.Domain.Entities;
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
+using Assert.Domain.Models.Dashboard;
 using Assert.Domain.Repositories;
 using Assert.Infrastructure.Exceptions;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Http.Headers;
@@ -145,7 +147,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
         }
 
         public async Task<ReturnModel> SetAsPayed(Guid calculationCode, int paymentProviderId, int methodOfPaymentId,
-            long PaymentTransactionId)
+            long PaymentTransactionId, DateTime datetimePayment)
         {
             using (var context = new InfraAssertDbContext(dbOptions))
             {
@@ -159,6 +161,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     priceCalculation.PaymentProviderId = paymentProviderId;
                     priceCalculation.MethodOfPaymentId = methodOfPaymentId;
                     priceCalculation.PaymentTransactionId = PaymentTransactionId;
+                    priceCalculation.DatetimePayment = datetimePayment;
                     //_context.PayPriceCalculations.Update(priceCalculation);
                     await context.SaveChangesAsync();
                     return new ReturnModel
@@ -194,6 +197,72 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     await context.SaveChangesAsync();
                 }
             }
+        }
+        public async Task<RevenueSummary> GetRevenueReportAsync(RevenueReportRequest request)
+        {
+            var query = _context.PayPriceCalculations.AsQueryable();
+
+            // Aplicar filtros
+            query = ApplyFilters(query, request);
+
+            // Filtrar solo cálculos completados/pagados (ajusta según tus status)
+            query = query.Where(x => x.DatetimePayment != null); // Asumiendo que 3 = Completado
+
+            var monthlyData = await query
+                .GroupBy(x => new { ((DateTime)x.DatetimePayment).Year, ((DateTime)x.DatetimePayment).Month })
+                .Select(g => new RevenueReport
+                {
+                    Year = g.Key.Year,
+                    Month = g.Key.Month,
+                    TotalRevenue = g.Sum(x => x.Amount),
+                    TotalPlatformFees = g.Sum(x => x.PlatformFee ?? 0),
+                    NetRevenue = g.Sum(x => x.Amount) - g.Sum(x => x.PlatformFee ?? 0),
+                    TransactionCount = g.Count()
+                })
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month)
+                .ToListAsync();
+
+            return CalculateSummary(monthlyData);
+        }
+
+        private IQueryable<PayPriceCalculation> ApplyFilters(
+       IQueryable<PayPriceCalculation> query,
+       RevenueReportRequest request)
+        {
+            if (request.Year.HasValue)
+            {
+                query = query.Where(x => x.DatetimePayment != null && ((DateTime)x.DatetimePayment).Year == request.Year.Value);
+            }
+
+            if (request.StartDate.HasValue)
+            {
+                query = query.Where(x => x.DatetimePayment != null && x.DatetimePayment >= request.StartDate.Value);
+            }
+
+            if (request.EndDate.HasValue)
+            {
+                query = query.Where(x => x.DatetimePayment != null && x.DatetimePayment <= request.EndDate.Value);
+            }
+
+            if (request.UserId > 0)
+            {
+                query = query.Where(x => x.ListingRent.OwnerUserId == request.UserId);
+            }
+
+            return query;
+        }
+
+        private RevenueSummary CalculateSummary(List<RevenueReport> monthlyData)
+        {
+            return new RevenueSummary
+            {
+                MonthlyData = monthlyData,
+                GrandTotalRevenue = monthlyData.Sum(x => x.TotalRevenue),
+                GrandTotalPlatformFees = monthlyData.Sum(x => x.TotalPlatformFees),
+                GrandTotalNetRevenue = monthlyData.Sum(x => x.NetRevenue),
+                GrandTotalTransactions = monthlyData.Sum(x => x.TransactionCount)
+            };
         }
     }
 }

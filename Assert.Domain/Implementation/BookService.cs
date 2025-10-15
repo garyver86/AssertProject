@@ -387,6 +387,7 @@ namespace Assert.Domain.Implementation
 
             // 9. Aplicar fee de uso de plataforma
             var assertFee = await _assertFeeRepository.GetAssertFee(listingRentId);
+            decimal _assertFeeAmount = 0;
             if (assertFee != null)
             {
                 decimal assertFeeAmount = assertFee.FeeBase ?? 0;
@@ -405,6 +406,7 @@ namespace Assert.Domain.Implementation
                         Amount = assertFeeAmount,
                         Percentage = asserFeePercent > 0 ? asserFeePercent : null,
                     });
+                    _assertFeeAmount = assertFeeAmount;
                 }
             }
 
@@ -428,7 +430,10 @@ namespace Assert.Domain.Implementation
                 CalculationStatusId = 1,
                 UserId = guestId,
                 Guests = guests,
-                ExistPet = existPet
+                ExistPet = existPet,
+                AdditionalFees = totalAdditionalFees,
+                Discounts = totalDiscount,
+                PlatformFee = _assertFeeAmount
             };
 
             var resultCalculation = await _payPriceCalculationRepository.Create(payPriceCalculation);
@@ -530,6 +535,7 @@ namespace Assert.Domain.Implementation
             };
 
             TbBook booking = new TbBook();
+            DateTime datetimePayment = DateTime.UtcNow;
             if (priceCalculation.BookId == null)
             {
                 // 5. Crear la reserva
@@ -557,7 +563,7 @@ namespace Assert.Domain.Implementation
                     CancellationEnd = checInOutValues.CancellationEnd,
                     ExistPet = priceCalculation.ExistPet,
                     Gests = priceCalculation.Guests,
-                    DatetimePayment = DateTime.UtcNow,
+                    DatetimePayment = datetimePayment,
                 };
 
                 long bookId = await _bookRepository.UpsertBookAsync(booking);
@@ -582,11 +588,11 @@ namespace Assert.Domain.Implementation
                 booking = await _bookRepository.GetByIdAsync(transaction.BookingId ?? 0);
                 booking.BookStatusId = 3; // Confirmado
                 booking.PaymentCode = paymentRequest.OrderCode;
-                booking.DatetimePayment = DateTime.UtcNow;
+                booking.DatetimePayment = datetimePayment;
                 await _bookRepository.UpsertBookAsync(booking);
             }
             long savedTransaction = await _payTransactionRepository.Create(transaction);
-            if(savedTransaction > 0)
+            if (savedTransaction > 0)
             {
                 booking.PaymentId = savedTransaction;
                 await _bookRepository.UpsertBookAsync(booking);
@@ -613,7 +619,7 @@ namespace Assert.Domain.Implementation
                 var resultBlockPreparation = await _listingCalendarRepository.BulkBlockDaysAsync(priceCalculation.ListingRentId ?? 0, preparationDates, 3, "Preparación", transaction.BookingId, null);
             }
             var resultStatusUpdate = await _payPriceCalculationRepository.SetAsPayed(paymentRequest.CalculationCode, paymentRequest.PaymentProviderId,
-                paymentRequest.MethodOfPaymentId, savedTransaction);
+                paymentRequest.MethodOfPaymentId, savedTransaction, datetimePayment);
 
             return new ReturnModel<TbBook>
             {
@@ -942,7 +948,8 @@ namespace Assert.Domain.Implementation
             {
                 await _bookRepository.CancelOtherRequests(result.ListingRentId, result.StartDate, result.EndDate, result.BookId);
             }
-            catch (Exception e){
+            catch (Exception e)
+            {
                 int i = 0;
             }
             return result;

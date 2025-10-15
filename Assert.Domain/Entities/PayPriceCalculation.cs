@@ -55,6 +55,14 @@ public partial class PayPriceCalculation
 
     public bool? ExistPet { get; set; }
 
+    public decimal? AdditionalFees { get; set; }
+
+    public decimal? Discounts { get; set; }
+
+    public decimal? PlatformFee { get; set; }
+
+    public DateTime? DatetimePayment { get; set; }
+
     public virtual TbBook? Book { get; set; }
 
     public virtual PayPriceCalculationStatus CalculationStatus { get; set; } = null!;
