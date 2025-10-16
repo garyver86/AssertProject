@@ -96,9 +96,38 @@ namespace Assert.API.Controllers
         /// - Útil para alimentar dashboards visuales y analizar el rendimiento de reservas.
         /// </remarks>
         [HttpGet]
-        [Authorize(Policy = "GuestOrHost")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
         [Route("Dashboard/GetDashboardInfo")]
         public async Task<ReturnModelDTO<DashboardInfoDTO>> GetDashboardInfo(int year, int? month)
         => await _dashboardService.GetDashboardInfo(year, month);
+
+        /// <summary>
+        /// Recupera el ranking de propiedades de un anfitrión en función de su rendimiento dentro de un rango de fechas.
+        /// </summary>
+        /// <param name="hostId">Identificador único del anfitrión.</param>
+        /// <param name="startDate">Fecha de inicio del período a evaluar.</param>
+        /// <param name="endDate">Fecha de fin del período a evaluar.</param>
+        /// <returns>
+        /// Lista de objetos <see cref="ListingRentRankingDTO"/> que representan cada propiedad del anfitrión,
+        /// incluyendo ingresos, cantidad de reservas, ocupación porcentual y días ocupados,
+        /// encapsulada en un <see cref="ReturnModelDTO{ListingRentRankingDTO}"/>.
+        /// </returns>
+        /// <response code="200">OK: El ranking de propiedades fue obtenido correctamente.</response>
+        /// <response code="400">BAD REQUEST: Los parámetros de entrada son inválidos o inconsistentes.</response>
+        /// <response code="401">UNAUTHORIZED: El usuario no tiene permisos para acceder a esta información.</response>
+        /// <response code="500">INTERNAL SERVER ERROR: Se produjo un error inesperado durante la operación.</response>
+        /// <remarks>
+        /// Características del servicio:
+        /// - Evalúa todas las reservas pagadas dentro del rango de fechas.
+        /// - Calcula ingresos reales considerando descuentos, comisiones y tarifas adicionales.
+        /// - Determina el factor de ocupación en base a días reservados versus días del período.
+        /// - Ordena las propiedades por ingresos en orden descendente.
+        /// - Útil para visualizar el rendimiento comparativo de propiedades en dashboards.
+        /// </remarks>
+        [HttpGet]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        [Route("Dashboard/GetPropertyRanking")]
+        public async Task<ReturnModelDTO<ListingRentRankingDTO>> GetPropertyRanking(long hostId, DateTime startDate, DateTime endDate)
+        => await _dashboardService.GetPropertyRanking(hostId, startDate, endDate);
     }
 }

@@ -3,6 +3,7 @@ using Assert.Domain.Common.Params;
 using Assert.Domain.Entities;
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
+using Assert.Domain.Models.Dashboard;
 using Assert.Domain.Repositories;
 using Assert.Domain.ValueObjects;
 using Assert.Infrastructure.Exceptions;

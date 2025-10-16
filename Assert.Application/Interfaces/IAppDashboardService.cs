@@ -10,5 +10,7 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<RevenueSummaryDTO>> GetRevenueReportByUserAsync(RevenueReportRequestDTO request, int userId);
         Task<ReturnModelDTO<RevenueSummaryDTO>> GetRevenueReportByYearAndUserAsync(int year, int userId);
         Task<ReturnModelDTO<DashboardInfoDTO>> GetDashboardInfo(int year, int? month);
+        Task<ReturnModelDTO<ListingRentRankingDTO>> GetPropertyRanking(long hostId,
+            DateTime startDate, DateTime endDate);
     }
 }

@@ -23,4 +23,6 @@ public interface IBookRepository
     Task CancelOtherRequests(long listingRentId, DateTime startDate, DateTime endDate, long bookId);
     Task<List<TbBook>> GetPayedsByOwnerId(long userId);
     Task<DashboardInfo> GetDashboardInfo(int year, int? month);
+    Task<List<ListingRentRanking>> GetListingRentRankingAsync(long hostId,
+            DateTime startDate, DateTime endDate);
 }

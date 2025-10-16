@@ -1152,6 +1152,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             throw new NotImplementedException();
         }
 
+        #region to dashboard
         public async Task<DashboardInfo> GetDashboardInfo(int year, int? month)
         {
             try
@@ -1253,5 +1254,88 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 throw new InfrastructureException(ex.Message);
             }
         }
+
+        public async Task<List<ListingRentRanking>> GetListingRentRankingAsync(long hostId,
+            DateTime startDate, DateTime endDate)
+        {
+            try
+            {
+                using var dbContext = new InfraAssertDbContext(dbOptions);
+
+                var books = await dbContext.TbBooks
+                .Include(b => b.BookStatus)
+                .Include(b => b.ListingRent)
+                    .ThenInclude(lr => lr.TlListingPhotos)
+                .Include(b => b.PayPriceCalculations)
+                    .ThenInclude(p => p.CalculationStatus)
+                .Where(b =>
+                    b.ListingRent.OwnerUserId == hostId &&
+                    b.InitDate.HasValue &&
+                    b.InitDate.Value.Date <= endDate.Date &&
+                    b.EndDate.Date >= startDate.Date &&
+                    (b.BookStatus.Code == "rented" || b.BookStatus.Code == "completed"))
+                .ToListAsync();
+
+                var grouped = books
+                    .GroupBy(b => b.ListingRentId)
+                    .Select(g =>
+                    {
+                        var listing = g.First().ListingRent;
+                        var photo = listing.TlListingPhotos?.FirstOrDefault(p => p.IsPrincipal == true)?.PhotoLink ?? "";
+
+                        var payedCalculations = g
+                            .SelectMany(b => b.PayPriceCalculations
+                                .Where(p => p.CalculationStatus?.PriceCalculationStatusCode == "PAYED"))
+                            .ToList();
+
+                        var totalRent = payedCalculations.Sum(p => p.Amount);
+                        var discounts = payedCalculations.Sum(p => p.Discounts);
+                        var additionalFees = payedCalculations.Sum(p => p.AdditionalFees);
+                        var platformFee = payedCalculations.Sum(p => p.PlatformFee);
+                        var income = totalRent - (platformFee ?? 0);
+
+                        var reservationCount = g.Count();
+
+                        var occupiedDays = g.Sum(b =>
+                        {
+                            var start = b.InitDate!.Value < startDate ? startDate : b.InitDate!.Value;
+                            var end = b.EndDate > endDate ? endDate : b.EndDate;
+                            return (end - start).Days;
+                        });
+
+                        var totalPeriodDays = (endDate - startDate).Days;
+                        var occupancyRate = totalPeriodDays > 0
+                            ? Math.Round((decimal)occupiedDays / totalPeriodDays * 100, 2)
+                            : 0;
+
+                        return new ListingRentRanking
+                        {
+                            ListingRentId = listing.ListingRentId,
+                            ListingRentTitle = listing.Name ?? "",
+                            ListingRentDescription = listing.Description ?? "",
+                            PhotoLink = photo,
+                            TotalRent = totalRent,
+                            AdditionalFees = additionalFees ?? 0,
+                            Discounts = discounts ?? 0,
+                            PlatformFee = platformFee ?? 0,
+                            Income = income,
+                            ReservationCount = reservationCount,
+                            OccupiedDays = occupiedDays,
+                            OccupancyRate = occupancyRate
+                        };
+                    })
+                    .OrderByDescending(r => r.Income)
+                    .ToList();
+
+                return grouped;
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { hostId, startDate, endDate });
+                throw new InfrastructureException(ex.Message);
+            }
+        }
+        #endregion
     }
 }

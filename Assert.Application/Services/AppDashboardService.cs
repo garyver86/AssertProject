@@ -88,5 +88,19 @@ namespace Assert.Application.Services
                 StatusCode = ResultStatusCode.OK
             };
         }
+
+        public async Task<ReturnModelDTO<ListingRentRankingDTO>> GetPropertyRanking(long hostId,
+            DateTime startDate, DateTime endDate)
+        {
+            var propertyRankingList = await _bookRespository.GetListingRentRankingAsync(hostId, startDate, endDate);
+            var propertyRankingDtoList = _mapper.Map<ListingRentRankingDTO>(propertyRankingList);
+
+            return new ReturnModelDTO<ListingRentRankingDTO>
+            {
+                Data = propertyRankingDtoList,
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
+        }
     }
 }
