@@ -429,8 +429,8 @@ namespace Assert.API.Controllers
         /// <summary>
         /// Recupera el perfil público del anfitrión junto con el resumen de reseñas de una propiedad específica.
         /// </summary>
-        /// <param name="listingRentId">Identificador único de la propiedad (ListingRent).</param>
-        /// <param name="hostId">Identificador único del anfitrión propietario de la propiedad.</param>
+        /// <param name="listingRentId">Identificador único de la propiedad (ListingRent), recibido como parte de la ruta.</param>
+        /// <param name="hostId">Identificador único del anfitrión propietario de la propiedad, recibido como parte de la ruta.</param>
         /// <returns>
         /// Objeto <see cref="HostProfileAndListingRentDTO"/> que contiene:
         /// - Imagen principal de la propiedad.
@@ -450,10 +450,9 @@ namespace Assert.API.Controllers
         /// - Calcula métricas agregadas de reseñas para la propiedad.
         /// - Útil para mostrar información contextual en pantallas de detalle o resumen.
         /// </remarks>
-
         [Authorize(Policy = "GuestOrHost")]
         [HttpGet("{listingRentId}/{hostId}/Summary")]
-        public async Task<ReturnModelDTO<HostProfileAndListingRentDTO>> GetReviewsSummary([FromQuery] long listingRentId, [FromQuery] long hostId)
+        public async Task<ReturnModelDTO<HostProfileAndListingRentDTO>> GetListingRentAndHostProfile([FromQuery] long listingRentId, [FromQuery] long hostId)
         => await _appListingRentService.GetHotProfileAndListingRent(hostId, listingRentId);
     }
 }
