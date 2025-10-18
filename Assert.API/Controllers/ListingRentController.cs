@@ -451,7 +451,7 @@ namespace Assert.API.Controllers
         /// - Útil para mostrar información contextual en pantallas de detalle o resumen.
         /// </remarks>
         [Authorize(Policy = "GuestOrHost")]
-        [HttpGet("{listingRentId}/{hostId}/Summary")]
+        [HttpGet("{listingRentId}/{hostId}/GetListingRentAndHostProfile")]
         public async Task<ReturnModelDTO<HostProfileAndListingRentDTO>> GetListingRentAndHostProfile([FromQuery] long listingRentId, [FromQuery] long hostId)
         => await _appListingRentService.GetHotProfileAndListingRent(hostId, listingRentId);
     }
