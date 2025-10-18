@@ -425,5 +425,35 @@ namespace Assert.API.Controllers
                 StatusCode = result.StatusCode
             };
         }
+
+        /// <summary>
+        /// Recupera el perfil público del anfitrión junto con el resumen de reseñas de una propiedad específica.
+        /// </summary>
+        /// <param name="listingRentId">Identificador único de la propiedad (ListingRent).</param>
+        /// <param name="hostId">Identificador único del anfitrión propietario de la propiedad.</param>
+        /// <returns>
+        /// Objeto <see cref="HostProfileAndListingRentDTO"/> que contiene:
+        /// - Imagen principal de la propiedad.
+        /// - Imagen y nombre del anfitrión.
+        /// - Información personal del anfitrión ("Presentándome", "A qué me dedico").
+        /// - Cantidad total de reseñas de la propiedad.
+        /// - Calificación promedio basada en las reseñas.
+        /// Encapsulado en un <see cref="ReturnModelDTO{HostProfileAndListingRentDTO}"/>.
+        /// </returns>
+        /// <response code="200">OK: El resumen fue obtenido correctamente.</response>
+        /// <response code="400">BAD REQUEST: Los parámetros de entrada son inválidos o inconsistentes.</response>
+        /// <response code="401">UNAUTHORIZED: El usuario no tiene permisos para acceder a esta información.</response>
+        /// <response code="500">INTERNAL SERVER ERROR: Se produjo un error inesperado durante la operación.</response>
+        /// <remarks>
+        /// Características del servicio:
+        /// - Permite visualizar el perfil del anfitrión vinculado a una propiedad específica.
+        /// - Calcula métricas agregadas de reseñas para la propiedad.
+        /// - Útil para mostrar información contextual en pantallas de detalle o resumen.
+        /// </remarks>
+
+        [Authorize(Policy = "GuestOrHost")]
+        [HttpGet("{listingRentId}/{hostId}/Summary")]
+        public async Task<ReturnModelDTO<HostProfileAndListingRentDTO>> GetReviewsSummary([FromQuery] long listingRentId, [FromQuery] long hostId)
+        => await _appListingRentService.GetHotProfileAndListingRent(hostId, listingRentId);
     }
 }

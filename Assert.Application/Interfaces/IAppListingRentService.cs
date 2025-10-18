@@ -87,5 +87,6 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<List<ListingAdditionalFeeDTO>>> GetAdditionalFee(
             long listingRentId);
         Task<ReturnModelDTO<List<ReviewDTO>>> GetByOwnerId(int userId, bool UseTechnicalMessages, Dictionary<string, string> requestInfo);
+        Task<ReturnModelDTO<HostProfileAndListingRentDTO>> GetHotProfileAndListingRent(long hostId, long listingRentId);
     }
 }

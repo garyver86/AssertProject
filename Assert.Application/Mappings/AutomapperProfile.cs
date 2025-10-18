@@ -5,6 +5,7 @@ using Assert.Domain.Entities;
 using Assert.Domain.Enums;
 using Assert.Domain.Models;
 using Assert.Domain.Models.Dashboard;
+using Assert.Domain.Models.Host;
 using Assert.Domain.Models.Review;
 using Assert.Domain.Notifications;
 using Assert.Domain.ValueObjects;
@@ -45,6 +46,7 @@ namespace Assert.Application.Mappings
             CreateMap<DashboardInfo, DashboardInfoDTO>().ReverseMap();
             CreateMap<ListingRentRanking, ListingRentRankingDTO>().ReverseMap();
             #endregion
+            CreateMap<HostProfileAndListingRent, HostProfileAndListingRentDTO>().ReverseMap();
             CreateMap<MetricEntry, MetricEntryDTO>().ReverseMap();
             CreateMap<MetricEntryInt, MetricEntryIntDTO>().ReverseMap();
 

@@ -5,6 +5,7 @@ using Assert.Application.Interfaces;
 using Assert.Domain.Entities;
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
+using Assert.Domain.Models.Host;
 using Assert.Domain.Repositories;
 using Assert.Domain.Services;
 using Assert.Domain.Utils;
@@ -1309,6 +1310,18 @@ namespace Assert.Application.Services
             var response = await _listingRentRepository.GetAdditionalFeesByListingRentId(listingRentId);
 
             result.Data = _mapper.Map<List<ListingAdditionalFeeDTO>>(response);
+
+            return result;
+        }
+
+        public async Task<ReturnModelDTO<HostProfileAndListingRentDTO>> GetHotProfileAndListingRent(long hostId, long listingRentId)
+        {
+            var result = new ReturnModelDTO<HostProfileAndListingRentDTO>()
+            { StatusCode = ResultStatusCode.OK, HasError = false };
+
+            var response = await _listingRentRepository.GetHotProfileAndListingRent(hostId, listingRentId);
+
+            result.Data = _mapper.Map<HostProfileAndListingRentDTO>(response);
 
             return result;
         }

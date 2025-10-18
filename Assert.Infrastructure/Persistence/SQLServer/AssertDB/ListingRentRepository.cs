@@ -4,6 +4,7 @@ using Assert.Domain.Entities;
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Models;
 using Assert.Domain.Models.Dashboard;
+using Assert.Domain.Models.Host;
 using Assert.Domain.Repositories;
 using Assert.Domain.ValueObjects;
 using Assert.Infrastructure.Exceptions;
@@ -1183,6 +1184,58 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .ToList();
 
                 return result;
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { listingRentId });
+                throw new InfrastructureException(ex.Message);
+            }
+        }
+
+        public async Task<HostProfileAndListingRent> GetHotProfileAndListingRent(long hostId, long listingRentId)
+        {
+            try
+            {
+                using var dbContext = new InfraAssertDbContext(dbOptions);
+
+                var listing = await dbContext.TlListingRents
+                    .Include(l => l.TlListingPhotos)
+                    .Include(l => l.OwnerUser)
+                        .ThenInclude(u => u.TuAdditionalProfiles)
+                    .FirstOrDefaultAsync(l => l.ListingRentId == listingRentId && l.OwnerUserId == hostId);
+
+                if (listing is null || listing.OwnerUser is null)
+                    throw new InfrastructureException("No se encontró la propiedad o el anfitrión.");
+
+                var principalPhoto = listing.TlListingPhotos?
+                    .FirstOrDefault(p => p.IsPrincipal == true)?.PhotoLink ?? "";
+
+                var host = listing.OwnerUser;
+
+                var reviews = await dbContext.TlListingReviews
+                    .Where(r => r.ListingRentId == listingRentId && r.IsComplete!.Value == true)
+                    .ToListAsync();
+
+                var reviewCount = reviews.Count;
+                var averageRating = reviewCount > 0
+                    ? Math.Round(reviews.Average(r => r.Calification), 2)
+                    : 0;
+
+                return new HostProfileAndListingRent
+                {
+                    HostId = host.UserId,
+                    HostName = host.Name ?? "",
+                    HostLastName = host.LastName ?? "",
+                    HostPhotoUrl = host.PhotoLink ?? "",
+                    HostAboutMe = host.TuAdditionalProfiles?.FirstOrDefault()?.Additional ?? "",
+                    HostOccupation = host.TuAdditionalProfiles?.FirstOrDefault()?.WhatIdo ?? "",
+
+                    ListingRentId = listingRentId,
+                    ListingPhotoUrl = principalPhoto,
+                    ReviewCount = reviewCount,
+                    AverageRating = Convert.ToDecimal(averageRating)
+                };
             }
             catch (Exception ex)
             {

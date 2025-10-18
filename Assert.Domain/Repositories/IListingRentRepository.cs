@@ -1,5 +1,6 @@
 ﻿using Assert.Domain.Entities;
 using Assert.Domain.Models;
+using Assert.Domain.Models.Host;
 using Assert.Domain.ValueObjects;
 
 namespace Assert.Domain.Repositories
@@ -46,5 +47,7 @@ namespace Assert.Domain.Repositories
         Task<List<TlListingAdditionalFee>> GetAdditionalFeesByListingRentId(
             long listingRentId);
         Task<string> SetPreparationDay(long listingRentId, int preparationDay, int userId);
+
+        Task<HostProfileAndListingRent> GetHotProfileAndListingRent(long hostId, long listingRentId);
     }
 }
