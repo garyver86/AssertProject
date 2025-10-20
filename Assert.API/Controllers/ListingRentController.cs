@@ -452,7 +452,8 @@ namespace Assert.API.Controllers
         /// </remarks>
         [Authorize(Policy = "GuestOrHost")]
         [HttpGet("{listingRentId}/{hostId}/GetListingRentAndHostProfile")]
-        public async Task<ReturnModelDTO<HostProfileAndListingRentDTO>> GetListingRentAndHostProfile([FromQuery] long listingRentId, [FromQuery] long hostId)
+        public async Task<ReturnModelDTO<HostProfileAndListingRentDTO>> GetListingRentAndHostProfile(
+            long listingRentId, long hostId)
         => await _appListingRentService.GetHotProfileAndListingRent(hostId, listingRentId);
     }
 }
