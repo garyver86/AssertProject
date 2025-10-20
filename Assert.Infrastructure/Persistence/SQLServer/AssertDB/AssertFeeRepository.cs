@@ -2,10 +2,12 @@
 using Assert.Domain.Interfaces.Logging;
 using Assert.Domain.Repositories;
 using Assert.Infrastructure.Exceptions;
+using Assert.Shared.Extensions;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,7 +16,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
     public class AssertFeeRepository(
         InfraAssertDbContext _context,
         IExceptionLoggerService _exceptionLoggerService,
-        IListingRentRepository _listingRentRepository) : IAssertFeeRepository
+        IListingRentRepository _listingRentRepository) 
+        : IAssertFeeRepository
     {
         public async Task<TAssertFee> GetAssertFee(long listingRentId)
         {
@@ -54,6 +57,46 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Where(x => x.CityId == null && x.CountyId == null && x.StateId == null && x.CountryId == null).FirstOrDefaultAsync();
             }
             return result;
+        }
+
+        public async Task<string> UpsertAssertFeeByCountry(int countryId, decimal? feePercent, decimal? feeBase)
+        {
+            try
+            {
+                var existing = await _context.TAssertFees
+                    .Where(x => x.CountryId == countryId && x.IsEnabled == true)
+                    .FirstOrDefaultAsync();
+
+                if (existing != null)
+                {
+                    // Update fields
+                    existing.FeePercent = feePercent;
+                    existing.FeeBase = feeBase;
+
+                    _context.TAssertFees.Update(existing);
+                    await _context.SaveChangesAsync();
+                    return "SAVED";
+                }
+
+                // Create new country-level fee
+                var toCreate = new TAssertFee
+                {
+                    CountryId = countryId,
+                    FeePercent = feePercent,
+                    FeeBase = feeBase,
+                    IsEnabled = true
+                };
+
+                await _context.TAssertFees.AddAsync(toCreate);
+                await _context.SaveChangesAsync();
+                return "SAVED";
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { countryId, feePercent, feeBase });
+                throw new InfrastructureException(ex.Message);
+            }
         }
     }
 }

@@ -23,5 +23,7 @@ namespace Assert.Application.Interfaces
         Task<ReturnModelDTO<List<BookCancellationReasonDTO>>> GetCancellationReason(
             string cancellationTypeCode, int cancellationReasonOwnerId);
         Task<ReturnModelDTO<List<AppComplaintReasonHierarchyDto>>> GetComplaintReasons();
+
+        Task<ReturnModelDTO<string>> UpsertAssertFeeByCountry(int countryId, decimal? feePercent, decimal? feeBase);
     }
 }

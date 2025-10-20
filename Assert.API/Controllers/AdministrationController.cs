@@ -12,6 +12,7 @@ namespace Assert.API.Controllers
     public class AdministrationController(
         IAppUserService _userService,
         IAppListingRentService _appListingRentService,
+        IAppParametricService _parametricService,
         RequestMetadata _metadata) : Controller
     {
         /// <summary>
@@ -278,5 +279,22 @@ namespace Assert.API.Controllers
                 userId, "PUBLISH", requestInfo);
             return blockedListings;
         }
+
+        /// <summary>
+        /// Crea o actualiza (upsert) la tarifa de Assert para un país específico.
+        /// Actualiza la fila existente a nivel país (CountryId == countryId y City/County/State == null)
+        /// o inserta una nueva fila si no existe.
+        /// </summary>
+        /// <param name="countryId">ID del país al que aplica la tarifa.</param>
+        /// <param name="feePercent">Porcentaje de la comisión (opcional).</param>
+        /// <param name="feeBase">Monto base de la comisión (opcional).</param>
+        /// <returns>ReturnModelDTO con el resultado de la operación y un mensaje o código.</returns>
+        [HttpPut("AssertFee/UpsertAssertFeeByCountry")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO<string>> UpsertAssertFeeByCountry
+            (int countryId, decimal? feePercent, decimal? feeBase)
+        => await _parametricService.UpsertAssertFeeByCountry(countryId, feePercent, feeBase);
+        
+
     }
 }

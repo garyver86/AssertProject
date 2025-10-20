@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Mesaging\**" />
+    <EmbeddedResource Remove="Mesaging\**" />
+    <None Remove="Mesaging\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="External\Notifications\Templates\otpNotification.html" />
   </ItemGroup>
 
@@ -14,10 +20,6 @@
     <EmbeddedResource Include="External\Notifications\Templates\otpNotification.html">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </EmbeddedResource>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Mesaging\" />
   </ItemGroup>
 
   <ItemGroup>

@@ -15,6 +15,7 @@ namespace Assert.Application.Services
         ICurrencyRespository _currencyRepository,
         IAdditionalFeeRepository _additionalFeeRespository,
         IBookCancellationReasonRepository _cancellationReasonRespository,
+        IAssertFeeRepository _assertFeeRepository,
         IMapper _mapper, IErrorHandler _errorHandler,
         IExceptionLoggerService _exceptionLoggerService)
         : IAppParametricService
@@ -388,7 +389,7 @@ namespace Assert.Application.Services
             string cancellationTypeCode, int cancellationReasonOwnerId)
         {
             var bookCancellationReasonList = cancellationReasonOwnerId == 0 ?
-                await _cancellationReasonRespository.GetFisrtStep(cancellationTypeCode) 
+                await _cancellationReasonRespository.GetFisrtStep(cancellationTypeCode)
                 : await _cancellationReasonRespository.GetNextStep(cancellationReasonOwnerId);
 
             var bookCancellationReasonListResult = _mapper.Map<List<BookCancellationReasonDTO>>(bookCancellationReasonList);
@@ -396,6 +397,18 @@ namespace Assert.Application.Services
             return new ReturnModelDTO<List<BookCancellationReasonDTO>>
             {
                 Data = bookCancellationReasonListResult,
+                HasError = false,
+                StatusCode = ResultStatusCode.OK
+            };
+        }
+
+        public async Task<ReturnModelDTO<string>> UpsertAssertFeeByCountry(int countryId, decimal? feePercent, decimal? feeBase)
+        {
+            var repoResult = await _assertFeeRepository.UpsertAssertFeeByCountry(countryId, feePercent, feeBase);
+
+            return new ReturnModelDTO<string>
+            {
+                Data = repoResult,
                 HasError = false,
                 StatusCode = ResultStatusCode.OK
             };
