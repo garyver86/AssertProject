@@ -33,4 +33,32 @@ namespace Assert.Domain.Models.Dashboard
         public string MonthEnglish =>
             new DateTime(Year, Month, 1).ToString("MMMM", new CultureInfo("en-US"));
     }
+
+    public class BusinessReport
+    {
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+
+        // Ingresos
+        public decimal ConfirmedRevenue { get; set; }     // Ingresos ya pagados
+        public decimal FutureRevenue { get; set; }        // Reservas confirmadas por cobrar
+        public decimal AssertFee { get; set; }         // Ingreso Assert (comisiones)
+
+        // Reservas
+        public int ConfirmedBookings { get; set; }        // Reservas confirmadas
+        public int CancelledBookings { get; set; }        // Reservas canceladas
+
+        // Ocupación
+        public int OccupiedNights { get; set; }           // Noches ocupadas
+        public decimal OccupancyRate { get; set; }        // Factor de ocupación (%)
+
+        public int Month { get; set; }
+        public int Year { get; set; }
+
+
+        public string MonthSpanish =>
+            new DateTime(Year, Month, 1).ToString("MMMM", new CultureInfo("es-ES"));
+        public string MonthEnglish =>
+            new DateTime(Year, Month, 1).ToString("MMMM", new CultureInfo("en-US"));
+    }
 }

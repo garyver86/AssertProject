@@ -59,5 +59,51 @@ namespace Assert.Domain.Implementation
             }
             return result;
         }
+
+        public async Task<ReturnModel<BusinessReport>> GetBusinessReportAsync(RevenueReportRequest request)
+        {
+            ReturnModel<BusinessReport> result = new ReturnModel<BusinessReport>();
+            try
+            {
+
+                var result_data = await _payPriceCalculationRepository.GetBusinessReportAsync(request);
+                return new ReturnModel<BusinessReport>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    Data = result_data,
+                    HasError = false
+                };
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _errorHandler.GetErrorException("DashboardService.GetBusinessReportAsync", ex, null, true);
+            }
+            return result;
+        }
+
+        public async Task<ReturnModel<BusinessReport>> GetBusinessReportByYearAsync(int year, int userId)
+        {
+            ReturnModel<BusinessReport> result = new ReturnModel<BusinessReport>();
+            try
+            {
+                var request = new RevenueReportRequest { Year = year, UserId = userId };
+                var result_data = await _payPriceCalculationRepository.GetBusinessReportAsync(request);
+                return new ReturnModel<BusinessReport>
+                {
+                    StatusCode = ResultStatusCode.OK,
+                    Data = result_data,
+                    HasError = false
+                };
+            }
+            catch (Exception ex)
+            {
+                result.StatusCode = ResultStatusCode.InternalError;
+                result.HasError = true;
+                result.ResultError = _errorHandler.GetErrorException("DashboardService.GetBusinessReportByYearAsync", ex, null, true);
+            }
+            return result;
+        }
     }
 }

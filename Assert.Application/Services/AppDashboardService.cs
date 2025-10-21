@@ -76,6 +76,34 @@ namespace Assert.Application.Services
             };
         }
 
+
+
+        public async Task<ReturnModelDTO<RevenueSummaryDTO>> GetBusinessReportByYearAndUserAsync(int year, int userId)
+        {
+            var result = await _dashboardService.GetBusinessReportByYearAsync(year, userId);
+            return new ReturnModelDTO<RevenueSummaryDTO>
+            {
+                Data = _mapper.Map<RevenueSummaryDTO>(result.Data),
+                HasError = result.HasError,
+                StatusCode = result.StatusCode,
+                ResultError = _mapper.Map<ErrorCommonDTO>(result.ResultError)
+            };
+        }
+
+        public async Task<ReturnModelDTO<RevenueSummaryDTO>> GetBusinessReportByUserAsync(RevenueReportRequestDTO request, int userId)
+        {
+            RevenueReportRequest _request = _mapper.Map<RevenueReportRequest>(request);
+            _request.UserId = userId;
+            var result = await _dashboardService.GetBusinessReportAsync(_request);
+            return new ReturnModelDTO<RevenueSummaryDTO>
+            {
+                Data = _mapper.Map<RevenueSummaryDTO>(result.Data),
+                HasError = result.HasError,
+                StatusCode = result.StatusCode,
+                ResultError = _mapper.Map<ErrorCommonDTO>(result.ResultError)
+            };
+        }
+
         public async Task<ReturnModelDTO<DashboardInfoDTO>> GetDashboardInfo(int year, int? month)
         {
             var dashboardInfo = await _bookRespository.GetDashboardInfo(year, month);

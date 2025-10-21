@@ -22,5 +22,6 @@ namespace Assert.Domain.Repositories
         Task SetBookId(long priceCalculationId, long bookId);
 
         Task<RevenueSummary> GetRevenueReportAsync(RevenueReportRequest request);
+        Task<BusinessReport> GetBusinessReportAsync(RevenueReportRequest request);
     }
 }
