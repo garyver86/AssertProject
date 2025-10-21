@@ -47,6 +47,10 @@ public partial class TuUser
 
     public virtual TuGenderType? GenderType { get; set; }
 
+    public virtual ICollection<PayAccount> PayAccounts { get; set; } = new List<PayAccount>();
+
+    public virtual ICollection<PayPayoutAccount> PayPayoutAccounts { get; set; } = new List<PayPayoutAccount>();
+
     public virtual ICollection<PayPriceCalculation> PayPriceCalculations { get; set; } = new List<PayPriceCalculation>();
 
     public virtual TuPlatform? Platform { get; set; }

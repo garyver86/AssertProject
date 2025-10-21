@@ -16,9 +16,17 @@ public partial class InfraAssertDbContext : DbContext
     }
     public virtual DbSet<CitySearchTable> CitySearchTables { get; set; }
 
+    public virtual DbSet<PayAccount> PayAccounts { get; set; }
+
     public virtual DbSet<PayCountryConfiguration> PayCountryConfigurations { get; set; }
 
     public virtual DbSet<PayMethodOfPayment> PayMethodOfPayments { get; set; }
+
+    public virtual DbSet<PayPaymentHold> PayPaymentHolds { get; set; }
+
+    public virtual DbSet<PayPayoutAccount> PayPayoutAccounts { get; set; }
+
+    public virtual DbSet<PayPayoutTransaction> PayPayoutTransactions { get; set; }
 
     public virtual DbSet<PayPriceCalculation> PayPriceCalculations { get; set; }
 
@@ -335,6 +343,45 @@ public partial class InfraAssertDbContext : DbContext
                 .HasColumnName("state_name");
         });
 
+        modelBuilder.Entity<PayAccount>(entity =>
+        {
+            entity.ToTable("Pay_Account");
+
+            entity.Property(e => e.PayAccountId).HasColumnName("payAccountId");
+            entity.Property(e => e.AccStatus)
+                .HasMaxLength(30)
+                .IsUnicode(false)
+                .HasColumnName("accStatus");
+            entity.Property(e => e.AccountDetails)
+                .HasMaxLength(2000)
+                .IsUnicode(false)
+                .HasColumnName("accountDetails");
+            entity.Property(e => e.AccountToken)
+                .HasMaxLength(3000)
+                .IsUnicode(false)
+                .HasColumnName("accountToken");
+            entity.Property(e => e.AccountType)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("accountType");
+            entity.Property(e => e.MethodOfPaymentId).HasColumnName("methodOfPaymentId");
+            entity.Property(e => e.NumberAccount)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("numberAccount");
+            entity.Property(e => e.UserId).HasColumnName("userId");
+
+            entity.HasOne(d => d.MethodOfPayment).WithMany(p => p.PayAccounts)
+                .HasForeignKey(d => d.MethodOfPaymentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Pay_Account_Pay_MethodOfPayment");
+
+            entity.HasOne(d => d.User).WithMany(p => p.PayAccounts)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Pay_Account_TU_User");
+        });
+
         modelBuilder.Entity<PayCountryConfiguration>(entity =>
         {
             entity.HasKey(e => e.PaymentConfigId);
@@ -396,6 +443,115 @@ public partial class InfraAssertDbContext : DbContext
                 .HasColumnName("url_icon");
         });
 
+        modelBuilder.Entity<PayPaymentHold>(entity =>
+        {
+            entity.HasKey(e => e.PaymentHoldId);
+
+            entity.ToTable("Pay_PaymentHold");
+
+            entity.Property(e => e.PaymentHoldId).HasColumnName("paymentHoldId");
+            entity.Property(e => e.HostId).HasColumnName("hostId");
+            entity.Property(e => e.Notes)
+                .HasMaxLength(2000)
+                .IsUnicode(false)
+                .HasColumnName("notes");
+            entity.Property(e => e.PaymentHoldStatus)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("paymentHoldStatus");
+            entity.Property(e => e.PaymentHoldStatusId).HasColumnName("paymentHoldStatusId");
+            entity.Property(e => e.PayoutTransactionId).HasColumnName("payoutTransactionId");
+            entity.Property(e => e.Reason)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("reason");
+            entity.Property(e => e.ReasonId).HasColumnName("reasonId");
+
+            entity.HasOne(d => d.PayoutTransaction).WithMany(p => p.PayPaymentHolds)
+                .HasForeignKey(d => d.PayoutTransactionId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Pay_PaymentHold_Pay_PaymentHold");
+        });
+
+        modelBuilder.Entity<PayPayoutAccount>(entity =>
+        {
+            entity.HasKey(e => e.PayoutAccountId);
+
+            entity.ToTable("Pay_PayoutAccount");
+
+            entity.Property(e => e.PayoutAccountId).HasColumnName("payoutAccountId");
+            entity.Property(e => e.AccStatus)
+                .HasMaxLength(30)
+                .IsUnicode(false)
+                .HasColumnName("accStatus");
+            entity.Property(e => e.AccountDetails)
+                .HasMaxLength(2000)
+                .IsUnicode(false)
+                .HasColumnName("accountDetails");
+            entity.Property(e => e.IsPrincipal).HasColumnName("isPrincipal");
+            entity.Property(e => e.MethodOfPayment).HasColumnName("methodOfPayment");
+            entity.Property(e => e.NumberAccount)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("numberAccount");
+            entity.Property(e => e.UserId).HasColumnName("userId");
+
+            entity.HasOne(d => d.MethodOfPaymentNavigation).WithMany(p => p.PayPayoutAccounts)
+                .HasForeignKey(d => d.MethodOfPayment)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Pay_PayoutAccount_Pay_MethodOfPayment");
+
+            entity.HasOne(d => d.User).WithMany(p => p.PayPayoutAccounts)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Pay_PayoutAccount_TU_User");
+        });
+
+        modelBuilder.Entity<PayPayoutTransaction>(entity =>
+        {
+            entity.HasKey(e => e.PayoutTransactionId);
+
+            entity.ToTable("Pay_PayoutTransaction");
+
+            entity.Property(e => e.PayoutTransactionId).HasColumnName("payoutTransactionId");
+            entity.Property(e => e.Amount)
+                .HasColumnType("decimal(18, 2)")
+                .HasColumnName("amount");
+            entity.Property(e => e.AttemptCount).HasColumnName("attemptCount");
+            entity.Property(e => e.FailureReason)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("failureReason");
+            entity.Property(e => e.HostId).HasColumnName("hostId");
+            entity.Property(e => e.MethodOfPaymentId).HasColumnName("methodOfPaymentId");
+            entity.Property(e => e.PayoutAccountId).HasColumnName("payoutAccountId");
+            entity.Property(e => e.PayoutDate)
+                .HasColumnType("datetime")
+                .HasColumnName("payoutDate");
+            entity.Property(e => e.PayoutStatus)
+                .HasMaxLength(15)
+                .IsUnicode(false)
+                .HasColumnName("payoutStatus");
+            entity.Property(e => e.PayoutType)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("payoutType");
+            entity.Property(e => e.PriceCalculationId).HasColumnName("priceCalculationId");
+            entity.Property(e => e.ScheduledPayoutDate)
+                .HasColumnType("datetime")
+                .HasColumnName("scheduledPayoutDate");
+
+            entity.HasOne(d => d.PayoutAccount).WithMany(p => p.PayPayoutTransactions)
+                .HasForeignKey(d => d.PayoutAccountId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Pay_PayoutTransaction_Pay_PayoutAccount");
+
+            entity.HasOne(d => d.PriceCalculation).WithMany(p => p.PayPayoutTransactions)
+                .HasForeignKey(d => d.PriceCalculationId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Pay_PayoutTransaction_Pay_PriceCalculation");
+        });
+
         modelBuilder.Entity<PayPriceCalculation>(entity =>
         {
             entity.HasKey(e => e.PriceCalculationId).HasName("PK__Pay_Pric__8F352993EC496654");
@@ -407,6 +563,8 @@ public partial class InfraAssertDbContext : DbContext
             entity.HasIndex(e => new { e.CalculationStatue, e.ExpirationDate }, "IX_Estado_FechaExpiracion");
 
             entity.HasIndex(e => e.BookId, "IX_ReservaID");
+
+            entity.HasIndex(e => e.DatetimePayment, "IX_datetimePayment");
 
             entity.HasIndex(e => e.ListingRentId, "NonClusteredIndex-ListingRentId-20250725");
 

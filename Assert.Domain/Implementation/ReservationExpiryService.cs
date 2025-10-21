@@ -36,8 +36,6 @@ namespace Assert.Domain.Implementation
         {
             _logger.LogInformation("Servicio de expiración de reservas iniciado. Intervalo: {Interval} minutos",
                                   _settings.Res_CheckIntervalMinutes);
-
-            // Espera inicial para que la aplicación se estabilice
             await Task.Delay(TimeSpan.FromSeconds(10), stoppingToken);
 
             while (!stoppingToken.IsCancellationRequested)
@@ -47,15 +45,6 @@ namespace Assert.Domain.Implementation
                     // Usar semáforo para evitar ejecuciones concurrentes
                     if (await _semaphore.WaitAsync(TimeSpan.FromSeconds(5), stoppingToken))
                     {
-                        //try
-                        //{
-                        //    await CheckAndExpireReservations();
-                        //    await CheckAndFinishReservation();
-                        //}
-                        //finally
-                        //{
-                        //    _semaphore.Release();
-                        //}
                         try
                         {
                             using var scope = _serviceProvider.CreateScope();
@@ -73,7 +62,6 @@ namespace Assert.Domain.Implementation
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
                     _logger.LogError(ex, "Error crítico en el servicio de expiración");
-                    // Espera adicional en caso de error para no saturar los logs
                     await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
                 }
 

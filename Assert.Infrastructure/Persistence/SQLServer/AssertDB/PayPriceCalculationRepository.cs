@@ -16,6 +16,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 {
@@ -224,6 +225,98 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 .ToListAsync();
 
             return CalculateSummary(monthlyData);
+        }
+
+        public async Task<BusinessReport> GetBusinessReportAsync(RevenueReportRequest request)
+        {
+            var report = new BusinessReport
+            {
+                StartDate = request.StartDate,
+                EndDate = request.EndDate
+            };
+
+            // Consulta base filtrada
+            var baseQuery = _context.PayPriceCalculations.AsQueryable();
+
+
+            // Aplicar filtros
+            baseQuery = ApplyFilters(baseQuery, request);
+
+
+            // 1. INGRESOS CONFIRMADOS (Ya pagados)
+            var confirmedRevenue = await baseQuery.Where(x => x.DatetimePayment != null)
+                .SumAsync(x => x.Amount);
+
+            report.ConfirmedRevenue = confirmedRevenue;
+
+            // 2. FUTUROS INGRESOS (Reservas confirmadas)
+            var futureRevenue = await baseQuery.Where(x => x.DatetimePayment != null && x.PayPayoutTransactions == null)
+                .SumAsync(x => x.Amount);
+
+            report.FutureRevenue = futureRevenue;
+
+            // 3. INGRESO ASSERT (Comisiones de plataforma)
+            var assertIncome = await baseQuery.Where(x => x.DatetimePayment != null)
+                .SumAsync(x => x.PlatformFee);
+
+            report.AssertFee = assertIncome ?? 0;
+
+            // 4. RESERVAS CONFIRMADAS Y CANCELADAS
+            var bookingsData = await baseQuery.Where(x => x.DatetimePayment != null)
+                .GroupBy(x => x.PriceCalculationId)
+                .Select(g => new
+                {
+                    StatusId = g.Key,
+                    Count = g.Count(),
+                    Book = g.Select(x => x.Book).FirstOrDefault()
+                })
+                .ToListAsync();
+
+            // Asumiendo estos status IDs (ajusta según tu sistema):
+            // 2 = Confirmado, 3 = Pagado, 4 = Cancelado, 5 = Rechazado
+            report.ConfirmedBookings = bookingsData
+                .Where(x => x.Book.BookStatusId == 2 || x.Book.BookStatusId == 3 || x.Book.BookStatusId == 6)
+                .Sum(x => x.Count);
+
+            report.CancelledBookings = bookingsData
+                .Where(x => x.Book.BookStatusId == 4 || x.Book.BookStatusId == 5 || x.Book.BookStatusId == 7)
+                .Sum(x => x.Count);
+
+            // 5. FACTOR DE OCUPACIÓN
+            var occupancyData = await CalculateOccupancyAsync(request);
+            report.OccupiedNights = occupancyData.OccupiedNights;
+            report.OccupancyRate = occupancyData.OccupancyRate;
+
+            return report;
+        }
+
+        private async Task<(int OccupiedNights, decimal OccupancyRate)> CalculateOccupancyAsync(RevenueReportRequest request)
+        {
+            // Consulta base filtrada
+            var baseQuery = _context.PayPriceCalculations.AsQueryable();
+
+
+            // Aplicar filtros
+            baseQuery = ApplyFilters(baseQuery, request);
+
+            // Obtener reservas confirmadas/pagadas que se superponen con el periodo
+            var occupiedBookings = await baseQuery
+                .Where(x => (x.Book != null && (x.Book.BookStatusId == 2 || x.Book.BookStatusId == 3 || x.Book.BookStatusId == 6))) // Superposición con el periodo
+                .Select(x => new
+                {
+                    ActualStart = x.InitBook < request.StartDate ? request.StartDate : x.InitBook,
+                    ActualEnd = x.EndBook > request.EndDate ? request.EndDate : x.EndBook
+                })
+                .ToListAsync();
+
+            // Calcular total de noches ocupadas
+            var occupiedNights = occupiedBookings
+                .Sum(booking => (int)((TimeSpan)(booking.ActualEnd - booking.ActualStart)).TotalDays + 1);
+
+            // Calcular factor de ocupación: (noches ocupadas * 100 / 30 días)
+            var occupancyRate = (decimal)occupiedNights * 100 / 30;
+
+            return (occupiedNights, Math.Round(occupancyRate, 2));
         }
 
         private IQueryable<PayPriceCalculation> ApplyFilters(
