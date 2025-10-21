@@ -622,4 +622,70 @@ public class AppUserService(
         };
     }
     #endregion
+
+    #region close & restore user account
+    public async Task<ReturnModelDTO> GetUserSelectionOptions()
+    {
+        var options = await _userRepository.GetUserSelectionOptionsAsync();
+        
+        var response = _mapper.Map<List<UserSelectionOptionDTO>>(options);
+        
+        return new ReturnModelDTO
+        {
+            StatusCode = ResultStatusCode.OK,
+            Data = response
+        };
+    }
+
+    public async Task<ReturnModelDTO> CloseUserAccount(int userAccountClosedId, int userSelectionOptionsId)
+    {
+        var response = await _userRepository.UpsertUserAccountClosed(
+            userAccountClosedId, userSelectionOptionsId);
+        
+        return new ReturnModelDTO
+        {
+            StatusCode = ResultStatusCode.OK,
+            Data = response
+        };
+    }
+
+    public async Task<ReturnModelDTO> RestoreUserAccount(int userAccountClosedId)
+    {
+        var response = await _userRepository.UpsertUserAccountRestore(userAccountClosedId);
+        
+        return new ReturnModelDTO
+        {
+            StatusCode = ResultStatusCode.OK,
+            Data = response
+        };
+    }
+
+    public async Task<ReturnModelDTO> GetUserAccountClosed()
+    {
+        var userAccountClosed = await _userRepository.GetUserAccountClosedAsync();
+        
+        if (userAccountClosed == null)
+        {
+            return new ReturnModelDTO
+            {
+                StatusCode = ResultStatusCode.NotFound,
+                HasError = true,
+                ResultError = new ErrorCommonDTO
+                {
+                    Title = "Cuenta cerrada no encontrada",
+                    Message = "No se encontró información de cuenta cerrada para el usuario.",
+                    Code = ResultStatusCode.NotFound.ToString()
+                }
+            };
+        }
+        
+        var response = _mapper.Map<UserAccountClosedDTO>(userAccountClosed);
+        
+        return new ReturnModelDTO
+        {
+            StatusCode = ResultStatusCode.OK,
+            Data = response
+        };
+    }
+    #endregion
 }

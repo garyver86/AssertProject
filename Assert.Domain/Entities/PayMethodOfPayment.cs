@@ -17,7 +17,11 @@ public partial class PayMethodOfPayment
 
     public string? MopCode { get; set; }
 
+    public virtual ICollection<PayAccount> PayAccounts { get; set; } = new List<PayAccount>();
+
     public virtual ICollection<PayCountryConfiguration> PayCountryConfigurations { get; set; } = new List<PayCountryConfiguration>();
+
+    public virtual ICollection<PayPayoutAccount> PayPayoutAccounts { get; set; } = new List<PayPayoutAccount>();
 
     public virtual ICollection<PayPriceCalculation> PayPriceCalculations { get; set; } = new List<PayPriceCalculation>();
 

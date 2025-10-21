@@ -43,5 +43,11 @@ namespace Assert.Domain.Repositories
         Task<ReturnModel<(List<Profile>, PaginationMetadata)>> SearchHostAsync(SearchFilters filters, int pageNumber, int pageSize);
         Task<ReturnModel<(List<TuUser>, PaginationMetadata)>> GetUserByRoleCodeAsync(
             SearchFiltersToUser filters, string roleCode, int pageNumber, int pageSize);
+
+        Task<List<TuUserSelectionOption>> GetUserSelectionOptionsAsync();
+        Task<string> UpsertUserAccountClosed(int userAccountClosedId,
+            int userSelectionOptionsId);
+        Task<string> UpsertUserAccountRestore(int userAccountClosedId);
+        Task<TuUserAccountClosed> GetUserAccountClosedAsync();
     }
 }

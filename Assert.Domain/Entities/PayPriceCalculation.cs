@@ -71,6 +71,8 @@ public partial class PayPriceCalculation
 
     public virtual PayMethodOfPayment? MethodOfPayment { get; set; }
 
+    public virtual ICollection<PayPayoutTransaction> PayPayoutTransactions { get; set; } = new List<PayPayoutTransaction>();
+
     public virtual PayProvider? PaymentProvider { get; set; }
 
     public virtual PayTransaction? PaymentTransaction { get; set; }

@@ -31,4 +31,9 @@ public interface IAppUserService
     Task<ReturnModelDTO<(List<ProfileDTO>, PaginationMetadataDTO)>> SearchHosts(SearchFilters filters, int pageNumber, int pageSize, int userId, Dictionary<string, string> requestInfo, bool useTechnicalMessages);
     Task<ReturnModelDTO_Pagination> GetUserByRoleCode(
             SearchFiltersToUser filters, string roleCode, int pageNumber, int pageSize);
+
+    Task<ReturnModelDTO> GetUserSelectionOptions();
+    Task<ReturnModelDTO> CloseUserAccount(int userAccountClosedId, int userSelectionOptionsId);
+    Task<ReturnModelDTO> RestoreUserAccount(int userAccountClosedId);
+    Task<ReturnModelDTO> GetUserAccountClosed();
 }

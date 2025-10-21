@@ -19,6 +19,8 @@ public partial class TuAccount
 
     public DateTime? DateLastLogin { get; set; }
 
+    public DateTime? DateLastChangePwd { get; set; }
+
     public string? IpLastLogin { get; set; }
 
     public string? Status { get; set; }

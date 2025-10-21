@@ -15,6 +15,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualBasic;
 using System.Data;
 using System.Net.Http.Headers;
 
@@ -663,6 +664,148 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                 return new ReturnModel<List<TuUserRole>> { StatusCode = ResultStatusCode.NotFound };
             }
         }
+
+        #region close & restore user account
+        public async Task<List<TuUserSelectionOption>> GetUserSelectionOptionsAsync()
+        {
+            try
+            {
+                var options = await _dbContext.TuUserSelectionOptions
+                    .Include(o => o.UserGroupType)
+                    .AsNoTracking()
+                    .Where(x => x.Status == "AC")
+                    .ToListAsync();
+
+                return options;
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, null);
+                throw new InfrastructureException(ex.Message);
+            }
+        }
+
+        public async Task<string> UpsertUserAccountClosed(int userAccountClosedId,
+            int userSelectionOptionsId)
+        {
+            try
+            {
+                var user = await _dbContext.TuUsers
+                    .FirstOrDefaultAsync(u => u.UserId == _metadata.UserId);
+                if (user is null)
+                    throw new NotFoundException($"Usuario no encontrado con id: {_metadata.UserId}");
+
+                TuUserAccountClosed entity;
+
+                if (userAccountClosedId > 0)
+                {
+                    entity = await _dbContext.TuUserAccountCloseds
+                        .FirstOrDefaultAsync(x => x.UserAccountClosedId == userAccountClosedId);
+
+                    if (entity is null)
+                        throw new NotFoundException($"Registro UserAccountClosed no encontrado con id: {userAccountClosedId}");
+                }
+                else
+                {
+                    entity = new TuUserAccountClosed
+                    {
+                        UserId = _metadata.UserId,
+                        Status = "AC"
+                    };
+                    await _dbContext.TuUserAccountCloseds.AddAsync(entity);
+                }
+
+                entity.UserSelectionOptionsId = userSelectionOptionsId;
+                entity.ClosingDate = DateTime.Now;
+
+                #region set user status to closed
+                var statusClosed = await _dbContext.TuUserStatusTypes
+                    .FirstOrDefaultAsync(x => x.Code == "CLO");
+                if (statusClosed is null)
+                    throw new NotFoundException("Estado de usuario cerrado (CLO) no encontrado.");
+
+                user.UserStatusTypeId = statusClosed.UserStatusTypeId;
+                user.Status = statusClosed.Code;
+                #endregion
+
+                await _dbContext.SaveChangesAsync();
+
+                return "SAVED";
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { userAccountClosedId, userSelectionOptionsId });
+                throw new InfrastructureException(ex.Message);
+            }
+        }
+
+        public async Task<string> UpsertUserAccountRestore(int userAccountClosedId)
+        {
+            try
+            {
+                var user = await _dbContext.TuUsers
+                    .FirstOrDefaultAsync(u => u.UserId == _metadata.UserId);
+                if (user is null)
+                    throw new NotFoundException($"Usuario no encontrado con id: {_metadata.UserId}");
+
+                var userAccountClosed = await _dbContext.TuUserAccountCloseds
+                    .FirstOrDefaultAsync(x => x.UserAccountClosedId == userAccountClosedId);
+
+                if (userAccountClosed is null)
+                    throw new NotFoundException($"Registro UserAccountClosed no encontrado con id: {userAccountClosedId}");
+
+                userAccountClosed.OpeningDate = DateTime.Now;
+                userAccountClosed.Status = "IN";
+
+                #region restore user status to active
+                var statusActive = await _dbContext.TuUserStatusTypes
+                    .FirstOrDefaultAsync(x => x.Code == "AC");
+                if (statusActive is null)
+                    throw new NotFoundException("Estado de usuario activo (AC) no encontrado.");
+
+                user.UserStatusTypeId = statusActive.UserStatusTypeId;
+                user.Status = statusActive.Code;
+                #endregion
+
+                await _dbContext.SaveChangesAsync();
+
+                return "RESTORED";
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, new { userAccountClosedId });
+                throw new InfrastructureException(ex.Message);
+            }
+        }
+
+        public async Task<TuUserAccountClosed> GetUserAccountClosedAsync()
+        {
+            try
+            {
+                var userAccountClosed = await _dbContext.TuUserAccountCloseds
+                    .Include(x => x.UserSelectionOptions)
+                        .ThenInclude(o => o.UserGroupType)
+                    .AsNoTracking()
+                    .Where(x => x.UserId == _metadata.UserId && x.Status == "AC")
+                    .FirstOrDefaultAsync();
+
+                if(userAccountClosed is null)
+                    throw new NotFoundException($"No existe registro de cierre de cuenta del usuario con id: {_metadata.UserId}");
+
+                return userAccountClosed;
+            }
+            catch (Exception ex)
+            {
+                var (className, methodName) = this.GetCallerInfo();
+                _exceptionLoggerService.LogAsync(ex, methodName, className, null);
+                throw new InfrastructureException(ex.Message);
+            }
+        }
+
+        #endregion
 
         #region profile & reviews
         public async Task<Profile> GetAllProfile()

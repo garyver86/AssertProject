@@ -47,6 +47,10 @@ public partial class TuUser
 
     public virtual TuGenderType? GenderType { get; set; }
 
+    public virtual ICollection<PayAccount> PayAccounts { get; set; } = new List<PayAccount>();
+
+    public virtual ICollection<PayPayoutAccount> PayPayoutAccounts { get; set; } = new List<PayPayoutAccount>();
+
     public virtual ICollection<PayPriceCalculation> PayPriceCalculations { get; set; } = new List<PayPriceCalculation>();
 
     public virtual TuPlatform? Platform { get; set; }
@@ -108,6 +112,8 @@ public partial class TuUser
     public virtual ICollection<TuPhone> TuPhones { get; set; } = new List<TuPhone>();
 
     public virtual ICollection<TuProfilePhoto> TuProfilePhotos { get; set; } = new List<TuProfilePhoto>();
+
+    public virtual ICollection<TuUserAccountClosed> TuUserAccountCloseds { get; set; } = new List<TuUserAccountClosed>();
 
     public virtual ICollection<TuUserListingRent> TuUserListingRents { get; set; } = new List<TuUserListingRent>();
 

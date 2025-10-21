@@ -284,4 +284,66 @@ public class UserController : Controller
     [Authorize(Policy = "GuestOrHostOrAdmin")]
     public async Task<ReturnModelDTO> UnblockAsHost(int id)
     => await _userService.UnblockAsHost(id, _metadata.UserId, HttpContext.GetRequestInfo(), true);
+
+
+    /// <summary>
+    /// Servicio que obtiene las opciones de selección disponibles para cerrar una cuenta de usuario.
+    /// </summary>
+    /// <returns>Lista de opciones de cierre de cuenta.</returns>
+    /// <response code="200">Si se procesó correctamente.</response>
+    /// <remarks>
+    /// Retorna todas las opciones activas que el usuario puede seleccionar al momento de cerrar su cuenta.
+    /// Estas opciones pueden estar agrupadas por categorías según el tipo de grupo de usuario.
+    /// </remarks>
+    [HttpGet("GetUserSelectionOptions")]
+    [Authorize(Policy = "GuestOrHostOrAdmin")]
+    public async Task<ReturnModelDTO> GetUserSelectionOptions()
+    => await _userService.GetUserSelectionOptions();
+
+    /// <summary>
+    /// Servicio que cierra la cuenta del usuario logeado.
+    /// </summary>
+    /// <param name="userAccountClosedId">ID del registro de cuenta cerrada (0 para crear nuevo).</param>
+    /// <param name="userSelectionOptionsId">ID de la opción seleccionada por el usuario.</param>
+    /// <returns>Confirmación del cierre: SAVED.</returns>
+    /// <response code="200">Si se procesó correctamente.</response>
+    /// <remarks>
+    /// Cierra la cuenta del usuario y registra la razón seleccionada.
+    /// El usuario no podrá acceder a la plataforma hasta que la cuenta sea restaurada.
+    /// UserAccountClosedId debe ser 0 para crear un nuevo registro, o el ID existente para actualizar.
+    /// </remarks>
+    [HttpPost("CloseUserAccount")]
+    [Authorize(Policy = "GuestOrHostOrAdmin")]
+    public async Task<ReturnModelDTO> CloseUserAccount(int userAccountClosedId, int userSelectionOptionsId)
+    => await _userService.CloseUserAccount(userAccountClosedId, userSelectionOptionsId);
+
+    /// <summary>
+    /// Servicio que restaura una cuenta de usuario previamente cerrada.
+    /// </summary>
+    /// <param name="userAccountClosedId">ID del registro de cuenta cerrada.</param>
+    /// <returns>Confirmación de la restauración: RESTORED.</returns>
+    /// <response code="200">Si se procesó correctamente.</response>
+    /// <remarks>
+    /// Restaura el acceso a la cuenta del usuario que fue previamente cerrada.
+    /// El usuario podrá volver a iniciar sesión y usar normalmente la plataforma.
+    /// </remarks>
+    [HttpPut("RestoreUserAccount/{userAccountClosedId}")]
+    [Authorize(Policy = "GuestOrHostOrAdmin")]
+    public async Task<ReturnModelDTO> RestoreUserAccount(int userAccountClosedId)
+    => await _userService.RestoreUserAccount(userAccountClosedId);
+
+    /// <summary>
+    /// Servicio que obtiene información sobre el cierre de cuenta del usuario logeado.
+    /// </summary>
+    /// <returns>Información del cierre de cuenta incluyendo fecha y razón.</returns>
+    /// <response code="200">Si se procesó correctamente.</response>
+    /// <response code="404">Si no existe información de cierre de cuenta para el usuario.</response>
+    /// <remarks>
+    /// Retorna los detalles del último cierre de cuenta del usuario actual,
+    /// incluyendo la opción seleccionada, fechas de cierre y apertura (si aplica).
+    /// </remarks>
+    [HttpGet("GetUserAccountClosed")]
+    [Authorize(Policy = "GuestOrHostOrAdmin")]
+    public async Task<ReturnModelDTO> GetUserAccountClosed()
+    => await _userService.GetUserAccountClosed();
 }

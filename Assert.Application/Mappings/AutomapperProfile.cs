@@ -50,6 +50,9 @@ namespace Assert.Application.Mappings
             CreateMap<MetricEntry, MetricEntryDTO>().ReverseMap();
             CreateMap<MetricEntryInt, MetricEntryIntDTO>().ReverseMap();
 
+            CreateMap<TuUserSelectionOption, UserSelectionOptionDTO>().ReverseMap();
+            CreateMap<TuUserGroupType, UserGroupTypeDTO>().ReverseMap();
+            CreateMap<TuUserAccountClosed, UserAccountClosedDTO>().ReverseMap();
 
             CreateMap<ProcessDataRequest, ListingProcessDataModel>();
             CreateMap<AddressDTO, ProcessData_AddressModel>();
