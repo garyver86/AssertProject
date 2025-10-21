@@ -75,6 +75,36 @@ namespace Assert.API.Controllers
             return result;
         }
 
+
+        /// <summary>
+        /// Servicio que devuelve el reporte de ingesos, ocupación %, reservas confirmadas e fees asssert para un usuario en específico.
+        /// </summary>
+        /// <param name="request">Filtros de fechas/año para recuperar ingresos agrupados por mes.</param>
+        /// <returns>reporte de ingresos.</returns>
+        /// <response code="200">Si se proceso correctamente.</response>
+        [HttpPost("GetBusinessReport/{userId}")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> GetBusinessReportByUserAsync([FromBody] RevenueReportRequestDTO request, int userId)
+        {
+            var result = await _dashboardService.GetBusinessReportByUserAsync(request, userId);
+            return result;
+        }
+
+
+        /// <summary>
+        /// Servicio que devuelve el reporte de ingesos, ocupación %, reservas confirmadas e fees asssert para un usuario en específico en un año.
+        /// </summary>
+        /// <param name="year">Año del cual se desean recuperar los ingresos.</param>
+        /// <returns>reporte de ingresos.</returns>
+        /// <response code="200">Si se proceso correctamente.</response>
+        [HttpGet("GetBusinessReport/{year}/{userId}")]
+        [Authorize(Policy = "GuestOrHostOrAdmin")]
+        public async Task<ReturnModelDTO> GetBusinessReportByYearAndUserAsync(int year, int userId)
+        {
+            var result = await _dashboardService.GetBusinessReportByYearAndUserAsync(year, userId);
+            return result;
+        }
+
         /// <summary>
         /// Recupera la información agregada del dashboard para un año específico, con opción de filtrar por mes.
         /// </summary>
