@@ -781,6 +781,10 @@ public partial class AssertDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("transactionStatusCode");
 
+            entity.HasOne(d => d.Booking).WithMany(p => p.PayTransactions)
+                .HasForeignKey(d => d.BookingId)
+                .HasConstraintName("FK_Pay_Transaction_TB_Book");
+
             entity.HasOne(d => d.Country).WithMany(p => p.PayTransactions)
                 .HasForeignKey(d => d.CountryId)
                 .OnDelete(DeleteBehavior.ClientSetNull)

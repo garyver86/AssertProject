@@ -157,7 +157,7 @@ namespace Assert.API.Controllers
         [HttpGet]
         [Authorize(Policy = "GuestOrHostOrAdmin")]
         [Route("Dashboard/GetPropertyRanking")]
-        public async Task<ReturnModelDTO<ListingRentRankingDTO>> GetPropertyRanking(long hostId, DateTime startDate, DateTime endDate)
+        public async Task<ReturnModelDTO<List<ListingRentRankingDTO>>> GetPropertyRanking(long hostId, DateTime startDate, DateTime endDate)
         => await _dashboardService.GetPropertyRanking(hostId, startDate, endDate);
     }
 }

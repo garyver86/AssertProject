@@ -103,6 +103,8 @@ public partial class TbBook
 
     public virtual ICollection<PayPriceCalculation> PayPriceCalculations { get; set; } = new List<PayPriceCalculation>();
 
+    public virtual ICollection<PayTransaction> PayTransactions { get; set; } = new List<PayTransaction>();
+
     public virtual TReasonRefusedBook? ReasonRefused { get; set; }
 
     public virtual ICollection<TbBookCancellation> TbBookCancellations { get; set; } = new List<TbBookCancellation>();

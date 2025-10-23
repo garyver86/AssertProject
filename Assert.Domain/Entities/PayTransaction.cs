@@ -35,6 +35,8 @@ public partial class PayTransaction
 
     public DateTime? CupdatedAt { get; set; }
 
+    public virtual TbBook? Booking { get; set; }
+
     public virtual TCountry Country { get; set; } = null!;
 
     public virtual PayMethodOfPayment MethodOfPayment { get; set; } = null!;

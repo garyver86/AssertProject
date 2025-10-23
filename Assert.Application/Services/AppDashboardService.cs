@@ -117,13 +117,13 @@ namespace Assert.Application.Services
             };
         }
 
-        public async Task<ReturnModelDTO<ListingRentRankingDTO>> GetPropertyRanking(long hostId,
+        public async Task<ReturnModelDTO<List<ListingRentRankingDTO>>> GetPropertyRanking(long hostId,
             DateTime startDate, DateTime endDate)
         {
             var propertyRankingList = await _bookRespository.GetListingRentRankingAsync(hostId, startDate, endDate);
-            var propertyRankingDtoList = _mapper.Map<ListingRentRankingDTO>(propertyRankingList);
+            var propertyRankingDtoList = _mapper.Map<List<ListingRentRankingDTO>>(propertyRankingList);
 
-            return new ReturnModelDTO<ListingRentRankingDTO>
+            return new ReturnModelDTO<List<ListingRentRankingDTO>>
             {
                 Data = propertyRankingDtoList,
                 HasError = false,

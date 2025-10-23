@@ -1268,12 +1268,13 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .ThenInclude(lr => lr.TlListingPhotos)
                 .Include(b => b.PayPriceCalculations)
                     .ThenInclude(p => p.CalculationStatus)
+                .Include(b => b.PayTransactions)
                 .Where(b =>
                     b.ListingRent.OwnerUserId == hostId &&
-                    b.InitDate.HasValue &&
-                    b.InitDate.Value.Date <= endDate.Date &&
+                    b.StartDate.Date <= endDate.Date &&
                     b.EndDate.Date >= startDate.Date &&
-                    (b.BookStatus.Code == "rented" || b.BookStatus.Code == "completed"))
+                    b.PayTransactions.Any(t => t.TransactionStatus == "AUTHORISED"))
+                //(b.BookStatus.Code == "rented" || b.BookStatus.Code == "completed"))
                 .ToListAsync();
 
                 var grouped = books
@@ -1288,9 +1289,13 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                                 .Where(p => p.CalculationStatus?.PriceCalculationStatusCode == "PAYED"))
                             .ToList();
 
-                        var totalRent = payedCalculations.Sum(p => p.Amount);
-                        var discounts = payedCalculations.Sum(p => p.Discounts);
-                        var additionalFees = payedCalculations.Sum(p => p.AdditionalFees);
+                        var totalRent = g
+                            .SelectMany(b => b.PayTransactions
+                                .Where(t => t.TransactionStatus == "AUTHORISED"))
+                            .Sum(t => t.Amount);
+                        //var totalRent = payedCalculations.Sum(p => p.Amount);
+                        //var discounts = payedCalculations.Sum(p => p.Discounts);
+                        //var additionalFees = payedCalculations.Sum(p => p.AdditionalFees);
                         var platformFee = payedCalculations.Sum(p => p.PlatformFee);
                         var income = totalRent - (platformFee ?? 0);
 
@@ -1298,7 +1303,7 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
                         var occupiedDays = g.Sum(b =>
                         {
-                            var start = b.InitDate!.Value < startDate ? startDate : b.InitDate!.Value;
+                            var start = b.StartDate < startDate ? startDate : b.StartDate;
                             var end = b.EndDate > endDate ? endDate : b.EndDate;
                             return (end - start).Days;
                         });
@@ -1315,8 +1320,8 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                             ListingRentDescription = listing.Description ?? "",
                             PhotoLink = photo,
                             TotalRent = totalRent,
-                            AdditionalFees = additionalFees ?? 0,
-                            Discounts = discounts ?? 0,
+                            //AdditionalFees = additionalFees ?? 0,
+                            //Discounts = discounts ?? 0,
                             PlatformFee = platformFee ?? 0,
                             Income = income,
                             ReservationCount = reservationCount,

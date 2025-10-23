@@ -7,8 +7,8 @@ public class ListingRentRanking
     public string ListingRentDescription { get; set; } = string.Empty;
     public string PhotoLink { get; set; } = string.Empty;
     public decimal TotalRent { get; set; }
-    public decimal AdditionalFees { get; set; } = 0;
-    public decimal Discounts { get; set; } = 0;
+    //public decimal AdditionalFees { get; set; } = 0;
+    //public decimal Discounts { get; set; } = 0;
     public decimal PlatformFee { get; set; } = 0;
     public decimal Income { get; set; }
     public int ReservationCount { get; set; }
