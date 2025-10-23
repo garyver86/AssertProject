@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Assert.Application.DTOs.Responses;
+﻿namespace Assert.Application.DTOs.Responses;
 
 public class DashboardInfoDTO
 {
@@ -15,6 +9,10 @@ public class DashboardInfoDTO
     public string? MonthEnglish { get; set; }
 
     public FilterModeDto FilterMode { get; set; }
+    public string FilterModeStr
+    {
+        get { return FilterMode.ToString(); }
+    }
 
     public decimal TotalPaid { get; set; }
     public List<MetricEntryDTO> PaidByPeriod { get; set; } = [];

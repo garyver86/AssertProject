@@ -1159,70 +1159,101 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
             {
                 using var dbContext = new InfraAssertDbContext(dbOptions);
 
-                var books = await dbContext.TbBooks
+                var allBooks = await dbContext.TbBooks
                     .Include(b => b.BookStatus)
-                    .Where(b => b.ListingRent.OwnerUserId == _metadata.UserId
-                        && b.InitDate.HasValue)
+                    .Include(b => b.PayTransactions)
+                    .Where(b => b.ListingRent.OwnerUserId == _metadata.UserId)
                     .ToListAsync();
 
-                var rentedBooks = books
-                    .Where(b => b.BookStatus?.Code == "rented");
+                List<MetricEntry> paidByPeriod;
+                decimal totalPaid;
+                decimal totalUpcoming;
+                int totalConfirmed;
+                int totalNights;
+                decimal avgNights;
 
-                var approvedBooks = books
-                    .Where(b => b.BookStatus?.Code == "approved");
+                #region year mode
+                if (month == null) 
+                {
+                    int startYear = year - 3;
+                    int endYear = year + 1;
 
-                var filteredRented = rentedBooks
-                    .Where(b => b.InitDate!.Value.Year == year &&
-                               (!month.HasValue || b.InitDate!.Value.Month == month.Value));
+                    //totalPaid > year by year
+                    var yearlyPaidData = new Dictionary<int, decimal>();
+                    for (int y = startYear; y <= endYear; y++)
+                    {
+                        var paidForYear = allBooks
+                            .Where(b => b.BookStatus?.Code == "rented" &&
+                                       b.StartDate.Year == y) 
+                            .SelectMany(b => b.PayTransactions
+                                .Where(t => t.TransactionStatus == "AUTHORISED"))
+                            .Sum(t => t.Amount);
 
-                var filteredApproved = approvedBooks
-                    .Where(b => b.InitDate!.Value.Year == year &&
-                               (!month.HasValue || b.InitDate!.Value.Month == month.Value));
+                        yearlyPaidData[y] = paidForYear;
+                    }
 
-                #region totals
-                var totalPaid = filteredRented.Sum(b => b.AmountTotal);
-                var totalUpcoming = filteredApproved.Sum(b => b.AmountTotal);
-                var totalConfirmed = filteredRented.Count();
-                var totalNights = filteredRented.Sum(b => (b.EndDate - b.InitDate!.Value).Days);
-                var avgNights = totalConfirmed > 0 ? (decimal)totalNights / totalConfirmed : 0;
+                    //all data to current year
+                    var currentYearRented = allBooks
+                        .Where(b => b.BookStatus?.Code == "rented" && b.StartDate.Year == year);
+
+                    var currentYearApproved = allBooks
+                        .Where(b => b.BookStatus?.Code == "approved" && b.StartDate.Year == year);
+
+                    totalPaid = yearlyPaidData[year];
+                    totalUpcoming = currentYearApproved.Sum(b => b.AmountTotal);
+                    totalConfirmed = currentYearRented.Count();
+                    totalNights = currentYearRented.Sum(b => (b.EndDate - b.StartDate).Days);
+                    avgNights = totalConfirmed > 0 ? (decimal)totalNights / totalConfirmed : 0;
+
+                    //by year > only paid
+                    paidByPeriod = yearlyPaidData
+                        .OrderBy(kv => kv.Key)
+                        .Select(kv => new MetricEntry(kv.Key, kv.Value))
+                        .ToList();
+                }
                 #endregion
+                #region year&month mode
+                else
+                {
+                    //only totalPaid month by month 
+                    var monthlyPaidData = new Dictionary<int, decimal>();
 
-                Func<DateTime, int> periodSelector = month is null
-                    ? d => d.Month
-                    : d => d.Year;
+                    for (int m = 1; m <= 12; m++)
+                    {
+                        var paidForMonth = allBooks
+                    .Where(b => b.BookStatus?.Code == "rented" &&
+                               b.StartDate.Year == year &&
+                               b.StartDate.Month == m)
+                    .SelectMany(b => b.PayTransactions
+                        .Where(t => t.TransactionStatus == "AUTHORISED"))
+                    .Sum(t => t.Amount);
 
-                #region by period
-                var paidByPeriod = filteredRented
-                    .GroupBy(b => periodSelector(b.InitDate!.Value))
-                    .Select(g => new MetricEntry(g.Key, g.Sum(b => b.AmountTotal)))
-                    .OrderBy(m => m.Period)
-                    .ToList();
+                        monthlyPaidData[m] = paidForMonth;
+                    }
 
-                var upcomingByPeriod = filteredApproved
-                    .GroupBy(b => periodSelector(b.InitDate!.Value))
-                    .Select(g => new MetricEntry(g.Key, g.Sum(b => b.AmountTotal)))
-                    .OrderBy(m => m.Period)
-                    .ToList();
+                    //All data > only tu current year & month
+                    var currentMonthRented = allBooks
+                        .Where(b => b.BookStatus?.Code == "rented" &&
+                                   b.StartDate.Year == year &&
+                                   b.StartDate.Month == month.Value);
 
-                var confirmedByPeriod = filteredRented
-                    .GroupBy(b => periodSelector(b.InitDate!.Value))
-                    .Select(g => new MetricEntryInt(g.Key, g.Count()))
-                    .OrderBy(m => m.Period)
-                    .ToList();
+                    var currentMonthApproved = allBooks
+                        .Where(b => b.BookStatus?.Code == "approved" &&
+                                   b.StartDate.Year == year &&
+                                   b.StartDate.Month == month.Value);
 
-                var nightsByPeriod = filteredRented
-                    .GroupBy(b => periodSelector(b.InitDate!.Value))
-                    .Select(g => new MetricEntryInt(g.Key, g.Sum(b => (b.EndDate - b.InitDate!.Value).Days)))
-                    .OrderBy(m => m.Period)
-                    .ToList();
+                    totalPaid = monthlyPaidData[month.Value];
+                    totalUpcoming = currentMonthApproved.Sum(b => b.AmountTotal);
+                    totalConfirmed = currentMonthRented.Count();
+                    totalNights = currentMonthRented.Sum(b => (b.EndDate - b.StartDate).Days);
+                    avgNights = totalConfirmed > 0 ? (decimal)totalNights / totalConfirmed : 0;
 
-                var avgNightsByPeriod = filteredRented
-                    .GroupBy(b => periodSelector(b.InitDate!.Value))
-                    .Select(g => new MetricEntry(
-                        g.Key,
-                        g.Count() > 0 ? (decimal)g.Sum(b => (b.EndDate - b.InitDate!.Value).Days) / g.Count() : 0))
-                    .OrderBy(m => m.Period)
-                    .ToList();
+                    //by month (only paid)
+                    paidByPeriod = monthlyPaidData
+                        .OrderBy(kv => kv.Key)
+                        .Select(kv => new MetricEntry(kv.Key, kv.Value))
+                        .ToList();
+                }
                 #endregion
 
                 var result = new DashboardInfo
@@ -1233,16 +1264,16 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     TotalPaid = totalPaid,
                     TotalUpcoming = totalUpcoming,
                     PaidByPeriod = paidByPeriod,
-                    UpcomingByPeriod = upcomingByPeriod,
+                    UpcomingByPeriod = new(), 
 
                     TotalConfirmedBooks = totalConfirmed,
-                    ConfirmedBooksByPeriod = confirmedByPeriod,
+                    ConfirmedBooksByPeriod = new(), 
 
                     TotalNightsBooked = totalNights,
-                    NightsBookedByPeriod = nightsByPeriod,
+                    NightsBookedByPeriod = new(),
 
                     AverageNightsPerBook = avgNights,
-                    AverageNightsPerBookByPeriod = avgNightsByPeriod
+                    AverageNightsPerBookByPeriod = new()
                 };
 
                 return result;
