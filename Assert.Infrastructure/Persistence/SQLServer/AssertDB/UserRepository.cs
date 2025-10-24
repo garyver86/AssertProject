@@ -721,9 +721,9 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
 
                 #region set user status to closed
                 var statusClosed = await _dbContext.TuUserStatusTypes
-                    .FirstOrDefaultAsync(x => x.Code == "CLO");
+                    .FirstOrDefaultAsync(x => x.Code == "CL");
                 if (statusClosed is null)
-                    throw new NotFoundException("Estado de usuario cerrado (CLO) no encontrado.");
+                    throw new NotFoundException("Estado de usuario cerrado (CL) no encontrado.");
 
                 user.UserStatusTypeId = statusClosed.UserStatusTypeId;
                 user.Status = statusClosed.Code;
@@ -792,12 +792,12 @@ namespace Assert.Infrastructure.Persistence.SQLServer.AssertDB
                     .Where(x => x.UserId == _metadata.UserId && x.Status == "AC")
                     .FirstOrDefaultAsync();
 
-                if(userAccountClosed is null)
+                if (userAccountClosed is null)
                     throw new NotFoundException($"No existe registro de cierre de cuenta del usuario con id: {_metadata.UserId}");
 
                 return userAccountClosed;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not NotFoundException and not UnauthorizedException)
             {
                 var (className, methodName) = this.GetCallerInfo();
                 _exceptionLoggerService.LogAsync(ex, methodName, className, null);

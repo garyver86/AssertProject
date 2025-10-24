@@ -55,7 +55,7 @@ public class ExceptionMiddleware
             HasError = true,
             ResultError = new ErrorCommonDTO
             {
-                Title = "Error en la solicitud",
+                Title = statusCode == 200 ? "No existe el elemento" : "Error en la solicitud",
                 Code = statusCode.ToString(),
                 Message = errorMessage,
                 CorrelationId = correlationId
@@ -84,8 +84,9 @@ public class ExceptionMiddleware
         TimeoutException => StatusCodes.Status504GatewayTimeout,
 
         //users
-        NotFoundException => StatusCodes.Status404NotFound,
+        NotFoundException => StatusCodes.Status200OK,
         UnauthorizedException => StatusCodes.Status401Unauthorized,
+        InvalidTokenException => StatusCodes.Status401Unauthorized,
 
         //validations
         ValidationException => StatusCodes.Status400BadRequest,
@@ -94,17 +95,18 @@ public class ExceptionMiddleware
         DatabaseUnavailableException => StatusCodes.Status503ServiceUnavailable,
 
         //layers & bussinesExceptions
-        InvalidTokenException => StatusCodes.Status401Unauthorized,
-        ApplicationException => StatusCodes.Status400BadRequest,
         DomainException => StatusCodes.Status422UnprocessableEntity,
+        ApplicationException => StatusCodes.Status400BadRequest,
         InfrastructureException => StatusCodes.Status500InternalServerError,
+
         _ => StatusCodes.Status500InternalServerError
     };
 
     private string ProcessMessage(Exception exception) => exception switch
     {
         ApplicationException or DomainException or InfrastructureException
-        or DatabaseUnavailableException => exception.Message,
+        or DatabaseUnavailableException or NotFoundException or UnauthorizedException
+        or InvalidTokenException or ValidationException => exception.Message,
         _ => _env.IsDevelopment()
             ? $"{exception.Message} | StackTrace: {exception.StackTrace} | InnerException: {exception.InnerException?.Message}"
             : exception.Message

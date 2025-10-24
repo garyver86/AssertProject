@@ -668,7 +668,7 @@ public class AppUserService(
         {
             return new ReturnModelDTO
             {
-                StatusCode = ResultStatusCode.NotFound,
+                StatusCode = ResultStatusCode.OK,
                 HasError = true,
                 ResultError = new ErrorCommonDTO
                 {

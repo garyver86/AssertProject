@@ -303,7 +303,7 @@ public class UserController : Controller
     /// <summary>
     /// Servicio que cierra la cuenta del usuario logeado.
     /// </summary>
-    /// <param name="userAccountClosedId">ID del registro de cuenta cerrada (0 para crear nuevo).</param>
+    /// <param name="userAccountClosedId">ID del registro de cuenta cerrada (VACIO para crear nuevo).</param>
     /// <param name="userSelectionOptionsId">ID de la opción seleccionada por el usuario.</param>
     /// <returns>Confirmación del cierre: SAVED.</returns>
     /// <response code="200">Si se procesó correctamente.</response>
